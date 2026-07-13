@@ -10,6 +10,7 @@ try:
     from fastnltk._rust import (
         SnowballStemmer as _RustSnowballStemmer,
         PorterStemmer as _RustPorterStemmer,
+        LancasterStemmer as _RustLancasterStemmer,
     )
     _rust_available = True
 except ImportError:
@@ -76,3 +77,19 @@ class PorterStemmer:
 
     def stem(self, word):
         return self._impl.stem(word)
+
+
+class LancasterStemmer:
+    """Rust-accelerated Lancaster stemmer."""
+    def __init__(self):
+        if _rust_available:
+            self._impl = _RustLancasterStemmer()
+        else:
+            self._impl = _nltk_stem.LancasterStemmer()
+
+    def stem(self, word):
+        return self._impl.stem(word)
+
+    @property
+    def rule_tuple(self):
+        return None

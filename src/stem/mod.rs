@@ -5,6 +5,7 @@
 
 pub mod snowball;
 pub mod porter;
+pub mod lancaster;
 
 use pyo3::prelude::*;
 
@@ -12,5 +13,6 @@ use pyo3::prelude::*;
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<snowball::SnowballStemmer>()?;
     m.add_class::<porter::PorterStemmer>()?;
+    m.add_class::<lancaster::LancasterStemmer>()?;
     Ok(())
 }
