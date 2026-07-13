@@ -112,11 +112,36 @@ if ReppTokenizer is not None:
     __all__.append("ReppTokenizer")
 
 
+import functools
+
+@functools.lru_cache(maxsize=1)
+def _get_punkt_tokenizer():
+    """Lazy-loaded Punkt tokenizer with NLTK trained model."""
+    tok = _RustPunktSentenceTokenizer()
+    try:
+        import pickle
+        from nltk.data import find
+        path = find("tokenizers/punkt/english.pickle")
+        with open(str(path), "rb") as f:
+            model = pickle.load(f)
+        params = model._params
+        p = {
+            "abbrev_types": params.abbrev_types,
+            "collocations": frozenset(params.collocations),
+            "sent_starters": params.sent_starters,
+        }
+        tok.load(p)
+    except Exception:
+        pass
+    return tok
+
+
 def sent_tokenize(text, language="english"):
     """Sentence tokenization (Rust-accelerated Punkt)."""
     if _rust_available:
         try:
-            return _RustPunktSentenceTokenizer().sentences_from_text(text)
+            tok = _get_punkt_tokenizer()
+            return tok.sentences_from_text(text)
         except (ValueError, LookupError):
             pass
     return _nltk_tokenize.sent_tokenize(text, language)
