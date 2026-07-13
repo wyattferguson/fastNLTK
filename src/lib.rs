@@ -9,6 +9,7 @@ mod prelude;
 pub mod data;
 pub mod tokenize;
 pub mod stem;
+pub mod probability;
 pub mod tag;
 pub mod util;
 
@@ -23,6 +24,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // ── Tagging ──────────────────────────────────────────
     tag::register_module(m)?;
+
+    // ── Probability ──────────────────────────────────────
+    probability::register_module(m)?;
 
     Ok(())
 }
