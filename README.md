@@ -14,6 +14,57 @@ stemmer = SnowballStemmer("english")
 print(stemmer.stem("running"))  # "run"
 ```
 
+## Why fastNLTK?
+
+NLTK is the most widely-used NLP teaching library in Python. It's **pure Python** — every regex match, every loop, every dict lookup runs through the Python interpreter. This makes it:
+
+- **10-50x slower** than equivalent C/C++/Rust implementations
+- **Subject to regressions** — `word_tokenize` went from 0.55s → 216s on 30K chars between NLTK 3.8.1 and 3.8.2
+- **Unsuitable for production** — most production NLP pipelines use spaCy (Cython) or Stanza (PyTorch)
+
+**fastNLTK keeps the API, replaces the engine.** The hot paths are compiled to native code via Rust, delivering:
+
+| Component | Speedup vs NLTK | How |
+|---|---|---|
+| Regex tokenization | 10-50x | Rust `regex` crate (DFA, no backtracking) |
+| Punkt sentence detection | 10-50x | Algorithm ported to Rust, trained models from NLTK |
+| Snowball stemming | 15-20x | `rust-stemmers` crate (libstemmer in Rust) |
+| POS tagging | 5-6x | Averaged perceptron via `rustling` crate |
+| LM fitting/generation | 11-39x | Ngram + smoothing via `rustling` crate |
+| Edit distance | 17-62x | Direct port, no Python loop overhead |
+| Classification training | 3-8x | Training loops in Rust with GIL released |
+
+### Design Philosophy
+
+1. **API-identical** — swap `import nltk` → `import fastnltk`, nothing else changes
+2. **Progressive acceleration** — each module gets accelerated independently; unimplemented functions fall back to NLTK
+3. **No new data** — uses existing `nltk_data`; no re-downloads
+4. **Teachability preserved** — the Python shim is readable; users can still inspect the Python fallback
+5. **One wheel for all** — `abi3-py38` wheel covers CPython 3.8 through 3.13+
+
+### Comparison
+
+| Feature | NLTK | fastNLTK | spaCy | Stanza |
+|---|---|---|---|---|
+| API style | Functional + OOP | **Identical to NLTK** | Pipeline-based | Pipeline-based |
+| Speed (tokenization) | 1x | **10-50x** | ~8x (Cython) | ~3-5x (PyTorch) |
+| Speed (tagging) | 1x | **5-6x** | ~10x | ~3-5x |
+| Speed (stemming) | 1x | **15-20x** | N/A | N/A |
+| Teaching focus | ✅ Yes | ✅ Yes (shim layer) | ❌ No | ❌ No |
+| Neural models | ❌ No | ❌ No | ✅ Yes | ✅ Yes |
+| Corpus data | ✅ 50+ corpora | ✅ Same data | ❌ Limited | ❌ Limited |
+| CPU-only | ✅ Yes | ✅ Yes | ✅ Yes | ❌ Needs GPU for speed |
+
+### What Makes It Fast
+
+| Rust Crate | Purpose | Speedup Source |
+|---|---|---|
+| `regex` | Tokenization regex engine | Guaranteed linear-time DFA, no catastrophic backtracking |
+| `rust-stemmers` | Snowball stemming | 15-20x over Python loop (proven by vtext benchmarks) |
+| `rustling` | Perceptron tagger, LM, HMM | 5-39x over pure Python (proven by rustling benchmarks) |
+| `hashbrown` | Fast HashMaps | 10-15% faster than std HashMap |
+| `parking_lot` | Fast RwLock | 3-5x faster than std sync for model caches |
+
 ---
 
 ## Performance Benchmarks
@@ -242,98 +293,22 @@ fastNLTK is a **drop-in replacement** for NLTK. This means:
 
 ---
 
-## Why fastNLTK?
-
-### The Problem
-
-NLTK is the most widely-used NLP teaching library in Python. It's **pure Python** — every regex match, every loop, every dict lookup runs through the Python interpreter. This makes it:
-
-- **10-50x slower** than equivalent C/C++/Rust implementations
-- **Subject to regressions** — e.g., `word_tokenize` went from 0.55s → 216s on 30K chars between NLTK 3.8.1 and 3.8.2
-- **Unsuitable for production** — most production NLP pipelines use spaCy (Cython) or Stanza (PyTorch)
-
-### The Solution
-
-**Keep the API, replace the engine.** fastNLTK compiles the hot paths to native code via Rust, achieving:
-
-| Component | Speedup vs NLTK | How |
-|---|---|---|
-| Regex tokenization | 10-50x | Rust `regex` crate (DFA, no backtracking) |
-| Punkt sentence detection | 10-50x | Algorithm ported to Rust, trained models from NLTK |
-| Snowball stemming | 15-20x | `rust-stemmers` crate (libstemmer in Rust) |
-| POS tagging | 5-6x | Averaged perceptron via `rustling` crate |
-| LM fitting/generation | 11-39x | Ngram + smoothing via `rustling` crate |
-| Edit distance | 17-62x | Direct port, no Python loop overhead |
-| Classification training | 3-8x | Training loops in Rust with GIL released |
-
-### Design Philosophy
-
-1. **API-identical** — swap `import nltk` → `import fastnltk`, nothing else changes
-2. **Progressive acceleration** — each module gets accelerated independently; unimplemented functions fall back to NLTK
-3. **No new data** — uses existing `nltk_data`; no re-downloads
-4. **Teachability preserved** — the Python shim is readable; users can still inspect the Python fallback
-5. **One wheel for all** — `abi3-py38` wheel covers CPython 3.8 through 3.13+
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────┐
-│                User Code                     │
-│    from fastnltk import word_tokenize        │
-└───────────────────┬─────────────────────────┘
-                    │
-┌───────────────────▼─────────────────────────┐
-│        Python Shim Layer (fastnltk/)         │
-│  • Validates arguments, converts types       │
-│  • Calls Rust extension or falls back to NLTK│
-│  • Handles data path resolution              │
-│  • Ships .pyi type stubs for autocomplete    │
-└───────────────────┬─────────────────────────┘
-                    │
-┌───────────────────▼─────────────────────────┐
-│       Rust Engine (src/ via PyO3/maturin)    │
-│                                               │
-│  ┌──────────┐  ┌──────────┐  ┌────────────┐  │
-│  │ tokenize │  │   stem   │  │    tag     │  │
-│  │ (regex,  │  │(rust-    │  │(rustling   │  │
-│  │  punkt)  │  │ stemmers)│  │ perceptron)│  │
-│  ├──────────┤  ├──────────┤  ├────────────┤  │
-│  │classify  │  │colloc'ns │  │probability │  │
-│  │(NB,MaxEn)│  │(ngram    │  │(FreqDist,  │  │
-│  │          │  │ scoring) │  │ ProbDist)  │  │
-│  ├──────────┤  ├──────────┤  ├────────────┤  │
-│  │    lm    │  │ metrics  │  │   chunk    │  │
-│  │(rustling)│  │(distance,│  │(regexp     │  │
-│  │          │  │ assoc)   │  │ grammar)   │  │
-│  └──────────┘  └──────────┘  └────────────┘  │
-│                                               │
-│  • Rust crates: regex, rust-stemmers,         │
-│    unicode-segmentation, hashbrown            │
-│  • GIL released during computation            │
-│  • Models loaded lazily with OnceLock cache   │
-└─────────────────────────────────────────────┘
-```
-
----
-
 ## Project Status
 
 | Phase | Module | Version | Status |
 |---|---|---|---|
-| P0 | Foundation (scaffold, CI, data layer) | v0.1.0 | 🚧 In progress |
-| P0 | Tokenization | v0.1.0 | 🚧 In progress |
-| P1 | Stemming | v0.2.0 | 📋 Planned |
-| P1 | Metrics | v0.2.0 | 📋 Planned |
-| P2 | POS tagging | v0.3.0 | 📋 Planned |
-| P3 | Classification | v0.4.0 | 📋 Planned |
-| P3 | Collocations & Probability | v0.4.0 | 📋 Planned |
-| P4 | Language models | v0.5.0 | 📋 Planned |
-| P4 | VADER sentiment, BLEU/METEOR | v0.5.0 | 📋 Planned |
-| P5 | Chunking | v0.6.0 | 📋 Planned |
-| P5 | Full API parity (all shims) | v0.6.0 | 📋 Planned |
-| — | v1.0.0 stable release | v1.0.0 | 📋 Planned (Week 20-24) |
+| P0 | Foundation (scaffold, CI, data layer) | v0.1.0 | ✅ Complete |
+| P0 | Tokenization | v0.1.0 | ✅ Complete |
+| P1 | Stemming | v0.2.0 | ✅ Complete |
+| P1 | Metrics | v0.2.0 | ✅ Complete |
+| P2 | POS tagging | v0.3.0 | ✅ Complete |
+| P3 | Classification | v0.4.0 | ✅ Complete |
+| P3 | Collocations & Probability | v0.4.0 | ✅ Complete |
+| P4 | Language models | v0.5.0 | ✅ Complete |
+| P4 | VADER sentiment, BLEU/METEOR | v0.5.0 | ✅ Complete |
+| P5 | Chunking | v0.6.0 | ✅ Complete |
+| P5 | Full API parity (all shims) | v0.6.0 | ✅ Complete |
+| — | v1.0.0 stable release | v1.0.0 | 📋 Planned |
 
 ---
 
@@ -467,21 +442,6 @@ Despite heavy crate reuse, ~6,250 LoC of Rust is custom for NLTK compatibility:
 - **NaiveBayes + MaxEnt classifiers** (~1,000 LoC) — training + inference loops
 - **RegexpChunkParser** (~300 LoC) — grammar compilation + tag sequence matching
 - **Data layer** (~300 LoC) — nltk_data finder, pickle → bincode converter
-
----
-
-## Comparison with Other Libraries
-
-| Feature | NLTK | fastNLTK | spaCy | Stanza |
-|---|---|---|---|---|
-| API style | Functional + OOP | **Identical to NLTK** | Pipeline-based | Pipeline-based |
-| Speed (tokenization) | 1x | **10-50x** | ~8x (Cython) | ~3-5x (PyTorch) |
-| Speed (tagging) | 1x | **5-6x** | ~10x | ~3-5x |
-| Speed (stemming) | 1x | **15-20x** | N/A | N/A |
-| Teaching focus | ✅ Yes | ✅ Yes (shim layer) | ❌ No | ❌ No |
-| Neural models | ❌ No | ❌ No | ✅ Yes | ✅ Yes |
-| Corpus data | ✅ 50+ corpora | ✅ Same data | ❌ Limited | ❌ Limited |
-| CPU-only | ✅ Yes | ✅ Yes | ✅ Yes | ❌ Needs GPU for speed |
 
 ---
 
