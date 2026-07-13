@@ -3,8 +3,6 @@
 
 use pyo3::prelude::*;
 
-use crate::prelude::*;
-
 static RULES: &[(&str, &str, i32)] = &[
     ("ai", "", 1), ("ance", "", 1), ("ence", "", 1), ("er", "", 1),
     ("ic", "", 1), ("able", "", 1), ("ible", "", 1), ("ant", "", 1),
@@ -32,7 +30,7 @@ impl LancasterStemmer {
             changed = false;
             for (suffix, replacement, _accept) in RULES {
                 if s.ends_with(suffix) && s.len() > suffix.len() + 1 {
-                    let new_len = s.len() - suffix.len() + replacement.len();
+                    let _new_len = s.len() - suffix.len() + replacement.len();
                     let mut new_s = s[..s.len() - suffix.len()].to_string();
                     new_s.push_str(replacement);
                     if new_s.len() >= 2 {

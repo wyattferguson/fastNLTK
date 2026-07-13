@@ -1,18 +1,22 @@
 //! Stemming — Rust-accelerated stemmers matching NLTK's API.
-//!
-//! Uses the `rust-stemmers` crate for Snowball algorithms,
-//! with custom implementations for Porter, Lancaster, and others.
 
 pub mod snowball;
 pub mod porter;
 pub mod lancaster;
+pub mod isri;
+pub mod cistem;
+pub mod rslp;
+pub mod regexp;
 
 use pyo3::prelude::*;
 
-/// Register all stemmer classes with the Python module.
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<snowball::SnowballStemmer>()?;
     m.add_class::<porter::PorterStemmer>()?;
     m.add_class::<lancaster::LancasterStemmer>()?;
+    m.add_class::<isri::ISRIStemmer>()?;
+    m.add_class::<cistem::Cistem>()?;
+    m.add_class::<rslp::RSLPStemmer>()?;
+    m.add_class::<regexp::RegexpStemmer>()?;
     Ok(())
 }
