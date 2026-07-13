@@ -9,6 +9,7 @@ mod prelude;
 pub mod data;
 pub mod tokenize;
 pub mod stem;
+pub mod tag;
 pub mod util;
 
 /// The Python extension module: `fastnltk._rust`.
@@ -19,6 +20,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // ── Stemming ─────────────────────────────────────────
     stem::register_module(m)?;
+
+    // ── Tagging ──────────────────────────────────────────
+    tag::register_module(m)?;
 
     Ok(())
 }

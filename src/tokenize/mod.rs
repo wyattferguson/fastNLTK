@@ -42,7 +42,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 ///
 /// Splits on sentence-ending punctuation (. ! ?) followed by space.
 /// Full Punkt-trained implementation coming in a later phase.
-#[pyfunction(signature = (text, language="english"))]
+#[pyfunction(name = "sent_tokenize", signature = (text, language="english"))]
 #[allow(unused_variables)]
 pub fn sent_tokenize_py(py: Python<'_>, text: &str, language: &str) -> PyResult<Vec<String>> {
     let result = py.allow_threads(|| {
@@ -68,7 +68,7 @@ pub fn sent_tokenize_py(py: Python<'_>, text: &str, language: &str) -> PyResult<
 }
 
 /// word_tokenize — word tokenization using Treebank rules.
-#[pyfunction(signature = (text, language="english", preserve_line=false))]
+#[pyfunction(name = "word_tokenize", signature = (text, language="english", preserve_line=false))]
 #[allow(unused_variables)]
 pub fn word_tokenize_py(
     py: Python<'_>,

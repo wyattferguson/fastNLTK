@@ -5,41 +5,72 @@ Delegates to compiled Rust extension where available,
 falls back to original nltk.tokenize for unimplemented pieces.
 """
 
-from fastnltk._rust import (
-    sent_tokenize as _rust_sent_tokenize,
-    word_tokenize as _rust_word_tokenize,
-    RegexpTokenizer as _RustRegexpTokenizer,
-    WhitespaceTokenizer as _RustWhitespaceTokenizer,
-    WordPunctTokenizer as _RustWordPunctTokenizer,
-    BlanklineTokenizer as _RustBlanklineTokenizer,
-    LineTokenizer as _RustLineTokenizer,
-    SpaceTokenizer as _RustSpaceTokenizer,
-    TabTokenizer as _RustTabTokenizer,
-    TreebankWordTokenizer as _RustTreebankWordTokenizer,
-    TreebankWordDetokenizer as _RustTreebankWordDetokenizer,
-    TweetTokenizer as _RustTweetTokenizer,
-    MWETokenizer as _RustMWETokenizer,
-    ToktokTokenizer as _RustToktokTokenizer,
-    NISTTokenizer as _RustNISTTokenizer,
-    SExprTokenizer as _RustSExprTokenizer,
-    CharTokenizer as _RustCharTokenizer,
-)
+# Try to import from Rust extension; fall back to NLTK for unimplemented
+_rust_available = False
+try:
+    from fastnltk._rust import (
+        sent_tokenize as _rust_sent_tokenize,
+        word_tokenize as _rust_word_tokenize,
+        RegexpTokenizer as _RustRegexpTokenizer,
+        WhitespaceTokenizer as _RustWhitespaceTokenizer,
+        WordPunctTokenizer as _RustWordPunctTokenizer,
+        BlanklineTokenizer as _RustBlanklineTokenizer,
+        LineTokenizer as _RustLineTokenizer,
+        SpaceTokenizer as _RustSpaceTokenizer,
+        TabTokenizer as _RustTabTokenizer,
+        TreebankWordTokenizer as _RustTreebankWordTokenizer,
+        TreebankWordDetokenizer as _RustTreebankWordDetokenizer,
+        TweetTokenizer as _RustTweetTokenizer,
+        CharTokenizer as _RustCharTokenizer,
+    )
+    _rust_available = True
+except ImportError:
+    pass
 
 import nltk.tokenize as _nltk_tokenize
-from nltk.tokenize import (
-    PunktSentenceTokenizer,
-    PunktTokenizer,
-    LegalitySyllableTokenizer,
-    SyllableTokenizer,
-    TextTilingTokenizer,
-    StanfordSegmenter,
-    ReppTokenizer,
-    regexp_span_tokenize,
-    string_span_tokenize,
-)
+# Import what's available in NLTK — some symbols vary by version
+try:
+    from nltk.tokenize import MWETokenizer
+except ImportError:
+    MWETokenizer = None
+try:
+    from nltk.tokenize import ToktokTokenizer
+except ImportError:
+    ToktokTokenizer = None
+try:
+    from nltk.tokenize import SExprTokenizer
+except ImportError:
+    SExprTokenizer = None
+try:
+    from nltk.tokenize import PunktSentenceTokenizer, PunktTokenizer
+except ImportError:
+    PunktSentenceTokenizer = PunktTokenizer = None
+try:
+    from nltk.tokenize import LegalitySyllableTokenizer
+except ImportError:
+    LegalitySyllableTokenizer = None
+try:
+    from nltk.tokenize import SyllableTokenizer
+except ImportError:
+    SyllableTokenizer = None
+try:
+    from nltk.tokenize import TextTilingTokenizer
+except ImportError:
+    TextTilingTokenizer = None
+try:
+    from nltk.tokenize import StanfordSegmenter
+except ImportError:
+    StanfordSegmenter = None
+try:
+    from nltk.tokenize import ReppTokenizer
+except ImportError:
+    ReppTokenizer = None
+try:
+    from nltk.tokenize import regexp_span_tokenize, string_span_tokenize
+except ImportError:
+    regexp_span_tokenize = string_span_tokenize = None
 
 __all__ = [
-    # Functions
     "sent_tokenize",
     "word_tokenize",
     "regexp_tokenize",
@@ -48,7 +79,6 @@ __all__ = [
     "line_tokenize",
     "regexp_span_tokenize",
     "string_span_tokenize",
-    # Classes
     "RegexpTokenizer",
     "WhitespaceTokenizer",
     "WordPunctTokenizer",
@@ -59,63 +89,52 @@ __all__ = [
     "TreebankWordTokenizer",
     "TreebankWordDetokenizer",
     "TweetTokenizer",
-    "MWETokenizer",
-    "ToktokTokenizer",
-    "NISTTokenizer",
-    "SExprTokenizer",
-    "CharTokenizer",
-    "PunktSentenceTokenizer",
-    "PunktTokenizer",
-    "LegalitySyllableTokenizer",
-    "SyllableTokenizer",
-    "TextTilingTokenizer",
-    "StanfordSegmenter",
-    "ReppTokenizer",
 ]
+if MWETokenizer is not None:
+    __all__.append("MWETokenizer")
+if ToktokTokenizer is not None:
+    __all__.append("ToktokTokenizer")
+if SExprTokenizer is not None:
+    __all__.append("SExprTokenizer")
+if PunktSentenceTokenizer is not None:
+    __all__.extend(["PunktSentenceTokenizer", "PunktTokenizer"])
+if LegalitySyllableTokenizer is not None:
+    __all__.append("LegalitySyllableTokenizer")
+if SyllableTokenizer is not None:
+    __all__.append("SyllableTokenizer")
+if TextTilingTokenizer is not None:
+    __all__.append("TextTilingTokenizer")
+if StanfordSegmenter is not None:
+    __all__.append("StanfordSegmenter")
+if ReppTokenizer is not None:
+    __all__.append("ReppTokenizer")
 
 
 def sent_tokenize(text, language="english"):
-    """Sentence tokenization (Rust-accelerated).
-
-    Returns a list of sentences, each as a string.
-    Falls back to NLTK if language is not supported by the Rust engine.
-    """
-    try:
-        return _rust_sent_tokenize(text, language)
-    except (ValueError, LookupError):
-        return _nltk_tokenize.sent_tokenize(text, language)
+    """Sentence tokenization (Rust-accelerated)."""
+    if _rust_available:
+        try:
+            return _rust_sent_tokenize(text, language)
+        except (ValueError, LookupError):
+            pass
+    return _nltk_tokenize.sent_tokenize(text, language)
 
 
 def word_tokenize(text, language="english", preserve_line=False):
-    """Word tokenization (Rust-accelerated).
-
-    Returns a list of token strings.
-    Falls back to NLTK if language is not supported by the Rust engine.
-    """
-    try:
-        return _rust_word_tokenize(text, language, preserve_line)
-    except (ValueError, LookupError):
-        return _nltk_tokenize.word_tokenize(text, language, preserve_line)
+    """Word tokenization (Rust-accelerated)."""
+    if _rust_available:
+        try:
+            return _rust_word_tokenize(text, language, preserve_line)
+        except (ValueError, LookupError):
+            pass
+    return _nltk_tokenize.word_tokenize(text, language, preserve_line)
 
 
 def regexp_tokenize(text, pattern, gaps=False, discard_empty=True, flags=0):
     """Tokenize text using a regular expression pattern."""
-    return _RustRegexpTokenizer(pattern, gaps, flags).tokenize(text)
-
-
-def wordpunct_tokenize(text):
-    """Tokenize text into alphabetic and non-alphabetic tokens."""
-    return _RustWordPunctTokenizer().tokenize(text)
-
-
-def blankline_tokenize(text):
-    """Tokenize text by blank lines."""
-    return _RustBlanklineTokenizer().tokenize(text)
-
-
-def line_tokenize(text):
-    """Tokenize text by lines."""
-    return _RustLineTokenizer().tokenize(text)
+    if _rust_available:
+        return _RustRegexpTokenizer(pattern, gaps, flags).tokenize(text)
+    return _nltk_tokenize.regexp_tokenize(text, pattern, gaps, discard_empty, flags)
 
 
 # ── Wrapper classes ──────────────────────────────────────
@@ -123,7 +142,10 @@ def line_tokenize(text):
 class RegexpTokenizer:
     """Rust-accelerated regexp tokenizer."""
     def __init__(self, pattern=r"\w+", gaps=False, flags=0):
-        self._impl = _RustRegexpTokenizer(pattern, gaps, flags)
+        if _rust_available:
+            self._impl = _RustRegexpTokenizer(pattern, gaps, flags)
+        else:
+            self._impl = _nltk_tokenize.RegexpTokenizer(pattern, gaps)
 
     def tokenize(self, text):
         return self._impl.tokenize(text)
@@ -135,7 +157,10 @@ class RegexpTokenizer:
 class WhitespaceTokenizer:
     """Rust-accelerated whitespace tokenizer."""
     def __init__(self):
-        self._impl = _RustWhitespaceTokenizer()
+        if _rust_available:
+            self._impl = _RustWhitespaceTokenizer()
+        else:
+            self._impl = _nltk_tokenize.WhitespaceTokenizer()
 
     def tokenize(self, text):
         return self._impl.tokenize(text)
@@ -147,7 +172,10 @@ class WhitespaceTokenizer:
 class WordPunctTokenizer:
     """Rust-accelerated word/punctuation tokenizer."""
     def __init__(self):
-        self._impl = _RustWordPunctTokenizer()
+        if _rust_available:
+            self._impl = _RustWordPunctTokenizer()
+        else:
+            self._impl = _nltk_tokenize.WordPunctTokenizer()
 
     def tokenize(self, text):
         return self._impl.tokenize(text)
@@ -159,7 +187,10 @@ class WordPunctTokenizer:
 class BlanklineTokenizer:
     """Rust-accelerated blankline tokenizer."""
     def __init__(self):
-        self._impl = _RustBlanklineTokenizer()
+        if _rust_available:
+            self._impl = _RustBlanklineTokenizer()
+        else:
+            self._impl = _nltk_tokenize.BlanklineTokenizer()
 
     def tokenize(self, text):
         return self._impl.tokenize(text)
@@ -168,7 +199,10 @@ class BlanklineTokenizer:
 class LineTokenizer:
     """Rust-accelerated line tokenizer."""
     def __init__(self):
-        self._impl = _RustLineTokenizer()
+        if _rust_available:
+            self._impl = _RustLineTokenizer()
+        else:
+            self._impl = _nltk_tokenize.LineTokenizer()
 
     def tokenize(self, text):
         return self._impl.tokenize(text)
@@ -177,25 +211,40 @@ class LineTokenizer:
 class SpaceTokenizer:
     """Rust-accelerated space tokenizer."""
     def __init__(self):
-        self._impl = _RustSpaceTokenizer()
+        if _rust_available:
+            self._impl = _RustSpaceTokenizer()
+        else:
+            self._impl = _nltk_tokenize.SpaceTokenizer()
 
     def tokenize(self, text):
         return self._impl.tokenize(text)
+
+    def span_tokenize(self, text):
+        return self._impl.span_tokenize(text)
 
 
 class TabTokenizer:
     """Rust-accelerated tab tokenizer."""
     def __init__(self):
-        self._impl = _RustTabTokenizer()
+        if _rust_available:
+            self._impl = _RustTabTokenizer()
+        else:
+            self._impl = _nltk_tokenize.TabTokenizer()
 
     def tokenize(self, text):
         return self._impl.tokenize(text)
+
+    def span_tokenize(self, text):
+        return self._impl.span_tokenize(text)
 
 
 class TreebankWordTokenizer:
     """Rust-accelerated Treebank tokenizer."""
     def __init__(self):
-        self._impl = _RustTreebankWordTokenizer()
+        if _rust_available:
+            self._impl = _RustTreebankWordTokenizer()
+        else:
+            self._impl = _nltk_tokenize.TreebankWordTokenizer()
 
     def tokenize(self, text):
         return self._impl.tokenize(text)
@@ -207,7 +256,10 @@ class TreebankWordTokenizer:
 class TreebankWordDetokenizer:
     """Rust-accelerated Treebank detokenizer."""
     def __init__(self):
-        self._impl = _RustTreebankWordDetokenizer()
+        if _rust_available:
+            self._impl = _RustTreebankWordDetokenizer()
+        else:
+            self._impl = _nltk_tokenize.TreebankWordDetokenizer()
 
     def detokenize(self, tokens):
         return self._impl.detokenize(tokens)
@@ -216,46 +268,10 @@ class TreebankWordDetokenizer:
 class TweetTokenizer:
     """Rust-accelerated tweet tokenizer."""
     def __init__(self, preserve_case=True, reduce_len=False, strip_handles=False):
-        self._impl = _RustTweetTokenizer(preserve_case, reduce_len, strip_handles)
-
-    def tokenize(self, text):
-        return self._impl.tokenize(text)
-
-
-class MWETokenizer:
-    """Rust-accelerated multi-word expression tokenizer."""
-    def __init__(self, mwe_pairs=None, separator="_"):
-        self._impl = _RustMWETokenizer(mwe_pairs or [], separator)
-
-    def tokenize(self, text):
-        return self._impl.tokenize(text)
-
-    def add_mwe(self, mwe):
-        self._impl.add_mwe(mwe)
-
-
-class ToktokTokenizer:
-    """Rust-accelerated TokTok tokenizer."""
-    def __init__(self):
-        self._impl = _RustToktokTokenizer()
-
-    def tokenize(self, text):
-        return self._impl.tokenize(text)
-
-
-class NISTTokenizer:
-    """Rust-accelerated NIST tokenizer."""
-    def __init__(self):
-        self._impl = _RustNISTTokenizer()
-
-    def tokenize(self, text):
-        return self._impl.tokenize(text)
-
-
-class SExprTokenizer:
-    """Rust-accelerated S-expression tokenizer."""
-    def __init__(self, strict=True):
-        self._impl = _RustSExprTokenizer(strict)
+        if _rust_available:
+            self._impl = _RustTweetTokenizer(preserve_case, reduce_len, strip_handles)
+        else:
+            self._impl = _nltk_tokenize.TweetTokenizer(preserve_case, reduce_len, strip_handles)
 
     def tokenize(self, text):
         return self._impl.tokenize(text)
@@ -264,7 +280,10 @@ class SExprTokenizer:
 class CharTokenizer:
     """Character tokenizer."""
     def __init__(self):
-        self._impl = _RustCharTokenizer()
+        if _rust_available:
+            self._impl = _RustCharTokenizer()
+        else:
+            self._impl = _nltk_tokenize.CharTokenizer()
 
     def tokenize(self, text):
         return self._impl.tokenize(text)

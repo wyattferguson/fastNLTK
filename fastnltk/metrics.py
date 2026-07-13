@@ -2,12 +2,14 @@
 fastnltk.metrics — Drop-in replacement for nltk.metrics.
 """
 
-from fastnltk._rust import (
-    edit_distance as _rust_edit_distance,
-    jaro_similarity,
-    jaro_winkler_similarity,
-    dice_similarity,
-)
+_rust_available = False
+try:
+    from fastnltk._rust import (
+        edit_distance as _rust_edit_distance_fn,
+    )
+    _rust_available = True
+except ImportError:
+    pass
 
 from nltk.metrics import (
     BigramAssocMeasures,
@@ -36,8 +38,7 @@ from nltk.metrics.distance import (
     fractional_presence,
 )
 
-from nltk.metrics.segmentation import windowdiff as _nltk_windowdiff
-from nltk.metrics.scores import (
+from nltk.metrics import (
     precision as _nltk_precision,
     recall as _nltk_recall,
     f_measure as _nltk_f_measure,
@@ -48,9 +49,6 @@ __all__ = [
     "jaccard_distance",
     "binary_distance",
     "masi_distance",
-    "jaro_similarity",
-    "jaro_winkler_similarity",
-    "dice_similarity",
     "BigramAssocMeasures",
     "TrigramAssocMeasures",
     "ConfusionMatrix",
@@ -61,5 +59,8 @@ __all__ = [
 
 
 def edit_distance(s1, s2, substitution_cost=1, transpositions=False):
-    """Rust-accelerated edit distance."""
-    return _rust_edit_distance(s1, s2, substitution_cost, transpositions)
+    """Edit distance — Rust-accelerated when available."""
+    if _rust_available:
+        return _rust_edit_distance_fn(s1, s2, substitution_cost, transpositions)
+    from nltk.metrics.distance import edit_distance as _nltk_edit_distance
+    return _nltk_edit_distance(s1, s2, substitution_cost, transpositions)

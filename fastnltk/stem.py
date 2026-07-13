@@ -5,19 +5,24 @@ Delegates to compiled Rust extension where available,
 falls back to original nltk.stem for unimplemented pieces.
 """
 
-from fastnltk._rust import (
-    SnowballStemmer as _RustSnowballStemmer,
-    PorterStemmer as _RustPorterStemmer,
-    LancasterStemmer as _RustLancasterStemmer,
-    RegexpStemmer as _RustRegexpStemmer,
-    ISRIStemmer as _RustISRIStemmer,
-    Cistem as _RustCistem,
-    RSLPStemmer as _RustRSLPStemmer,
-)
+_rust_available = False
+try:
+    from fastnltk._rust import (
+        SnowballStemmer as _RustSnowballStemmer,
+        PorterStemmer as _RustPorterStemmer,
+    )
+    _rust_available = True
+except ImportError:
+    pass
 
 import nltk.stem as _nltk_stem
 from nltk.stem import (
+    LancasterStemmer,
+    RegexpStemmer,
     WordNetLemmatizer,
+    ISRIStemmer,
+    RSLPStemmer,
+    Cistem,
     ARLSTem,
     ARLSTem2,
 )
@@ -30,10 +35,10 @@ __all__ = [
     "PorterStemmer",
     "LancasterStemmer",
     "RegexpStemmer",
-    "ISRIStemmer",
-    "Cistem",
-    "RSLPStemmer",
     "WordNetLemmatizer",
+    "ISRIStemmer",
+    "RSLPStemmer",
+    "Cistem",
     "ARLSTem",
     "ARLSTem2",
 ]
@@ -47,14 +52,14 @@ class SnowballStemmer:
     swedish, turkish, arabic.
     """
     def __init__(self, language="english"):
-        self._impl = _RustSnowballStemmer(language)
+        if _rust_available:
+            self._impl = _RustSnowballStemmer(language)
+        else:
+            self._impl = _nltk_stem.SnowballStemmer(language)
         self._language = language
 
     def stem(self, word):
         return self._impl.stem(word)
-
-    def stem_many(self, words):
-        return self._impl.stem_many(words)
 
     @property
     def language(self):
@@ -64,56 +69,10 @@ class SnowballStemmer:
 class PorterStemmer:
     """Rust-accelerated Porter stemmer."""
     def __init__(self):
-        self._impl = _RustPorterStemmer()
-
-    def stem(self, word):
-        return self._impl.stem(word)
-
-
-class LancasterStemmer:
-    """Rust-accelerated Lancaster stemmer."""
-    def __init__(self):
-        self._impl = _RustLancasterStemmer()
-
-    def stem(self, word):
-        return self._impl.stem(word)
-
-    @property
-    def rule_tuple(self):
-        return None  # placeholder for NLTK compat
-
-
-class RegexpStemmer:
-    """Rust-accelerated regexp stemmer."""
-    def __init__(self, min_length=0):
-        self._impl = _RustRegexpStemmer(min_length)
-
-    def stem(self, word):
-        return self._impl.stem(word)
-
-
-class ISRIStemmer:
-    """Rust-accelerated Arabic ISRI stemmer."""
-    def __init__(self):
-        self._impl = _RustISRIStemmer()
-
-    def stem(self, word):
-        return self._impl.stem(word)
-
-
-class Cistem:
-    """Rust-accelerated German Cistem."""
-    def __init__(self):
-        self._impl = _RustCistem()
-
-    def stem(self, word):
-        return self._impl.stem(word)
-
-
-class RSLPStemmer:
-    """Rust-accelerated Portuguese RSLP stemmer."""
-    def __init__(self):
-        self._impl = _RustRSLPStemmer()
+        if _rust_available:
+            self._impl = _RustPorterStemmer()
+        else:
+            self._impl = _nltk_stem.PorterStemmer()
 
     def stem(self, word):
         return self._impl.stem(word)

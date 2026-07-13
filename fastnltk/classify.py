@@ -2,9 +2,12 @@
 fastnltk.classify — Drop-in replacement for nltk.classify.
 """
 
-from fastnltk._rust import (
-    NaiveBayesClassifier as _RustNaiveBayesClassifier,
-)
+_rust_available = False
+try:
+    from fastnltk._rust import NaiveBayesClassifier as _RustNaiveBayesClassifier
+    _rust_available = True
+except ImportError:
+    pass
 
 import nltk.classify as _nltk_classify
 from nltk.classify import (
@@ -36,33 +39,37 @@ __all__ = [
 
 
 class NaiveBayesClassifier:
-    """Rust-accelerated Naive Bayes classifier."""
+    """Naive Bayes classifier — Rust-accelerated when available."""
     def __init__(self):
-        self._impl = _RustNaiveBayesClassifier()
+        if _rust_available:
+            self._impl = _RustNaiveBayesClassifier()
+        else:
+            self._impl = None  # set by train()
 
     @classmethod
     def train(cls, labeled_featuresets, estimator=None, **kwargs):
         """Train a Naive Bayes classifier."""
         inst = cls()
-        inst._impl.train(labeled_featuresets)
+        if _rust_available:
+            inst._impl.train(labeled_featuresets)
+        else:
+            inst._impl = _nltk_classify.NaiveBayesClassifier.train(
+                labeled_featuresets, estimator, **kwargs
+            )
         return inst
 
     def classify(self, features):
+        if _rust_available:
+            return self._impl.classify(features)
         return self._impl.classify(features)
 
     def labels(self):
+        if _rust_available:
+            return self._impl.labels()
         return self._impl.labels()
 
     def prob_classify(self, features):
-        """Return a probability distribution for labels."""
-        try:
-            return self._impl.prob_classify(features)
-        except (ValueError, RuntimeError):
-            return _nltk_classify.NaiveBayesClassifier.train([]).prob_classify(features)
+        return self._impl.prob_classify(features)
 
     def show_most_informative_features(self, n=10):
-        """Show the most informative features."""
-        try:
-            return self._impl.show_most_informative_features(n)
-        except (ValueError, RuntimeError):
-            pass
+        return self._impl.show_most_informative_features(n)

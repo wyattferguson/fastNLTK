@@ -39,7 +39,6 @@ lint = ["ruff>=0.8", "mypy", "pre-commit"]
 all = ["fastnltk[dev,test,lint]"]
 
 [tool.maturin]
-python-source = "fastnltk"
 module-name = "fastnltk._rust"
 bindings = "pyo3"
 features = ["pyo3/extension-module"]

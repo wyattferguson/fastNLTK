@@ -2,9 +2,12 @@
 fastnltk.probability — Drop-in replacement for nltk.probability.
 """
 
-from fastnltk._rust import (
-    FreqDist as _RustFreqDist,
-)
+_rust_available = False
+try:
+    from fastnltk._rust import FreqDist as _RustFreqDist
+    _rust_available = True
+except ImportError:
+    pass
 
 import nltk.probability as _nltk_probability
 from nltk.probability import (
@@ -26,6 +29,10 @@ from nltk.probability import (
     ConditionalProbDist,
     ImmutableProbabilisticMixIn,
     ProbabilisticMixIn,
+    add_logs,
+    sum_logs,
+    entropy,
+    log_likelihood,
 )
 
 __all__ = [
@@ -43,9 +50,12 @@ __all__ = [
 
 
 class FreqDist:
-    """Rust-accelerated frequency distribution."""
+    """Frequency distribution — Rust-accelerated when available."""
     def __init__(self, samples=None):
-        self._impl = _RustFreqDist(samples or [])
+        if _rust_available:
+            self._impl = _RustFreqDist(samples or [])
+        else:
+            self._impl = _nltk_probability.FreqDist(samples or [])
 
     def N(self):
         return self._impl.N()
@@ -81,7 +91,7 @@ class FreqDist:
         return self._impl.__contains__(sample)
 
     def __add__(self, other):
-        return self._impl.add(other)
+        return self._impl + other
 
     def copy(self):
         return self._impl.copy()
@@ -96,16 +106,10 @@ class FreqDist:
         return self._impl.items()
 
     def __iter__(self):
-        return self._impl.__iter__()
+        return iter(self._impl)
 
     def tabulate(self, *args, **kwargs):
         return _nltk_probability.FreqDist(self).tabulate(*args, **kwargs)
 
     def plot(self, *args, **kwargs):
         return _nltk_probability.FreqDist(self).plot(*args, **kwargs)
-
-    def pformat(self, *args, **kwargs):
-        return _nltk_probability.FreqDist(self).pformat(*args, **kwargs)
-
-    def pprint(self, *args, **kwargs):
-        return _nltk_probability.FreqDist(self).pprint(*args, **kwargs)
