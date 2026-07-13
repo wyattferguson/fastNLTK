@@ -197,9 +197,80 @@ impl FreqDist {
     }
 }
 
+// ═══════════════════════════════════════════════════════════
+// ConditionalFreqDist
+// ═══════════════════════════════════════════════════════════
+
+/// A frequency distribution conditioned on another variable.
+///
+/// Matches NLTK's `nltk.probability.ConditionalFreqDist`.
+/// Maps conditions to their own FreqDist instances.
+#[pyclass(name = "ConditionalFreqDist", module = "fastnltk._rust")]
+#[derive(Clone)]
+pub struct ConditionalFreqDist {
+    conditions: HashMap<String, FreqDist>,
+}
+
+#[pymethods]
+impl ConditionalFreqDist {
+    #[new]
+    fn new() -> Self {
+        ConditionalFreqDist {
+            conditions: HashMap::new(),
+        }
+    }
+
+    /// Get the FreqDist for a condition.
+    fn __getitem__(&self, condition: &str) -> Option<FreqDist> {
+        self.conditions.get(condition).cloned()
+    }
+
+    /// Return all known conditions.
+    fn conditions(&self) -> Vec<String> {
+        let mut conds: Vec<String> = self.conditions.keys().cloned().collect();
+        conds.sort();
+        conds
+    }
+
+    /// Return the total number of samples across all conditions.
+    fn N(&self) -> u64 {
+        self.conditions.values().map(|fd| fd.N()).sum()
+    }
+
+    /// Add a (condition, sample) pair.
+    fn inc(&mut self, condition: &str, sample: &str) {
+        self.conditions
+            .entry(condition.to_string())
+            .or_insert_with(|| FreqDist::new(None))
+            .inc(sample, 1);
+    }
+
+    /// Return the number of conditions.
+    fn __len__(&self) -> usize {
+        self.conditions.len()
+    }
+
+    /// Tabulate the conditional frequency distribution.
+    /// (Python-side uses nltk for display, but we provide data)
+    fn conditions_and_samples(&self) -> Vec<(String, Vec<(String, u64)>)> {
+        self.conditions
+            .iter()
+            .map(|(cond, fd)| (cond.clone(), fd.most_common(None)))
+            .collect()
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "<ConditionalFreqDist with {} conditions>",
+            self.conditions.len()
+        )
+    }
+}
+
 /// Register the module with Python.
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<FreqDist>()?;
+    m.add_class::<ConditionalFreqDist>()?;
     Ok(())
 }
 

@@ -2,6 +2,7 @@
 
 mod jaro;
 mod scores;
+mod jaccard;
 
 use pyo3::prelude::*;
 
@@ -40,6 +41,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(edit_distance, m)?)?;
     jaro::register_module(m)?;
     scores::register_module(m)?;
+    jaccard::register_module(m)?;
     Ok(())
 }
 

@@ -4,7 +4,10 @@ fastnltk.probability — Drop-in replacement for nltk.probability.
 
 _rust_available = False
 try:
-    from fastnltk._rust import FreqDist as _RustFreqDist
+    from fastnltk._rust import (
+        FreqDist as _RustFreqDist,
+        ConditionalFreqDist as _RustConditionalFreqDist,
+    )
     _rust_available = True
 except ImportError:
     pass
@@ -113,3 +116,30 @@ class FreqDist:
 
     def plot(self, *args, **kwargs):
         return _nltk_probability.FreqDist(self).plot(*args, **kwargs)
+
+
+class ConditionalFreqDist:
+    """Conditional frequency distribution — Rust-accelerated."""
+    def __init__(self):
+        if _rust_available:
+            self._impl = _RustConditionalFreqDist()
+        else:
+            self._impl = _nltk_probability.ConditionalFreqDist()
+
+    def __getitem__(self, condition):
+        return self._impl.__getitem__(condition)
+
+    def conditions(self):
+        return self._impl.conditions()
+
+    def N(self):
+        return self._impl.N()
+
+    def inc(self, condition, sample):
+        self._impl.inc(condition, sample)
+
+    def __len__(self):
+        return self._impl.__len__()
+
+    def tabulate(self, *args, **kwargs):
+        return _nltk_probability.ConditionalFreqDist().tabulate(*args, **kwargs)

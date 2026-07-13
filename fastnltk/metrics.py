@@ -9,6 +9,9 @@ try:
         jaro_similarity as _rust_jaro_similarity,
         jaro_winkler_similarity as _rust_jaro_winkler_similarity,
         dice_similarity as _rust_dice_similarity,
+        jaccard_distance as _rust_jaccard_distance,
+        binary_distance as _rust_binary_distance,
+        masi_distance as _rust_masi_distance,
     )
     _rust_available = True
 except ImportError:
@@ -75,6 +78,20 @@ __all__ = [
     "jaro_winkler_similarity",
     "dice_similarity",
 ]
+
+
+def jaccard_distance(s1, s2):
+    if _rust_available:
+        return _rust_jaccard_distance(s1, s2)
+    from nltk.metrics.distance import jaccard_distance as _nltk_j
+    return _nltk_j(set(s1 or []), set(s2 or []))
+
+
+def binary_distance(s1, s2):
+    if _rust_available:
+        return _rust_binary_distance(s1, s2)
+    from nltk.metrics.distance import binary_distance as _nltk_b
+    return _nltk_b(set(s1 or []), set(s2 or []))
 
 
 def edit_distance(s1, s2, substitution_cost=1, transpositions=False):
