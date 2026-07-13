@@ -10,6 +10,7 @@ pub mod data;
 pub mod tokenize;
 pub mod stem;
 pub mod classify;
+pub mod collocations;
 pub mod metrics;
 pub mod probability;
 pub mod tag;
@@ -35,6 +36,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // ── Classification ───────────────────────────────────
     classify::register_module(m)?;
+
+    // ── Collocations ─────────────────────────────────────
+    collocations::register_module(m)?;
 
     Ok(())
 }
