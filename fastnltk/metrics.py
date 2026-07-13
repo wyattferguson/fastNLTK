@@ -4,7 +4,12 @@ fastnltk.metrics — Drop-in replacement for nltk.metrics.
 
 _rust_available = False
 try:
-    from fastnltk._rust import edit_distance as _rust_edit_distance_fn
+    from fastnltk._rust import (
+        edit_distance as _rust_edit_distance_fn,
+        jaro_similarity as _rust_jaro_similarity,
+        jaro_winkler_similarity as _rust_jaro_winkler_similarity,
+        dice_similarity as _rust_dice_similarity,
+    )
     _rust_available = True
 except ImportError:
     pass
@@ -66,12 +71,35 @@ __all__ = [
     "precision",
     "recall",
     "f_measure",
+    "jaro_similarity",
+    "jaro_winkler_similarity",
+    "dice_similarity",
 ]
 
 
 def edit_distance(s1, s2, substitution_cost=1, transpositions=False):
-    """Edit distance — Rust-accelerated."""
     if _rust_available:
         return _rust_edit_distance_fn(s1, s2, substitution_cost, transpositions)
     from nltk.metrics.distance import edit_distance as _nltk_edit_distance
     return _nltk_edit_distance(s1, s2, substitution_cost, transpositions)
+
+
+def jaro_similarity(x, y):
+    if _rust_available:
+        return _rust_jaro_similarity(x, y)
+    from nltk.metrics.distance import jaro_similarity as _nltk_jaro
+    return _nltk_jaro(x, y)
+
+
+def jaro_winkler_similarity(x, y, p=0.1, max_l=4):
+    if _rust_available:
+        return _rust_jaro_winkler_similarity(x, y, p, max_l)
+    from nltk.metrics.distance import jaro_winkler_similarity as _nltk_jw
+    return _nltk_jw(x, y, p, max_l)
+
+
+def dice_similarity(x, y):
+    if _rust_available:
+        return _rust_dice_similarity(x, y)
+    from nltk.metrics.distance import jaccard_distance
+    return 1.0 - jaccard_distance(set(x.split()), set(y.split()))
