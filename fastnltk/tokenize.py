@@ -22,6 +22,7 @@ try:
         TreebankWordDetokenizer as _RustTreebankWordDetokenizer,
         TweetTokenizer as _RustTweetTokenizer,
         CharTokenizer as _RustCharTokenizer,
+        PunktSentenceTokenizer as _RustPunktSentenceTokenizer,
     )
     _rust_available = True
 except ImportError:
@@ -89,6 +90,7 @@ __all__ = [
     "TreebankWordTokenizer",
     "TreebankWordDetokenizer",
     "TweetTokenizer",
+    "PunktSentenceTokenizer",
 ]
 if MWETokenizer is not None:
     __all__.append("MWETokenizer")
@@ -111,10 +113,10 @@ if ReppTokenizer is not None:
 
 
 def sent_tokenize(text, language="english"):
-    """Sentence tokenization (Rust-accelerated)."""
+    """Sentence tokenization (Rust-accelerated Punkt)."""
     if _rust_available:
         try:
-            return _rust_sent_tokenize(text, language)
+            return _RustPunktSentenceTokenizer().sentences_from_text(text)
         except (ValueError, LookupError):
             pass
     return _nltk_tokenize.sent_tokenize(text, language)
@@ -287,3 +289,24 @@ class CharTokenizer:
 
     def tokenize(self, text):
         return self._impl.tokenize(text)
+
+
+class PunktSentenceTokenizer:
+    """Rust-accelerated Punkt sentence tokenizer."""
+    def __init__(self, train_text=None, language="english"):
+        if _rust_available:
+            self._impl = _RustPunktSentenceTokenizer()
+        else:
+            self._impl = _nltk_tokenize.PunktSentenceTokenizer(train_text, language)
+
+    def tokenize(self, text):
+        return self._impl.tokenize(text)
+
+    def span_tokenize(self, text):
+        return self._impl.span_tokenize(text)
+
+    def sentences_from_text(self, text):
+        return self._impl.sentences_from_text(text)
+
+    def load(self, params):
+        return self._impl.load(params)

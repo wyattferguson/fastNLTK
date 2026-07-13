@@ -7,6 +7,7 @@ pub mod simple;
 pub mod regexp;
 pub mod treebank;
 pub mod tweet;
+pub mod punkt;
 
 use pyo3::prelude::*;
 
@@ -30,6 +31,9 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // Tweet tokenizer
     m.add_class::<tweet::TweetTokenizer>()?;
+
+    // Punkt sentence tokenizer
+    m.add_class::<punkt::PunktSentenceTokenizer>()?;
 
     // Free functions
     m.add_function(wrap_pyfunction!(sent_tokenize_py, m)?)?;
