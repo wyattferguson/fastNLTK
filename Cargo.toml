@@ -40,6 +40,7 @@ rand = "0.9"
 mimalloc = "0.1"
 smol_str = "0.2"
 bumpalo = "3"
+logos = "0.15"
 
 # Optional parallel processing
 rayon = { version = "1", optional = true }
