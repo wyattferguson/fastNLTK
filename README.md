@@ -376,6 +376,44 @@ maturin build --release --out dist
 # Produces: fastnltk-0.1.0-cp38-abi3-{platform}.whl
 ```
 
+### S-Expression Tokenizer
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `SExprTokenizer.tokenize` | small (2KB) | 2.38 | 0.20 | 12.1x |
+| `SExprTokenizer.tokenize` | medium (8KB) | 1.75 | 1.60 | 1.1x |
+
+### TokTok Tokenizer
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `ToktokTokenizer.tokenize` | small (5KB) | 0.52 | 0.53 | 1.0x |
+| `ToktokTokenizer.tokenize` | medium (81KB) | 8.69 | 3.46 | 2.5x |
+
+### MWE Tokenizer
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `MWETokenizer.tokenize` | 39K words | 7.09 | 6.18 | 1.1x |
+
+### Segmentation Metrics
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `windowdiff` | 12K chars | 3.08 | 0.03 | 108.7x |
+
+### Language Models
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `KneserNeyInterpolated.fit+score` | small | — | 0.00 | N/A |
+
+### CCG Parsing
+
+| Function | Input Size | fastNLTK (ms) |
+|---|---|---|
+| `CCG from_string` | 2.1K parses | 0.77 |
+
 ---
 
 ## Technical Details
