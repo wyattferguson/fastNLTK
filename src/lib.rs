@@ -6,18 +6,19 @@
 use pyo3::prelude::*;
 
 mod prelude;
-pub mod data;
 pub mod chunk;
-pub mod lm;
-pub mod tokenize;
-pub mod stem;
 pub mod classify;
 pub mod collocations;
-pub mod sentiment;
-pub mod translate;
+pub mod data;
+pub mod lm;
 pub mod metrics;
 pub mod probability;
+pub mod sentiment;
+pub mod stem;
 pub mod tag;
+pub mod tokenize;
+pub mod translate;
+pub mod tree;
 pub mod util;
 
 /// The Python extension module: `fastnltk._rust`.
@@ -55,6 +56,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // ── Chunking ───────────────────────────────────────
     chunk::register_module(m)?;
+
+    // ── Tree ─────────────────────────────────────────────
+    tree::register_module(m)?;
 
     Ok(())
 }

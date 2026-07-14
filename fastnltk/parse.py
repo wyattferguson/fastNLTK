@@ -1,8 +1,7 @@
 """
 fastnltk.parse — Drop-in replacement for nltk.parse.
 
-Pure Python shim — parsing algorithms are complex, rarely performance-critical
-for most NLTK users. Keeping as pure Python wrapper.
+Parsing algorithms (chart, PCFG, dependency, etc.).
+Re-exports all symbols from NLTK's parse module.
 """
-
 from nltk.parse import *  # noqa: F403

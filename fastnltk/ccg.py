@@ -1,7 +1,7 @@
 """
 fastnltk.ccg — Drop-in replacement for nltk.ccg.
 
-Pure Python shim — parsing is not performance-critical for teaching use.
+Combinatory Categorial Grammar parsing.
+Re-exports all symbols from NLTK's ccg module.
 """
-
 from nltk.ccg import *  # noqa: F403

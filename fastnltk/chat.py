@@ -1,7 +1,6 @@
 """
 fastnltk.chat — Drop-in replacement for nltk.chat.
 
-Pure Python shim — chatbot interactions are I/O bound.
+Chatbot utilities. Re-exports all symbols from NLTK's chat module.
 """
-
 from nltk.chat import *  # noqa: F403
