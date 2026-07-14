@@ -11,11 +11,20 @@
 //! Phase 2: Model + evaluation (~400 LoC Rust)
 //! Phase 3: DRT (~600 LoC Rust, optional)
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+
+/// An individual in the model domain.
+pub type Individual = String;
+
+/// A valuation maps predicate names to sets of tuples.
+pub type Valuation = HashMap<String, Vec<Vec<Individual>>>;
+
+/// An assignment maps variable names to individuals.
+pub type Assignment = HashMap<String, Individual>;
 
 // ═══════════════════════════════════════════════════════════
 // Expression types
@@ -725,10 +734,141 @@ fn simplify(formula: &str) -> PyResult<String> {
     Ok(format!("{}", expr.simplify()))
 }
 
+// ═══════════════════════════════════════════════════════════
+// Model evaluation
+// ═══════════════════════════════════════════════════════════
+
+/// Evaluate a formula string in a model.
+/// Returns true/false if the formula is satisfied.
+#[pyfunction]
+#[pyo3(signature = (formula, valuation_json, domain_json, assignment_json=""))]
+fn evaluate_formula(
+    formula: &str,
+    valuation_json: &str,
+    domain_json: &str,
+    assignment_json: &str,
+) -> PyResult<bool> {
+    let expr = parse_expression(formula)
+        .map_err(|e| PyValueError::new_err(e))?;
+    // Parse JSON inputs
+    let valuation: Valuation = serde_json::from_str(valuation_json)
+        .map_err(|e| PyValueError::new_err(format!("Invalid valuation JSON: {e}")))?;
+    let domain: Vec<Individual> = serde_json::from_str(domain_json)
+        .map_err(|e| PyValueError::new_err(format!("Invalid domain JSON: {e}")))?;
+    let assignment: Assignment = if assignment_json.is_empty() {
+        Assignment::new()
+    } else {
+        serde_json::from_str(assignment_json)
+            .map_err(|e| PyValueError::new_err(format!("Invalid assignment JSON: {e}")))?
+    };
+    model_evaluate(&expr, &valuation, &domain, &assignment)
+        .map_err(|e| PyValueError::new_err(e))
+}
+
+/// Core Rust evaluation function (no JSON).
+pub fn model_evaluate(
+    expr: &Expression,
+    valuation: &Valuation,
+    domain: &[Individual],
+    assignment: &Assignment,
+) -> Result<bool, String> {
+    match expr {
+        Expression::Variable(name, _) => {
+            Ok(assignment.contains_key(name))
+        }
+        Expression::Constant(name, _) => {
+            Ok(domain.contains(name))
+        }
+        Expression::Application(func, arg) => {
+            let pred_name = match func.as_ref() {
+                Expression::Variable(n, _) | Expression::Constant(n, _) => n.clone(),
+                _ => return Err(format!("Expected predicate, got {func}")),
+            };
+            let arg_val = match arg.as_ref() {
+                Expression::Variable(n, _) => {
+                    assignment.get(n).cloned().unwrap_or_default()
+                }
+                Expression::Constant(n, _) => n.clone(),
+                e => return Err(format!("Expected argument, got {e}")),
+            };
+            if let Some(extensions) = valuation.get(&pred_name) {
+                Ok(extensions.iter().any(|t| t.len() == 1 && t[0] == arg_val))
+            } else {
+                Ok(false)
+            }
+        }
+        Expression::And(a, b) => {
+            if !model_evaluate(a, valuation, domain, assignment)? {
+                return Ok(false);
+            }
+            model_evaluate(b, valuation, domain, assignment)
+        }
+        Expression::Or(a, b) => {
+            if model_evaluate(a, valuation, domain, assignment)? {
+                return Ok(true);
+            }
+            model_evaluate(b, valuation, domain, assignment)
+        }
+        Expression::Not(e) => {
+            Ok(!model_evaluate(e, valuation, domain, assignment)?)
+        }
+        Expression::If(a, b) => {
+            if !model_evaluate(a, valuation, domain, assignment)? {
+                return Ok(true);
+            }
+            model_evaluate(b, valuation, domain, assignment)
+        }
+        Expression::Iff(a, b) => {
+            let l = model_evaluate(a, valuation, domain, assignment)?;
+            let r = model_evaluate(b, valuation, domain, assignment)?;
+            Ok(l == r)
+        }
+        Expression::Equality(a, b) => {
+            let a_val: Option<String> = match a.as_ref() {
+                Expression::Variable(n, _) => assignment.get(n).cloned(),
+                Expression::Constant(n, _) => Some(n.clone()),
+                _ => None,
+            };
+            let b_val: Option<String> = match b.as_ref() {
+                Expression::Variable(n, _) => assignment.get(n).cloned(),
+                Expression::Constant(n, _) => Some(n.clone()),
+                _ => None,
+            };
+            Ok(a_val.is_some() && a_val == b_val)
+        }
+        Expression::Exists(var, body) => {
+            let var_name = var_name(var);
+            for ind in domain {
+                let mut new_assign = assignment.clone();
+                new_assign.insert(var_name.clone(), ind.clone());
+                if model_evaluate(body, valuation, domain, &new_assign)? {
+                    return Ok(true);
+                }
+            }
+            Ok(false)
+        }
+        Expression::All(var, body) => {
+            let var_name = var_name(var);
+            for ind in domain {
+                let mut new_assign = assignment.clone();
+                new_assign.insert(var_name.clone(), ind.clone());
+                if !model_evaluate(body, valuation, domain, &new_assign)? {
+                    return Ok(false);
+                }
+            }
+            Ok(true)
+        }
+        Expression::Lambda(_, _) => {
+            Err("Cannot evaluate lambda directly".to_string())
+        }
+    }
+}
+
 /// Register module with Python.
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(fromstring, m)?)?;
     m.add_function(wrap_pyfunction!(simplify, m)?)?;
+    m.add_function(wrap_pyfunction!(evaluate_formula, m)?)?;
     Ok(())
 }
 

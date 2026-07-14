@@ -29,6 +29,7 @@ rustling = { version = "0.8", default-features = false, features = ["parallel"] 
 # Serialization for model loading
 serde = { version = "1", features = ["derive"] }
 bincode = "2"
+serde_json = "1"
 
 # Performance
 hashbrown = "0.15"

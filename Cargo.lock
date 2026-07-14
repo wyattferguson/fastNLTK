@@ -326,6 +326,7 @@ dependencies = [
  "rustc-hash",
  "rustling",
  "serde",
+ "serde_json",
  "tempfile",
  "unicode-segmentation",
  "whatlang",
