@@ -58,6 +58,7 @@ impl TnT {
             }
 
             let mut tags = vec!["<S>".to_string(), "<S>".to_string()];
+            #[allow(clippy::collection_is_never_read)]
             let mut words: Vec<&str> = Vec::new();
 
             for (word, tag) in sentence {

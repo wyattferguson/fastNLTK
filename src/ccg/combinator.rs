@@ -37,10 +37,12 @@ pub(crate) fn backward_composition() -> Combinator {
     Combinator { name: "BC", dir: Direction::Backward, is_type_raise: false }
 }
 
+#[allow(dead_code)]
 pub(crate) fn forward_type_raising() -> Combinator {
     Combinator { name: "FT", dir: Direction::Forward, is_type_raise: true }
 }
 
+#[allow(dead_code)]
 pub(crate) fn backward_type_raising() -> Combinator {
     Combinator { name: "BT", dir: Direction::Backward, is_type_raise: true }
 }

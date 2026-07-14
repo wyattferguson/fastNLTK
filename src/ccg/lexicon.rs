@@ -78,13 +78,15 @@ impl CCGLexicon {
 
 impl CCGLexicon {
     pub(crate) fn lookup_cats(&self, word: &str) -> &[Category] {
-        self.entries.get(word).map(std::vec::Vec::as_slice).unwrap_or(&[])
+        self.entries.get(word).map_or(&[], std::vec::Vec::as_slice)
     }
 
+    #[allow(dead_code)]
     pub(crate) fn has_word(&self, word: &str) -> bool {
         self.entries.contains_key(word)
     }
 
+    #[allow(dead_code)]
     pub(crate) fn categories(&self) -> &HashMap<SmolStr, Vec<Category>> {
         &self.entries
     }
@@ -135,7 +137,7 @@ mod tests {
     #[test]
     fn test_invalid_category() {
         // Empty string should fail since no category parsed
-        let result = CCGLexicon::new(Some(vec![("x".into(), "".into())]));
+        let result = CCGLexicon::new(Some(vec![("x".into(), String::new())]));
         assert!(result.is_err());
     }
 

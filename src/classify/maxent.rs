@@ -24,10 +24,8 @@ fn extract_features(features_dict: &Bound<'_, PyDict>) -> PyResult<FeatureVector
         let k: String = key.extract()?;
         let v = if value.is_truthy().unwrap_or(false) {
             1.0
-        } else if let Ok(f) = value.extract::<f64>() {
-            f
         } else {
-            0.0
+            value.extract::<f64>().unwrap_or(0.0)
         };
         if v != 0.0 {
             features.push((k, v));
@@ -140,7 +138,7 @@ impl MaxentClassifier {
         // Compute empirical feature expectations: E[f_i] = (1/N) * sum(f_i(x_k, y_k))
         let mut empirical_counts: Vec<f64> = vec![0.0; num_feats];
         for (idx, features) in train_features.iter().enumerate() {
-            let _label = train_labels[idx];
+            let _ = train_labels[idx];
             for (fi, val) in features {
                 // Joint feature: f_i(x, y) = 1 if y == label and feature matches
                 empirical_counts[*fi] += val;
@@ -166,7 +164,7 @@ impl MaxentClassifier {
             // Compute model expectations
             let mut model_counts: Vec<f64> = vec![0.0; num_feats];
 
-            for features in train_features.iter() {
+            for features in &train_features {
                 // Compute scores for each label
                 let mut scores: Vec<f64> = vec![0.0; num_labels];
                 for li in 0..num_labels {
@@ -323,6 +321,7 @@ impl MaxentClassifier {
 // ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
+#[allow(clippy::items_after_test_module)]
 mod tests {
     use super::*;
 

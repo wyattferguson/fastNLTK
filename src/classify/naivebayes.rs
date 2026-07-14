@@ -209,7 +209,7 @@ impl NaiveBayesClassifier {
                         .copied()
                         .unwrap_or(0.0);
                     let score = (p_i - p_j).abs();
-                    scores.push((feat.to_string(), score));
+                    scores.push((feat.clone(), score));
                 }
             }
         }
@@ -257,7 +257,7 @@ impl NaiveBayesClassifier {
             }
             if logprob >= best_score && logprob != f64::NEG_INFINITY {
                 best_score = logprob;
-                best_label = label.clone();
+                best_label.clone_from(label);
             }
         }
 

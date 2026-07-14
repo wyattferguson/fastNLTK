@@ -15,9 +15,9 @@ htmlcov/
 # Rust
 target/
 debug/
-**/*.rs.bk
+**/*(.rs.bk
 *.pdb
-clippy_out.txt
+*.txt
 
 # IDE
 .idea/
@@ -29,9 +29,6 @@ clippy_out.txt
 .venv/
 venv/
 .env
-
-# Benchmark data
-benchmarks/data/*.txt
 
 # OS
 .DS_Store

@@ -214,9 +214,7 @@ fn porter_stem(word: &str) -> String {
     // Step 5a
     if w.len() >= 2 && w[w.len() - 1] == 'e' {
         let m = measure(&w[..w.len() - 1]);
-        if m > 1 {
-            w.pop();
-        } else if m == 1 && !ends_with_cvc(&w[..w.len() - 1]) {
+        if m > 1 || (m == 1 && !ends_with_cvc(&w[..w.len() - 1])) {
             w.pop();
         }
     }

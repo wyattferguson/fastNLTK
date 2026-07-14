@@ -206,7 +206,7 @@ mod tests {
     #[test]
     fn test_default_rule_creation() {
         let rule =
-            DefaultRule::new("bird(x)".into(), "flies(x)".into(), "flies(x)".into(), "".into());
+            DefaultRule::new("bird(x)".into(), "flies(x)".into(), "flies(x)".into(), String::new());
         assert_eq!(rule.prerequisite, "bird(x)");
         assert_eq!(rule.consequent, "flies(x)");
     }
@@ -287,15 +287,14 @@ mod tests {
     fn test_empty_prerequisite() {
         // A rule with empty prerequisite should always fire
         let rules =
-            vec![DefaultRule::new("".into(), "fact".into(), "fact".into(), "always".into())];
+            vec![DefaultRule::new(String::new(), "fact".into(), "fact".into(), "always".into())];
         let reasoner = DefaultReasoner::new(rules, 10);
         let exts = reasoner.extensions();
         assert!(!exts.is_empty());
         // Empty prereq should allow default to fire
         assert!(
             exts.iter().any(|e| e.contains(&"fact".to_string())),
-            "should derive 'fact' from empty prereq: {:?}",
-            exts
+            "should derive 'fact' from empty prereq: {exts:?}"
         );
     }
 

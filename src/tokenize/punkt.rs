@@ -39,6 +39,7 @@ impl PunktParams {
     }
 
     /// Check if a word pair is a known collocation.
+    #[allow(dead_code)]
     fn is_collocation(&self, w1: &str, w2: &str) -> bool {
         self.collocations.contains(&(w1.to_lowercase(), w2.to_lowercase()))
     }
@@ -169,10 +170,7 @@ impl PunktSentenceTokenizer {
 
     /// Punkt sentence boundary detection using loaded model.
     fn punkt_spans(&self, text: &str) -> Vec<(usize, usize)> {
-        let params = match &self.params {
-            Some(p) => p,
-            None => return Self::tokenize_simple_sentences(text),
-        };
+        let Some(params) = &self.params else { return Self::tokenize_simple_sentences(text) };
 
         // Pass 1: Find candidate sentence boundaries
         let sentences: Vec<(usize, usize)> = {

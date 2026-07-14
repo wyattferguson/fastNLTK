@@ -79,6 +79,7 @@ fn parse_tag_sequence(pattern: &str) -> Result<Vec<Regex>, String> {
 // ═══════════════════════════════════════════════════════════
 
 /// Apply a chunk rule to a sequence of tags. Modifies IOB tags in-place.
+#[allow(clippy::needless_pass_by_ref_mut)]
 fn apply_chunk_rule(tag_patterns: &[Regex], tags: &mut Vec<&str>, iob: &mut Vec<&str>) {
     let num_tags = tags.len();
     let mut i = 0;
@@ -136,7 +137,6 @@ impl RegexpParser {
         }
 
         // Extract words and tags
-        let words: Vec<&str> = tokens.iter().map(|(w, _)| w.as_str()).collect();
         let tags: Vec<&str> = tokens.iter().map(|(_, t)| t.as_str()).collect();
         let mut iob: Vec<&str> = vec!["O"; tokens.len()];
 
@@ -146,7 +146,7 @@ impl RegexpParser {
         }
 
         // Return (word, iob_tag) pairs
-        words.into_iter().zip(iob).map(|(w, i)| (w.to_string(), i.to_string())).collect()
+        tokens.iter().map(|(w, _)| w.as_str()).zip(iob).map(|(w, i)| (w.to_string(), i.to_string())).collect()
     }
 }
 

@@ -46,6 +46,7 @@ impl CollocationData {
     }
 
     /// Remove ngrams that pass the word filter.
+    #[allow(dead_code)]
     fn apply_word_filter<F>(&mut self, filter_fn: F)
     where
         F: Fn(&str) -> bool,
@@ -64,7 +65,6 @@ impl CollocationData {
                 "pmi" => self.pmi(ngram, *count, total_words as f64),
                 "chi_sq" => self.chi_sq(ngram, *count, total_words as f64, num_words),
                 "likelihood_ratio" => self.likelihood_ratio(ngram, *count, total_words as f64),
-                "raw_freq" => *count as f64,
                 _ => *count as f64, // default: raw frequency
             };
             scored.push((ngram.clone(), score));

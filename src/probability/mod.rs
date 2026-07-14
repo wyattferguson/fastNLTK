@@ -112,6 +112,7 @@ impl FreqDist {
         }
         result
     }
+    #[pyo3(signature = (n=None))]
     fn most_common(&self, n: Option<usize>) -> Vec<(String, u64)> {
         let mut items: Vec<_> = self.counts.iter().map(|(k, v)| (k.clone(), *v)).collect();
         items.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
@@ -120,12 +121,14 @@ impl FreqDist {
             None => items,
         }
     }
+    #[pyo3(signature = (n=None))]
     fn tabulate(&self, n: Option<usize>) {
         let items = self.most_common(n);
         for (sample, count) in &items {
             println!("{sample:<20} {count}");
         }
     }
+    #[pyo3(signature = (n=None))]
     fn plot(&self, n: Option<usize>) -> PyResult<()> {
         let items = self.most_common(n);
         let max_count = items.first().map_or(1, |(_, c)| *c).max(1);
@@ -174,6 +177,7 @@ impl ConditionalFreqDist {
     fn __contains__(&self, condition: &str) -> bool {
         self.conditions.contains_key(condition)
     }
+    #[pyo3(signature = (n=None))]
     fn most_common(&self, n: Option<usize>) -> Vec<(String, Vec<(String, u64)>)> {
         self.conditions.iter().map(|(cond, fd)| (cond.clone(), fd.most_common(n))).collect()
     }

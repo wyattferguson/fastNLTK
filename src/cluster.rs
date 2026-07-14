@@ -98,7 +98,7 @@ impl KMeansClusterer {
                     }
                 } else {
                     // Empty cluster: reset to a random vector
-                    new_centroids[j] = vectors[j % n].clone();
+                    new_centroids[j].clone_from(&vectors[j % n]);
                 }
             }
 
@@ -106,7 +106,7 @@ impl KMeansClusterer {
         }
 
         self.centroids = centroids;
-        self.labels = labels.clone();
+        self.labels.clone_from(&labels);
         self.fitted = true;
 
         Ok(labels)

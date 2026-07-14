@@ -59,10 +59,7 @@ impl Tokenizer {
 
     fn next_token(&mut self) -> Result<Token, String> {
         self.skip_whitespace();
-        let c = match self.peek() {
-            Some(c) => c,
-            None => return Ok(Token::End),
-        };
+        let Some(c) = self.peek() else { return Ok(Token::End) };
 
         match c {
             '(' => {
@@ -85,7 +82,7 @@ impl Tokenizer {
                 self.advance();
                 Ok(Token::Lambda)
             }
-            '^' => {
+            '^' | '&' => {
                 self.advance();
                 Ok(Token::And)
             }
@@ -124,10 +121,6 @@ impl Tokenizer {
                 } else {
                     Err(format!("Unexpected '<' at position {}", self.pos))
                 }
-            }
-            '&' => {
-                self.advance();
-                Ok(Token::And)
             }
             ':' => {
                 self.advance();

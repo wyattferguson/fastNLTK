@@ -124,7 +124,7 @@ impl BigramTagger {
                     .and_modify(|c| *c += 1)
                     .or_insert(1);
                 *tag_counts.entry(tag.clone()).or_insert(0) += 1;
-                prev.clone_from(&tag);
+                prev.clone_from(tag);
             }
         }
         for (key, tag_count) in &counts {
@@ -214,7 +214,7 @@ impl TrigramTagger {
                     .or_insert(1);
                 *tag_counts.entry(tag.clone()).or_insert(0) += 1;
                 prev2.clone_from(&prev1);
-                prev1.clone_from(&tag);
+                prev1.clone_from(tag);
             }
         }
         for (key, tag_count) in &counts {
@@ -431,7 +431,7 @@ mod tests {
             let result = tagger.tag(vec!["the".into(), "cat".into()]);
             assert_eq!(result.len(), 2);
             assert_eq!(result[0].1, "DT");
-        })
+        });
     }
 
     #[test]
@@ -443,7 +443,7 @@ mod tests {
             let result = tagger.tag(vec!["xyzzy".into()]);
             // Falls back to most frequent tag from training
             assert!(result[0].1 == "DT" || result[0].1 == "NN");
-        })
+        });
     }
 
     #[test]
@@ -454,7 +454,7 @@ mod tests {
             tagger.train(&train_data(py)).unwrap();
             let result = tagger.tag(vec!["the".into(), "cat".into()]);
             assert_eq!(result.len(), 2);
-        })
+        });
     }
 
     #[test]
@@ -465,7 +465,7 @@ mod tests {
             tagger.train(&train_data(py)).unwrap();
             let result = tagger.tag(vec!["the".into(), "cat".into()]);
             assert_eq!(result.len(), 2);
-        })
+        });
     }
 
     #[test]
@@ -478,7 +478,7 @@ mod tests {
             tagger.train(&list).unwrap();
             let result = tagger.tag(vec!["running".into()]);
             assert_eq!(result[0].1, "VBG");
-        })
+        });
     }
 
     #[test]

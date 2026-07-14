@@ -109,6 +109,12 @@ similar_names = "allow"
 or_fun_call = "allow"
 # PyO3 allocates Vec<Vec<...>> for chart parsing
 ptr_arg = "allow"
+# Test code — pedantic lint cleanup deferred
+redundant_closure_for_method_calls = "allow"
+collapsible_match = "allow"
+let_and_return = "allow"
+branches_sharing_code = "allow"
+items_after_statements = "allow"
 
 [lints.rust]
 unused_must_use = "warn"

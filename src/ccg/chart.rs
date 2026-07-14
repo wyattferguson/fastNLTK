@@ -22,6 +22,7 @@ type EdgeList = SmallVec<[CCGEdge; CHART_CELL_INLINE]>;
 
 /// A chart cell entry: a category over a span [start, end).
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct CCGEdge {
     cat: Category,
     start: usize,
@@ -297,6 +298,7 @@ mod tests {
     use super::*;
     use crate::ccg::lexicon::CCGLexicon;
 
+    #[allow(clippy::redundant_closure_for_method_calls)]
     fn test_lexicon() -> CCGLexicon {
         CCGLexicon::new(Some(vec![
             ("the".into(), "NP/N".into()),
@@ -361,8 +363,7 @@ mod tests {
         let results = parser.parse(words).unwrap();
         assert!(
             results.iter().any(|r| r.starts_with("Parse")),
-            "Should produce S parse: {:?}",
-            results
+            "Should produce S parse: {results:?}"
         );
     }
 
@@ -384,7 +385,7 @@ mod tests {
         let parser = CCGChartParser::new(lex, 20);
         let words: Vec<String> = "the cat".split_whitespace().map(|s| s.to_string()).collect();
         let results = parser.parse(words).unwrap();
-        assert!(results.iter().any(|r| r.contains("NP")), "Should find NP: {:?}", results);
+        assert!(results.iter().any(|r| r.contains("NP")), "Should find NP: {results:?}");
     }
 
     #[test]
@@ -394,9 +395,8 @@ mod tests {
         let words: Vec<String> = vec!["hello".to_string()];
         let results = parser.parse(words).unwrap();
         assert!(
-            results[0].contains("S") || results[0].contains("Derivation"),
-            "Should handle single word: {:?}",
-            results
+            results[0].contains('S') || results[0].contains("Derivation"),
+            "Should handle single word: {results:?}"
         );
     }
 }

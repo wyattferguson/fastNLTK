@@ -13,6 +13,7 @@ struct Clause {
 }
 
 impl Clause {
+    #[allow(dead_code)]
     fn empty() -> Self {
         Self { literals: vec![] }
     }

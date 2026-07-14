@@ -26,7 +26,7 @@ fn recall(reference: Vec<String>, test: Vec<String>) -> f64 {
     correct as f64 / ref_set.len() as f64
 }
 
-fn _precision_ref(reference: &std::collections::HashSet<String>, test: &[String]) -> f64 {
+fn precision_ref(reference: &std::collections::HashSet<String>, test: &[String]) -> f64 {
     if test.is_empty() {
         return 0.0;
     }
@@ -34,7 +34,7 @@ fn _precision_ref(reference: &std::collections::HashSet<String>, test: &[String]
     correct as f64 / test.len() as f64
 }
 
-fn _recall_ref(
+fn recall_ref(
     reference: &std::collections::HashSet<String>,
     test_set: &std::collections::HashSet<String>,
 ) -> f64 {
@@ -52,8 +52,8 @@ fn f_measure(reference: Vec<String>, test: Vec<String>, alpha: f64) -> f64 {
     }
     let ref_set: std::collections::HashSet<String> = reference.into_iter().collect();
     let test_set: std::collections::HashSet<String> = test.into_iter().collect();
-    let p = _precision_ref(&ref_set, &test_set.iter().cloned().collect::<Vec<_>>());
-    let r = _recall_ref(&ref_set, &test_set);
+    let p = precision_ref(&ref_set, &test_set.iter().cloned().collect::<Vec<_>>());
+    let r = recall_ref(&ref_set, &test_set);
     if p + r == 0.0 {
         return 0.0;
     }

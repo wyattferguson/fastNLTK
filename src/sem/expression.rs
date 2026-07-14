@@ -53,17 +53,12 @@ impl fmt::Display for Type {
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Constant(name, _) => write!(f, "{name}"),
-            Self::Variable(name, _) => write!(f, "{name}"),
+            Self::Constant(name, _) | Self::Variable(name, _) => write!(f, "{name}"),
             Self::Application(fn_expr, arg) => {
                 let fn_str = format!("{fn_expr}");
                 let arg_str = format!("{arg}");
                 if is_atomic(fn_expr) {
-                    if is_atomic(arg) {
-                        write!(f, "{fn_str}({arg_str})")
-                    } else {
-                        write!(f, "{fn_str}({arg_str})")
-                    }
+                    write!(f, "{fn_str}({arg_str})")
                 } else {
                     write!(f, "({fn_str})({arg_str})")
                 }
@@ -108,13 +103,7 @@ impl Expression {
                 f.collect_free(bound, free);
                 a.collect_free(bound, free);
             }
-            Self::Lambda(var, body) => {
-                let vn = var_name(var);
-                bound.insert(vn.clone());
-                body.collect_free(bound, free);
-                bound.remove(&vn);
-            }
-            Self::Exists(var, body) | Self::All(var, body) => {
+            Self::Lambda(var, body) | Self::Exists(var, body) | Self::All(var, body) => {
                 let vn = var_name(var);
                 bound.insert(vn.clone());
                 body.collect_free(bound, free);
@@ -160,6 +149,7 @@ pub fn fresh_var(base: &str, avoid: &[String]) -> String {
 
 // Substitution
 impl Expression {
+    #[must_use]
     pub fn substitute(&self, var: &str, replacement: &Self) -> Self {
         match self {
             Self::Variable(name, _typ) => {
@@ -243,6 +233,7 @@ impl Expression {
         }
     }
 
+    #[must_use]
     pub fn simplify(&self) -> Self {
         match self {
             Self::Application(f, arg) => {

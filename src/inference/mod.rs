@@ -43,6 +43,7 @@ pub(crate) enum Formula {
     And(Vec<Self>),
     Or(Vec<Self>),
     Imp(Box<Self>, Box<Self>),
+    #[allow(dead_code)]
     Iff(Box<Self>, Box<Self>),
     Forall(String, Box<Self>),
     Exists(String, Box<Self>),
@@ -64,10 +65,10 @@ impl Formula {
             Self::Atom(p, args) => Self::Not(Box::new(Self::Atom(p, args))),
             Self::Not(inner) => inner.nnf(),
             Self::And(children) => {
-                Self::Or(children.into_iter().map(Formula::negate_nnf).collect())
+                Self::Or(children.into_iter().map(Self::negate_nnf).collect())
             }
             Self::Or(children) => {
-                Self::And(children.into_iter().map(Formula::negate_nnf).collect())
+                Self::And(children.into_iter().map(Self::negate_nnf).collect())
             }
             Self::Imp(l, r) => Self::And(vec![l.nnf(), r.negate_nnf()]),
             Self::Iff(l, r) => Self::Or(vec![
@@ -80,6 +81,7 @@ impl Formula {
         }
     }
 
+    #[allow(clippy::wrong_self_convention)]
     pub fn to_cnf(self) -> Vec<Vec<Literal>> {
         let nnf = self.nnf();
         let dis = nnf.distribute();
@@ -117,7 +119,7 @@ impl Formula {
                 Self::Or(flat)
             }
             Self::And(children) => {
-                Self::And(children.into_iter().map(Formula::distribute).collect())
+                Self::And(children.into_iter().map(Self::distribute).collect())
             }
             Self::Imp(l, r) => Self::Or(vec![l.negate_nnf(), r.distribute()]).distribute(),
             Self::Iff(l, r) => Self::Or(vec![
