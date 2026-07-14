@@ -1,9 +1,9 @@
 //! POS tagging — Rust-accelerated taggers matching NLTK's API.
 //!
-//! Implements the averaged perceptron tagger from NLTK,
-//! loading weights from NLTK's trained model pickle.
+//! Implements the averaged perceptron tagger and sequential taggers.
 
 pub mod perceptron;
+pub mod sequential;
 pub mod tnt;
 
 use pyo3::prelude::*;
@@ -11,6 +11,12 @@ use pyo3::prelude::*;
 /// Register all tagger classes with the Python module.
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<perceptron::PerceptronTagger>()?;
+    m.add_class::<sequential::DefaultTagger>()?;
+    m.add_class::<sequential::UnigramTagger>()?;
+    m.add_class::<sequential::BigramTagger>()?;
+    m.add_class::<sequential::TrigramTagger>()?;
+    m.add_class::<sequential::AffixTagger>()?;
+    m.add_class::<sequential::RegexpTagger>()?;
     m.add_class::<tnt::TnT>()?;
     Ok(())
 }

@@ -13,30 +13,46 @@ import warnings
 import nltk.tag as _nltk_tag
 from nltk.data import find
 from nltk.tag import (
-    AffixTagger,
-    BigramTagger,
     BrillTagger,
     BrillTaggerTrainer,
     ClassifierBasedPOSTagger,
     ClassifierBasedTagger,
     ContextTagger,
     CRFTagger,
-    DefaultTagger,
     HiddenMarkovModelTagger,
     HiddenMarkovModelTrainer,
     NgramTagger,
-    RegexpTagger,
     SequentialBackoffTagger,
     TaggerI,
-    TrigramTagger,
-    UnigramTagger,
     map_tag,
 )
 
 _rust_available = False
 try:
-    from fastnltk._rust import PerceptronTagger as _RustPerceptronTagger
-    from fastnltk._rust import TnT as _RustTnT
+    from fastnltk._rust import (
+        AffixTagger as _RustAffixTagger,
+    )
+    from fastnltk._rust import (
+        BigramTagger as _RustBigramTagger,
+    )
+    from fastnltk._rust import (
+        DefaultTagger as _RustDefaultTagger,
+    )
+    from fastnltk._rust import (
+        PerceptronTagger as _RustPerceptronTagger,
+    )
+    from fastnltk._rust import (
+        RegexpTagger as _RustRegexpTagger,
+    )
+    from fastnltk._rust import (
+        TnT as _RustTnT,
+    )
+    from fastnltk._rust import (
+        TrigramTagger as _RustTrigramTagger,
+    )
+    from fastnltk._rust import (
+        UnigramTagger as _RustUnigramTagger,
+    )
     _rust_available = True
 except ImportError:
     warnings.warn(
@@ -168,7 +184,104 @@ class TnT:
         return self._impl.tag_sents(sentences)
 
 
-# ── NLTK re-exports for API compatibility ─────
+class DefaultTagger:
+    """Assign same tag to every token — Rust-accelerated."""
+    def __init__(self, tag):
+        if _rust_available:
+            self._impl = _RustDefaultTagger(tag)
+        else:
+            self._impl = _nltk_tag.DefaultTagger(tag)
+
+    def tag(self, tokens):
+        return self._impl.tag(tokens)
+
+    def tag_sents(self, sentences):
+        return self._impl.tag_sents(sentences)
+
+
+class UnigramTagger:
+    """Unigram tagger — Rust-accelerated lookup."""
+    def __init__(self, backoff=None):
+        if _rust_available:
+            self._impl = _RustUnigramTagger(backoff)
+        else:
+            self._impl = _nltk_tag.UnigramTagger(backoff=backoff)
+
+    def train(self, sentences):
+        self._impl.train(sentences)
+
+    def tag(self, tokens):
+        return self._impl.tag(tokens)
+
+    def tag_sents(self, sentences):
+        return self._impl.tag_sents(sentences)
+
+    def evaluate(self, gold):
+        return self._impl.evaluate(gold)
+
+
+class BigramTagger:
+    """Bigram tagger — Rust-accelerated lookup."""
+    def __init__(self, backoff=None):
+        if _rust_available:
+            self._impl = _RustBigramTagger(backoff)
+        else:
+            self._impl = _nltk_tag.BigramTagger(backoff=backoff)
+
+    def train(self, sentences):
+        self._impl.train(sentences)
+
+    def tag(self, tokens):
+        return self._impl.tag(tokens)
+
+    def tag_sents(self, sentences):
+        return self._impl.tag_sents(sentences)
+
+
+class TrigramTagger:
+    """Trigram tagger — Rust-accelerated lookup."""
+    def __init__(self, backoff=None):
+        if _rust_available:
+            self._impl = _RustTrigramTagger(backoff)
+        else:
+            self._impl = _nltk_tag.TrigramTagger(backoff=backoff)
+
+    def train(self, sentences):
+        self._impl.train(sentences)
+
+    def tag(self, tokens):
+        return self._impl.tag(tokens)
+
+    def tag_sents(self, sentences):
+        return self._impl.tag_sents(sentences)
+
+
+class AffixTagger:
+    """Affix (suffix/prefix) tagger — Rust-accelerated."""
+    def __init__(self, affix_len=3, use_suffix=True, backoff=None):
+        if _rust_available:
+            self._impl = _RustAffixTagger(affix_len, use_suffix, backoff)
+        else:
+            self._impl = _nltk_tag.AffixTagger(affix_len=affix_len, backoff=backoff)
+
+    def train(self, sentences):
+        self._impl.train(sentences)
+
+    def tag(self, tokens):
+        return self._impl.tag(tokens)
+
+
+class RegexpTagger:
+    """Regexp pattern tagger — Rust-accelerated."""
+    def __init__(self, patterns, backoff=None):
+        if _rust_available:
+            self._impl = _RustRegexpTagger(patterns, backoff)
+        else:
+            self._impl = _nltk_tag.RegexpTagger(patterns, backoff=backoff)
+
+    def tag(self, tokens):
+        return self._impl.tag(tokens)
+
 
 # ── NLTK re-exports for API compatibility ─────
 

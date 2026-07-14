@@ -15,6 +15,8 @@ fastNLTK keeps the API and replaces the engine. Hot paths compile to Rust native
 | LM fitting/generation | 11-39x | Ngram + smoothing via `rustling` |
 | Edit distance | 17-62x | Direct port — no Python loop overhead |
 | Classification training | 3-8x | Training loops — GIL released |
+| Trigram HMM tagging | 5-6x | TnT — Viterbi decoding in Rust |
+| Tree operations | 5-10x | Recursive traversal compiled to native |
 
 **Usage is identical to NLTK.** Import from `fastnltk` instead of `nltk` — no other changes needed. All NLTK corpus data works without re-download.
 
@@ -173,13 +175,13 @@ fastNLTK is a **drop-in replacement** for NLTK. This means:
 | `metrics` | edit_distance, jaro, jaro_winkler, dice, jaccard, binary, precision, recall, f_measure | ✅ v0.2 |
 | `chunk` | RegexpParser (grammar compilation + tag sequence matching) | ✅ v0.6 |
 | `wordnet` | WordNetLemmatizer (morphy algorithm) | ✅ v0.6 |
+| `tree` | Tree (leaves, height, productions, subtrees, bracket-string parsing) | ✅ v0.6 |
 
 ### What's a Python Shim (falls back to NLTK)
 
 | Module | Strategy |
 |---|---|
 | `parse` | Pure Python — wraps nltk.parse |
-| `tree` | Pure Python — wraps nltk.tree |
 | `corpus` | Pure Python — wraps nltk.corpus |
 | `sem` | Pure Python — wraps nltk.sem |
 | `inference` | Pure Python — wraps nltk.inference |
@@ -190,6 +192,7 @@ fastNLTK is a **drop-in replacement** for NLTK. This means:
 | `downloader` | Pure Python — wraps nltk.downloader |
 | KneserNey, WittenBell, StupidBackoff (LM) | Pure Python — wraps nltk.lm (no smoothing crate) |
 | NE chunker, ChunkScore, conll I/O | Pure Python — wraps nltk.chunk |
+| ParentedTree, ImmutableTree, MultiParentedTree, ProbabilisticTree | Pure Python — wraps nltk.tree (complex tree variants) |
 
 ### What's Skipped
 
@@ -275,10 +278,15 @@ fastnltk/
 │   ├── stem/
 │   ├── tag/
 │   ├── classify/
+│   ├── chunk.rs
 │   ├── collocations.rs
-│   ├── probability.rs
+│   ├── data.rs
 │   ├── lm.rs
 │   ├── metrics/
+│   ├── probability.rs
+│   ├── sentiment.rs
+│   ├── translate.rs
+│   ├── tree.rs
 │   └── util/
 ├── tests/                  # Python tests
 ├── benchmarks/             # Performance benchmarks
@@ -337,7 +345,7 @@ maturin build --release --out dist
 
 ### What We Write from Scratch
 
-Despite heavy crate reuse, ~8,500 LoC of Rust is custom for NLTK compatibility:
+Despite heavy crate reuse, ~9,000 LoC of Rust is custom for NLTK compatibility:
 
 - **Punkt sentence tokenizer** (~1,200 LoC) — no existing Rust crate handles NLTK's trained model format
 - **Treebank/Tweet tokenizers** (~700 LoC) — NLTK-specific regex rule-sets
@@ -350,6 +358,7 @@ Despite heavy crate reuse, ~8,500 LoC of Rust is custom for NLTK compatibility:
 - **Collocation finders** (~500 LoC) — ngram scoring with NLTK's association measures
 - **NaiveBayes** (~300 LoC) — training + prediction with Laplace smoothing
 - **RegexpChunkParser** (~300 LoC) — grammar compilation + tag sequence matching
+- **Tree data structure** (~400 LoC) — recursive Tree with leaves, height, productions, bracket-string parsing
 - **Data layer** (~300 LoC) — nltk_data finder, pickle → bincode converter
 - **TextCat bridge** (~50 LoC) — whatlang language detection wrapper
 
