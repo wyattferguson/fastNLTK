@@ -32,6 +32,9 @@ try:
         Lidstone as _RustLidstone,
     )
     from fastnltk._rust import (
+        StupidBackoff as _RustStupidBackoff,
+    )
+    from fastnltk._rust import (
         WittenBellInterpolated as _RustWittenBellInterpolated,
     )
     _rust_available = True
@@ -198,10 +201,13 @@ class WittenBellInterpolated:
 
 
 class StupidBackoff:
-    """Stupid backoff LM — Pure Python shim (no Rust crate)."""
+    """Stupid backoff LM — Rust-accelerated."""
     def __init__(self, order, alpha=0.4):
-        from nltk.lm import StupidBackoff as _NltkSB
-        self._impl = _NltkSB(order, alpha)
+        if _rust_available:
+            self._impl = _RustStupidBackoff(order, alpha)
+        else:
+            from nltk.lm import StupidBackoff as _NltkSB
+            self._impl = _NltkSB(order, alpha)
 
     def fit(self, sentences):
         self._impl.fit(sentences)
