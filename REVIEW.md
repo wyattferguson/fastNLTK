@@ -396,7 +396,7 @@ Functions with zero dedicated tests:
 | H2: Documentation gap | ✅ Improved | lib.rs (module map), stem/mod.rs (stemmer catalog), classify/mod.rs (Maxent), collocations.rs (measures) |
 | H3: lossy as casts | ✅ Fixed | translate.rs i32→f64 casts fixed |
 | H4: Clone reduction | ⏳ Deferred | 252 sites, 1-2d deep refactor |
-| H5: Large file splitting | ✅ Partial | sem.rs split (1027→4). Remaining: sequential.rs(502), lm.rs(501), drt.rs(471), probability.rs(463) |
+| H5: Large file splitting | ✅ 3/4 done | sem/lm/seq/prob split. drt.rs deferred — parser too coupled |
 | L1: suboptimal_flops | ✅ Fixed | log2() in texttiling, mul_add in tnt.rs |
 | L2: uninlined_format_args | ✅ Fixed | tree.rs, punkt.rs |
 | L3: clone_from | ✅ Fixed | sequential.rs (2 sites) |
