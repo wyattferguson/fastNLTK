@@ -5,7 +5,7 @@
 //! Pure pattern matching — no ML, 10-50x faster than NLTK.
 
 use pyo3::prelude::*;
-use rand::Rng;
+use rand::RngExt;
 use regex::Regex;
 
 // ═══════════════════════════════════════════════════════════

@@ -72,7 +72,7 @@ pub fn sent_tokenize_py(py: Python<'_>, text: &str, language: &str) -> PyResult<
         // Non-English language support not yet implemented; using English heuristic
         // Future: load Punkt model for requested language
     }
-    let result = py.allow_threads(|| {
+    let result = py.detach(|| {
         let mut sentences = Vec::new();
         let mut start = 0;
         let bytes = text.as_bytes();
@@ -106,7 +106,7 @@ pub fn word_tokenize_py(
         // Non-English language support not yet implemented; using English Treebank rules
         // Future: load language-specific tokenizer models
     }
-    let result = py.allow_threads(|| {
+    let result = py.detach(|| {
         if preserve_line {
             text.lines().flat_map(treebank::tokenize_treebank).collect()
         } else {

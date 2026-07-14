@@ -41,19 +41,28 @@ tokens = nltk.word_tokenize("Hello, world!")
 
 ## Performance
 
-| Component                      | Speedup vs NLTK | Engine                                      |
-| ------------------------------ | --------------- | ------------------------------------------- |
-| Regex tokenization             | 10–50×          | `regex` crate — DFA, no backtracking        |
-| Punkt sentence detection       | 10–50×          | Direct algorithm port                       |
-| Snowball stemming              | 15–20×          | `rust-stemmers` (libstemmer in Rust)        |
-| POS tagging                    | 5–6×            | Averaged perceptron via `rustling`          |
-| Language model scoring         | 5–39×           | Ngram + smoothing via `rustling`            |
-| Segmentation (windowdiff / pk) | **48–118×**     | Direct algorithm port, zero Python overhead |
-| Edit distance                  | 17–62×          | DP in native code                           |
-| Classification training        | 3–8×            | GIL-released training loops                 |
-| HMM tagging                    | 5–6×            | Viterbi decoding in Rust                    |
-| Tree operations                | 5–20×           | Recursive traversal compiled to native      |
-| Average (55 benchmarks)        | **23.9×**       | All modules combined                        |
+**42 automated benchmarks** across all 18 Rust modules. Average **9.4×** vs NLTK.
+
+| Module | Benchmarks | Best Speedup | Engine |
+|---|---|---|---|
+| [metrics](BENCHMARKS.md) | 3 | **107×** | Pure algorithmic port, zero Python overhead |
+| [sem](BENCHMARKS.md) | 1 | **42×** | Recursive descent parser in native code |
+| [tokenize](BENCHMARKS.md) | 8 | **19×** | Compiled regex via `regex` crate |
+| [stem](BENCHMARKS.md) | 4 | **13×** | `rust-stemmers` + algorithmic ports |
+| [tree](BENCHMARKS.md) | 1 | **13×** | Bracket parser in Rust |
+| [translate](BENCHMARKS.md) | 1 | **11×** | Tight DP loop in native code |
+| [tag](BENCHMARKS.md) | 8 | **9×** | Hash lookups + compiled regex dispatch |
+| [chunk](BENCHMARKS.md) | 1 | **8×** | Compiled chunk grammar, no Python regex |
+| [collocations](BENCHMARKS.md) | 1 | **6×** | HashMap counting in native code |
+| [probability](BENCHMARKS.md) | 1 | **5×** | Hash table ops in native code |
+| [ccg](BENCHMARKS.md) | 1 | **3×** | Pure Rust string parsing |
+| [chat](BENCHMARKS.md) | 1 | **4×** | Simple pattern match in Rust |
+| [classify](BENCHMARKS.md) | 2 | fastNLTK-only | GIL-released training loops |
+| [sentiment](BENCHMARKS.md) | 1 | fastNLTK-only | VADER algorithm in Rust |
+| [lm](BENCHMARKS.md) | 2 | fastNLTK-only | Ngram + smoothing via `rustling` |
+| [cluster](BENCHMARKS.md) | 1 | fastNLTK-only | K-means in native code |
+| [parse](BENCHMARKS.md) | 1 | fastNLTK-only | Earley chart parsing in Rust |
+| [inference](BENCHMARKS.md) | 4 | fastNLTK-only | Recursive proof search in Rust |
 
 [Full benchmark details →](BENCHMARKS.md)
 
@@ -116,23 +125,6 @@ print(tree.leaves())      # → ['The/DT', 'cat/NN', 'runs/VBZ']
 print(tree.productions()) # → ['S -> NP VP', 'NP -> The/DT cat/NN', ...]
 ```
 
-## Project Status
-
-**v0.2.0** — Production-ready for all NLP pipelines. 90+ Rust exports, 21 Python shims,
-275+ Rust tests, 254 Python integration tests. CI gated on correctness + performance regressions.
-
-| Metric                         | Value                                                       |
-| ------------------------------ | ----------------------------------------------------------- |
-| Rust tests                     | **279** passing                                             |
-| Python tests                   | **254** passing                                             |
-| CI clippy                      | **0 errors** (`correctness` + `suspicious` + `perf` denied) |
-| Unwraps in production          | **0** (all `Result` / expect with context)                  |
-| Unsafe code                    | **0 lines** (`unsafe_code` denied at crate level)           |
-| Benchmark regression detection | **25% threshold** in CI                                     |
-| LTO                            | `fat` in release builds                                     |
-| Allocator                      | `mimalloc` — up to 140% faster on CCG, MWE                  |
-| Python wheel                   | `abi3-py38` — one wheel for CPython 3.8–3.13+               |
-
 ## Installation
 
 ```bash
@@ -162,29 +154,6 @@ no additional downloads are needed:
 python -m nltk.downloader punkt averaged_perceptron_tagger wordnet
 ```
 
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Python user code                          │
-│               import fastnltk / from fastnltk                │
-├─────────────────────────────────────────────────────────────┤
-│                    Python shim layer                         │
-│          fastnltk/*.py — 21 shims, 1:1 API match            │
-├─────────────────────────────────────────────────────────────┤
-│                    PyO3 FFI boundary                         │
-│              fastnltk._rust — PyO3 extension module          │
-├─────────────────────────────────────────────────────────────┤
-│              90+ Rust exports, 20+ modules                  │
-│  tokenize  stem  tag  classify  lm  sem  inference  ...     │
-│  mimalloc · hashbrown · smol_str · phf · smallvec · LTO    │
-└─────────────────────────────────────────────────────────────┘
-```
-
-Each Python module in `fastnltk/` delegates hot paths to the compiled
-`_rust` extension. Unimplemented functions fall back transparently
-to NLTK with `try: from fastnltk._rust import ...; except: ...`.
-
 ## Development
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for detailed setup, code style,
@@ -198,7 +167,7 @@ pip install -e ".[dev]"
 maturin develop --release
 
 # Run tests
-cargo test --all-targets          # 279 Rust tests
+cargo test                       # 279 Rust tests
 pytest tests/                     # 254 Python tests
 
 # Quality checks

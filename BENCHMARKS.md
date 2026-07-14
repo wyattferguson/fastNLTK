@@ -1,111 +1,131 @@
 # Benchmarks
 
-> **Last updated:** 2026-07-14 (release build, Intel i7-12700, 32GB RAM)  
-> **v0.2.0 final:** clippy 0 errors, 279 Rust tests, 254 Python tests, sem/lm/prob/seq module split  
-> Toktok 3.8x, CCG 1.9x, TextTiling 4.3ms, HMM 0.16ms, KneserNey 0.003ms, avg 23.9x
+> **Last updated:** 2026-07-14 (release build, i7-12700, 32GB RAM)
+> **v0.3.0:** pyo3 v0.29, hashbrown v0.17, logos v0.16, phf v0.14, rand v0.10, smol_str v0.3, whatlang v0.18
+> 279 Rust tests, 0 clippy errors, all deps at latest
 >
-> Times are **median** of 30+ iterations. "—" means fastNLTK-only (no NLTK comparison).
+> Times are **median** of 5–100 iterations. "—" means fastNLTK-only (no NLTK comparison).
 >
-> Run yourself: `maturin develop --release && python -m benchmarks.run`
+> Run yourself: `.venv\Scripts\python -m benchmarks.run`
 
 ---
 
 ## All Benchmarks
 
-| Function | Module | Input | NLTK (ms) | fastNLTK (ms) | Speedup (v1) | Speedup (v0.2.0) |
-|---|---|---|---|---|---|---|
-| **Tokenization** | | | | | | |
-| `sent_tokenize` | tokenize | 30B | 0.12 | 0.01 | 12.0x | 12.0x |
-| `sent_tokenize` | tokenize | 1KB | 1.50 | 0.08 | 18.8x | 18.8x |
-| `sent_tokenize` | tokenize | 50KB | 58.20 | 2.10 | 27.7x | 27.7x |
-| `sent_tokenize` | tokenize | 1.2MB | 1,420.00 | 45.10 | 31.5x | 31.5x |
-| `word_tokenize` | tokenize | 30B | 0.15 | 0.01 | 15.0x | 15.0x |
-| `word_tokenize` | tokenize | 50KB | 72.10 | 3.80 | 19.0x | 19.0x |
-| `RegexpTokenizer.tokenize` | tokenize | 50KB | 45.30 | 1.50 | 30.2x | 30.2x |
-| `SpaceTokenizer.tokenize` | tokenize | 50KB | 8.40 | 0.20 | 42.0x | 42.0x |
-| `TreebankWordTokenizer.tokenize` | tokenize | 50KB | 62.10 | 3.10 | 20.0x | 20.0x |
-| `TweetTokenizer.tokenize` | tokenize | 50KB | 55.80 | 2.90 | 19.2x | 19.2x |
-| `ToktokTokenizer.tokenize` | tokenize | 82KB | 7.09 | 2.71 | 2.6x | **3.9x** |
-| `MWETokenizer.tokenize` | tokenize | 18K words | 2.10 | 1.67 | 1.3x | **1.2x** |
-| `TextTilingTokenizer.tokenize` | tokenize | 82KB | — | 4.54 | — | — |
-| `logos_word_tokenize` 🆕 | tokenize | 82KB | — | — | — | — |
-| **Stemming** | | | | | | |
-| `SnowballStemmer.stem` | stem | 10K words | 45.20 | 2.30 | 19.7x | 19.7x |
-| `PorterStemmer.stem` | stem | 10K words | 38.10 | 2.80 | 13.6x | 13.6x |
-| `LancasterStemmer.stem` | stem | 10K words | 42.50 | 2.60 | 16.3x | 16.3x |
-| `WordNetLemmatizer.lemmatize` | stem | 10K words | 120.40 | 11.20 | 10.8x | 10.8x |
-| **POS Tagging** | | | | | | |
-| `pos_tag` | tag | 100 sentences | 25.40 | 4.50 | 5.6x | 5.6x |
-| `pos_tag` | tag | 1K sentences | 248.10 | 39.80 | 6.2x | 6.2x |
-| `PerceptronTagger.tag` | tag | 100 sentences | 18.90 | 3.10 | 6.1x | 6.1x |
-| `TnT.tag` | tag | 100 sentences | 32.10 | 5.20 | 6.2x | 6.2x |
-| `HiddenMarkovModelTagger.tag` | tag | 1K words | — | 0.25 | — | — |
-| `DefaultTagger.tag` | tag | 10K words | 1.20 | 0.05 | 24.0x | 24.0x |
-| `UnigramTagger.tag` | tag | 10K words | 15.40 | 0.80 | 19.3x | 19.3x |
-| `BigramTagger.tag` | tag | 10K words | 18.20 | 1.10 | 16.5x | 16.5x |
-| `TrigramTagger.tag` | tag | 10K words | 22.10 | 1.40 | 15.8x | 15.8x |
-| `RegexpTagger.tag` | tag | 10K words | 8.50 | 0.40 | 21.3x | 21.3x |
-| `AffixTagger.tag` | tag | 10K words | 12.30 | 0.70 | 17.6x | 17.6x |
-| **Classification** | | | | | | |
-| `NaiveBayesClassifier.train` | classify | 10K instances | 850.00 | 180.00 | 4.7x | 4.7x |
-| `NaiveBayesClassifier.classify` | classify | 10K instances | 120.00 | 18.00 | 6.7x | 6.7x |
-| `MaxentClassifier.train` | classify | 5K instances | 3,200.00 | 520.00 | 6.2x | 6.2x |
-| **Language Models** | | | | | | |
-| `MLE.fit` | lm | 10K sentences | 520.00 | 47.00 | 11.1x | 11.1x |
-| `MLE.generate` | lm | 1K tokens | 480.00 | 14.00 | 34.3x | 34.3x |
-| `Lidstone.score` | lm | 10K queries | 125.00 | 22.00 | 5.7x | 5.7x |
-| `KneserNeyInterpolated.score` | lm | 4 queries | — | 0.005 | — | — |
-| **Collocations & Probability** | | | | | | |
-| `BigramCollocationFinder.from_words` | collocations | 1M words | 185.00 | 14.00 | 13.2x | 13.2x |
-| `FreqDist.update` | probability | 1M items | 95.00 | 11.00 | 8.6x | 8.6x |
-| **Metrics** | | | | | | |
-| `windowdiff` | metrics | 12K chars | 2.61 | 0.03 | **104.3x** | **104.3x** |
-| `pk` | metrics | 12K chars | 2.53 | 0.05 | **49.3x** | **52.5x** |
-| `edit_distance` | metrics | 2×100 chars | 0.50 | 0.01 | **50.0x** | **50.0x** |
-| **CCG Parsing** | | | | | | |
-| `CCG from_string` | ccg | 3.5K parses | 1.17 | 1.11 | 1.1x | **1.9x** |
-| **Inference** | | | | | | |
-| `TableauProver.prove` | inference | P\|~P | — | 0.002 | — | — |
-| `ResolutionProver.prove` | inference | P\|~P | — | 0.002 | — | — |
-| `DiscourseThread.answer_question` | inference | 2 DRSs | — | 0.005 | — | — |
-| `DefaultReasoner.extensions` | inference | 10 rules | — | 33.62 | — | — |
-| **Clustering** | | | | | | |
-| `KMeansClusterer.cluster` | cluster | 500×5D | 85.00 | 12.00 | 7.1x | 7.1x |
-| **Chat** | | | | | | |
-| `Chat.respond` | chat | single | 0.05 | 0.002 | 25.0x | 25.0x |
-| `Chat.converse` | chat | single | 0.06 | 0.003 | 20.0x | 20.0x |
-| **Semantics** | | | | | | |
-| `Expression.fromstring` | sem | simple | 0.15 | 0.01 | 15.0x | 15.0x |
-| `Expression.fromstring` | sem | quantified | 0.35 | 0.02 | 17.5x | 17.5x |
-| `Expression.fromstring` | sem | lambda + app | 0.40 | 0.03 | 13.3x | 13.3x |
-| **Average (55 benchmarks)** | | | | | **23.0x** | **23.9x** |
+| Module                      | Function                                     | Input         | NLTK (ms) | fastNLTK (ms) | Speedup    |
+| --------------------------- | -------------------------------------------- | ------------- | --------- | ------------- | ---------- |
+| **tokenize**                |                                              |               |           |               |            |
+|                             | `ToktokTokenizer.tokenize`                   | 82KB          | 8.40      | 2.17          | **3.9x**   |
+|                             | `MWETokenizer.tokenize`                      | 13.6K words   | 0.99      | 0.89          | 1.1x       |
+|                             | `RegexpTokenizer.tokenize`                   | 82KB          | 2.14      | 1.14          | **1.9x**   |
+|                             | `SpaceTokenizer.tokenize`                    | 82KB          | 0.26      | 0.47          | 0.6x       |
+|                             | `TreebankWordTokenizer.tokenize`             | 82KB          | 21.23     | 1.60          | **13.3x**  |
+|                             | `TweetTokenizer.tokenize`                    | 82KB          | 51.27     | 2.70          | **19.0x**  |
+|                             | `TextTilingTokenizer.tokenize`               | 82KB          | —         | 4.30          | —          |
+|                             | `logos_word_tokenize`                        | 82KB          | —         | 0.47          | —          |
+| **stem**                    |                                              |               |           |               |            |
+|                             | `SnowballStemmer.stem`                       | 10K words     | 32.61     | 2.47          | **13.2x**  |
+|                             | `PorterStemmer.stem`                         | 10K words     | 78.51     | 11.08         | **7.1x**   |
+|                             | `LancasterStemmer.stem`                      | 10K words     | 49.53     | 6.13          | **8.1x**   |
+|                             | `WordNetLemmatizer.lemmatize`                | 5K words      | —         | 2.15          | —          |
+| **tag**                     |                                              |               |           |               |            |
+|                             | `PerceptronTagger.tag`                       | 100 sentences | —         | 30.07         | —          |
+|                             | `HiddenMarkovModelTagger.tag`                | 1K words      | —         | 0.42          | —          |
+|                             | `DefaultTagger.tag`                          | 10K words     | 4.70      | 5.21          | 0.9x       |
+|                             | `UnigramTagger.tag`                          | 10K words     | 8.97      | 4.54          | **2.0x**   |
+|                             | `BigramTagger.tag`                           | 10K words     | 10.02     | 4.27          | **2.3x**   |
+|                             | `TrigramTagger.tag`                          | 10K words     | 11.23     | 7.77          | 1.4x       |
+|                             | `RegexpTagger.tag`                           | 10K words     | 38.39     | 4.07          | **9.4x**   |
+|                             | `AffixTagger.tag`                            | 10K words     | 9.08      | 4.51          | **2.0x**   |
+| **classify**                |                                              |               |           |               |            |
+|                             | `NaiveBayesClassifier.train`                 | 2K instances  | —         | 6.25          | —          |
+|                             | `NaiveBayesClassifier.classify`              | 5 features    | —         | 0.002         | —          |
+| **probability**             |                                              |               |           |               |            |
+|                             | `FreqDist.update`                            | 100K samples  | 37.43     | 7.69          | **4.9x**   |
+| **collocations**            |                                              |               |           |               |            |
+|                             | `BigramCollocationFinder.from_words`         | 50K words     | 81.51     | 13.71         | **5.9x**   |
+| **sentiment**               |                                              |               |           |               |            |
+|                             | `SentimentIntensityAnalyzer.polarity_scores` | 82KB          | —         | 2.05          | —          |
+| **metrics**                 |                                              |               |           |               |            |
+|                             | `windowdiff`                                 | 12K chars     | 6.84      | 0.06          | **107.0x** |
+|                             | `pk`                                         | 12K chars     | 6.38      | 0.13          | **50.3x**  |
+|                             | `edit_distance`                              | 100 chars     | —         | 0.05          | —          |
+| **lm**                      |                                              |               |           |               |            |
+|                             | `MLE.fit`                                    | 1K sentences  | —         | 2.28          | —          |
+|                             | `KneserNeyInterpolated.score`                | 4 queries     | —         | 0.02          | —          |
+| **ccg**                     |                                              |               |           |               |            |
+|                             | `CCG from_string`                            | 3.5K parses   | 3.75      | 1.31          | **2.9x**   |
+| **chunk**                   |                                              |               |           |               |            |
+|                             | `RegexpParser.parse`                         | 1.8K tokens   | 4.94      | 0.61          | **8.1x**   |
+| **cluster**                 |                                              |               |           |               |            |
+|                             | `KMeansClusterer.cluster`                    | 500×5D        | —         | 1.03          | —          |
+| **parse**                   |                                              |               |           |               |            |
+|                             | `EarleyChartParser.parse`                    | 30 sentences  | —         | 1.02          | —          |
+| **translate**               |                                              |               |           |               |            |
+|                             | `bleu`                                       | 7 tokens      | 0.12      | 0.01          | **11.3x**  |
+| **chat**                    |                                              |               |           |               |            |
+|                             | `Chat.respond`                               | single        | 0.002     | 0.001         | **3.6x**   |
+| **tree**                    |                                              |               |           |               |            |
+|                             | `Tree.from_string`                           | 300 trees     | 12.10     | 0.97          | **12.5x**  |
+| **sem**                     |                                              |               |           |               |            |
+|                             | `Expression.fromstring`                      | 500 formulas  | 61.77     | 1.46          | **42.2x**  |
+| **inference**               |                                              |               |           |               |            |
+|                             | `TableauProver.prove`                        | P\|~P         | —         | 0.002         | —          |
+|                             | `ResolutionProver.prove`                     | P\|~P         | —         | 0.002         | —          |
+|                             | `DiscourseThread.answer_question`            | 2 DRSs        | —         | 0.005         | —          |
+|                             | `DefaultReasoner.extensions`                 | 10 rules      | —         | 76.25         | —          |
+| **Average (42 benchmarks)** |                                              |               |           |               | **9.4x**   |
 
 ---
 
 ## Top 10 Speedups
 
-| # | Function | Speedup (v1) | Speedup (v0.2.0) | Why |
-|---|---|---|---|---|
-| 1 | `windowdiff` | **104.3x** | **120.6x** | Pure algorithmic port, no Python loop overhead |
-| 2 | `edit_distance` | **50.0x** | **50.0x** | DP in native code |
-| 3 | `pk` | **49.3x** | **51.8x** | Same as windowdiff — simple string scan |
-| 4 | `SpaceTokenizer.tokenize` | **42.0x** | **42.0x** | Trivial `str::split` in Rust |
-| 5 | `MLE.generate` | **34.3x** | **34.3x** | Tight sampling loop, no GIL |
-| 6 | `sent_tokenize` (1.2MB) | **31.5x** | **31.5x** | Punkt algorithm, no GIL |
-| 7 | `RegexpTokenizer.tokenize` | **30.2x** | **30.2x** | Compiled regex, no Python `re` overhead |
-| 8 | `Chat.respond` | **25.0x** | **25.0x** | Simple pattern match in Rust |
-| 9 | `DefaultTagger.tag` | **24.0x** | **24.0x** | HashMap lookup in Rust |
-| 10 | `RegexpTagger.tag` | **21.3x** | **21.3x** | Compiled regex dispatch |
+| #   | Function                         | Speedup    | Why                                            |
+| --- | -------------------------------- | ---------- | ---------------------------------------------- |
+| 1   | `windowdiff`                     | **107.0x** | Pure algorithmic port, no Python loop overhead |
+| 2   | `pk`                             | **50.3x**  | Same as windowdiff — simple string scan        |
+| 3   | `Expression.fromstring`          | **42.2x**  | Recursive descent parser in native code        |
+| 4   | `TweetTokenizer.tokenize`        | **19.0x**  | Compiled regex, no Python `re` overhead        |
+| 5   | `TreebankWordTokenizer.tokenize` | **13.3x**  | Compiled regex, no Python `re` overhead        |
+| 6   | `SnowballStemmer.stem`           | **13.2x**  | `rust-stemmers` — libstemmer in Rust           |
+| 7   | `Tree.from_string`               | **12.5x**  | Bracket parser in Rust                         |
+| 8   | `bleu`                           | **11.3x**  | Tight DP loop in native code                   |
+| 9   | `RegexpTagger.tag`               | **9.4x**   | Compiled regex dispatch, zero Python overhead  |
+| 10  | `LancasterStemmer.stem`          | **8.1x**   | Algorithmic port, string ops in native code    |
+
+---
+
+## Module Coverage
+
+| Module       | Benchmarks | Best Speedup  |
+| ------------ | ---------- | ------------- |
+| tokenize     | 8          | **19.0x**     |
+| stem         | 4          | **13.2x**     |
+| tag          | 8          | **9.4x**      |
+| classify     | 2          | fastNLTK-only |
+| probability  | 1          | **4.9x**      |
+| collocations | 1          | **5.9x**      |
+| sentiment    | 1          | fastNLTK-only |
+| metrics      | 3          | **107.0x**    |
+| lm           | 2          | fastNLTK-only |
+| ccg          | 1          | **2.9x**      |
+| chunk        | 1          | **8.1x**      |
+| cluster      | 1          | fastNLTK-only |
+| parse        | 1          | fastNLTK-only |
+| translate    | 1          | **11.3x**     |
+| chat         | 1          | **3.6x**      |
+| tree         | 1          | **12.5x**     |
+| sem          | 1          | **42.2x**     |
+| inference    | 4          | fastNLTK-only |
 
 ---
 
 ## Running
 
 ```bash
-maturin develop --release && python -m benchmarks.run   # Run all
-python -m benchmarks.run --save                          # Run + save
-python -m benchmarks.run --regression results/baseline.json --threshold 0.25  # Compare
+.venv\Scripts\python -m benchmarks.run           # Run all
+.venv\Scripts\python -m benchmarks.run --save    # Run + save
 ```
 
-The harness (12 automated benchmarks in `benchmarks/bench_suite.py`) supports automatic
+The harness (42 automated benchmarks in `benchmarks/bench_suite.py`) supports automatic
 regression detection against saved baselines. Default threshold: 25%.

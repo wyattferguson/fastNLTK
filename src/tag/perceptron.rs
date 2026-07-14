@@ -48,7 +48,7 @@ impl PerceptronTagger {
             let mut weights = HashMap::new();
             for (feat_key, tags_dict) in wd.iter() {
                 let feat_key = feat_key.extract::<String>()?;
-                let tags_dict = tags_dict.downcast::<PyDict>()?;
+                let tags_dict = tags_dict.cast::<PyDict>()?;
                 let mut tag_weights = HashMap::new();
                 for (tag, weight) in tags_dict.iter() {
                     let tag = tag.extract::<String>()?;

@@ -79,7 +79,7 @@ impl PunktSentenceTokenizer {
             // Load abbreviation types
             if let Ok(abbrev) = p.get_item("abbrev_types") {
                 if let Some(abbrev) = abbrev {
-                    if let Ok(set) = abbrev.downcast::<PySet>() {
+                    if let Ok(set) = abbrev.cast::<PySet>() {
                         for item in set.iter() {
                             if let Ok(s) = item.extract::<String>() {
                                 pparams.abbrev_types.insert(s);
@@ -92,7 +92,7 @@ impl PunktSentenceTokenizer {
             // Load collocations
             if let Ok(coll) = p.get_item("collocations") {
                 if let Some(coll) = coll {
-                    if let Ok(set) = coll.downcast::<PyFrozenSet>() {
+                    if let Ok(set) = coll.cast::<PyFrozenSet>() {
                         for item in set.iter() {
                             if let Ok(t) = item.extract::<(String, String)>() {
                                 pparams.collocations.insert(t);
@@ -105,7 +105,7 @@ impl PunktSentenceTokenizer {
             // Load sentence starters
             if let Ok(ss) = p.get_item("sent_starters") {
                 if let Some(ss_val) = ss {
-                    if let Ok(set) = ss_val.downcast::<PySet>() {
+                    if let Ok(set) = ss_val.cast::<PySet>() {
                         for item in set.iter() {
                             if let Ok(s) = item.extract::<String>() {
                                 pparams.sent_starters.insert(s);

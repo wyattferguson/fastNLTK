@@ -79,7 +79,7 @@ impl PlaintextCorpusReader {
     fn words(&self, fileids: Option<Vec<String>>) -> PyResult<Vec<String>> {
         let contents = self.raw(fileids)?;
         let mut all_words = Vec::new();
-        Python::with_gil(|py| {
+        Python::try_attach(|py| {
             for text in &contents {
                 let mut words = tokenize::word_tokenize_py(py, text, "english", false)
                     .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
@@ -87,6 +87,7 @@ impl PlaintextCorpusReader {
             }
             Ok(all_words)
         })
+        .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("Failed to acquire Python GIL"))?
     }
 
     /// Read sentences (tokenized using `sent_tokenize`).
@@ -94,7 +95,7 @@ impl PlaintextCorpusReader {
     fn sents(&self, fileids: Option<Vec<String>>) -> PyResult<Vec<Vec<String>>> {
         let contents = self.raw(fileids)?;
         let mut all_sents = Vec::new();
-        Python::with_gil(|py| {
+        Python::try_attach(|py| {
             for text in &contents {
                 let sentences = tokenize::sent_tokenize_py(py, text, "english")
                     .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
@@ -106,6 +107,7 @@ impl PlaintextCorpusReader {
             }
             Ok(all_sents)
         })
+        .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("Failed to acquire Python GIL"))?
     }
 
     /// Read the number of words in the corpus.

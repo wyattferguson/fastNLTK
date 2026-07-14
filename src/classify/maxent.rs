@@ -75,11 +75,11 @@ impl MaxentClassifier {
 
         for item in labeled_featuresets.iter() {
             let tuple = item
-                .downcast::<PyTuple>()
+                .cast::<PyTuple>()
                 .map_err(|_| PyValueError::new_err("Expected (features_dict, label) tuples"))?;
             let item0 = tuple.get_item(0)?;
             let features_dict = item0
-                .downcast::<PyDict>()
+                .cast::<PyDict>()
                 .map_err(|_| PyValueError::new_err("Expected dict as first element"))?;
             let label: String = tuple
                 .get_item(1)?

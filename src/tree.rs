@@ -87,7 +87,7 @@ impl Tree {
 
     /// Get child by index. Returns a `Tree` for non-leaf children, `str` for leaves.
     #[allow(deprecated)]
-    fn __getitem__(&self, py: Python<'_>, index: isize) -> PyObject {
+    fn __getitem__(&self, py: Python<'_>, index: isize) -> Py<PyAny> {
         let idx = if index < 0 {
             (self.children.len() as isize + index) as usize
         } else {
@@ -97,12 +97,11 @@ impl Tree {
             return py.None();
         }
         match &self.children[idx] {
-            TreeNode::Leaf(s) => s.clone().into_py(py),
+            TreeNode::Leaf(s) => s.clone().into_pyobject(py).unwrap().into_any().unbind(),
             TreeNode::Subtree(t) => {
                 // Return the subtree wrapped as a Python Tree object
-                let cloned = t.clone();
-                match Py::new(py, cloned) {
-                    Ok(obj) => obj.into_py(py),
+                match Py::new(py, t.clone()) {
+                    Ok(obj) => obj.into_any(),
                     Err(_) => py.None(),
                 }
             }
@@ -129,11 +128,12 @@ impl Tree {
 
     /// Return all subtrees as Rust Tree objects (no string roundtrip).
     fn subtrees(&self) -> Vec<Py<Self>> {
-        Python::with_gil(|py| {
+        Python::try_attach(|py| {
             let mut result = Vec::new();
             self.collect_subtrees_py(py, &mut result);
             result
         })
+        .expect("Python GIL not available")
     }
 
     fn pprint(&self) -> String {
@@ -381,7 +381,7 @@ mod tests {
 
     #[test]
     fn test_subtrees_returns_py_objects() {
-        pyo3::prepare_freethreaded_python();
+        pyo3::Python::initialize();
         let subs = sample_tree().subtrees();
         // Should have at least S and NP subtrees
         assert!(subs.len() >= 2);

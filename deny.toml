@@ -32,10 +32,10 @@ highlight = "all"
 
 [advisories]
 # Check RustSec advisory database
-db-url = "https://github.com/rustsec/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
 db-path = "~/.cargo/advisory-db"
 # Treat unmaintained crates as warnings
-unmaintained = "warn"
+unmaintained = "all"
 # Ignore specific advisories if needed
 # quick-xml is a transitive dep (rustling) — we don't parse XML
 # bincode 2.x is unmaintained but functional; plan migration to postcard

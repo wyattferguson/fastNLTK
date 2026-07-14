@@ -424,61 +424,66 @@ mod tests {
 
     #[test]
     fn test_unigram_train_and_tag() {
-        pyo3::prepare_freethreaded_python();
-        pyo3::Python::with_gil(|py| {
+        pyo3::Python::initialize();
+        pyo3::Python::try_attach(|py| {
             let mut tagger = UnigramTagger::new(None);
             tagger.train(&train_data(py)).unwrap();
             let result = tagger.tag(vec!["the".into(), "cat".into()]);
             assert_eq!(result.len(), 2);
             assert_eq!(result[0].1, "DT");
-        });
+        })
+        .expect("GIL");
     }
 
     #[test]
     fn test_unigram_unknown_word() {
-        pyo3::prepare_freethreaded_python();
-        pyo3::Python::with_gil(|py| {
+        pyo3::Python::initialize();
+        pyo3::Python::try_attach(|py| {
             let mut tagger = UnigramTagger::new(None);
             tagger.train(&train_data(py)).unwrap();
             let result = tagger.tag(vec!["xyzzy".into()]);
             // Falls back to most frequent tag from training
             assert!(result[0].1 == "DT" || result[0].1 == "NN");
-        });
+        })
+        .expect("GIL");
     }
 
     #[test]
     fn test_bigram_train_and_tag() {
-        pyo3::prepare_freethreaded_python();
-        pyo3::Python::with_gil(|py| {
+        pyo3::Python::initialize();
+        pyo3::Python::try_attach(|py| {
             let mut tagger = BigramTagger::new(None);
             tagger.train(&train_data(py)).unwrap();
             let result = tagger.tag(vec!["the".into(), "cat".into()]);
             assert_eq!(result.len(), 2);
-        });
+        })
+        .expect("GIL");
     }
 
     #[test]
     fn test_trigram_train_and_tag() {
-        pyo3::prepare_freethreaded_python();
-        pyo3::Python::with_gil(|py| {
+        pyo3::Python::initialize();
+        pyo3::Python::try_attach(|py| {
             let mut tagger = TrigramTagger::new(None);
             tagger.train(&train_data(py)).unwrap();
             let result = tagger.tag(vec!["the".into(), "cat".into()]);
             assert_eq!(result.len(), 2);
-        });
+        })
+        .expect("GIL");
     }
 
     #[test]
     fn test_affix_tagger_suffix() {
-        pyo3::prepare_freethreaded_python();
-        pyo3::Python::with_gil(|py| {
+        pyo3::Python::initialize();
+        pyo3::Python::try_attach(|py| {
             let mut tagger = AffixTagger::new(3, true, None);
             let list = PyList::empty(py);
             list.append(vec![("walking".to_string(), "VBG".to_string())]).unwrap();
             tagger.train(&list).unwrap();
             let result = tagger.tag(vec!["running".into()]);
             assert_eq!(result[0].1, "VBG");
-        });
+        })
+        .expect("GIL");
     }
 
     #[test]

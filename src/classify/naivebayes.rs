@@ -59,11 +59,11 @@ impl NaiveBayesClassifier {
         let mut raw_data: Vec<(String, Vec<(String, String)>)> = Vec::new();
         for item in labeled_featuresets.iter() {
             let tuple = item
-                .downcast::<PyTuple>()
+                .cast::<PyTuple>()
                 .map_err(|_| PyValueError::new_err("Expected (features_dict, label) tuples"))?;
             let item0 = tuple.get_item(0)?;
             let features_dict = item0
-                .downcast::<PyDict>()
+                .cast::<PyDict>()
                 .map_err(|_| PyValueError::new_err("Expected dict as first element"))?;
             let item1 = tuple.get_item(1)?;
             let label: String = item1
@@ -79,7 +79,7 @@ impl NaiveBayesClassifier {
             raw_data.push((label, feats));
         }
 
-        py.allow_threads(|| {
+        py.detach(|| {
             let mut label_counts: HashMap<String, u64> = HashMap::new();
             let mut feature_value_counts: HashMap<String, HashMap<String, u64>> = HashMap::new();
             let mut total = 0u64;

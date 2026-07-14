@@ -26,6 +26,9 @@
 //! - `tree`: NLTK Tree data structure
 //! - `util`: Regex caching, string utilities
 
+// PyO3 0.29 deprecates auto-FromPyObject for Clone #[pyclass]; opt-in/out deferred to 0.30
+#![allow(deprecated)]
+
 use mimalloc::MiMalloc;
 
 #[global_allocator]
