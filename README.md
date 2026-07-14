@@ -41,30 +41,29 @@ tokens = nltk.word_tokenize("Hello, world!")
 
 ## Performance
 
-**42 automated benchmarks** across all 18 Rust modules. Average **9.4×** vs NLTK.
-Every function below has an NLTK counterpart unless noted. "—" means NLTK comparison
-wasn't run (needs data download or API format mismatch — see [BENCHMARKS.md](BENCHMARKS.md) footnotes).
+**42 automated benchmarks** across all 18 Rust modules. Average **14.3×** vs NLTK.
+Every function below has an NLTK counterpart unless noted in [BENCHMARKS.md](BENCHMARKS.md) footnotes.
 
 | Module | Benchmarks | Best Speedup | Engine |
 |---|---|---|---|
-| [metrics](BENCHMARKS.md) | 3 | **107×** | Pure algorithmic port, zero Python overhead |
-| [sem](BENCHMARKS.md) | 1 | **42×** | Recursive descent parser in native code |
-| [tokenize](BENCHMARKS.md) | 8 | **19×** | Compiled regex via `regex` crate |
-| [stem](BENCHMARKS.md) | 4 | **13×** | `rust-stemmers` + algorithmic ports |
-| [tree](BENCHMARKS.md) | 1 | **13×** | Bracket parser in Rust |
-| [translate](BENCHMARKS.md) | 1 | **11×** | Tight DP loop in native code |
-| [tag](BENCHMARKS.md) | 8 | **9×** | Hash lookups + compiled regex dispatch |
-| [chunk](BENCHMARKS.md) | 1 | **8×** | Compiled chunk grammar, no Python regex |
-| [collocations](BENCHMARKS.md) | 1 | **6×** | HashMap counting in native code |
-| [probability](BENCHMARKS.md) | 1 | **5×** | Hash table ops in native code |
-| [ccg](BENCHMARKS.md) | 1 | **3×** | Pure Rust string parsing |
+| [metrics](BENCHMARKS.md) | 3 | **175×** | Pure algorithmic port, zero Python overhead |
+| [tokenize](BENCHMARKS.md) | 8 | **77×** | Compiled regex via `regex` crate |
+| [sentiment](BENCHMARKS.md) | 1 | **46×** | VADER algorithm in Rust vs Python |
+| [sem](BENCHMARKS.md) | 1 | **38×** | Recursive descent parser in native code |
+| [parse](BENCHMARKS.md) | 1 | **27×** | Earley chart parsing in Rust |
+| [stem](BENCHMARKS.md) | 4 | **22×** | `rust-stemmers` + algorithmic ports |
+| [tree](BENCHMARKS.md) | 1 | **11×** | Bracket parser in Rust |
+| [tag](BENCHMARKS.md) | 8 | **10×** | Hash lookups + compiled regex dispatch |
+| [translate](BENCHMARKS.md) | 1 | **10×** | Tight DP loop in native code |
+| [collocations](BENCHMARKS.md) | 1 | **9×** | HashMap counting in native code |
+| [classify](BENCHMARKS.md) | 2 | **8×** | GIL-released training loops |
+| [probability](BENCHMARKS.md) | 1 | **6×** | Hash table ops in native code |
+| [chunk](BENCHMARKS.md) | 1 | **4×** | Compiled chunk grammar, no Python regex |
+| [cluster](BENCHMARKS.md) | 1 | **4×** | K-means in native code |
 | [chat](BENCHMARKS.md) | 1 | **4×** | Simple pattern match in Rust |
-| [classify](BENCHMARKS.md) | 2 | — (see notes) | GIL-released training loops |
-| [sentiment](BENCHMARKS.md) | 1 | — (see notes)  | VADER algorithm in Rust |
-| [lm](BENCHMARKS.md) | 2 | — (see notes) | Ngram + smoothing via `rustling` |
-| [cluster](BENCHMARKS.md) | 1 | — (see notes) | K-means in native code |
-| [parse](BENCHMARKS.md) | 1 | — (see notes) | Earley chart parsing in Rust |
-| [inference](BENCHMARKS.md) | 4 | — (see notes) | Recursive proof search in Rust |
+| [ccg](BENCHMARKS.md) | 1 | **2×** | Pure Rust string parsing |
+| [lm](BENCHMARKS.md) | 2 | fastNLTK-only | Ngram + smoothing via `rustling` |
+| [inference](BENCHMARKS.md) | 4 | fastNLTK-only | Recursive proof search in Rust |
 
 [Full benchmark details →](BENCHMARKS.md)
 

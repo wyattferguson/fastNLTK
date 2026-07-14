@@ -71,16 +71,25 @@ def bench_mwe() -> BenchResult:
 
 
 def bench_texttiling() -> BenchResult:
+    from nltk.tokenize.texttiling import TextTilingTokenizer as NltkTT
+
     from fastnltk._rust import TextTilingTokenizer
 
-    text = fixture("medium")
-    tt = TextTilingTokenizer(20, 10, True)
-    f_ms = _median_time(lambda: tt.tokenize(text), 10)
+    # Build text with paragraph breaks (needed by NLTK's TextTiling)
+    paras = []
+    for i in range(50):
+        paras.append(fixture("tiny").strip() + "\n\n")
+    text = "".join(paras)
+    ntk = NltkTT()
+    rust = TextTilingTokenizer(20, 10, True)
+    n_ms = _median_time(lambda: ntk.tokenize(text), 5)
+    f_ms = _median_time(lambda: rust.tokenize(text), 5)
     return BenchResult(
         name="TextTilingTokenizer.tokenize",
         group="tokenize",
         params={"chars": len(text)},
-        fast_only_ms=f_ms, iterations=10,
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=5,
     )
 
 
@@ -229,16 +238,21 @@ def bench_lancaster() -> BenchResult:
 
 
 def bench_wordnet() -> BenchResult:
+    from nltk.stem import WordNetLemmatizer as NltkWN
+
     from fastnltk._rust import WordNetLemmatizer
 
     words = (fixture("medium").split() * 3)[:5000]
+    ntk = NltkWN()
     rust = WordNetLemmatizer()
+    n_ms = _median_time(lambda: [ntk.lemmatize(w) for w in words], 15)
     f_ms = _median_time(lambda: [rust.lemmatize(w) for w in words], 15)
     return BenchResult(
         name="WordNetLemmatizer.lemmatize",
         group="stem",
         params={"words": len(words)},
-        fast_only_ms=f_ms, iterations=15,
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
     )
 
 
@@ -246,18 +260,23 @@ def bench_wordnet() -> BenchResult:
 
 
 def bench_perceptron_tagger() -> BenchResult:
+    import nltk.tag
+
     from fastnltk.tag import pos_tag
 
-    # 100 sentences from medium text, split into pseudo-sentences
     words = fixture("medium").split()[:3000]
-    # Group into sentences of ~10 words
     sents = [words[i:i+10] for i in range(0, min(len(words), 1000), 10)][:100]
-    f_ms = _median_time(lambda: [pos_tag(s) for s in sents], 10)
+
+    ntk = nltk.tag.PerceptronTagger()
+    _ = [ntk.tag(s) for s in sents[:5]]  # warmup
+    n_ms = _median_time(lambda: [ntk.tag(s) for s in sents], 5)
+    f_ms = _median_time(lambda: [pos_tag(s) for s in sents], 5)
     return BenchResult(
         name="PerceptronTagger.tag",
         group="tag",
         params={"sentences": len(sents)},
-        fast_only_ms=f_ms, iterations=10,
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=5,
     )
 
 
@@ -425,6 +444,8 @@ def bench_affix_tagger() -> BenchResult:
 
 
 def bench_naivebayes_train() -> BenchResult:
+    from nltk.classify import NaiveBayesClassifier as NltkNB
+
     from fastnltk._rust import NaiveBayesClassifier as FastNB
 
     # Build 2000 training instances
@@ -434,21 +455,27 @@ def bench_naivebayes_train() -> BenchResult:
         feats = {f"feat_{j}": str((i + j) % 4) for j in range(10)}
         train_data_list.append((feats, label))
 
-    # Create a fresh classifier each call
-    def run():
+    def run_nltk():
+        NltkNB.train(train_data_list)
+
+    def run_fast():
         nb = FastNB()
         nb.train(train_data_list, 1.0)
 
-    f_ms = _median_time(run, 10)
+    n_ms = _median_time(run_nltk, 5)
+    f_ms = _median_time(run_fast, 10)
     return BenchResult(
         name="NaiveBayesClassifier.train",
         group="classify",
         params={"instances": len(train_data_list)},
-        fast_only_ms=f_ms, iterations=10,
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=10,
     )
 
 
 def bench_naivebayes_classify() -> BenchResult:
+    from nltk.classify import NaiveBayesClassifier as NltkNB
+
     from fastnltk._rust import NaiveBayesClassifier as FastNB
 
     train_data = []
@@ -457,16 +484,19 @@ def bench_naivebayes_classify() -> BenchResult:
         feats = {f"feat_{j}": str((i + j) % 3) for j in range(5)}
         train_data.append((feats, label))
 
+    ntk = NltkNB.train(train_data)
     nb = FastNB()
     nb.train(train_data, 1.0)
 
     test_feats = {f"feat_{j}": str(j % 3) for j in range(5)}
+    n_ms = _median_time(lambda: ntk.classify(test_feats), 100)
     f_ms = _median_time(lambda: nb.classify(test_feats), 100)
     return BenchResult(
         name="NaiveBayesClassifier.classify",
         group="classify",
         params={"features": len(test_feats)},
-        fast_only_ms=f_ms, iterations=100,
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=100,
     )
 
 
@@ -534,16 +564,21 @@ def bench_bigram_collocations() -> BenchResult:
 
 
 def bench_sentiment() -> BenchResult:
+    from nltk.sentiment.vader import SentimentIntensityAnalyzer as NltkVader
+
     from fastnltk._rust import SentimentIntensityAnalyzer
 
     text = fixture("medium")
+    ntk = NltkVader()
     rust = SentimentIntensityAnalyzer()
+    n_ms = _median_time(lambda: ntk.polarity_scores(text), 30)
     f_ms = _median_time(lambda: rust.polarity_scores(text), 50)
     return BenchResult(
         name="SentimentIntensityAnalyzer.polarity_scores",
         group="sentiment",
         params={"chars": len(text)},
-        fast_only_ms=f_ms, iterations=50,
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=50,
     )
 
 
@@ -585,16 +620,20 @@ def bench_pk() -> BenchResult:
 
 
 def bench_edit_distance() -> BenchResult:
+    from nltk.metrics.distance import edit_distance as nltk_ed
+
     from fastnltk._rust import edit_distance
 
     a = "abcdefghij" * 10
     b = "abxdefghij" * 10
 
+    n_ms = _median_time(lambda: nltk_ed(a, b), 100)
     f_ms = _median_time(lambda: edit_distance(a, b), 100)
     return BenchResult(
         name="edit_distance", group="metrics",
         params={"chars": len(a)},
-        fast_only_ms=f_ms, iterations=100,
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=100,
     )
 
 
@@ -699,16 +738,32 @@ def bench_chunk_parse() -> BenchResult:
 
 
 def bench_kmeans() -> BenchResult:
+    import numpy as np
+    from nltk.cluster import KMeansClusterer as NltkKMeans
+    from nltk.cluster.util import euclidean_distance
+
     from fastnltk._rust import KMeansClusterer
 
     vectors = [[float(i + j) for j in range(5)] for i in range(500)]
+    # NLTK KMeans needs numpy arrays
+    ntk_vectors = [np.array(v) for v in vectors]
+    ntk = NltkKMeans(3, euclidean_distance, repeats=1)
     rust = KMeansClusterer(3, 100)
-    f_ms = _median_time(lambda: rust.cluster(vectors), 15)
+
+    def run_nltk():
+        ntk.cluster(ntk_vectors, False)
+
+    def run_fast():
+        rust.cluster(vectors)
+
+    n_ms = _median_time(run_nltk, 5)
+    f_ms = _median_time(run_fast, 15)
     return BenchResult(
         name="KMeansClusterer.cluster",
         group="cluster",
         params={"vectors": len(vectors)},
-        fast_only_ms=f_ms, iterations=15,
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
     )
 
 
@@ -716,9 +771,25 @@ def bench_kmeans() -> BenchResult:
 
 
 def bench_earley() -> BenchResult:
+    import nltk
+    from nltk.parse import EarleyChartParser as NltkEarley
+
     from fastnltk._rust import CFG, EarleyChartParser
 
-    grammar = CFG.from_string("""S -> NP VP
+    grammar_str = """S -> NP VP
+NP -> Det N
+NP -> N
+VP -> V NP
+Det -> 'the'
+Det -> 'a'
+N -> 'cat'
+N -> 'dog'
+N -> 'fox'
+V -> 'chases'
+V -> 'sees'"""
+    ntk_grammar = nltk.CFG.fromstring(grammar_str)
+
+    rust_grammar = CFG.from_string("""S -> NP VP
 NP -> Det N
 NP -> N
 VP -> V NP
@@ -736,13 +807,17 @@ V -> sees""")
         ["the", "fox", "chases", "a", "cat"],
     ] * 10
 
-    parser = EarleyChartParser()
-    f_ms = _median_time(lambda: [parser.parse(grammar, s) for s in sentences], 15)
+    ntk_parser = NltkEarley(ntk_grammar)
+    rust_parser = EarleyChartParser()
+
+    n_ms = _median_time(lambda: [list(ntk_parser.parse(s)) for s in sentences], 10)
+    f_ms = _median_time(lambda: [rust_parser.parse(rust_grammar, s) for s in sentences], 15)
     return BenchResult(
         name="EarleyChartParser.parse",
         group="parse",
         params={"sentences": len(sentences)},
-        fast_only_ms=f_ms, iterations=15,
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
     )
 
 

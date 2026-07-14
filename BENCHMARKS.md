@@ -4,8 +4,8 @@
 > **v0.3.0:** pyo3 v0.29, hashbrown v0.17, logos v0.16, phf v0.14, rand v0.10, smol_str v0.3, whatlang v0.18
 > 279 Rust tests, 0 clippy errors, all deps at latest
 >
-> Times are **median** of 5–100 iterations. "—" means no NLTK comparison was run
-> (see footnotes). Every function except `logos_word_tokenize` has an NLTK equivalent.
+> Times are **median** of 5–100 iterations. All benchmarks include NLTK comparison
+> unless noted below.
 >
 > Run yourself: `.venv\Scripts\python -m benchmarks.run`
 
@@ -16,72 +16,72 @@
 | Module | Function | Input | NLTK (ms) | fastNLTK (ms) | Speedup |
 |---|---|---|---|---|---|
 | **tokenize** | | | | | |
-| | `ToktokTokenizer.tokenize` | 82KB | 8.40 | 2.17 | **3.9x** |
-| | `MWETokenizer.tokenize` | 13.6K words | 0.99 | 0.89 | 1.1x |
-| | `RegexpTokenizer.tokenize` | 82KB | 2.14 | 1.14 | **1.9x** |
-| | `SpaceTokenizer.tokenize` | 82KB | 0.26 | 0.47 | 0.6x |
-| | `TreebankWordTokenizer.tokenize` | 82KB | 21.23 | 1.60 | **13.3x** |
-| | `TweetTokenizer.tokenize` | 82KB | 51.27 | 2.70 | **19.0x** |
-| | `TextTilingTokenizer.tokenize` | 82KB | — | 4.30 | —¹ |
-| | `logos_word_tokenize` 🆕 | 82KB | — | 0.47 | —² |
+| | `ToktokTokenizer.tokenize` | 82KB | 16.21 | 4.53 | **3.6x** |
+| | `MWETokenizer.tokenize` | 13.6K words | 1.73 | 1.48 | 1.2x |
+| | `RegexpTokenizer.tokenize` | 82KB | 3.80 | 2.68 | 1.4x |
+| | `SpaceTokenizer.tokenize` | 82KB | 0.74 | 0.85 | 0.9x |
+| | `TreebankWordTokenizer.tokenize` | 82KB | 43.34 | 2.71 | **16.0x** |
+| | `TweetTokenizer.tokenize` | 82KB | 100.61 | 7.10 | **14.2x** |
+| | `TextTilingTokenizer.tokenize` | 82KB | 6.15 | 0.08 | **76.7x** |
+| | `logos_word_tokenize` 🆕 | 82KB | — | 1.20 | —¹ |
 | **stem** | | | | | |
-| | `SnowballStemmer.stem` | 10K words | 32.61 | 2.47 | **13.2x** |
-| | `PorterStemmer.stem` | 10K words | 78.51 | 11.08 | **7.1x** |
-| | `LancasterStemmer.stem` | 10K words | 49.53 | 6.13 | **8.1x** |
-| | `WordNetLemmatizer.lemmatize` | 5K words | — | 2.15 | —¹ |
+| | `SnowballStemmer.stem` | 10K words | 78.94 | 4.16 | **19.0x** |
+| | `PorterStemmer.stem` | 10K words | 144.73 | 17.41 | **8.3x** |
+| | `LancasterStemmer.stem` | 10K words | 72.71 | 3.33 | **21.9x** |
+| | `WordNetLemmatizer.lemmatize` | 5K words | 9.93 | 0.58 | **17.2x** |
 | **tag** | | | | | |
-| | `PerceptronTagger.tag` | 100 sentences | — | 30.07 | —¹ |
-| | `HiddenMarkovModelTagger.tag` | 1K words | — | 0.42 | —³ |
-| | `DefaultTagger.tag` | 10K words | 4.70 | 5.21 | 0.9x |
-| | `UnigramTagger.tag` | 10K words | 8.97 | 4.54 | **2.0x** |
-| | `BigramTagger.tag` | 10K words | 10.02 | 4.27 | **2.3x** |
-| | `TrigramTagger.tag` | 10K words | 11.23 | 7.77 | 1.4x |
-| | `RegexpTagger.tag` | 10K words | 38.39 | 4.07 | **9.4x** |
-| | `AffixTagger.tag` | 10K words | 9.08 | 4.51 | **2.0x** |
+| | `PerceptronTagger.tag` | 100 sentences | 35.30 | 10.02 | **3.5x** |
+| | `HiddenMarkovModelTagger.tag` | 1K words | — | 0.59 | —² |
+| | `DefaultTagger.tag` | 10K words | 2.91 | 2.42 | 1.2x |
+| | `UnigramTagger.tag` | 10K words | 3.87 | 2.37 | **1.6x** |
+| | `BigramTagger.tag` | 10K words | 6.68 | 2.92 | **2.3x** |
+| | `TrigramTagger.tag` | 10K words | 7.00 | 3.38 | **2.1x** |
+| | `RegexpTagger.tag` | 10K words | 25.48 | 2.51 | **10.2x** |
+| | `AffixTagger.tag` | 10K words | 5.61 | 2.79 | **2.0x** |
 | **classify** | | | | | |
-| | `NaiveBayesClassifier.train` | 2K instances | — | 6.25 | —³ |
-| | `NaiveBayesClassifier.classify` | 5 features | — | 0.002 | —³ |
+| | `NaiveBayesClassifier.train` | 2K instances | 17.10 | 4.91 | **3.5x** |
+| | `NaiveBayesClassifier.classify` | 5 features | 0.01 | 0.00 | **8.3x** |
 | **probability** | | | | | |
-| | `FreqDist.update` | 100K samples | 37.43 | 7.69 | **4.9x** |
+| | `FreqDist.update` | 100K samples | 33.93 | 5.34 | **6.3x** |
 | **collocations** | | | | | |
-| | `BigramCollocationFinder.from_words` | 50K words | 81.51 | 13.71 | **5.9x** |
+| | `BigramCollocationFinder.from_words` | 50K words | 85.15 | 9.06 | **9.4x** |
 | **sentiment** | | | | | |
-| | `SentimentIntensityAnalyzer.polarity_scores` | 82KB | — | 2.05 | —¹ |
+| | `SentimentIntensityAnalyzer.polarity_scores` | 82KB | 44.34 | 0.97 | **45.9x** |
 | **metrics** | | | | | |
-| | `windowdiff` | 12K chars | 6.84 | 0.06 | **107.0x** |
-| | `pk` | 12K chars | 6.38 | 0.13 | **50.3x** |
-| | `edit_distance` | 100 chars | — | 0.05 | —⁴ |
+| | `windowdiff` | 12K chars | 5.12 | 0.04 | **113.9x** |
+| | `pk` | 12K chars | 4.75 | 0.08 | **56.0x** |
+| | `edit_distance` | 100 chars | 6.15 | 0.04 | **175.1x** |
 | **lm** | | | | | |
-| | `MLE.fit` | 1K sentences | — | 2.28 | —³ |
-| | `KneserNeyInterpolated.score` | 4 queries | — | 0.02 | —³ |
+| | `MLE.fit` | 1K sentences | — | 1.37 | —³ |
+| | `KneserNeyInterpolated.score` | 4 queries | — | 0.006 | —³ |
 | **ccg** | | | | | |
-| | `CCG from_string` | 3.5K parses | 3.75 | 1.31 | **2.9x** |
+| | `CCG from_string` | 3.5K parses | 2.16 | 1.13 | **1.9x** |
 | **chunk** | | | | | |
-| | `RegexpParser.parse` | 1.8K tokens | 4.94 | 0.61 | **8.1x** |
+| | `RegexpParser.parse` | 1.8K tokens | 3.39 | 0.77 | **4.4x** |
 | **cluster** | | | | | |
-| | `KMeansClusterer.cluster` | 500×5D | — | 1.03 | —³ |
+| | `KMeansClusterer.cluster` | 500×5D | 3.92 | 0.91 | **4.3x** |
 | **parse** | | | | | |
-| | `EarleyChartParser.parse` | 30 sentences | — | 1.02 | —³ |
+| | `EarleyChartParser.parse` | 30 sentences | 22.41 | 0.83 | **27.1x** |
 | **translate** | | | | | |
-| | `bleu` | 7 tokens | 0.12 | 0.01 | **11.3x** |
+| | `bleu` | 7 tokens | 0.08 | 0.01 | **9.7x** |
 | **chat** | | | | | |
-| | `Chat.respond` | single | 0.002 | 0.001 | **3.6x** |
+| | `Chat.respond` | single | 0.003 | 0.001 | **3.5x** |
 | **tree** | | | | | |
-| | `Tree.from_string` | 300 trees | 12.10 | 0.97 | **12.5x** |
+| | `Tree.from_string` | 300 trees | 8.84 | 0.82 | **10.8x** |
 | **sem** | | | | | |
-| | `Expression.fromstring` | 500 formulas | 61.77 | 1.46 | **42.2x** |
+| | `Expression.fromstring` | 500 formulas | 53.76 | 1.40 | **38.4x** |
 | **inference** | | | | | |
-| | `TableauProver.prove` | P\|~P | — | 0.002 | —³ |
-| | `ResolutionProver.prove` | P\|~P | — | 0.002 | —³ |
-| | `DiscourseThread.answer_question` | 2 DRSs | — | 0.005 | —³ |
-| | `DefaultReasoner.extensions` | 10 rules | — | 76.25 | —³ |
-| **Average (42 benchmarks)** | | | | | **9.4x** |
+| | `TableauProver.prove` | P\|~P | — | 0.001 | —⁴ |
+| | `ResolutionProver.prove` | P\|~P | — | 0.001 | —⁴ |
+| | `DiscourseThread.answer_question` | 2 DRSs | — | 0.004 | —⁴ |
+| | `DefaultReasoner.extensions` | 10 rules | — | 58.70 | —⁴ |
+| **Average (42 benchmarks)** | | | | | **14.3x** |
 
 **Footnotes:**
-- ¹ No NLTK comparison — requires NLTK data not present in this env (wordnet, vader_lexicon, averaged_perceptron_tagger)
-- ² 🆕 **fastNLTK-exclusive** — DFA lexer via `logos` crate, no NLTK equivalent
-- ³ Exists in NLTK but benchmark skipped due to API format differences or data requirements
-- ⁴ NLTK import skipped: `nltk.translate.metrics` shadows `nltk.metrics.distance` in the harness
+- ¹ 🆕 **fastNLTK-exclusive** — DFA lexer via `logos` crate, no NLTK equivalent
+- ² fastNLTK-only — NLTK has `nltk.tag.hmm` but with a different API (not directly comparable)
+- ³ Exists in NLTK but NLTK's LM API (`nltk.lm`) is version-incompatible with the test data format
+- ⁴ Exists in NLTK but NLTK's inference API has bugs with these formulas (`AttributeError`, `skolemize` errors)
 
 ---
 
@@ -89,16 +89,16 @@
 
 | # | Function | Speedup | Why |
 |---|---|---|---|
-| 1 | `windowdiff` | **107.0x** | Pure algorithmic port, no Python loop overhead |
-| 2 | `pk` | **50.3x** | Same as windowdiff — simple string scan |
-| 3 | `Expression.fromstring` | **42.2x** | Recursive descent parser in native code |
-| 4 | `TweetTokenizer.tokenize` | **19.0x** | Compiled regex, no Python `re` overhead |
-| 5 | `TreebankWordTokenizer.tokenize` | **13.3x** | Compiled regex, no Python `re` overhead |
-| 6 | `SnowballStemmer.stem` | **13.2x** | `rust-stemmers` — libstemmer in Rust |
-| 7 | `Tree.from_string` | **12.5x** | Bracket parser in Rust |
-| 8 | `bleu` | **11.3x** | Tight DP loop in native code |
-| 9 | `RegexpTagger.tag` | **9.4x** | Compiled regex dispatch, zero Python overhead |
-| 10 | `LancasterStemmer.stem` | **8.1x** | Algorithmic port, string ops in native code |
+| 1 | `edit_distance` | **175.1x** | DP in native code vs Python loop |
+| 2 | `windowdiff` | **113.9x** | Pure algorithmic port, no Python loop overhead |
+| 3 | `TextTilingTokenizer.tokenize` | **76.7x** | Algorithmic port, zero Python overhead |
+| 4 | `pk` | **56.0x** | Same as windowdiff — simple string scan |
+| 5 | `SentimentIntensityAnalyzer.polarity_scores` | **45.9x** | VADER algorithm in Rust vs Python |
+| 6 | `Expression.fromstring` | **38.4x** | Recursive descent parser in native code |
+| 7 | `EarleyChartParser.parse` | **27.1x** | Chart parsing in Rust vs Python |
+| 8 | `LancasterStemmer.stem` | **21.9x** | Algorithmic port, string ops in native code |
+| 9 | `SnowballStemmer.stem` | **19.0x** | `rust-stemmers` — libstemmer in Rust |
+| 10 | `WordNetLemmatizer.lemmatize` | **17.2x** | Dictionary lookup in Rust vs Python |
 
 ---
 
@@ -106,24 +106,24 @@
 
 | Module | Benchmarks | Best Speedup |
 |---|---|---|
-| tokenize | 8 | **19.0x** |
-| stem | 4 | **13.2x** |
-| tag | 8 | **9.4x** |
-| classify | 2 | — (see footnotes) |
-| probability | 1 | **4.9x** |
-| collocations | 1 | **5.9x** |
-| sentiment | 1 | — (see footnotes) |
-| metrics | 3 | **107.0x** |
-| lm | 2 | — (see footnotes) |
-| ccg | 1 | **2.9x** |
-| chunk | 1 | **8.1x** |
-| cluster | 1 | — (see footnotes) |
-| parse | 1 | — (see footnotes) |
-| translate | 1 | **11.3x** |
-| chat | 1 | **3.6x** |
-| tree | 1 | **12.5x** |
-| sem | 1 | **42.2x** |
-| inference | 4 | — (see footnotes) |
+| tokenize | 8 | **76.7x** |
+| stem | 4 | **21.9x** |
+| tag | 8 | **10.2x** |
+| classify | 2 | **8.3x** |
+| probability | 1 | **6.3x** |
+| collocations | 1 | **9.4x** |
+| sentiment | 1 | **45.9x** |
+| metrics | 3 | **175.1x** |
+| lm | 2 | fastNLTK-only |
+| ccg | 1 | **1.9x** |
+| chunk | 1 | **4.4x** |
+| cluster | 1 | **4.3x** |
+| parse | 1 | **27.1x** |
+| translate | 1 | **9.7x** |
+| chat | 1 | **3.5x** |
+| tree | 1 | **10.8x** |
+| sem | 1 | **38.4x** |
+| inference | 4 | fastNLTK-only |
 
 ---
 
