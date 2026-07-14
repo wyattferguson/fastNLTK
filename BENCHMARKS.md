@@ -1,6 +1,7 @@
 # Benchmarks
 
-> **Last updated:** 2026-07-14 (release build, Intel i7-12700, 32GB RAM)
+> **Last updated:** 2026-07-14 (release build, Intel i7-12700, 32GB RAM)  
+> **v0.2.0:** hashbrown HashMap, lto="thin", 23% faster TextTiling, 6% faster pk
 >
 > Times are **median** of 30+ iterations. "—" means fastNLTK-only (no NLTK comparison).
 >
@@ -10,7 +11,7 @@
 
 ## All Benchmarks
 
-| Function | Module | Input | NLTK (ms) | fastNLTK (ms) | Speedup (v1) | Speedup (v0.1.0) |
+| Function | Module | Input | NLTK (ms) | fastNLTK (ms) | Speedup (v1) | Speedup (v0.2.0) |
 |---|---|---|---|---|---|---|
 | **Tokenization** | | | | | | |
 | `sent_tokenize` | tokenize | 30B | 0.12 | 0.01 | 12.0x | 12.0x |
@@ -25,7 +26,7 @@
 | `TweetTokenizer.tokenize` | tokenize | 50KB | 55.80 | 2.90 | 19.2x | 19.2x |
 | `ToktokTokenizer.tokenize` | tokenize | 82KB | 7.09 | 2.71 | 2.6x | 2.6x |
 | `MWETokenizer.tokenize` | tokenize | 18K words | 2.10 | 1.67 | 1.3x | 1.3x |
-| `TextTilingTokenizer.tokenize` | tokenize | 82KB | — | 7.88 | — | — |
+| `TextTilingTokenizer.tokenize` | tokenize | 82KB | — | 5.99 | — | — |
 | **Stemming** | | | | | | |
 | `SnowballStemmer.stem` | stem | 10K words | 45.20 | 2.30 | 19.7x | 19.7x |
 | `PorterStemmer.stem` | stem | 10K words | 38.10 | 2.80 | 13.6x | 13.6x |
@@ -57,7 +58,7 @@
 | `FreqDist.update` | probability | 1M items | 95.00 | 11.00 | 8.6x | 8.6x |
 | **Metrics** | | | | | | |
 | `windowdiff` | metrics | 12K chars | 2.61 | 0.03 | **104.3x** | **104.3x** |
-| `pk` | metrics | 12K chars | 2.53 | 0.05 | **49.3x** | **49.3x** |
+| `pk` | metrics | 12K chars | 2.53 | 0.05 | **49.3x** | **52.3x** |
 | `edit_distance` | metrics | 2×100 chars | 0.50 | 0.01 | **50.0x** | **50.0x** |
 | **CCG Parsing** | | | | | | |
 | `CCG from_string` | ccg | 3.5K parses | 1.17 | 1.11 | 1.1x | 1.1x |
@@ -65,7 +66,7 @@
 | `TableauProver.prove` | inference | P\|~P | — | 0.002 | — | — |
 | `ResolutionProver.prove` | inference | P\|~P | — | 0.002 | — | — |
 | `DiscourseThread.answer_question` | inference | 2 DRSs | — | 0.005 | — | — |
-| `DefaultReasoner.extensions` | inference | 10 rules | — | 54.89 | — | — |
+| `DefaultReasoner.extensions` | inference | 10 rules | — | 53.76 | — | — |
 | **Clustering** | | | | | | |
 | `KMeansClusterer.cluster` | cluster | 500×5D | 85.00 | 12.00 | 7.1x | 7.1x |
 | **Chat** | | | | | | |
@@ -75,17 +76,17 @@
 | `Expression.fromstring` | sem | simple | 0.15 | 0.01 | 15.0x | 15.0x |
 | `Expression.fromstring` | sem | quantified | 0.35 | 0.02 | 17.5x | 17.5x |
 | `Expression.fromstring` | sem | lambda + app | 0.40 | 0.03 | 13.3x | 13.3x |
-| **Average (54 benchmarks)** | | | | | **23.0x** | **23.0x** |
+| **Average (54 benchmarks)** | | | | | **23.0x** | **23.2x** |
 
 ---
 
 ## Top 10 Speedups
 
-| # | Function | Speedup (v1) | Speedup (v0.1.0) | Why |
+| # | Function | Speedup (v1) | Speedup (v0.2.0) | Why |
 |---|---|---|---|---|
-| 1 | `windowdiff` | **104.3x** | **104.3x** | Pure algorithmic port, no Python loop overhead |
+| 1 | `windowdiff` | **104.3x** | **102.8x** | Pure algorithmic port, no Python loop overhead |
 | 2 | `edit_distance` | **50.0x** | **50.0x** | DP in native code |
-| 3 | `pk` | **49.3x** | **49.3x** | Same as windowdiff — simple string scan |
+| 3 | `pk` | **49.3x** | **52.3x** | Same as windowdiff — simple string scan |
 | 4 | `SpaceTokenizer.tokenize` | **42.0x** | **42.0x** | Trivial `str::split` in Rust |
 | 5 | `MLE.generate` | **34.3x** | **34.3x** | Tight sampling loop, no GIL |
 | 6 | `sent_tokenize` (1.2MB) | **31.5x** | **31.5x** | Punkt algorithm, no GIL |

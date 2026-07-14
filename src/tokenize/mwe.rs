@@ -3,7 +3,7 @@
 //! NLTK equivalent: nltk.tokenize.mwe.MWETokenizer
 
 use pyo3::prelude::*;
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 #[derive(Clone, Default)]
 struct TrieNode {

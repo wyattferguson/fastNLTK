@@ -1,6 +1,6 @@
 [package]
 name = "fastnltk"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "Apache-2.0"
 homepage = "https://github.com/your/fastnltk"
@@ -50,7 +50,7 @@ default = ["parallel"]
 parallel = ["rayon", "rustling/parallel"]
 
 [profile.release]
-lto = "fat"
+lto = "thin"
 codegen-units = 1
 strip = true
 opt-level = 3

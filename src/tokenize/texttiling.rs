@@ -11,7 +11,8 @@
 //!
 //! NLTK equivalent: nltk.tokenize.texttiling.TextTilingTokenizer
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
+use hashbrown::HashMap;
 use std::sync::LazyLock;
 
 use pyo3::prelude::*;

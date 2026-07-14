@@ -13,7 +13,7 @@
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use crate::ccg::combinator::{self, Combinator};
 use crate::ccg::lexicon::CCGLexicon;
