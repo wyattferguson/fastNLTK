@@ -5,6 +5,8 @@
 
 use pyo3::prelude::*;
 
+use crate::error::FastNltkError;
+
 // ═══════════════════════════════════════════════════════════
 // KMeansClusterer
 // ═══════════════════════════════════════════════════════════
@@ -39,9 +41,7 @@ impl KMeansClusterer {
             return Ok(Vec::new());
         }
         if self.num_clusters > n {
-            return Err(pyo3::exceptions::PyValueError::new_err(
-                "num_clusters > number of vectors",
-            ));
+            return Err(FastNltkError::TooManyClusters(self.num_clusters, n).into());
         }
 
         let dim = vectors[0].len();
@@ -115,7 +115,7 @@ impl KMeansClusterer {
     /// Classify a single vector.
     fn classify(&self, vector: Vec<f64>) -> PyResult<usize> {
         if !self.fitted {
-            return Err(pyo3::exceptions::PyValueError::new_err("KMeansClusterer not fitted yet"));
+            return Err(FastNltkError::NotFitted.into());
         }
         let mut best_dist = f64::MAX;
         let mut best_cluster = 0;

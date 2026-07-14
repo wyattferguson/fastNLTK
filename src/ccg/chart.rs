@@ -12,6 +12,7 @@ use pyo3::prelude::*;
 use crate::ccg::combinator::{self, Combinator};
 use crate::ccg::lexicon::CCGLexicon;
 use crate::ccg::{Category, CategoryKind};
+use crate::error::FastNltkError;
 use smallvec::{smallvec, SmallVec};
 
 /// Max edges per chart cell before heap allocation (typically 1-5 edges per cell).
@@ -76,13 +77,10 @@ impl CCGChartParser {
     fn parse(&self, words: Vec<String>) -> PyResult<Vec<String>> {
         let n = words.len();
         if n == 0 {
-            return Err(PyValueError::new_err("Empty input"));
+            return Err(FastNltkError::EmptyInput.into());
         }
         if n > self.max_span {
-            return Err(PyValueError::new_err(format!(
-                "Input too long ({} words, max {})",
-                n, self.max_span
-            )));
+            return Err(FastNltkError::InputTooLong(n, self.max_span).into());
         }
 
         // Flat 3D chart: chart[span][start] → EdgeList

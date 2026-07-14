@@ -19,6 +19,7 @@ pub mod collocations;
 pub mod corpus;
 pub mod data;
 pub mod drt;
+pub mod error;
 pub mod inference;
 pub mod lm;
 pub mod metrics;

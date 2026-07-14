@@ -11,6 +11,8 @@ use hashbrown::HashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+use crate::error::FastNltkError;
+
 // ═══════════════════════════════════════════════════════════
 // CFG — Context-Free Grammar
 // ═══════════════════════════════════════════════════════════
@@ -75,9 +77,7 @@ impl CFG {
                 continue;
             }
             // Format: LHS -> RHS1 RHS2 | RHS3 RHS4
-            let arrow_pos = line.find("->").ok_or_else(|| {
-                PyValueError::new_err(format!("Expected '->' in grammar line: {line}"))
-            })?;
+            let arrow_pos = line.find("->").ok_or_else(|| FastNltkError::GrammarParse(line.to_string()))?;
 
             let lhs = line[..arrow_pos].trim();
             let rhs_part = line[arrow_pos + 2..].trim();
@@ -107,7 +107,7 @@ impl CFG {
         }
 
         if start.is_empty() {
-            return Err(PyValueError::new_err("Empty grammar"));
+            return Err(FastNltkError::GrammarParse("empty grammar".into()).into());
         }
 
         CFG::new(&start, productions)
@@ -235,7 +235,7 @@ impl EarleyChartParser {
         }
 
         if results.is_empty() {
-            return Err(PyValueError::new_err("No parse found"));
+            return Err(FastNltkError::NoParse.into());
         }
         Ok(results)
     }
