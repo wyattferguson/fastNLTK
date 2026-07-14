@@ -75,6 +75,7 @@
 | `Expression.fromstring` | sem | simple | 0.15 | 0.01 | 15.0x | 15.0x |
 | `Expression.fromstring` | sem | quantified | 0.35 | 0.02 | 17.5x | 17.5x |
 | `Expression.fromstring` | sem | lambda + app | 0.40 | 0.03 | 13.3x | 13.3x |
+| **Average (54 benchmarks)** | | | | | **23.0x** | **23.0x** |
 
 ---
 
