@@ -1,8 +1,9 @@
 //! Classification — Rust-accelerated classifiers matching NLTK's API.
 //!
 //! Implements:
-//!   - NaiveBayesClassifier (training + prediction)
-//!   - TextCat (language detection via whatlang)
+//!   - `NaiveBayesClassifier` (training + prediction)
+//!   - `MaxentClassifier` (GIS training + inference)
+//!   - `TextCat` (language detection via whatlang)
 
 pub mod maxent;
 pub mod naivebayes;

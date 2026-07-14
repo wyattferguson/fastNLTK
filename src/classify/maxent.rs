@@ -127,7 +127,7 @@ impl MaxentClassifier {
         let mut train_features: Vec<Vec<(usize, f64)>> = Vec::with_capacity(raw_data.len());
 
         for (label, feats) in &raw_data {
-            let li = labels.iter().position(|l| l == label).unwrap();
+            let li = labels.iter().position(|l| l == label).expect("Label must be in feature set");
             let mut sparse: Vec<(usize, f64)> = Vec::with_capacity(feats.len());
             for (name, val) in feats {
                 if let Some(fi) = feature_names.iter().position(|f| f == name) {

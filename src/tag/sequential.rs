@@ -35,7 +35,7 @@ impl DefaultTagger {
     }
 
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
-        tokens.into_iter().map(|w| (w, self.tag.clone())).collect()
+        tokens.into_iter().map(|w| (w, self.tag.to_string())).collect()
     }
 
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
@@ -406,7 +406,7 @@ impl AffixTagger {
                 let map = if self.use_suffix { &self.suffix_map } else { &self.prefix_map };
                 let tag =
                     map.get(&affix).or(self.default_tag.as_ref()).cloned().unwrap_or_default();
-                (w, tag)
+                (w, tag.to_string())
             })
             .collect()
     }
@@ -444,10 +444,10 @@ impl RegexpTagger {
             .map(|w| {
                 for (re, tag) in &self.rules {
                     if re.is_match(&w) {
-                        return (w, tag.clone());
+                        return (w, tag.to_string());
                     }
                 }
-                (w, self.default_tag.clone().unwrap_or_default())
+                (w, self.default_tag.clone().unwrap_or_default().to_string())
             })
             .collect()
     }
