@@ -56,6 +56,13 @@ try:
     from fastnltk._rust import jaccard_distance as _rust_jaccard_distance
     from fastnltk._rust import jaro_similarity as _rust_jaro_similarity
     from fastnltk._rust import jaro_winkler_similarity as _rust_jaro_winkler_similarity
+    from fastnltk._rust import windowdiff as _rust_windowdiff
+    from fastnltk._rust import pk as _rust_pk
+    from fastnltk._rust import kappa as _rust_kappa
+    from fastnltk._rust import pi as _rust_pi
+    from fastnltk._rust import alpha as _rust_alpha
+    from fastnltk._rust import spearman as _rust_spearman
+    from fastnltk._rust import BigramAssocMeasures as _RustBigramAssocMeasures
     _rust_available = True
 except ImportError:
     warnings.warn(
@@ -135,3 +142,32 @@ def dice_similarity(x, y):
 
 
 alignment_error_rate = _nltk_metrics.alignment_error_rate
+
+# ── New Phase B+C exports ────────────────────────────────
+
+if _rust_available:
+    windowdiff = _rust_windowdiff
+    pk = _rust_pk
+    kappa = _rust_kappa
+    pi = _rust_pi
+    alpha = _rust_alpha
+    spearman = _rust_spearman
+    BigramAssocMeasures = _RustBigramAssocMeasures
+else:
+    # Re-export from NLTK
+    try:
+        from nltk.metrics.segmentation import windowdiff, pk
+    except ImportError:
+        windowdiff = pk = None
+    try:
+        from nltk.metrics.agreement import kappa, pi, alpha
+    except ImportError:
+        kappa = pi = alpha = None
+    try:
+        from nltk.metrics.spearman import spearman
+    except ImportError:
+        spearman = None
+    try:
+        from nltk.metrics.association import BigramAssocMeasures
+    except ImportError:
+        BigramAssocMeasures = None

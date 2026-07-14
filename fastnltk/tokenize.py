@@ -57,6 +57,12 @@ try:
     from fastnltk._rust import (
         ToktokTokenizer as _RustToktokTokenizer,
     )
+    from fastnltk._rust import (
+        MWETokenizer as _RustMWETokenizer,
+    )
+    from fastnltk._rust import (
+        TextTilingTokenizer as _RustTextTilingTokenizer,
+    )
     _rust_available = True
 except ImportError:
     warnings.warn(
