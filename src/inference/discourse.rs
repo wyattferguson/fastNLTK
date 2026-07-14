@@ -30,7 +30,7 @@ pub struct DiscourseThread {
 impl DiscourseThread {
     #[new]
     fn new() -> Self {
-        DiscourseThread { drss: Vec::new(), all_referents: Vec::new() }
+        Self { drss: Vec::new(), all_referents: Vec::new() }
     }
 
     /// Add a DRS from bracket notation.
@@ -112,8 +112,8 @@ impl DiscourseThread {
             }
         }
 
-        let mut conditions = discourse.conditions.clone();
-        conditions.extend(q.conditions.clone());
+        let mut conditions = discourse.conditions;
+        conditions.extend(q.conditions);
 
         let combined = DRS { universe: combined_universe, conditions };
 

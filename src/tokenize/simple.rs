@@ -48,7 +48,7 @@ impl SpaceTokenizer {
     }
 }
 
-/// Core SpaceTokenizer logic: split on ' ', filter empty.
+/// Core `SpaceTokenizer` logic: split on ' ', filter empty.
 fn tokenize_space(text: &str) -> Vec<String> {
     text.split(' ').map(String::from).collect()
 }

@@ -29,7 +29,7 @@ impl MLE {
     #[new]
     #[pyo3(signature = (order))]
     fn new(order: usize) -> PyResult<Self> {
-        RustMLE::new(order).map(|inner| MLE { inner }).map_err(|e| PyValueError::new_err(e.to_string()))
+        RustMLE::new(order).map(|inner| Self { inner }).map_err(|e| PyValueError::new_err(e.to_string()))
     }
     fn fit(&mut self, sentences: Vec<Vec<String>>) { self.inner.fit(sentences); }
     #[pyo3(signature = (word, context=None))]
@@ -53,7 +53,7 @@ impl Lidstone {
     #[new]
     #[pyo3(signature = (order, gamma))]
     fn new(order: usize, gamma: f64) -> PyResult<Self> {
-        RustLidstone::new(order, gamma).map(|inner| Lidstone { inner }).map_err(|e| PyValueError::new_err(e.to_string()))
+        RustLidstone::new(order, gamma).map(|inner| Self { inner }).map_err(|e| PyValueError::new_err(e.to_string()))
     }
     fn fit(&mut self, sentences: Vec<Vec<String>>) { self.inner.fit(sentences); }
     #[pyo3(signature = (word, context=None))]
@@ -77,7 +77,7 @@ impl Laplace {
     #[new]
     #[pyo3(signature = (order))]
     fn new(order: usize) -> PyResult<Self> {
-        RustLaplace::new(order).map(|inner| Laplace { inner }).map_err(|e| PyValueError::new_err(e.to_string()))
+        RustLaplace::new(order).map(|inner| Self { inner }).map_err(|e| PyValueError::new_err(e.to_string()))
     }
     fn fit(&mut self, sentences: Vec<Vec<String>>) { self.inner.fit(sentences); }
     #[pyo3(signature = (word, context=None))]

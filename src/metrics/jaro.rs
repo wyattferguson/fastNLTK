@@ -47,7 +47,7 @@ fn jaro_winkler_sim(x: &str, y: &str, p: f64, max_l: usize) -> f64 {
             break;
         }
     }
-    js + l as f64 * p * (1.0 - js)
+    (l as f64 * p).mul_add(1.0 - js, js)
 }
 
 #[pyfunction(signature = (x, y))]

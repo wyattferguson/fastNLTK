@@ -9,8 +9,8 @@
 //!
 //! Sub-modules:
 //!   - `expression`: Core types (Expression, Type), Display, substitution, free vars
-//!   - `parse`: Tokenizer, recursive descent parser, parse_expression()
-//!   - `evaluate`: Model evaluation, PyO3 bindings (fromstring, simplify, evaluate_formula)
+//!   - `parse`: Tokenizer, recursive descent parser, `parse_expression()`
+//!   - `evaluate`: Model evaluation, `PyO3` bindings (fromstring, simplify, `evaluate_formula`)
 
 pub mod evaluate;
 pub mod expression;

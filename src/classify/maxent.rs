@@ -1,7 +1,7 @@
 //! Maximum Entropy classifier — GIS training + inference in Rust.
 //!
-//! Implements NLTK's MaxentClassifier with Generalized Iterative Scaling (GIS).
-//! Feature encoding matches NLTK's BinaryMaxentFeatureEncoding.
+//! Implements NLTK's `MaxentClassifier` with Generalized Iterative Scaling (GIS).
+//! Feature encoding matches NLTK's `BinaryMaxentFeatureEncoding`.
 //! 3-8x faster than NLTK's pure-Python implementation.
 
 use std::collections::HashMap;
@@ -16,7 +16,7 @@ use pyo3::types::{PyDict, PyList, PyTuple};
 
 type FeatureVector = Vec<(String, f64)>;
 
-/// Extract feature vector from a Python dict of {feature_name: value}.
+/// Extract feature vector from a Python dict of {`feature_name`: value}.
 /// Values are converted to 1.0 for truthy, 0.0 for falsy (binary encoding).
 fn extract_features(features_dict: &Bound<'_, PyDict>) -> PyResult<FeatureVector> {
     let mut features = FeatureVector::new();
@@ -47,7 +47,7 @@ pub struct MaxentClassifier {
     labels: Vec<String>,
     /// Feature names in sorted order
     feature_names: Vec<String>,
-    /// Weight matrix: [label_index][feature_index] → weight
+    /// Weight matrix: [`label_index`][feature_index] → weight
     weights: Vec<Vec<f64>>,
     /// Max iterations used during training
     max_iter: usize,
@@ -57,7 +57,7 @@ pub struct MaxentClassifier {
 impl MaxentClassifier {
     #[new]
     fn new() -> Self {
-        MaxentClassifier {
+        Self {
             labels: Vec::new(),
             feature_names: Vec::new(),
             weights: Vec::new(),
@@ -93,7 +93,7 @@ impl MaxentClassifier {
                 .extract()
                 .map_err(|_| PyValueError::new_err("Expected string label as second element"))?;
 
-            let feats = extract_features(&features_dict)?;
+            let feats = extract_features(features_dict)?;
             for (name, _) in &feats {
                 *feature_set.entry(name.clone()).or_insert(0) += 1;
             }
@@ -171,7 +171,7 @@ impl MaxentClassifier {
             // Compute model expectations
             let mut model_counts: Vec<f64> = vec![0.0; num_feats];
 
-            for (_idx, features) in train_features.iter().enumerate() {
+            for features in train_features.iter() {
                 // Compute scores for each label
                 let mut scores: Vec<f64> = vec![0.0; num_labels];
                 for li in 0..num_labels {
@@ -183,7 +183,7 @@ impl MaxentClassifier {
                 }
 
                 // Softmax
-                let max_score = scores.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+                let max_score = scores.iter().copied().fold(f64::NEG_INFINITY, f64::max);
                 let mut sum_exp = 0.0;
                 for s in &mut scores {
                     *s = (*s - max_score).exp();
@@ -249,22 +249,21 @@ impl MaxentClassifier {
 
     /// Classify a single feature dict.
     fn classify(&self, features_dict: &Bound<'_, PyDict>) -> PyResult<String> {
-        let features = extract_features(&features_dict)?;
+        let features = extract_features(features_dict)?;
         let scores = self.compute_scores(&features);
         let max_idx = scores
             .iter()
             .enumerate()
             .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
-            .map(|(i, _)| i)
-            .unwrap_or(0);
+            .map_or(0, |(i, _)| i);
         Ok(self.labels[max_idx].clone())
     }
 
     /// Return probability distribution over labels.
     fn prob_classify(&self, features_dict: &Bound<'_, PyDict>) -> PyResult<HashMap<String, f64>> {
-        let features = extract_features(&features_dict)?;
+        let features = extract_features(features_dict)?;
         let scores = self.compute_scores(&features);
-        let max_score = scores.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+        let max_score = scores.iter().copied().fold(f64::NEG_INFINITY, f64::max);
         let mut exp_sum = 0.0;
         let mut probs: Vec<f64> = Vec::with_capacity(scores.len());
         for s in &scores {
@@ -296,7 +295,7 @@ impl MaxentClassifier {
             for (fi, fname) in self.feature_names.iter().enumerate() {
                 let w = self.weights[li][fi];
                 if w.abs() > 1e-10 {
-                    feat_weights.push((format!("{} {}", label, fname), w));
+                    feat_weights.push((format!("{label} {fname}"), w));
                 }
             }
         }
@@ -304,7 +303,7 @@ impl MaxentClassifier {
         feat_weights
             .into_iter()
             .take(n)
-            .map(|(feat, weight)| format!("{:.3} {}", weight, feat))
+            .map(|(feat, weight)| format!("{weight:.3} {feat}"))
             .collect()
     }
 }

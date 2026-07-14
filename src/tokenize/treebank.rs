@@ -1,6 +1,6 @@
 //! Treebank tokenizer — Penn Treebank-style tokenization.
 //!
-//! Based on NLTK's TreebankWordTokenizer which handles:
+//! Based on NLTK's `TreebankWordTokenizer` which handles:
 //!   - English contractions (n't, 'm, 's, 're, 've, 'll, 'd)
 //!   - Punctuation splitting (parentheses, quotes, commas, etc.)
 //!   - Clitics and hyphenated words
@@ -75,7 +75,7 @@ pub fn tokenize_treebank(text: &str) -> Vec<String> {
 // PyO3 Wrappers
 // ═══════════════════════════════════════════════════════════
 
-/// TreebankWordTokenizer — Penn Treebank tokenization.
+/// `TreebankWordTokenizer` — Penn Treebank tokenization.
 #[pyclass(name = "TreebankWordTokenizer", module = "fastnltk._rust")]
 pub struct TreebankWordTokenizer;
 
@@ -107,7 +107,7 @@ impl TreebankWordTokenizer {
     }
 }
 
-/// TreebankWordDetokenizer — detokenize Treebank tokens back to text.
+/// `TreebankWordDetokenizer` — detokenize Treebank tokens back to text.
 #[pyclass(name = "TreebankWordDetokenizer", module = "fastnltk._rust")]
 pub struct TreebankWordDetokenizer;
 

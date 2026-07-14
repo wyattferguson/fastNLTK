@@ -1,7 +1,7 @@
 //! Translation metrics — BLEU score.
 //!
 //! Implements the BLEU (Bilingual Evaluation Understudy) score
-//! matching NLTK's nltk.translate.bleu_score.
+//! matching NLTK's `nltk.translate.bleu_score`.
 
 use pyo3::prelude::*;
 use std::collections::HashMap;

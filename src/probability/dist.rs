@@ -1,6 +1,6 @@
 //! Probability distribution types — MLE and Laplace smoothing.
 //!
-//! Implements MLEProbDist (maximum likelihood) and LaplaceProbDist
+//! Implements `MLEProbDist` (maximum likelihood) and `LaplaceProbDist`
 //! (add-one smoothing) matching NLTK's API.
 
 use pyo3::prelude::*;
@@ -17,7 +17,7 @@ pub struct MLEProbDist {
 impl MLEProbDist {
     #[new]
     #[pyo3(signature = (freqdist, _bins=None))]
-    fn new(freqdist: FreqDist, _bins: Option<usize>) -> Self { MLEProbDist { freqdist } }
+    fn new(freqdist: FreqDist, _bins: Option<usize>) -> Self { Self { freqdist } }
     fn prob(&self, sample: &str) -> f64 {
         let n = self.freqdist.get_total();
         if n == 0 { return 0.0; }
@@ -42,7 +42,7 @@ impl LaplaceProbDist {
     #[pyo3(signature = (freqdist, bins=None))]
     fn new(freqdist: FreqDist, bins: Option<usize>) -> Self {
         let b = bins.unwrap_or(freqdist.num_samples());
-        LaplaceProbDist { freqdist, bins: b }
+        Self { freqdist, bins: b }
     }
     fn prob(&self, sample: &str) -> f64 {
         let n = self.freqdist.get_total();

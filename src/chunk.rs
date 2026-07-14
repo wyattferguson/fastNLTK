@@ -1,6 +1,6 @@
-//! Chunking — Rust-accelerated RegexpChunkParser.
+//! Chunking — Rust-accelerated `RegexpChunkParser`.
 //!
-//! Implements NLTK's RegexpParser with ChunkRule support.
+//! Implements NLTK's `RegexpParser` with `ChunkRule` support.
 //! Compiles chunk grammar patterns to tag-sequence regexes
 //! and applies them to tagged text for IOB chunking.
 //! 5-10x faster than NLTK's pure-Python implementation.
@@ -125,10 +125,10 @@ impl RegexpParser {
     #[pyo3(signature = (grammar))]
     fn new(grammar: &str) -> PyResult<Self> {
         let rules = Self::parse_grammar(grammar)?;
-        Ok(RegexpParser { rules })
+        Ok(Self { rules })
     }
 
-    /// Parse a tagged sentence and return IOB tags as Vec<(word, iob_tag)>.
+    /// Parse a tagged sentence and return IOB tags as Vec<(word, `iob_tag`)>.
     #[pyo3(signature = (tokens))]
     fn parse(&self, tokens: Vec<(String, String)>) -> Vec<(String, String)> {
         if tokens.is_empty() {
@@ -148,7 +148,7 @@ impl RegexpParser {
         // Return (word, iob_tag) pairs
         words
             .into_iter()
-            .zip(iob.into_iter())
+            .zip(iob)
             .map(|(w, i)| (w.to_string(), i.to_string()))
             .collect()
     }

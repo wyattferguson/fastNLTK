@@ -2,13 +2,12 @@
 //!
 //! Implements:
 //!   - CFG: context-free grammar representation
-//!   - EarleyChartParser: Earley's algorithm for any CFG
+//!   - `EarleyChartParser`: Earley's algorithm for any CFG
 //!
 //! Matching NLTK's nltk.parse.EarleyChartParser and nltk.CFG.
 
 use hashbrown::HashMap;
 
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use crate::error::FastNltkError;
@@ -62,7 +61,7 @@ impl CFG {
         let mut nonterminals: Vec<String> = nonterm_set.into_keys().collect();
         nonterminals.sort();
 
-        Ok(CFG { start_symbol: start.to_string(), productions: prods, lhs_index, nonterminals })
+        Ok(Self { start_symbol: start.to_string(), productions: prods, lhs_index, nonterminals })
     }
 
     /// Parse a grammar string in NLTK format (one production per line).
@@ -90,7 +89,6 @@ impl CFG {
             // Split by | for alternatives
             for alt in rhs_part.split('|') {
                 let rhs: Vec<String> = alt
-                    .trim()
                     .split_whitespace()
                     .map(|s| {
                         // Handle quoted terminals: 'word'
@@ -111,7 +109,7 @@ impl CFG {
             return Err(FastNltkError::GrammarParse("empty grammar".into()).into());
         }
 
-        CFG::new(&start, productions)
+        Self::new(&start, productions)
     }
 
     fn start(&self) -> String {
@@ -139,7 +137,7 @@ impl CFG {
                 .iter()
                 .map(|s| {
                     if s.chars().all(|c| c.is_lowercase() || c.is_ascii_punctuation()) {
-                        format!("'{}'", s)
+                        format!("'{s}'")
                     } else {
                         s.clone()
                     }
@@ -172,7 +170,7 @@ pub struct EarleyChartParser;
 impl EarleyChartParser {
     #[new]
     fn new() -> Self {
-        EarleyChartParser
+        Self
     }
 
     /// Parse a sentence (list of words) using the given CFG.

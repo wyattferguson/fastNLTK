@@ -1,7 +1,7 @@
 //! Ngram and pattern-based sequential taggers.
 //!
-//! Implements UnigramTagger, BigramTagger, TrigramTagger,
-//! AffixTagger, and RegexpTagger with SmolStr-optimized lookups.
+//! Implements `UnigramTagger`, `BigramTagger`, `TrigramTagger`,
+//! `AffixTagger`, and `RegexpTagger` with SmolStr-optimized lookups.
 
 use std::collections::HashMap;
 
@@ -25,7 +25,7 @@ impl UnigramTagger {
     #[new]
     #[pyo3(signature = (backoff=None))]
     fn new(backoff: Option<&str>) -> Self {
-        UnigramTagger {
+        Self {
             word_to_tag: FastMap::new(),
             default_tag: backoff.map(SmolStr::new),
         }
@@ -88,9 +88,9 @@ impl BigramTagger {
     #[new]
     #[pyo3(signature = (backoff=None))]
     fn new(backoff: Option<&str>) -> Self {
-        BigramTagger {
+        Self {
             bigram_map: HashMap::new(),
-            default_tag: backoff.map(|s| s.to_string()),
+            default_tag: backoff.map(std::string::ToString::to_string),
         }
     }
     fn train(&mut self, sentences: &Bound<'_, PyList>) -> PyResult<()> {
@@ -152,9 +152,9 @@ impl TrigramTagger {
     #[new]
     #[pyo3(signature = (backoff=None))]
     fn new(backoff: Option<&str>) -> Self {
-        TrigramTagger {
+        Self {
             trigram_map: HashMap::new(),
-            default_tag: backoff.map(|s| s.to_string()),
+            default_tag: backoff.map(std::string::ToString::to_string),
         }
     }
     fn train(&mut self, sentences: &Bound<'_, PyList>) -> PyResult<()> {
@@ -222,7 +222,7 @@ impl AffixTagger {
     #[new]
     #[pyo3(signature = (_affix_len=3, use_suffix=true, _backoff=None))]
     fn new(_affix_len: usize, use_suffix: bool, _backoff: Option<&str>) -> Self {
-        AffixTagger {
+        Self {
             prefix_map: FastMap::new(),
             suffix_map: FastMap::new(),
             use_suffix,
@@ -292,7 +292,7 @@ impl RegexpTagger {
             let re = Regex::new(&pattern).map_err(|e| PyValueError::new_err(e.to_string()))?;
             rules.push((re, SmolStr::new(&tag)));
         }
-        Ok(RegexpTagger { rules, default_tag: None })
+        Ok(Self { rules, default_tag: None })
     }
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
         tokens.into_iter().map(|w| {

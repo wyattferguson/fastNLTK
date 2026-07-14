@@ -1,10 +1,9 @@
 //! Punkt sentence tokenizer — Rust port matching NLTK's implementation.
 //!
-//! Uses trained Punkt models loaded from NLTK's nltk_data directory.
+//! Uses trained Punkt models loaded from NLTK's `nltk_data` directory.
 //! The model parameters (abbreviations, collocations, orthographic context)
 //! are loaded via Python pickle and passed to Rust for inference.
 
-use hashbrown::HashMap;
 use hashbrown::HashSet;
 
 use pyo3::prelude::*;
@@ -26,7 +25,7 @@ pub struct PunktParams {
 
 impl PunktParams {
     fn new() -> Self {
-        PunktParams {
+        Self {
             abbrev_types: HashSet::new(),
             collocations: HashSet::new(),
             sent_starters: HashSet::new(),
@@ -66,11 +65,12 @@ impl PunktSentenceTokenizer {
     fn new(train_text: Option<String>, language: &str) -> Self {
         let _ = train_text;
         let _ = language;
-        PunktSentenceTokenizer { params: None }
+        Self { params: None }
     }
 
     /// Load trained parameters from Python dicts (from NLTK pickle).
     #[pyo3(signature = (params=None))]
+    #[allow(clippy::similar_names)]
     fn load(&mut self, params: Option<&Bound<'_, PyDict>>) -> PyResult<()> {
         if let Some(p) = params {
             let mut pparams = PunktParams::new();
@@ -148,18 +148,17 @@ impl PunktSentenceTokenizer {
         for (i, _) in text.char_indices() {
             if i > 0 {
                 let c = bytes[i - 1];
-                if c == b'.' || c == b'!' || c == b'?' {
-                    if i >= text.len()
+                if (c == b'.' || c == b'!' || c == b'?')
+                    && (i >= text.len()
                         || bytes[i] == b' '
                         || bytes[i] == b'\n'
                         || bytes[i] == b'"'
-                        || bytes[i] == b'\''
+                        || bytes[i] == b'\'')
                     {
                         let end = i;
                         spans.push((start, end));
                         start = end;
                     }
-                }
             }
         }
         if start < text.len() {
@@ -187,7 +186,7 @@ impl PunktSentenceTokenizer {
                 let end = *tok_start + tok_text.len();
 
                 // Check if this token ends with sentence-final punctuation
-                if let Some('.') | Some('!') | Some('?') = tok_text.chars().last() {
+                if let Some('.' | '!' | '?') = tok_text.chars().last() {
                     let is_sentence_break = self.is_sentence_boundary(text, &tokens, i, params);
 
                     if is_sentence_break {
@@ -198,8 +197,7 @@ impl PunktSentenceTokenizer {
                                 .find(|c: char| {
                                     !c.is_whitespace() && c != '"' && c != '\'' && c != ')'
                                 })
-                                .map(|pos| end + pos)
-                                .unwrap_or(text.len());
+                                .map_or(text.len(), |pos| end + pos);
                             ws_end
                         } else {
                             end
@@ -272,7 +270,7 @@ impl PunktSentenceTokenizer {
 
         // No final punctuation → not a boundary
         let _last_char = match tok_text.chars().last() {
-            Some('.') | Some('!') | Some('?') => true,
+            Some('.' | '!' | '?') => true,
             _ => return false,
         };
 
@@ -297,8 +295,8 @@ impl PunktSentenceTokenizer {
             }
 
             // Multi-dot tokens like "U.S." — treat as abbreviation pattern
-            if tok_text.matches('.').count() > 1 {
-                if idx + 1 < tokens.len() {
+            if tok_text.matches('.').count() > 1
+                && idx + 1 < tokens.len() {
                     let next = &tokens[idx + 1].1;
                     if let Some(c) = next.chars().next() {
                         if c.is_lowercase() || c.is_ascii_uppercase() {
@@ -306,7 +304,6 @@ impl PunktSentenceTokenizer {
                         }
                     }
                 }
-            }
         }
 
         // For ! and ?, these are almost always sentence boundaries

@@ -37,7 +37,7 @@ impl CCGLexicon {
                 map.entry(SmolStr::new(&word)).or_default().push(cat);
             }
         }
-        Ok(CCGLexicon { entries: map })
+        Ok(Self { entries: map })
     }
 
     /// Look up categories for a word. Returns empty vec if unknown.
@@ -67,7 +67,7 @@ impl CCGLexicon {
         let mut result: Vec<(String, Vec<String>)> = self
             .entries
             .iter()
-            .map(|(w, cats)| (w.to_string(), cats.iter().map(|c| c.to_string()).collect()))
+            .map(|(w, cats)| (w.to_string(), cats.iter().map(std::string::ToString::to_string).collect()))
             .collect();
         result.sort_by(|a, b| a.0.cmp(&b.0));
         result
@@ -76,7 +76,7 @@ impl CCGLexicon {
 
 impl CCGLexicon {
     pub(crate) fn lookup_cats(&self, word: &str) -> &[Category] {
-        self.entries.get(word).map(|v| v.as_slice()).unwrap_or(&[])
+        self.entries.get(word).map(std::vec::Vec::as_slice).unwrap_or(&[])
     }
 
     pub(crate) fn has_word(&self, word: &str) -> bool {

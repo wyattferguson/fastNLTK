@@ -1,4 +1,4 @@
-//! S-Expression tokenizer — Rust implementation matching NLTK's SExprTokenizer.
+//! S-Expression tokenizer — Rust implementation matching NLTK's `SExprTokenizer`.
 //!
 //! Divides a string into parenthesized expressions (including nested ones)
 //! and other whitespace-separated tokens. Customizable open/close parens
@@ -25,7 +25,7 @@ impl SExprTokenizer {
             return Err(PyValueError::new_err("parens must contain exactly two characters"));
         }
         let chars: Vec<char> = parens.chars().collect();
-        Ok(SExprTokenizer {
+        Ok(Self {
             open_paren: chars[0].to_string(),
             close_paren: chars[1].to_string(),
             strict,

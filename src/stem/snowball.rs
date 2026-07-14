@@ -31,7 +31,7 @@ fn lang_to_algorithm(lang: &str) -> Option<Algorithm> {
     }
 }
 
-/// SnowballStemmer — wraps rust-stemmers for all 16 languages.
+/// `SnowballStemmer` — wraps rust-stemmers for all 16 languages.
 #[pyclass(name = "SnowballStemmer", module = "fastnltk._rust")]
 #[derive(Clone)]
 pub struct SnowballStemmer {
@@ -60,7 +60,7 @@ impl SnowballStemmer {
         stemmer.stem(word).to_string()
     }
 
-    /// Stem multiple words in batch (faster than calling stem() in a loop).
+    /// Stem multiple words in batch (faster than calling `stem()` in a loop).
     fn stem_many(&self, words: Vec<String>) -> Vec<String> {
         let stemmer = Stemmer::create(self.algorithm);
         words.iter().map(|w| stemmer.stem(w).to_string()).collect()

@@ -21,10 +21,10 @@ impl RSLPStemmer {
             s = s[..s.len() - 1].to_string();
         } else if s.ends_with("es") && s.len() > 4 {
             s = s[..s.len() - 2].to_string();
-        } else if s.ends_with("s") && !s.ends_with("ss") && s.len() > 3 {
+        } else if s.ends_with('s') && !s.ends_with("ss") && s.len() > 3 {
             s.pop();
         }
-        if s.ends_with("a") && s.len() > 3 {
+        if s.ends_with('a') && s.len() > 3 {
             s.pop();
             s.push('o');
         }

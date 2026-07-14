@@ -19,7 +19,7 @@ impl StupidBackoff {
     #[new]
     #[pyo3(signature = (order, alpha=0.4))]
     fn new(order: usize, alpha: f64) -> Self {
-        StupidBackoff {
+        Self {
             order,
             counts: rustc_hash::FxHashMap::default(),
             total: 0.0,

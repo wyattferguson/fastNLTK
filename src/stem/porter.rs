@@ -3,7 +3,7 @@
 //! Based on the original 1980 paper by Martin Porter:
 //! "An algorithm for suffix stripping" (Program, 14(3): 130–137).
 //!
-//! Matches NLTK's PorterStemmer implementation.
+//! Matches NLTK's `PorterStemmer` implementation.
 
 use pyo3::prelude::*;
 
@@ -212,8 +212,8 @@ fn porter_stem(word: &str) -> String {
     }
 
     // Step 5a
-    if w.len() >= 2 {
-        if w[w.len() - 1] == 'e' {
+    if w.len() >= 2
+        && w[w.len() - 1] == 'e' {
             let m = measure(&w[..w.len() - 1]);
             if m > 1 {
                 w.pop();
@@ -221,7 +221,6 @@ fn porter_stem(word: &str) -> String {
                 w.pop();
             }
         }
-    }
 
     // Step 5b
     if w.len() > 1 && w[w.len() - 1] == 'l' && double_consonant(&w) && measure(&w) > 1 {

@@ -14,7 +14,7 @@ use regex::Regex;
 
 #[pyclass(name = "Chat", module = "fastnltk._rust")]
 pub struct Chat {
-    /// (compiled_regex, responses) pairs
+    /// (`compiled_regex`, responses) pairs
     pairs: Vec<(Regex, Vec<String>)>,
 }
 
@@ -29,7 +29,7 @@ impl Chat {
             })?;
             compiled.push((re, responses.clone()));
         }
-        Ok(Chat { pairs: compiled })
+        Ok(Self { pairs: compiled })
     }
 
     /// Respond to a user input string.

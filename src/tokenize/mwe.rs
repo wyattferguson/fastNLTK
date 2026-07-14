@@ -7,7 +7,7 @@ use pyo3::prelude::*;
 
 #[derive(Clone, Default)]
 struct TrieNode {
-    children: HashMap<String, TrieNode>,
+    children: HashMap<String, Self>,
     is_end: bool,
 }
 
@@ -22,7 +22,7 @@ impl MWETokenizer {
     #[new]
     #[pyo3(signature = (mwes=None, separator="_"))]
     fn new(mwes: Option<Vec<Vec<String>>>, separator: &str) -> Self {
-        let mut tok = MWETokenizer { root: TrieNode::default(), separator: separator.to_string() };
+        let mut tok = Self { root: TrieNode::default(), separator: separator.to_string() };
         if let Some(expressions) = mwes {
             for mwe in expressions {
                 tok.add_mwe(mwe);
@@ -59,15 +59,12 @@ impl MWETokenizer {
                     None => break,
                 }
             }
-            match matched_end {
-                Some(end) => {
-                    result.push(text[i..=end].join(&self.separator));
-                    i = end + 1;
-                }
-                None => {
-                    result.push(text[i].clone());
-                    i += 1;
-                }
+            if let Some(end) = matched_end {
+                result.push(text[i..=end].join(&self.separator));
+                i = end + 1;
+            } else {
+                result.push(text[i].clone());
+                i += 1;
             }
         }
         result

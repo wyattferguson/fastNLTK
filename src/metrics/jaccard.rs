@@ -5,8 +5,8 @@ use hashbrown::HashSet;
 
 #[pyfunction(signature = (s1, s2))]
 fn jaccard_distance(s1: Vec<String>, s2: Vec<String>) -> f64 {
-    let set1: HashSet<&str> = s1.iter().map(|s| s.as_str()).collect();
-    let set2: HashSet<&str> = s2.iter().map(|s| s.as_str()).collect();
+    let set1: HashSet<&str> = s1.iter().map(std::string::String::as_str).collect();
+    let set2: HashSet<&str> = s2.iter().map(std::string::String::as_str).collect();
     let union_len = set1.union(&set2).count();
     if union_len == 0 {
         return 0.0;
@@ -17,8 +17,8 @@ fn jaccard_distance(s1: Vec<String>, s2: Vec<String>) -> f64 {
 
 #[pyfunction(signature = (s1, s2))]
 fn binary_distance(s1: Vec<String>, s2: Vec<String>) -> f64 {
-    let set1: HashSet<&str> = s1.iter().map(|s| s.as_str()).collect();
-    let set2: HashSet<&str> = s2.iter().map(|s| s.as_str()).collect();
+    let set1: HashSet<&str> = s1.iter().map(std::string::String::as_str).collect();
+    let set2: HashSet<&str> = s2.iter().map(std::string::String::as_str).collect();
     if set1 == set2 {
         0.0
     } else {
@@ -28,8 +28,8 @@ fn binary_distance(s1: Vec<String>, s2: Vec<String>) -> f64 {
 
 #[pyfunction(signature = (x, y))]
 fn masi_distance(x: Vec<String>, y: Vec<String>) -> f64 {
-    let set1: HashSet<&str> = x.iter().map(|s| s.as_str()).collect();
-    let set2: HashSet<&str> = y.iter().map(|s| s.as_str()).collect();
+    let set1: HashSet<&str> = x.iter().map(std::string::String::as_str).collect();
+    let set2: HashSet<&str> = y.iter().map(std::string::String::as_str).collect();
     let intersection = set1.intersection(&set2).count();
     let union = set1.union(&set2).count();
     if union == 0 {
@@ -45,7 +45,7 @@ fn masi_distance(x: Vec<String>, y: Vec<String>) -> f64 {
     } else {
         1.0
     };
-    1.0 - jaccard * diff_ratio
+    jaccard.mul_add(-diff_ratio, 1.0)
 }
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {

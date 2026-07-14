@@ -1,4 +1,4 @@
-//! NaiveBayesClassifier — Rust implementation matching NLTK's API.
+//! `NaiveBayesClassifier` — Rust implementation matching NLTK's API.
 //!
 //! Naive Bayes classifier with:
 //!   - Maximum Likelihood Estimation for P(feature|label)
@@ -35,7 +35,7 @@ pub struct NaiveBayesClassifier {
 impl NaiveBayesClassifier {
     #[new]
     fn new() -> Self {
-        NaiveBayesClassifier {
+        Self {
             label_logprobs: HashMap::new(),
             feature_logprobs: HashMap::new(),
             labels: Vec::new(),
@@ -47,7 +47,7 @@ impl NaiveBayesClassifier {
     /// Train the classifier on labeled feature sets.
     ///
     /// `labeled_featuresets` is a list of (dict, label) pairs where
-    /// dict maps feature_name → feature_value.
+    /// dict maps `feature_name` → `feature_value`.
     #[pyo3(signature = (labeled_featuresets, alpha=1.0))]
     fn train(
         &mut self,
@@ -121,7 +121,7 @@ impl NaiveBayesClassifier {
                 let mut inner = HashMap::new();
                 let fc = feature_value_counts.entry(label.clone()).or_default();
                 let total_feature_occurrences: u64 = fc.values().sum();
-                let denom = total_feature_occurrences as f64 + alpha * features.len() as f64;
+                let denom = alpha.mul_add(features.len() as f64, total_feature_occurrences as f64);
 
                 for feat in &features {
                     let count = fc.get(feat).copied().unwrap_or(0) as f64;
@@ -172,7 +172,7 @@ impl NaiveBayesClassifier {
         }
 
         // Normalize via softmax
-        let max_logprob = scores.values().cloned().fold(f64::NEG_INFINITY, f64::max);
+        let max_logprob = scores.values().copied().fold(f64::NEG_INFINITY, f64::max);
         if max_logprob == f64::NEG_INFINITY {
             let uniform = 1.0 / self.labels.len() as f64;
             return Ok(self.labels.iter().map(|l| (l.clone(), uniform)).collect());
@@ -209,7 +209,7 @@ impl NaiveBayesClassifier {
                         .copied()
                         .unwrap_or(0.0);
                     let score = (p_i - p_j).abs();
-                    scores.push((format!("{feat}"), score));
+                    scores.push((feat.to_string(), score));
                 }
             }
         }

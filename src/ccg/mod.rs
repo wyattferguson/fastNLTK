@@ -20,8 +20,8 @@ pub struct Category {
 pub(crate) enum CategoryKind {
     Primitive(String),
     Functional {
-        result: Box<CategoryKind>,
-        argument: Box<CategoryKind>,
+        result: Box<Self>,
+        argument: Box<Self>,
         is_forward: bool, // true = A/B, false = A\B
     },
 }
@@ -47,7 +47,7 @@ impl Category {
 
 impl Category {
     pub(crate) fn new(kind: CategoryKind) -> Self {
-        Category { inner: kind }
+        Self { inner: kind }
     }
 
     pub(crate) fn kind(&self) -> &CategoryKind {
@@ -55,7 +55,7 @@ impl Category {
     }
 
     pub fn primitive(label: &str) -> Self {
-        Category { inner: CategoryKind::Primitive(label.to_string()) }
+        Self { inner: CategoryKind::Primitive(label.to_string()) }
     }
 }
 
@@ -158,33 +158,30 @@ fn parse_inner(s: &str) -> Option<(CategoryKind, usize)> {
         }
     }
 
-    match slash_pos {
-        Some((pos, dir)) => {
-            let left = &s[..pos];
-            let right = &s[pos + 1..];
-            if let Some(result) = parse_inner(left) {
-                if let Some((arg_kind, _)) = parse_inner(right) {
-                    return Some((
-                        CategoryKind::Functional {
-                            result: Box::new(result.0),
-                            argument: Box::new(arg_kind),
-                            is_forward: dir == '/',
-                        },
-                        s.len(),
-                    ));
-                }
+    if let Some((pos, dir)) = slash_pos {
+        let left = &s[..pos];
+        let right = &s[pos + 1..];
+        if let Some(result) = parse_inner(left) {
+            if let Some((arg_kind, _)) = parse_inner(right) {
+                return Some((
+                    CategoryKind::Functional {
+                        result: Box::new(result.0),
+                        argument: Box::new(arg_kind),
+                        is_forward: dir == '/',
+                    },
+                    s.len(),
+                ));
             }
-            None
         }
-        None => {
-            // Primitive category
-            let label: String =
-                s.chars().take_while(|c| c.is_alphabetic() || c.is_ascii_punctuation()).collect();
-            if label.is_empty() {
-                None
-            } else {
-                Some((CategoryKind::Primitive(label.clone()), label.len()))
-            }
+        None
+    } else {
+        // Primitive category
+        let label: String =
+            s.chars().take_while(|c| c.is_alphabetic() || c.is_ascii_punctuation()).collect();
+        if label.is_empty() {
+            None
+        } else {
+            Some((CategoryKind::Primitive(label.clone()), label.len()))
         }
     }
 }

@@ -1,4 +1,4 @@
-//! TextTiling — topical segmentation of documents.
+//! `TextTiling` — topical segmentation of documents.
 //!
 //! Port of NLTK's nltk.tokenize.texttiling.TextTilingTokenizer.
 //! Detects subtopic shifts based on lexical co-occurrence patterns.
@@ -32,11 +32,11 @@ impl TextTilingTokenizer {
     #[new]
     #[pyo3(signature = (w=20, k=10, demo_mode=false))]
     fn new(w: usize, k: usize, demo_mode: bool) -> Self {
-        TextTilingTokenizer { w, k, demo_mode }
+        Self { w, k, demo_mode }
     }
 
     /// Tokenize text into topical segments.
-    /// Returns (segments, scores, depth_scores, boundary_mask).
+    /// Returns (segments, scores, `depth_scores`, `boundary_mask`).
     fn tokenize(&self, text: &str) -> PyResult<(Vec<String>, Vec<f64>, Vec<f64>, Vec<u8>)> {
         let words = tokenize_words(text);
         if words.len() < self.w + self.k {
@@ -77,7 +77,7 @@ fn build_pseudo_sentences(words: &[String], w: usize) -> Vec<Vec<String>> {
     if w == 0 {
         return vec![words.to_vec()];
     }
-    words.chunks(w).map(|chunk| chunk.to_vec()).collect()
+    words.chunks(w).map(<[std::string::String]>::to_vec).collect()
 }
 
 fn compute_block_similarity(pseudo_sents: &[Vec<String>], k: usize) -> Vec<f64> {
@@ -183,7 +183,7 @@ fn find_boundaries(depths: &[f64], _scores: &[f64], demo_mode: bool) -> Vec<u8> 
         return vec![0; n.max(1)];
     }
 
-    let max_depth = depths.iter().cloned().fold(0.0_f64, f64::max);
+    let max_depth = depths.iter().copied().fold(0.0_f64, f64::max);
     let threshold = if demo_mode { max_depth * 0.3 } else { max_depth * 0.5 };
 
     let mut boundaries = vec![0u8; n];

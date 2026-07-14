@@ -39,44 +39,44 @@ pub(crate) enum Formula {
     True,
     False,
     Atom(String, Vec<String>),
-    Not(Box<Formula>),
-    And(Vec<Formula>),
-    Or(Vec<Formula>),
-    Imp(Box<Formula>, Box<Formula>),
-    Iff(Box<Formula>, Box<Formula>),
-    Forall(String, Box<Formula>),
-    Exists(String, Box<Formula>),
+    Not(Box<Self>),
+    And(Vec<Self>),
+    Or(Vec<Self>),
+    Imp(Box<Self>, Box<Self>),
+    Iff(Box<Self>, Box<Self>),
+    Forall(String, Box<Self>),
+    Exists(String, Box<Self>),
     Equal(String, String),
 }
 
 impl Formula {
     pub fn nnf(self) -> Self {
         match self {
-            Formula::Not(inner) => Self::negate_nnf(*inner),
+            Self::Not(inner) => Self::negate_nnf(*inner),
             other => other,
         }
     }
 
     pub fn negate_nnf(self) -> Self {
         match self {
-            Formula::True => Formula::False,
-            Formula::False => Formula::True,
-            Formula::Atom(p, args) => Formula::Not(Box::new(Formula::Atom(p, args))),
-            Formula::Not(inner) => inner.nnf(),
-            Formula::And(children) => {
-                Formula::Or(children.into_iter().map(|c| c.negate_nnf()).collect())
+            Self::True => Self::False,
+            Self::False => Self::True,
+            Self::Atom(p, args) => Self::Not(Box::new(Self::Atom(p, args))),
+            Self::Not(inner) => inner.nnf(),
+            Self::And(children) => {
+                Self::Or(children.into_iter().map(Formula::negate_nnf).collect())
             }
-            Formula::Or(children) => {
-                Formula::And(children.into_iter().map(|c| c.negate_nnf()).collect())
+            Self::Or(children) => {
+                Self::And(children.into_iter().map(Formula::negate_nnf).collect())
             }
-            Formula::Imp(l, r) => Formula::And(vec![l.nnf(), r.negate_nnf()]),
-            Formula::Iff(l, r) => Formula::Or(vec![
-                Formula::And(vec![l.clone().nnf(), r.clone().nnf()]),
-                Formula::And(vec![l.negate_nnf(), r.negate_nnf()]),
+            Self::Imp(l, r) => Self::And(vec![l.nnf(), r.negate_nnf()]),
+            Self::Iff(l, r) => Self::Or(vec![
+                Self::And(vec![l.clone().nnf(), r.clone().nnf()]),
+                Self::And(vec![l.negate_nnf(), r.negate_nnf()]),
             ]),
-            Formula::Forall(v, body) => Formula::Exists(v, Box::new(body.negate_nnf())),
-            Formula::Exists(v, body) => Formula::Forall(v, Box::new(body.negate_nnf())),
-            Formula::Equal(a, b) => Formula::Not(Box::new(Formula::Equal(a, b))),
+            Self::Forall(v, body) => Self::Exists(v, Box::new(body.negate_nnf())),
+            Self::Exists(v, body) => Self::Forall(v, Box::new(body.negate_nnf())),
+            Self::Equal(a, b) => Self::Not(Box::new(Self::Equal(a, b))),
         }
     }
 
@@ -90,12 +90,12 @@ impl Formula {
 
     fn distribute(self) -> Self {
         match self {
-            Formula::Or(children) => {
-                let mut distributed: Vec<Vec<Formula>> = vec![vec![]];
+            Self::Or(children) => {
+                let mut distributed: Vec<Vec<Self>> = vec![vec![]];
                 for child in children {
                     let child = child.distribute();
                     match child {
-                        Formula::And(sub_children) => {
+                        Self::And(sub_children) => {
                             let mut new_dist = Vec::new();
                             for existing in &distributed {
                                 for sub in &sub_children {
@@ -113,16 +113,16 @@ impl Formula {
                         }
                     }
                 }
-                let flat: Vec<Formula> = distributed.into_iter().flatten().collect();
-                Formula::Or(flat)
+                let flat: Vec<Self> = distributed.into_iter().flatten().collect();
+                Self::Or(flat)
             }
-            Formula::And(children) => {
-                Formula::And(children.into_iter().map(|c| c.distribute()).collect())
+            Self::And(children) => {
+                Self::And(children.into_iter().map(Formula::distribute).collect())
             }
-            Formula::Imp(l, r) => Formula::Or(vec![l.negate_nnf(), r.distribute()]).distribute(),
-            Formula::Iff(l, r) => Formula::Or(vec![
-                Formula::And(vec![l.clone().nnf(), r.clone().nnf()]),
-                Formula::And(vec![l.negate_nnf(), r.negate_nnf()]),
+            Self::Imp(l, r) => Self::Or(vec![l.negate_nnf(), r.distribute()]).distribute(),
+            Self::Iff(l, r) => Self::Or(vec![
+                Self::And(vec![l.clone().nnf(), r.clone().nnf()]),
+                Self::And(vec![l.negate_nnf(), r.negate_nnf()]),
             ])
             .distribute(),
             other => other,
@@ -139,10 +139,10 @@ pub(crate) enum Literal {
 impl Ord for Literal {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         match (self, other) {
-            (Literal::Pos(p1, a1), Literal::Pos(p2, a2))
-            | (Literal::Neg(p1, a1), Literal::Neg(p2, a2)) => p1.cmp(p2).then_with(|| a1.cmp(a2)),
-            (Literal::Pos(..), Literal::Neg(..)) => std::cmp::Ordering::Less,
-            (Literal::Neg(..), Literal::Pos(..)) => std::cmp::Ordering::Greater,
+            (Self::Pos(p1, a1), Self::Pos(p2, a2))
+            | (Self::Neg(p1, a1), Self::Neg(p2, a2)) => p1.cmp(p2).then_with(|| a1.cmp(a2)),
+            (Self::Pos(..), Self::Neg(..)) => std::cmp::Ordering::Less,
+            (Self::Neg(..), Self::Pos(..)) => std::cmp::Ordering::Greater,
         }
     }
 }

@@ -1,6 +1,6 @@
 //! Frequency & probability distributions matching NLTK's API.
 //!
-//! Implements FreqDist, ConditionalFreqDist, and ProbDist types
+//! Implements `FreqDist`, `ConditionalFreqDist`, and `ProbDist` types
 //! with Rust-accelerated operations.
 
 pub mod dist;
@@ -33,7 +33,7 @@ impl FreqDist {
     #[new]
     #[pyo3(signature = (samples=None))]
     fn new(samples: Option<Vec<String>>) -> Self {
-        let mut fd = FreqDist { counts: HashMap::new(), total: 0 };
+        let mut fd = Self { counts: HashMap::new(), total: 0 };
         if let Some(s) = samples { fd.update(s); }
         fd
     }
@@ -65,12 +65,12 @@ impl FreqDist {
         *self.counts.entry(sample.to_string()).or_insert(0) += count;
         self.total += count;
     }
-    fn copy(&self) -> FreqDist { self.clone() }
+    fn copy(&self) -> Self { self.clone() }
     fn __len__(&self) -> usize { self.total as usize }
     fn __repr__(&self) -> String { format!("<FreqDist with {} samples and {} outcomes>", self.counts.len(), self.total) }
     fn __getitem__(&self, sample: &str) -> u64 { self.counts.get(sample).copied().unwrap_or(0) }
     fn __contains__(&self, sample: &str) -> bool { self.counts.contains_key(sample) }
-    fn __add__(&self, other: &FreqDist) -> FreqDist {
+    fn __add__(&self, other: &Self) -> Self {
         let mut result = self.clone();
         for (sample, count) in &other.counts {
             *result.counts.entry(sample.clone()).or_insert(0) += count;
@@ -78,8 +78,8 @@ impl FreqDist {
         }
         result
     }
-    fn __sub__(&self, other: &FreqDist) -> FreqDist {
-        let mut result = FreqDist { counts: HashMap::new(), total: 0 };
+    fn __sub__(&self, other: &Self) -> Self {
+        let mut result = Self { counts: HashMap::new(), total: 0 };
         for (sample, count) in &self.counts {
             let new_count = count.saturating_sub(other.counts.get(sample).copied().unwrap_or(0));
             if new_count > 0 {
@@ -105,7 +105,7 @@ impl FreqDist {
     }
     fn plot(&self, n: Option<usize>) -> PyResult<()> {
         let items = self.most_common(n);
-        let max_count = items.first().map(|(_, c)| *c).unwrap_or(1).max(1);
+        let max_count = items.first().map_or(1, |(_, c)| *c).max(1);
         for (sample, count) in &items {
             let bar_width = (*count as f64 / max_count as f64 * 40.0) as usize;
             println!("{sample:<15} |{} {}", "#".repeat(bar_width), count);
@@ -114,7 +114,7 @@ impl FreqDist {
     }
 }
 
-/// A conditional frequency distribution: {condition: FreqDist}.
+/// A conditional frequency distribution: {condition: `FreqDist`}.
 #[pyclass(name = "ConditionalFreqDist", module = "fastnltk._rust")]
 #[derive(Clone)]
 pub struct ConditionalFreqDist {
@@ -124,13 +124,13 @@ pub struct ConditionalFreqDist {
 #[pymethods]
 impl ConditionalFreqDist {
     #[new]
-    fn new() -> Self { ConditionalFreqDist { conditions: HashMap::new() } }
+    fn new() -> Self { Self { conditions: HashMap::new() } }
     fn conditions(&self) -> Vec<String> {
         let mut conds: Vec<String> = self.conditions.keys().cloned().collect();
         conds.sort(); conds
     }
     #[allow(non_snake_case)]
-    fn N(&self) -> u64 { self.conditions.values().map(|fd| fd.N()).sum() }
+    fn N(&self) -> u64 { self.conditions.values().map(FreqDist::N).sum() }
     fn inc(&mut self, condition: &str, sample: &str) {
         self.conditions.entry(condition.to_string()).or_insert_with(|| FreqDist::new(None)).inc(sample, 1);
     }

@@ -1,4 +1,4 @@
-//! HMM tagger — wraps rustling::hmm::HiddenMarkovModel.
+//! HMM tagger — wraps `rustling::hmm::HiddenMarkovModel`.
 //!
 //! NLTK equivalent: nltk.tag.hmm.HiddenMarkovModelTagger
 
@@ -26,7 +26,7 @@ impl HiddenMarkovModelTagger {
     #[new]
     #[pyo3(signature = (n_states=10, n_iter=10, tolerance=1e-4, gamma=0.1))]
     fn new(n_states: usize, n_iter: usize, tolerance: f64, gamma: f64) -> Self {
-        HiddenMarkovModelTagger { inner: None, n_states, n_iter, tolerance, gamma }
+        Self { inner: None, n_states, n_iter, tolerance, gamma }
     }
 
     fn train(&mut self, sentences: Vec<Vec<(String, String)>>) -> PyResult<()> {
@@ -68,7 +68,7 @@ impl HiddenMarkovModelTagger {
         if result.is_empty() || result[0].is_empty() {
             return Err(PyValueError::new_err("No output from HMM predict"));
         }
-        let labels = model.state_labels().as_ref().cloned().unwrap_or_default();
+        let labels = model.state_labels().clone().unwrap_or_default();
         let tagged: Vec<(String, String)> = tokens
             .into_iter()
             .enumerate()

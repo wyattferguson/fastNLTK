@@ -3,7 +3,6 @@
 //! Evaluates `Expression` values in a first-order model with
 //! domain, valuation, and variable assignment.
 
-use std::collections::HashMap;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -114,7 +113,7 @@ pub fn model_evaluate(
 #[pyo3(signature = (formula))]
 fn fromstring(formula: &str) -> PyResult<String> {
     let expr = parse_expression(formula).map_err(PyValueError::new_err)?;
-    Ok(format!("{}", expr))
+    Ok(format!("{expr}"))
 }
 
 #[pyfunction]

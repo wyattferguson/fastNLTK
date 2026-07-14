@@ -119,28 +119,25 @@ impl SentimentIntensityAnalyzer {
     fn new() -> Self {
         let mut lex: HashMap<String, f64> = HashMap::new();
         for (k, v) in default_lexicon() {
-            lex.insert(k.to_string(), v);
+            lex.insert(k.clone(), v);
         }
-        SentimentIntensityAnalyzer { lexicon: lex }
+        Self { lexicon: lex }
     }
 
     /// Compute sentiment scores for text.
     #[pyo3(signature = (text))]
     fn polarity_scores(&self, text: &str) -> std::collections::HashMap<String, f64> {
-        let words: Vec<String> = text.unicode_words().map(|w| w.to_lowercase()).collect();
-        let word_refs: Vec<&str> = words.iter().map(|s| s.as_str()).collect();
+        let words: Vec<String> = text.unicode_words().map(str::to_lowercase).collect();
+        let word_refs: Vec<&str> = words.iter().map(std::string::String::as_str).collect();
 
         let mut sentiments: Vec<f64> = Vec::with_capacity(word_refs.len());
         let mut i = 0;
 
         while i < word_refs.len() {
             let word = word_refs[i];
-            let mut valence = match self.lexicon.get(word) {
-                Some(&v) => v,
-                None => {
-                    i += 1;
-                    continue;
-                }
+            let mut valence = if let Some(&v) = self.lexicon.get(word) { v } else {
+                i += 1;
+                continue;
             };
 
             // Check for booster words before
@@ -167,7 +164,7 @@ impl SentimentIntensityAnalyzer {
 
             // Check capitalization emphasis (ALL CAPS)
             let original_word = text.unicode_words().nth(i).unwrap_or("");
-            if original_word.chars().all(|c| c.is_uppercase()) && valence.abs() > 1.0 {
+            if original_word.chars().all(char::is_uppercase) && valence.abs() > 1.0 {
                 valence *= 1.5;
             }
 
@@ -195,7 +192,7 @@ impl SentimentIntensityAnalyzer {
         let pos_sum: f64 = sentiments.iter().filter(|&&s| s > 0.0).sum();
         let neg_sum: f64 = sentiments.iter().filter(|&&s| s < 0.0).sum();
 
-        let (pos_n, neg_n, neu_n) = if sum_abs > 0.0 {
+        let (pos_n, neg_n, neu_val) = if sum_abs > 0.0 {
             let pos = (pos_sum / sum_abs).max(0.0);
             let neg = (neg_sum.abs() / sum_abs).max(0.0);
             let neu = 1.0 - pos - neg;
@@ -210,7 +207,7 @@ impl SentimentIntensityAnalyzer {
         result.insert("compound".to_string(), compound);
         result.insert("pos".to_string(), pos_n);
         result.insert("neg".to_string(), neg_n);
-        result.insert("neu".to_string(), neu_n);
+        result.insert("neu".to_string(), neu_val);
         result
     }
 }

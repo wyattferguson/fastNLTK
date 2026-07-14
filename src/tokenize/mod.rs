@@ -62,7 +62,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-/// sent_tokenize — simple sentence boundary detection.
+/// `sent_tokenize` — simple sentence boundary detection.
 ///
 /// Splits on sentence-ending punctuation (. ! ?) followed by space.
 /// Full Punkt-trained implementation coming in a later phase.
@@ -94,7 +94,7 @@ pub fn sent_tokenize_py(py: Python<'_>, text: &str, language: &str) -> PyResult<
     Ok(result)
 }
 
-/// word_tokenize — word tokenization using Treebank rules.
+/// `word_tokenize` — word tokenization using Treebank rules.
 #[pyfunction(name = "word_tokenize", signature = (text, language="english", preserve_line=false))]
 pub fn word_tokenize_py(
     py: Python<'_>,

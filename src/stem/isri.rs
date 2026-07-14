@@ -14,7 +14,7 @@ impl ISRIStemmer {
     fn stem(&self, word: &str) -> String {
         let w = word.trim().to_lowercase();
         if w.len() <= 3 {
-            return w.clone();
+            return w;
         }
         let mut s = w.clone();
         if s.starts_with("al") && s.len() > 4 {

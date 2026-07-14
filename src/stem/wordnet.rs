@@ -1,7 +1,7 @@
-//! WordNet lemmatizer — morphy algorithm in Rust.
+//! `WordNet` lemmatizer — morphy algorithm in Rust.
 //!
-//! Implements the morphy algorithm matching NLTK's WordNetLemmatizer.
-//! Loads exception lists and index files from nltk_data.
+//! Implements the morphy algorithm matching NLTK's `WordNetLemmatizer`.
+//! Loads exception lists and index files from `nltk_data`.
 //! ~10x faster than NLTK's pure-Python implementation.
 
 use std::collections::{HashMap, HashSet};
@@ -30,7 +30,7 @@ impl WordNetData {
 
         for (pos, prefix) in pos_files {
             // Load exception file: {prefix}.exc
-            let exc_path = data_dir.join(format!("{}.exc", prefix));
+            let exc_path = data_dir.join(format!("{prefix}.exc"));
             if let Ok(content) = std::fs::read_to_string(&exc_path) {
                 let mut exc_map = HashMap::new();
                 for line in content.lines() {
@@ -47,12 +47,12 @@ impl WordNetData {
                     }
                 }
                 if !exc_map.is_empty() {
-                    exceptions.insert(pos.to_string(), exc_map);
+                    exceptions.insert((*pos).to_string(), exc_map);
                 }
             }
 
             // Load index file: index.{prefix}
-            let idx_path = data_dir.join(format!("index.{}", prefix));
+            let idx_path = data_dir.join(format!("index.{prefix}"));
             if let Ok(content) = std::fs::read_to_string(&idx_path) {
                 for line in content.lines() {
                     let line = line.trim();
@@ -66,7 +66,7 @@ impl WordNetData {
             }
         }
 
-        Ok(WordNetData { exceptions, known_words })
+        Ok(Self { exceptions, known_words })
     }
 
     fn exists(&self, word: &str) -> bool {
@@ -74,7 +74,7 @@ impl WordNetData {
     }
 
     fn lookup_exception(&self, word: &str, pos: &str) -> Option<&str> {
-        self.exceptions.get(pos).and_then(|m| m.get(&word.to_lowercase())).map(|s| s.as_str())
+        self.exceptions.get(pos).and_then(|m| m.get(&word.to_lowercase())).map(std::string::String::as_str)
     }
 }
 
@@ -136,7 +136,7 @@ fn morphy(data: &WordNetData, word: &str, pos: &str) -> Option<String> {
         for (suffix, replacement) in *rules {
             if word_lower.ends_with(suffix) && word_lower.len() > suffix.len() {
                 let stem = &word_lower[..word_lower.len() - suffix.len()];
-                let candidate = format!("{}{}", stem, replacement);
+                let candidate = format!("{stem}{replacement}");
                 if data.exists(&candidate) {
                     return Some(candidate);
                 }
@@ -161,7 +161,7 @@ impl WordNetLemmatizer {
     #[new]
     fn new() -> Self {
         let data = Self::load_wordnet_data();
-        WordNetLemmatizer { data }
+        Self { data }
     }
 
     /// Lemmatize a word using the morphy algorithm.
@@ -186,11 +186,9 @@ impl WordNetLemmatizer {
                 .map(|p| Path::new(&p).join("nltk_data").join("corpora").join("wordnet")),
         ];
 
-        for path_opt in &search_paths {
-            if let Some(path) = path_opt {
-                if path.join("index.noun").exists() {
-                    return WordNetData::load(path).ok();
-                }
+        for path in search_paths.iter().flatten() {
+            if path.join("index.noun").exists() {
+                return WordNetData::load(path).ok();
             }
         }
         None

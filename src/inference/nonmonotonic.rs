@@ -1,14 +1,14 @@
-//! Nonmonotonic Reasoning — DefaultReasoner + ClosedWorldReasoner.
+//! Nonmonotonic Reasoning — `DefaultReasoner` + `ClosedWorldReasoner`.
 //!
 //! Implements two nonmonotonic reasoning systems over symbolic knowledge bases:
 //!
-//! - **DefaultReasoner**: Computes extensions from default logic rules.
+//! - **`DefaultReasoner`**: Computes extensions from default logic rules.
 //!   A default rule has the form (prerequisite : justification / consequent).
 //!   If the prerequisite holds and the justification is consistent,
 //!   the consequent can be inferred. Multiple extensions arise when
 //!   default rules conflict.
 //!
-//! - **ClosedWorldReasoner**: Assumes any fact not provably true is false.
+//! - **`ClosedWorldReasoner`**: Assumes any fact not provably true is false.
 //!   For each unknown proposition P, infers ~P.
 //!
 //! NLTK equivalents: nltk.inference.nonmonotonic
@@ -35,14 +35,14 @@ pub struct DefaultRule {
 #[pymethods]
 impl DefaultRule {
     #[new]
-    #[pyo3(signature = (prerequisite, justification, consequent, name="".to_string()))]
+    #[pyo3(signature = (prerequisite, justification, consequent, name=String::new()))]
     pub fn new(
         prerequisite: String,
         justification: String,
         consequent: String,
         name: String,
     ) -> Self {
-        DefaultRule { prerequisite, justification, consequent, name }
+        Self { prerequisite, justification, consequent, name }
     }
 
     fn __str__(&self) -> String {
@@ -67,7 +67,7 @@ impl fmt::Display for DefaultRule {
     }
 }
 
-/// DefaultReasoner computes extensions from a set of default rules and a background theory.
+/// `DefaultReasoner` computes extensions from a set of default rules and a background theory.
 #[pyclass(name = "DefaultReasoner", module = "fastnltk._rust")]
 #[derive(Clone)]
 pub struct DefaultReasoner {
@@ -80,7 +80,7 @@ impl DefaultReasoner {
     #[new]
     #[pyo3(signature = (rules, max_extensions=10))]
     pub fn new(rules: Vec<DefaultRule>, max_extensions: usize) -> Self {
-        DefaultReasoner { rules, max_extensions }
+        Self { rules, max_extensions }
     }
 
     /// Compute all extensions (fixed-point semantics).
@@ -140,7 +140,7 @@ impl DefaultReasoner {
     }
 }
 
-/// ClosedWorldReasoner: assumes any fact not provably true is false.
+/// `ClosedWorldReasoner`: assumes any fact not provably true is false.
 #[pyclass(name = "ClosedWorldReasoner", module = "fastnltk._rust")]
 #[derive(Clone)]
 pub struct ClosedWorldReasoner {
@@ -151,7 +151,7 @@ pub struct ClosedWorldReasoner {
 impl ClosedWorldReasoner {
     #[new]
     pub fn new(facts: Vec<String>) -> Self {
-        ClosedWorldReasoner { facts }
+        Self { facts }
     }
 
     /// Query a fact under closed-world assumption.
@@ -167,7 +167,7 @@ impl ClosedWorldReasoner {
         let known: HashSet<String> = self.facts.iter().cloned().collect();
         // Infer negatives for unknown propositions
         for fact in &self.facts {
-            let neg = format!("~{}", fact);
+            let neg = format!("~{fact}");
             if !known.contains(&neg) {
                 result.push(neg);
             }
@@ -188,7 +188,7 @@ impl ClosedWorldReasoner {
     /// Get all negative facts (derived by closed-world).
     fn negative_facts(&self) -> Vec<String> {
         let known: HashSet<String> = self.facts.iter().cloned().collect();
-        self.facts.iter().map(|f| format!("~{}", f)).filter(|n| !known.contains(n)).collect()
+        self.facts.iter().map(|f| format!("~{f}")).filter(|n| !known.contains(n)).collect()
     }
 }
 

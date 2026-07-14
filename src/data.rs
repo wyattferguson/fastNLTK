@@ -1,12 +1,12 @@
 //! NLTK data file loading.
 //!
-//! Resolves nltk_data paths and loads serialized models (pickle, bincode).
+//! Resolves `nltk_data` paths and loads serialized models (pickle, bincode).
 //! Compatible with NLTK's data directory structure.
 
 use std::sync::LazyLock;
 use std::path::PathBuf;
 
-/// Search paths for nltk_data, computed once at first use.
+/// Search paths for `nltk_data`, computed once at first use.
 static DATA_SEARCH_PATHS: LazyLock<Vec<PathBuf>> = LazyLock::new(|| {
     let mut paths = Vec::new();
 
@@ -71,11 +71,11 @@ pub fn find_resource_dir(name: &str) -> Result<PathBuf, String> {
     Err(format!("NLTK resource directory not found: {name}"))
 }
 
-/// Resolve nltk_data to a bincode cache path.
+/// Resolve `nltk_data` to a bincode cache path.
 pub fn bincode_cache_path(resource_name: &str) -> PathBuf {
     let sanitized = resource_name.replace(['/', '.'], "_");
     let mut cache = std::env::temp_dir();
     cache.push("fastnltk_cache");
-    cache.push(format!("{}.bin", sanitized));
+    cache.push(format!("{sanitized}.bin"));
     cache
 }

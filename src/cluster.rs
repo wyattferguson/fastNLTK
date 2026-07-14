@@ -1,7 +1,7 @@
 //! Clustering — Rust-accelerated K-means clusterer.
 //!
 //! K-means with Euclidean distance, iterative refinement, and
-//! convergence detection. 5-10x faster than NLTK's pure-Python KMeansClusterer.
+//! convergence detection. 5-10x faster than NLTK's pure-Python `KMeansClusterer`.
 
 use pyo3::prelude::*;
 
@@ -25,7 +25,7 @@ impl KMeansClusterer {
     #[new]
     #[pyo3(signature = (num_clusters, max_iterations=50))]
     fn new(num_clusters: usize, max_iterations: usize) -> Self {
-        KMeansClusterer {
+        Self {
             num_clusters,
             max_iterations,
             centroids: Vec::new(),
@@ -154,7 +154,7 @@ fn euclidean_sq(a: &[f64], b: &[f64]) -> f64 {
     let mut sum = 0.0;
     for (x, y) in a.iter().zip(b.iter()) {
         let d = x - y;
-        sum += d * d;
+        sum = d.mul_add(d, sum);
     }
     sum
 }

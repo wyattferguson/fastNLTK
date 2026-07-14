@@ -19,7 +19,7 @@ impl KneserNeyInterpolated {
     #[new]
     #[pyo3(signature = (order, discount=0.75))]
     fn new(order: usize, discount: f64) -> Self {
-        KneserNeyInterpolated {
+        Self {
             order,
             discount,
             counts: rustc_hash::FxHashMap::default(),

@@ -1,27 +1,27 @@
 //! fastNLTK — Drop-in Rust-accelerated replacement for NLTK.
 //!
-//! This crate compiles to a PyO3 extension module (`fastnltk._rust`)
+//! This crate compiles to a `PyO3` extension module (`fastnltk._rust`)
 //! that provides native-speed implementations of NLTK's NLP algorithms.
 //!
 //! Modules correspond to NLTK packages:
 //! - `ccg`: Combinatory Categorial Grammar parsing
 //! - `chat`: Eliza-style chatbot
 //! - `chunk`: Chunking (NP/VP extraction)
-//! - `classify`: NaiveBayes, MaxEnt, TextCat
+//! - `classify`: `NaiveBayes`, `MaxEnt`, `TextCat`
 //! - `cluster`: K-means clustering
 //! - `collocations`: Bigram/trigram collocation finders
 //! - `corpus`: Corpus reader wrappers
 //! - `drt`: Discourse Representation Theory
 //! - `inference`: Tableau + Resolution theorem provers
-//! - `lm`: Language models (MLE, Lidstone, WittenBell, StupidBackoff)
+//! - `lm`: Language models (MLE, Lidstone, `WittenBell`, `StupidBackoff`)
 //! - `metrics`: Agreement, association, segmentation, distance, Jaccard
 //! - `parse`: CFG + Earley chart parsing
-//! - `probability`: FreqDist, ConditionalFreqDist, probability distributions
+//! - `probability`: `FreqDist`, `ConditionalFreqDist`, probability distributions
 //! - `sem`: Semantic expression parsing + evaluation
 //! - `sentiment`: VADER sentiment analysis
 //! - `stem`: Porter, Lancaster, Snowball, Regexp, Arabic stemmers
-//! - `tag`: POS tagging (Perceptron, TnT, HMM, sequential backoff)
-//! - `tokenize`: Treebank, Toktok, Tweet, Punkt, Regexp, MWE, TextTiling
+//! - `tag`: POS tagging (Perceptron, `TnT`, HMM, sequential backoff)
+//! - `tokenize`: Treebank, Toktok, Tweet, Punkt, Regexp, MWE, `TextTiling`
 //! - `translate`: BLEU score computation
 //! - `tree`: NLTK Tree data structure
 //! - `util`: Regex caching, string utilities

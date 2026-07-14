@@ -1,6 +1,6 @@
 //! Tweet tokenizer — handles emoji, hashtags, mentions, URLs, etc.
 //!
-//! Based on NLTK's TweetTokenizer with regex patterns for
+//! Based on NLTK's `TweetTokenizer` with regex patterns for
 //! social media text.
 
 use pyo3::prelude::*;

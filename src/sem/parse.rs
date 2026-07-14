@@ -5,9 +5,9 @@
 //! - Connectives: &, |, -, ->, <->
 //! - Equality: =
 
-use crate::sem::expression::{self, binder_type, var_name, Expression, Type};
+use crate::sem::expression::{Expression, Type};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Token {
     Ident(String),
     Lambda,
@@ -34,7 +34,7 @@ struct Tokenizer {
 
 impl Tokenizer {
     fn new(input: &str) -> Self {
-        Tokenizer { chars: input.chars().collect(), pos: 0 }
+        Self { chars: input.chars().collect(), pos: 0 }
     }
 
     fn peek(&self) -> Option<char> {
@@ -137,7 +137,7 @@ impl Parser {
     fn new(input: &str) -> Result<Self, String> {
         let mut tokenizer = Tokenizer::new(input);
         let current = tokenizer.next_token()?;
-        Ok(Parser { tokenizer, current })
+        Ok(Self { tokenizer, current })
     }
 
     fn advance(&mut self) -> Result<(), String> {
@@ -264,8 +264,7 @@ impl Parser {
                     self.expect(&Token::RParen)?;
                     expr = result;
                 }
-                Token::Ident(_) | Token::Exists | Token::All | Token::Lambda | Token::Not
-                | Token::LParen => {
+                Token::Ident(_) | Token::Exists | Token::All | Token::Lambda | Token::Not => {
                     let arg = if self.current == Token::LParen
                         || self.current == Token::Not
                         || self.current == Token::Exists

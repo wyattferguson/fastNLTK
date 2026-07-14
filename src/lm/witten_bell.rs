@@ -19,7 +19,7 @@ impl WittenBellInterpolated {
     #[new]
     #[pyo3(signature = (order))]
     fn new(order: usize) -> Self {
-        WittenBellInterpolated {
+        Self {
             order,
             counts: rustc_hash::FxHashMap::default(),
             types: 0.0,

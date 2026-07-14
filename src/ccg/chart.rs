@@ -2,18 +2,17 @@
 //!
 //! Implements a bottom-up chart parser for Combinatory Categorial Grammar.
 //! Uses a flat `Vec<Vec<Vec<CCGEdge>>>` chart (O(1) array indexing)
-//! instead of HashMap for maximum parser throughput.
+//! instead of `HashMap` for maximum parser throughput.
 //!
 //! NLTK equivalent: nltk.ccg.chart.CCGChartParser
 
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use crate::ccg::combinator::{self, Combinator};
 use crate::ccg::lexicon::CCGLexicon;
 use crate::ccg::{Category, CategoryKind};
 use crate::error::FastNltkError;
-use smallvec::{smallvec, SmallVec};
+use smallvec::SmallVec;
 use std::rc::Rc;
 
 /// Max edges per chart cell before heap allocation (typically 1-5 edges per cell).
@@ -27,14 +26,14 @@ struct CCGEdge {
     cat: Category,
     start: usize,
     end: usize,
-    left_child: Option<Rc<CCGEdge>>,
-    right_child: Option<Rc<CCGEdge>>,
+    left_child: Option<Rc<Self>>,
+    right_child: Option<Rc<Self>>,
     rule: String,
 }
 
 impl CCGEdge {
     fn new_lexical(cat: Category, pos: usize) -> Self {
-        CCGEdge {
+        Self {
             cat,
             start: pos,
             end: pos + 1,
@@ -44,8 +43,8 @@ impl CCGEdge {
         }
     }
 
-    fn combined(cat: Category, left: &Rc<CCGEdge>, right: &Rc<CCGEdge>, rule: &str) -> Self {
-        CCGEdge {
+    fn combined(cat: Category, left: &Rc<Self>, right: &Rc<Self>, rule: &str) -> Self {
+        Self {
             cat,
             start: left.start,
             end: right.end,
@@ -69,7 +68,7 @@ impl CCGChartParser {
     #[new]
     #[pyo3(signature = (lexicon, max_span=20))]
     fn new(lexicon: CCGLexicon, max_span: usize) -> Self {
-        CCGChartParser { lexicon, max_span }
+        Self { lexicon, max_span }
     }
 
     /// Parse a sequence of words into CCG derivation trees.

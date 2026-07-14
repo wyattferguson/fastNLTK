@@ -9,7 +9,7 @@
 //! - `RegexpStemmer`: Regex-based suffix stripping
 //! - `RSLPStemmer`: Portuguese stemming
 //! - `SnowballStemmer`: Snowball (Porter2) with language selection
-//! - `WordNetLemmatizer`: WordNet lemma lookup
+//! - `WordNetLemmatizer`: `WordNet` lemma lookup
 
 pub mod arlstem;
 pub mod cistem;

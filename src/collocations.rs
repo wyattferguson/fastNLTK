@@ -1,10 +1,10 @@
 //! collocations — N-gram collocation finders matching NLTK's API.
 //!
-//! Implements BigramCollocationFinder, TrigramCollocationFinder,
-//! QuadgramCollocationFinder with frequency counting and scoring.
+//! Implements `BigramCollocationFinder`, `TrigramCollocationFinder`,
+//! `QuadgramCollocationFinder` with frequency counting and scoring.
 //!
-//! Available association measures: chi_sq, pmi, pmi_like, jaccard,
-//! raw_freq, dice, student_t, fisher, poisson_stirling, freq_filter.
+//! Available association measures: `chi_sq`, pmi, `pmi_like`, jaccard,
+//! `raw_freq`, dice, `student_t`, fisher, `poisson_stirling`, `freq_filter`.
 
 use hashbrown::HashMap as FastHashMap;
 use pyo3::exceptions::PyValueError;
@@ -37,7 +37,7 @@ impl CollocationData {
             *ngram_fd.entry(key).or_insert(0) += 1;
         }
 
-        CollocationData { word_fd, ngram_fd, n, min_freq: 1 }
+        Self { word_fd, ngram_fd, n, min_freq: 1 }
     }
 
     fn apply_freq_filter(&mut self, min_freq: u64) {
@@ -132,7 +132,7 @@ impl CollocationData {
             if k <= 0.0 || n <= 0.0 || p <= 0.0 {
                 return 0.0;
             }
-            k * p.ln() + (n - k) * (1.0 - p).ln()
+            (n - k).mul_add((1.0 - p).ln(), k * p.ln())
         };
 
         2.0 * (ll(k, w1_count, p1) + ll(w2_count - k, n - w1_count, p2)
@@ -160,7 +160,7 @@ impl BigramCollocationFinder {
     #[staticmethod]
     #[pyo3(signature = (words, window_size=2))]
     fn from_words(words: Vec<String>, window_size: usize) -> Self {
-        BigramCollocationFinder { data: CollocationData::from_words(&words, window_size) }
+        Self { data: CollocationData::from_words(&words, window_size) }
     }
 
     fn score_ngrams(&self, score_fn: &str) -> Vec<(Vec<String>, f64)> {
@@ -197,7 +197,7 @@ impl TrigramCollocationFinder {
     #[staticmethod]
     #[pyo3(signature = (words, window_size=3))]
     fn from_words(words: Vec<String>, window_size: usize) -> Self {
-        TrigramCollocationFinder { data: CollocationData::from_words(&words, window_size) }
+        Self { data: CollocationData::from_words(&words, window_size) }
     }
 
     fn score_ngrams(&self, score_fn: &str) -> Vec<(Vec<String>, f64)> {
@@ -234,7 +234,7 @@ impl QuadgramCollocationFinder {
     #[staticmethod]
     #[pyo3(signature = (words, window_size=4))]
     fn from_words(words: Vec<String>, window_size: usize) -> Self {
-        QuadgramCollocationFinder { data: CollocationData::from_words(&words, window_size) }
+        Self { data: CollocationData::from_words(&words, window_size) }
     }
 
     fn score_ngrams(&self, score_fn: &str) -> Vec<(Vec<String>, f64)> {

@@ -1,4 +1,4 @@
-//! RegexpStemmer — strip suffix matching a pattern.
+//! `RegexpStemmer` — strip suffix matching a pattern.
 use pyo3::prelude::*;
 use regex::Regex;
 

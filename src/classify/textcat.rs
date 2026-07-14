@@ -1,11 +1,11 @@
-//! TextCat — language detection via `whatlang` crate.
+//! `TextCat` — language detection via `whatlang` crate.
 //!
-//! Bridges whatlang::detect() to NLTK's TextCat API.
-//! 10-50x faster than NLTK's pure-Python ngram-based TextCat.
+//! Bridges `whatlang::detect()` to NLTK's `TextCat` API.
+//! 10-50x faster than NLTK's pure-Python ngram-based `TextCat`.
 
 use pyo3::prelude::*;
 
-/// Language name mapping: whatlang::Lang → NLTK-style name (lowercase).
+/// Language name mapping: `whatlang::Lang` → NLTK-style name (lowercase).
 fn lang_name(lang: whatlang::Lang) -> &'static str {
     match lang {
         whatlang::Lang::Eng => "english",
@@ -57,7 +57,7 @@ pub struct TextCat;
 impl TextCat {
     #[new]
     fn new() -> Self {
-        TextCat
+        Self
     }
 
     /// Guess the language of a text string.
@@ -68,7 +68,7 @@ impl TextCat {
     }
 
     /// Guess the language with confidence score.
-    /// Returns (language_name, confidence) tuple.
+    /// Returns (`language_name`, confidence) tuple.
     #[pyo3(signature = (text))]
     fn guess_language_scores(&self, text: &str) -> Option<(String, f64)> {
         let info = whatlang::detect(text)?;

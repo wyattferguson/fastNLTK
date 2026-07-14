@@ -14,12 +14,12 @@ use pyo3::types::PyDict;
 
 /// Averaged perceptron POS tagger — Rust implementation.
 ///
-/// Uses the same feature set and algorithm as NLTK's PerceptronTagger.
+/// Uses the same feature set and algorithm as NLTK's `PerceptronTagger`.
 /// Weights are loaded from NLTK's trained model.
 #[pyclass(name = "PerceptronTagger", module = "fastnltk._rust")]
 #[derive(Clone)]
 pub struct PerceptronTagger {
-    /// Feature weights: feature_name → {tag → weight}
+    /// Feature weights: `feature_name` → {tag → weight}
     weights: HashMap<String, HashMap<String, f64>>,
     /// Tag dictionary for common words: word → tag
     tagdict: HashMap<String, String>,
@@ -147,7 +147,7 @@ impl PerceptronTagger {
         best_tag
     }
 
-    /// Extract features matching NLTK's PerceptronTagger feature set.
+    /// Extract features matching NLTK's `PerceptronTagger` feature set.
     fn extract_features(
         &self,
         word: &str,
@@ -239,7 +239,7 @@ impl PerceptronTagger {
         if word.contains('-') {
             feats.push("i has_hyphen".to_string());
         }
-        if word.chars().any(|c| c.is_uppercase()) {
+        if word.chars().any(char::is_uppercase) {
             feats.push("i has_upper".to_string());
         }
         if word.chars().all(|c| c.is_uppercase() && c.is_alphabetic()) {

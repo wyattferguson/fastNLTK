@@ -1,4 +1,4 @@
-//! ARLSTem — Arabic stemmers matching NLTK's ARLSTem and ARLSTem2.
+//! `ARLSTem` — Arabic stemmers matching NLTK's `ARLSTem` and `ARLSTem2`.
 //!
 //! Rule-based Arabic stemming: removes prefixes, suffixes, diacritics,
 //! normalizes letters, converts plural to singular, feminine to masculine.
@@ -16,7 +16,7 @@ pub struct ARLSTem;
 impl ARLSTem {
     #[new]
     fn new() -> Self {
-        ARLSTem
+        Self
     }
 
     fn stem(&self, token: &str) -> String {
@@ -53,7 +53,7 @@ pub struct ARLSTem2;
 impl ARLSTem2 {
     #[new]
     fn new() -> Self {
-        ARLSTem2
+        Self
     }
 
     fn stem(&self, token: &str) -> String {
@@ -206,7 +206,7 @@ fn plural_to_singular(token: &str) -> Option<String> {
             let t_chars = token.chars().count();
             if t_chars > s_chars + 1 {
                 let stem: String = token.chars().take(t_chars - s_chars).collect();
-                let result = format!("{}{}", stem, replacement);
+                let result = format!("{stem}{replacement}");
                 if result.chars().count() >= 2 {
                     return Some(result);
                 }

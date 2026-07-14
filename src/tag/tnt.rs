@@ -1,6 +1,6 @@
-//! TnT — Trigram 'n Tags, Rust-accelerated.
+//! `TnT` — Trigram 'n Tags, Rust-accelerated.
 //!
-//! Trigram HMM POS tagger with backoff smoothing matching NLTK's TnT.
+//! Trigram HMM POS tagger with backoff smoothing matching NLTK's `TnT`.
 //! Uses Viterbi decoding with transition/emission probabilities
 //! estimated from training data.
 
@@ -35,7 +35,7 @@ pub struct TnT {
 impl TnT {
     #[new]
     fn new() -> Self {
-        TnT {
+        Self {
             tags: Vec::new(),
             known_words: HashSet::new(),
             uni_counts: HashMap::new(),
@@ -280,7 +280,7 @@ impl TnT {
         if word_lower.ends_with("ly") {
             return if tag == "RB" { 4.0 } else { 1.0 };
         }
-        if word_lower.ends_with("s") && !word_lower.ends_with("ss") {
+        if word_lower.ends_with('s') && !word_lower.ends_with("ss") {
             return if tag == "NNS" { 3.0 } else { 1.0 };
         }
         if word_lower.ends_with("tion") {

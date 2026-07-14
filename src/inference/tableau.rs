@@ -25,7 +25,7 @@ impl TableauProver {
     #[new]
     #[pyo3(signature = (max_depth=200))]
     fn new(max_depth: usize) -> Self {
-        TableauProver { max_depth }
+        Self { max_depth }
     }
 
     #[pyo3(signature = (goal_str, assumptions=None))]
@@ -221,7 +221,7 @@ fn parse_fol(s: &str) -> Option<Formula> {
         ));
     }
     if s.starts_with('-') || s.starts_with('~') {
-        return Some(Formula::Not(Box::new(parse_fol(&s[1..].trim())?)));
+        return Some(Formula::Not(Box::new(parse_fol(s[1..].trim())?)));
     }
     if s.starts_with("all ") || s.starts_with("forall ") {
         let rest = s.trim_start_matches("all ").trim_start_matches("forall ");
@@ -262,7 +262,7 @@ fn find_conn(s: &str, conn: &str) -> Option<usize> {
                         && s.as_bytes()
                             .get(i - 1)
                             .copied()
-                            .map_or(false, |b| b.is_ascii_alphanumeric())
+                            .is_some_and(|b| b.is_ascii_alphanumeric())
                     {
                         continue;
                     }

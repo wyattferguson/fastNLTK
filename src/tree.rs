@@ -1,7 +1,7 @@
 //! Tree data structure — Rust-accelerated for common operations.
 //!
 //! Implements NLTK-compatible Tree with optimized methods for
-//! leaves(), height(), productions(), subtrees(), and bracket-string parsing.
+//! `leaves()`, `height()`, `productions()`, `subtrees()`, and bracket-string parsing.
 
 use std::fmt;
 
@@ -31,7 +31,7 @@ impl Tree {
     #[pyo3(signature = (label, children=None))]
     fn new(label: &str, children: Option<Vec<String>>) -> Self {
         let tree_children = children.unwrap_or_default().into_iter().map(TreeNode::Leaf).collect();
-        Tree { label: label.to_string(), children: tree_children }
+        Self { label: label.to_string(), children: tree_children }
     }
 
     /// Create from NLTK bracket string: "(S (NP The) (VP runs))"
@@ -127,7 +127,7 @@ impl Tree {
     }
 
     /// Return all subtrees as Rust Tree objects (no string roundtrip).
-    fn subtrees(&self) -> Vec<Py<Tree>> {
+    fn subtrees(&self) -> Vec<Py<Self>> {
         Python::with_gil(|py| {
             let mut result = Vec::new();
             self.collect_subtrees_py(py, &mut result);
@@ -163,8 +163,8 @@ impl fmt::Display for Tree {
 impl fmt::Display for TreeNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TreeNode::Leaf(s) => write!(f, "{s}"),
-            TreeNode::Subtree(t) => write!(f, "{t}"),
+            Self::Leaf(s) => write!(f, "{s}"),
+            Self::Subtree(t) => write!(f, "{t}"),
         }
     }
 }
@@ -172,8 +172,8 @@ impl fmt::Display for TreeNode {
 impl fmt::Debug for TreeNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TreeNode::Leaf(s) => write!(f, "\"{s}\""),
-            TreeNode::Subtree(t) => write!(f, "{t:?}"),
+            Self::Leaf(s) => write!(f, "\"{s}\""),
+            Self::Subtree(t) => write!(f, "{t:?}"),
         }
     }
 }
@@ -225,7 +225,7 @@ impl Tree {
         }
     }
 
-    fn collect_subtrees_py(&self, py: Python<'_>, result: &mut Vec<Py<Tree>>) {
+    fn collect_subtrees_py(&self, py: Python<'_>, result: &mut Vec<Py<Self>>) {
         if let Ok(obj) = Py::new(py, self.clone()) {
             result.push(obj);
         }
@@ -263,7 +263,7 @@ impl Tree {
             }
 
             if chars[i] == ')' {
-                return Ok((Tree { label: label.trim().to_string(), children }, i + 1));
+                return Ok((Self { label: label.trim().to_string(), children }, i + 1));
             } else if chars[i] == '(' {
                 let (subtree, new_pos) = Self::parse_brackets(s, i)?;
                 children.push(TreeNode::Subtree(subtree));

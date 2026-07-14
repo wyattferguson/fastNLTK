@@ -57,12 +57,12 @@ impl fmt::Display for DRS {
 impl fmt::Display for DRSCondition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DRSCondition::Predicate(name, arg) => write!(f, "{name}({arg})"),
-            DRSCondition::Equality(a, b) => write!(f, "{a} = {b}"),
-            DRSCondition::Negation(drs) => write!(f, "-{drs}"),
-            DRSCondition::Implication(a, b) => write!(f, "{a} => {b}"),
-            DRSCondition::Disjunction(a, b) => write!(f, "{a} | {b}"),
-            DRSCondition::DRS(drs) => write!(f, "{drs}"),
+            Self::Predicate(name, arg) => write!(f, "{name}({arg})"),
+            Self::Equality(a, b) => write!(f, "{a} = {b}"),
+            Self::Negation(drs) => write!(f, "-{drs}"),
+            Self::Implication(a, b) => write!(f, "{a} => {b}"),
+            Self::Disjunction(a, b) => write!(f, "{a} | {b}"),
+            Self::DRS(drs) => write!(f, "{drs}"),
         }
     }
 }
@@ -291,7 +291,7 @@ impl DRS {
         }
         i += 1;
 
-        Ok((DRS { universe, conditions }, i))
+        Ok((Self { universe, conditions }, i))
     }
 
     /// Convert DRS to a first-order logic formula.
@@ -337,6 +337,7 @@ impl DRS {
 }
 
 /// Convert a DRS condition to a first-order logic Expression.
+#[allow(clippy::similar_names)]
 fn cond_to_fol(cond: &DRSCondition) -> Expression {
     match cond {
         DRSCondition::Predicate(name, arg) => Expression::Application(

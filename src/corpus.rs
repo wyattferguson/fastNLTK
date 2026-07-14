@@ -1,8 +1,8 @@
 //! Corpus readers — Rust-accelerated file I/O + tokenization.
 //!
-//! Implements PlaintextCorpusReader which reads text files from a directory
-//! and tokenizes them using fastNLTK's Rust tokenizers (sent_tokenize,
-//! word_tokenize). Replaces NLTK's pure-Python corpus reader hot path.
+//! Implements `PlaintextCorpusReader` which reads text files from a directory
+//! and tokenizes them using fastNLTK's Rust tokenizers (`sent_tokenize`,
+//! `word_tokenize`). Replaces NLTK's pure-Python corpus reader hot path.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -34,26 +34,23 @@ impl PlaintextCorpusReader {
             )));
         }
 
-        let resolved = match fileids {
-            Some(ids) => ids,
-            None => {
-                let mut ids: Vec<String> = Vec::new();
-                if let Ok(entries) = fs::read_dir(root_path) {
-                    for entry in entries.flatten() {
-                        let path = entry.path();
-                        if path.is_file() {
-                            if let Some(name) = path.file_name() {
-                                ids.push(name.to_string_lossy().to_string());
-                            }
+        let resolved = if let Some(ids) = fileids { ids } else {
+            let mut ids: Vec<String> = Vec::new();
+            if let Ok(entries) = fs::read_dir(root_path) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.is_file() {
+                        if let Some(name) = path.file_name() {
+                            ids.push(name.to_string_lossy().to_string());
                         }
                     }
                 }
-                ids.sort();
-                ids
             }
+            ids.sort();
+            ids
         };
 
-        Ok(PlaintextCorpusReader { root: root_path.to_path_buf(), fileids: resolved })
+        Ok(Self { root: root_path.to_path_buf(), fileids: resolved })
     }
 
     /// Return the list of file IDs in this corpus.
@@ -75,7 +72,7 @@ impl PlaintextCorpusReader {
         Ok(contents)
     }
 
-    /// Read words (tokenized using word_tokenize).
+    /// Read words (tokenized using `word_tokenize`).
     #[pyo3(signature = (fileids=None))]
     fn words(&self, fileids: Option<Vec<String>>) -> PyResult<Vec<String>> {
         let contents = self.raw(fileids)?;
@@ -90,7 +87,7 @@ impl PlaintextCorpusReader {
         })
     }
 
-    /// Read sentences (tokenized using sent_tokenize).
+    /// Read sentences (tokenized using `sent_tokenize`).
     #[pyo3(signature = (fileids=None))]
     fn sents(&self, fileids: Option<Vec<String>>) -> PyResult<Vec<Vec<String>>> {
         let contents = self.raw(fileids)?;

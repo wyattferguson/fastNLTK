@@ -51,7 +51,7 @@ pub enum FastNltkError {
 }
 
 impl From<FastNltkError> for PyErr {
-    fn from(e: FastNltkError) -> PyErr {
+    fn from(e: FastNltkError) -> Self {
         PyValueError::new_err(e.to_string())
     }
 }

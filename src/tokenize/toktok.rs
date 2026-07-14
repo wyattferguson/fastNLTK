@@ -16,7 +16,7 @@ fn sub(p: &str, r: &str) -> (Regex, String) {
 impl ToktokTokenizer {
     #[new]
     fn new() -> Self {
-        ToktokTokenizer
+        Self
     }
 
     #[pyo3(signature = (text, return_str=false))]
