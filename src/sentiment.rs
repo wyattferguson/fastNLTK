@@ -153,8 +153,8 @@ impl SentimentIntensityAnalyzer {
 
             // Check for negation before (within 3 words)
             let mut negated = false;
-            for j in (0.max(i as i32 - 3) as usize)..i {
-                if NEGATORS.contains(&word_refs[j]) {
+            for word in &word_refs[(0.max(i as i32 - 3) as usize)..i] {
+                if NEGATORS.contains(word) {
                     negated = true;
                     break;
                 }

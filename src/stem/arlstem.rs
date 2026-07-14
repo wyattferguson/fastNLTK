@@ -222,8 +222,8 @@ fn plural_to_singular(token: &str) -> Option<String> {
         // Pattern: C1aC2C3 -> C1C2C3 (remove internal alif)
         let mut result = String::with_capacity(len - 1);
         result.push(chars[0]);
-        for i in 2..len {
-            result.push(chars[i]);
+        for &c in &chars[2..] {
+            result.push(c);
         }
         return Some(result);
     }

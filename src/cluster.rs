@@ -85,16 +85,16 @@ impl KMeansClusterer {
             let mut counts = vec![0usize; self.num_clusters];
 
             for (i, label) in labels.iter().enumerate() {
-                for d in 0..dim {
-                    new_centroids[*label][d] += vectors[i][d];
+                for (nc, v) in new_centroids[*label].iter_mut().zip(vectors[i].iter()) {
+                    *nc += v;
                 }
                 counts[*label] += 1;
             }
 
             for j in 0..self.num_clusters {
                 if counts[j] > 0 {
-                    for d in 0..dim {
-                        new_centroids[j][d] /= counts[j] as f64;
+                    for nc in &mut new_centroids[j] {
+                        *nc /= counts[j] as f64;
                     }
                 } else {
                     // Empty cluster: reset to a random vector

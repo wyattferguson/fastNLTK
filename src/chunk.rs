@@ -80,7 +80,7 @@ fn parse_tag_sequence(pattern: &str) -> Result<Vec<Regex>, String> {
 
 /// Apply a chunk rule to a sequence of tags. Modifies IOB tags in-place.
 #[allow(clippy::needless_pass_by_ref_mut)]
-fn apply_chunk_rule(tag_patterns: &[Regex], tags: &mut Vec<&str>, iob: &mut Vec<&str>) {
+fn apply_chunk_rule(tag_patterns: &[Regex], tags: &mut [&str], iob: &mut [&str]) {
     let num_tags = tags.len();
     let mut i = 0;
     while i < num_tags {
@@ -97,10 +97,8 @@ fn apply_chunk_rule(tag_patterns: &[Regex], tags: &mut Vec<&str>, iob: &mut Vec<
         if matched && j == tag_patterns.len() {
             // Mark this span as IOB chunk
             iob[i] = "B-NP";
-            for k in i + 1..i + j {
-                if k < num_tags {
-                    iob[k] = "I-NP";
-                }
+            for slot in &mut iob[i + 1..i + j] {
+                *slot = "I-NP";
             }
             i += j;
         } else {

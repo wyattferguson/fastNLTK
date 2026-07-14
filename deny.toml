@@ -7,19 +7,17 @@ allow = [
     "Apache-2.0",
     "MIT",
     "Apache-2.0 WITH LLVM-exception",
-    "ISC",
-    "BSD-2-Clause",
     "BSD-3-Clause",
     "Unicode-3.0",
     "Unlicense",
     "Zlib",
-    "BSL-1.0",
+    "bzip2-1.0.6",
+    "CC0-1.0",
+    "MIT-0",
 ]
 # Copyleft is implicitly denied by the allow list above
 # Allow these specific crates with non-standard licenses
-exceptions = [
-    { name = "ring", allow = ["ISC", "MIT", "OpenSSL"] },
-]
+exceptions = []
 
 [bans]
 # Prevent accidental dependency duplication
@@ -28,6 +26,11 @@ multiple-versions = "warn"
 deny = []
 # Highlight crates that should only be used once
 highlight = "all"
+# Skip crates where multiple versions are unavoidable (transitive deps)
+skip = [
+    { name = "hashbrown" },
+    { name = "foldhash" },
+]
 
 [advisories]
 # Check RustSec advisory database
@@ -35,10 +38,11 @@ db-urls = ["https://github.com/rustsec/advisory-db"]
 db-path = "~/.cargo/advisory-db"
 # Treat unmaintained crates as warnings
 unmaintained = "all"
-# Ignore specific advisories if needed
+# Ignore specific advisories for transitive deps we don't control
 # quick-xml is a transitive dep (rustling) — we don't parse XML
-# bincode 2.x is unmaintained but functional; plan migration to postcard
+# bincode 2.x is unmaintained but only used for cache path naming, not serialization
 ignore = [
     "RUSTSEC-2026-0194",  # quick-xml: quadratic attribute check (not our code)
     "RUSTSEC-2026-0195",  # quick-xml: unbounded allocation (not our code)
+    "RUSTSEC-2025-0141",  # bincode is unmaintained — used only for cache path naming
 ]

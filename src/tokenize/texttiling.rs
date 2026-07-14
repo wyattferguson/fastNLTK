@@ -36,7 +36,7 @@ impl TextTilingTokenizer {
     }
 
     /// Tokenize text into topical segments.
-    /// Returns (segments, scores, `depth_scores`, `boundary_mask`).
+    #[allow(clippy::type_complexity)]
     fn tokenize(&self, text: &str) -> PyResult<(Vec<String>, Vec<f64>, Vec<f64>, Vec<u8>)> {
         let words = tokenize_words(text);
         if words.len() < self.w + self.k {

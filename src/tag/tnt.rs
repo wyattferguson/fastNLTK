@@ -117,8 +117,7 @@ impl TnT {
         let mut back: Vec<Vec<isize>> = vec![vec![-1; t]; n];
 
         // Initialization: first word
-        for j in 0..t {
-            let tag = &self.tags[j];
+        for (j, tag) in self.tags.iter().enumerate() {
             let em_prob = self.emission_prob(tag, &words[0]);
             let trans_prob = self.trans_prob("<S>", tag);
             dp[0][j] = trans_prob.ln() + em_prob.ln();
@@ -126,8 +125,7 @@ impl TnT {
 
         // Induction: remaining words
         for i in 1..n {
-            for j in 0..t {
-                let tag_j = &self.tags[j];
+            for (j, tag_j) in self.tags.iter().enumerate() {
                 let em_prob = self.emission_prob(tag_j, &words[i]);
                 if em_prob <= 0.0 {
                     continue; // Skip impossible emissions
@@ -160,8 +158,7 @@ impl TnT {
         // Termination: pick best final tag
         let mut best_last = 0;
         let mut best_score = neg_inf;
-        for j in 0..t {
-            let tag = &self.tags[j];
+        for (j, tag) in self.tags.iter().enumerate() {
             let trans_prob = self.trans_prob(tag, "<E>");
             let score = dp[n - 1][j] + trans_prob.ln();
             if score > best_score {

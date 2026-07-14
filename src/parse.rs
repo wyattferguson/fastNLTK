@@ -271,7 +271,7 @@ fn is_terminal(s: &str) -> bool {
     !s.starts_with(|c: char| c.is_uppercase()) || s.starts_with('\'')
 }
 
-fn predict(chart: &mut Vec<Vec<EarleyState>>, pos: usize, grammar: &CFG) {
+fn predict(chart: &mut [Vec<EarleyState>], pos: usize, grammar: &CFG) {
     // Collect all nonterminals that need prediction at this position
     let mut to_predict: Vec<String> = Vec::new();
     for state in &chart[pos].clone() {
@@ -303,7 +303,7 @@ fn predict(chart: &mut Vec<Vec<EarleyState>>, pos: usize, grammar: &CFG) {
     }
 }
 
-fn complete(chart: &mut Vec<Vec<EarleyState>>, pos: usize, lhs: &str, _grammar: &CFG) {
+fn complete(chart: &mut [Vec<EarleyState>], pos: usize, lhs: &str, _grammar: &CFG) {
     let states = chart[pos].clone();
     for k in 0..pos {
         for state in &states {

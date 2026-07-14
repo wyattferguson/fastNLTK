@@ -189,8 +189,7 @@ impl MaxentClassifier {
                 }
 
                 // Add weighted features to model expectations
-                for li in 0..num_labels {
-                    let prob = scores[li];
+                for &prob in &scores {
                     if prob > 1e-15 {
                         for (fi, val) in features {
                             model_counts[*fi] += prob * val;
@@ -206,7 +205,7 @@ impl MaxentClassifier {
 
             // Update weights: w_i += (1/C) * log(E_emp / E_model)
             let mut max_change = 0.0;
-            for li in 0..num_labels {
+            for row in &mut weights {
                 for fi in 0..num_feats {
                     let emp = empirical_counts[fi];
                     let model = model_counts[fi];
@@ -216,11 +215,11 @@ impl MaxentClassifier {
                     let update = (emp / model).ln() / c;
                     if gaussian_prior_sigma > 0.0 {
                         // Gaussian prior: penalize large weights
-                        let gaussian = weights[li][fi]
-                            / (gaussian_prior_sigma * gaussian_prior_sigma * num_instances);
-                        weights[li][fi] += update - gaussian;
+                        let gaussian =
+                            row[fi] / (gaussian_prior_sigma * gaussian_prior_sigma * num_instances);
+                        row[fi] += update - gaussian;
                     } else {
-                        weights[li][fi] += update;
+                        row[fi] += update;
                     }
                     if update.abs() > max_change {
                         max_change = update.abs();
@@ -307,8 +306,8 @@ impl MaxentClassifier {
         let mut scores = vec![0.0; num_labels];
         for (name, val) in features {
             if let Some(fi) = self.feature_names.iter().position(|f| f == name) {
-                for li in 0..num_labels {
-                    scores[li] += self.weights[li][fi] * val;
+                for (s, w_row) in scores.iter_mut().zip(self.weights.iter()) {
+                    *s += w_row[fi] * val;
                 }
             }
         }

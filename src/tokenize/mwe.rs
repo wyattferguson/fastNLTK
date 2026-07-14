@@ -48,8 +48,9 @@ impl MWETokenizer {
         while i < text.len() {
             let mut matched_end = None;
             let mut node = &self.root;
-            for j in i..text.len() {
-                match node.children.get(&text[j]) {
+            for (offset, word) in text[i..].iter().enumerate() {
+                let j = i + offset;
+                match node.children.get(word) {
                     Some(next) => {
                         node = next;
                         if node.is_end {

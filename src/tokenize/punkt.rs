@@ -77,39 +77,33 @@ impl PunktSentenceTokenizer {
             let mut pparams = PunktParams::new();
 
             // Load abbreviation types
-            if let Ok(abbrev) = p.get_item("abbrev_types") {
-                if let Some(abbrev) = abbrev {
-                    if let Ok(set) = abbrev.cast::<PySet>() {
-                        for item in set.iter() {
-                            if let Ok(s) = item.extract::<String>() {
-                                pparams.abbrev_types.insert(s);
-                            }
+            if let Ok(Some(abbrev)) = p.get_item("abbrev_types") {
+                if let Ok(set) = abbrev.cast::<PySet>() {
+                    for item in set.iter() {
+                        if let Ok(s) = item.extract::<String>() {
+                            pparams.abbrev_types.insert(s);
                         }
                     }
                 }
             }
 
             // Load collocations
-            if let Ok(coll) = p.get_item("collocations") {
-                if let Some(coll) = coll {
-                    if let Ok(set) = coll.cast::<PyFrozenSet>() {
-                        for item in set.iter() {
-                            if let Ok(t) = item.extract::<(String, String)>() {
-                                pparams.collocations.insert(t);
-                            }
+            if let Ok(Some(coll)) = p.get_item("collocations") {
+                if let Ok(set) = coll.cast::<PyFrozenSet>() {
+                    for item in set.iter() {
+                        if let Ok(t) = item.extract::<(String, String)>() {
+                            pparams.collocations.insert(t);
                         }
                     }
                 }
             }
 
             // Load sentence starters
-            if let Ok(ss) = p.get_item("sent_starters") {
-                if let Some(ss_val) = ss {
-                    if let Ok(set) = ss_val.cast::<PySet>() {
-                        for item in set.iter() {
-                            if let Ok(s) = item.extract::<String>() {
-                                pparams.sent_starters.insert(s);
-                            }
+            if let Ok(Some(ss_val)) = p.get_item("sent_starters") {
+                if let Ok(set) = ss_val.cast::<PySet>() {
+                    for item in set.iter() {
+                        if let Ok(s) = item.extract::<String>() {
+                            pparams.sent_starters.insert(s);
                         }
                     }
                 }
@@ -191,12 +185,12 @@ impl PunktSentenceTokenizer {
                         // Include trailing whitespace/quote in current sentence
                         let real_end = if end < text.len() {
                             let remaining = &text[end..];
-                            let ws_end = remaining
+
+                            remaining
                                 .find(|c: char| {
                                     !c.is_whitespace() && c != '"' && c != '\'' && c != ')'
                                 })
-                                .map_or(text.len(), |pos| end + pos);
-                            ws_end
+                                .map_or(text.len(), |pos| end + pos)
                         } else {
                             end
                         };
