@@ -2,26 +2,23 @@
 fastnltk.lm — Drop-in replacement for nltk.lm.
 """
 
-import nltk.lm as _nltk_lm
 from nltk.lm import (
-    Vocabulary,
     MLE,
-    Lidstone,
-    Laplace,
     KneserNey,
-    StupidBackoff,
-    WittenBell,
+    Laplace,
+    Lidstone,
     Smoothing,
-)
-
-from nltk.lm.preprocessing import (
-    padded_everygrams,
-    pad_both_ends,
-    everygrams,
-    everygram_pad,
-    pad_sequence,
+    StupidBackoff,
+    Vocabulary,
+    WittenBell,
 )
 from nltk.lm.counter import NgramCounter
+from nltk.lm.preprocessing import (
+    everygrams,
+    pad_both_ends,
+    pad_sequence,
+    padded_everygrams,
+)
 from nltk.lm.util import log_base2
 
 __all__ = [

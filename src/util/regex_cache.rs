@@ -15,16 +15,17 @@ static REGEX_CACHE: Lazy<Mutex<HashMap<(String, u32), Regex>>> =
 /// Get or compile a regex, caching it by pattern+flags.
 pub fn get_or_compile(pattern: &str, flags: u32) -> Result<Regex, regex::Error> {
     let key = (pattern.to_string(), flags);
+    let cache = REGEX_CACHE.lock();
 
-    // Check cache
-    if let Some(re) = REGEX_CACHE.lock().get(&key) {
+    if let Some(re) = cache.get(&key) {
         return Ok(re.clone());
     }
 
-    // Compile
+    // Compile (drop lock during compilation to avoid blocking other threads)
+    drop(cache);
     let re = compile_regex(pattern, flags)?;
 
-    // Store in cache
+    // Re-acquire lock to store
     REGEX_CACHE.lock().insert(key, re.clone());
 
     Ok(re)

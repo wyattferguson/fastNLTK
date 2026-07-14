@@ -22,6 +22,7 @@ pub struct PunktParams {
     /// Words that commonly start sentences
     sent_starters: HashSet<String>,
     /// Orthographic context: word → (count_upper, count_lower, count_period, ...)
+    #[allow(dead_code)]
     ortho_context: HashMap<String, (u32, u32, u32)>,
 }
 
@@ -43,6 +44,7 @@ impl PunktParams {
     }
 
     /// Check if a word pair is a known collocation.
+    #[allow(dead_code)]
     fn is_collocation(&self, w1: &str, w2: &str) -> bool {
         self.collocations.contains(&(w1.to_lowercase(), w2.to_lowercase()))
     }

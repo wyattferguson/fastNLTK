@@ -3,10 +3,11 @@
 //! Resolves nltk_data paths and loads serialized models (pickle, bincode).
 //! Compatible with NLTK's data directory structure.
 
+use once_cell::sync::Lazy;
 use std::path::PathBuf;
 
-/// Search paths for nltk_data, in order of precedence.
-fn data_search_paths() -> Vec<PathBuf> {
+/// Search paths for nltk_data, computed once at first use.
+static DATA_SEARCH_PATHS: Lazy<Vec<PathBuf>> = Lazy::new(|| {
     let mut paths = Vec::new();
 
     // 1. NLTK_DATA env var
@@ -28,7 +29,7 @@ fn data_search_paths() -> Vec<PathBuf> {
     }
 
     paths
-}
+});
 
 #[cfg(not(windows))]
 fn dirs_data_dir() -> Option<PathBuf> {
@@ -50,7 +51,7 @@ fn dirs_data_dir() -> Option<PathBuf> {
 
 /// Find an NLTK resource file by name.
 pub fn find_resource(name: &str) -> Result<PathBuf, String> {
-    for base in data_search_paths() {
+    for base in DATA_SEARCH_PATHS.iter() {
         let candidate = base.join(name);
         if candidate.exists() {
             return Ok(candidate);
@@ -61,7 +62,7 @@ pub fn find_resource(name: &str) -> Result<PathBuf, String> {
 
 /// Find a directory for an NLTK resource (e.g., tagger directory).
 pub fn find_resource_dir(name: &str) -> Result<PathBuf, String> {
-    for base in data_search_paths() {
+    for base in DATA_SEARCH_PATHS.iter() {
         let candidate = base.join(name);
         if candidate.is_dir() {
             return Ok(candidate);

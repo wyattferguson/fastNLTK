@@ -5,30 +5,58 @@ Delegates to compiled Rust extension where available,
 falls back to original nltk.tokenize for unimplemented pieces.
 """
 
-# Try to import from Rust extension; fall back to NLTK for unimplemented
+import functools
+import warnings
+
+import nltk.tokenize as _nltk_tokenize
+
 _rust_available = False
 try:
     from fastnltk._rust import (
-        sent_tokenize as _rust_sent_tokenize,
-        word_tokenize as _rust_word_tokenize,
-        RegexpTokenizer as _RustRegexpTokenizer,
-        WhitespaceTokenizer as _RustWhitespaceTokenizer,
-        WordPunctTokenizer as _RustWordPunctTokenizer,
         BlanklineTokenizer as _RustBlanklineTokenizer,
-        LineTokenizer as _RustLineTokenizer,
-        SpaceTokenizer as _RustSpaceTokenizer,
-        TabTokenizer as _RustTabTokenizer,
-        TreebankWordTokenizer as _RustTreebankWordTokenizer,
-        TreebankWordDetokenizer as _RustTreebankWordDetokenizer,
-        TweetTokenizer as _RustTweetTokenizer,
+    )
+    from fastnltk._rust import (
         CharTokenizer as _RustCharTokenizer,
+    )
+    from fastnltk._rust import (
+        LineTokenizer as _RustLineTokenizer,
+    )
+    from fastnltk._rust import (
         PunktSentenceTokenizer as _RustPunktSentenceTokenizer,
+    )
+    from fastnltk._rust import (
+        RegexpTokenizer as _RustRegexpTokenizer,
+    )
+    from fastnltk._rust import (
+        SpaceTokenizer as _RustSpaceTokenizer,
+    )
+    from fastnltk._rust import (
+        TabTokenizer as _RustTabTokenizer,
+    )
+    from fastnltk._rust import (
+        TreebankWordDetokenizer as _RustTreebankWordDetokenizer,
+    )
+    from fastnltk._rust import (
+        TreebankWordTokenizer as _RustTreebankWordTokenizer,
+    )
+    from fastnltk._rust import (
+        TweetTokenizer as _RustTweetTokenizer,
+    )
+    from fastnltk._rust import (
+        WhitespaceTokenizer as _RustWhitespaceTokenizer,
+    )
+    from fastnltk._rust import (
+        WordPunctTokenizer as _RustWordPunctTokenizer,
+    )
+    from fastnltk._rust import (
+        word_tokenize as _rust_word_tokenize,
     )
     _rust_available = True
 except ImportError:
-    pass
+    warnings.warn(
+        "fastnltk._rust extension not available; falling back to pure-NLTK tokenizers"
+    )
 
-import nltk.tokenize as _nltk_tokenize
 # Import what's available in NLTK — some symbols vary by version
 try:
     from nltk.tokenize import MWETokenizer
@@ -75,9 +103,6 @@ __all__ = [
     "sent_tokenize",
     "word_tokenize",
     "regexp_tokenize",
-    "wordpunct_tokenize",
-    "blankline_tokenize",
-    "line_tokenize",
     "regexp_span_tokenize",
     "string_span_tokenize",
     "RegexpTokenizer",
@@ -112,14 +137,13 @@ if ReppTokenizer is not None:
     __all__.append("ReppTokenizer")
 
 
-import functools
-
 @functools.lru_cache(maxsize=1)
 def _get_punkt_tokenizer():
     """Lazy-loaded Punkt tokenizer with NLTK trained model."""
     tok = _RustPunktSentenceTokenizer()
     try:
         import pickle
+
         from nltk.data import find
         path = find("tokenizers/punkt/english.pickle")
         with open(str(path), "rb") as f:

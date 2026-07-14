@@ -14,7 +14,6 @@ use pyo3::prelude::*;
 /// Matches NLTK's `nltk.tokenize.SpaceTokenizer`.
 /// NLTK compat: Same behavior (split on space, collapse empty).
 #[pyclass(name = "SpaceTokenizer", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct SpaceTokenizer;
 
 #[pymethods]
@@ -63,7 +62,6 @@ fn tokenize_space(text: &str) -> Vec<String> {
 
 /// Tokenize a string by splitting on tabs.
 #[pyclass(name = "TabTokenizer", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct TabTokenizer;
 
 #[pymethods]
@@ -105,7 +103,6 @@ impl TabTokenizer {
 
 /// Tokenize a string by splitting on newlines.
 #[pyclass(name = "LineTokenizer", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct LineTokenizer;
 
 #[pymethods]
@@ -147,7 +144,6 @@ impl LineTokenizer {
 
 /// Tokenize a string into individual characters.
 #[pyclass(name = "CharTokenizer", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct CharTokenizer;
 
 #[pymethods]

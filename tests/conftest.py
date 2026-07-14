@@ -1,8 +1,7 @@
 """Pytest configuration for fastNLTK tests."""
 
+
 import pytest
-import os
-import sys
 
 
 def pytest_addoption(parser):

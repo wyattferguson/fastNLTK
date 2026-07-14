@@ -5,58 +5,61 @@
 //!   - Punctuation splitting (parentheses, quotes, commas, etc.)
 //!   - Clitics and hyphenated words
 
+use once_cell::sync::Lazy;
 use pyo3::prelude::*;
 use regex::Regex;
 
-/// The main contraction/starting rules applied in order.
-/// These match NLTK's treebank tokenizer rules.
-static CONTRACTIONS2: &[(&str, &str)] = &[
-    (r"(?i)('ll|'re|'ve|'m|'d|'s)\b", " $1"),
-    (r"(?i)n't\b", " n't"),
-    (r"(?i)'em\b", " 'em"),
-    (r"(?i)\b(can)(not)\b", " $1 $2"),
-    (r"(?i)\b(d)'ye\b", " $1 'ye"),
-    (r"(?i)\b(gim)(me)\b", " $1 $2"),
-    (r"(?i)\b(gon)(na)\b", " $1 $2"),
-    (r"(?i)\b(got)(ta)\b", " $1 $2"),
-    (r"(?i)\b(lem)(me)\b", " $1 $2"),
-    (r"(?i)\b(mor)('n)\b", " $1 $2"),
-    (r"(?i)\b(t)(is)\b", " $1 $2"),
-    (r"(?i)\b(t)(was)\b", " $1 $2"),
-    (r"(?i)\b(wan)(na)\b", " $1 $2"),
-];
+/// Contraction/starting rules applied in order. Regexes pre-compiled at load time.
+static CONTRACTIONS2: Lazy<Vec<(Regex, &str)>> = Lazy::new(|| {
+    let patterns: &[(&str, &str)] = &[
+        (r"(?i)('ll|'re|'ve|'m|'d|'s)\b", " $1"),
+        (r"(?i)n't\b", " n't"),
+        (r"(?i)'em\b", " 'em"),
+        (r"(?i)\b(can)(not)\b", " $1 $2"),
+        (r"(?i)\b(d)'ye\b", " $1 'ye"),
+        (r"(?i)\b(gim)(me)\b", " $1 $2"),
+        (r"(?i)\b(gon)(na)\b", " $1 $2"),
+        (r"(?i)\b(got)(ta)\b", " $1 $2"),
+        (r"(?i)\b(lem)(me)\b", " $1 $2"),
+        (r"(?i)\b(mor)('n)\b", " $1 $2"),
+        (r"(?i)\b(t)(is)\b", " $1 $2"),
+        (r"(?i)\b(t)(was)\b", " $1 $2"),
+        (r"(?i)\b(wan)(na)\b", " $1 $2"),
+    ];
+    patterns.iter().filter_map(|(p, r)| Regex::new(p).ok().map(|re| (re, *r))).collect()
+});
 
-/// Punctuation rules for splitting.
-static PUNCTUATION: &[(&str, &str)] = &[
-    (r"([\[\](){}<>])", " $1 "),
-    (r"([:;,.?!])", " $1 "),
-    (r"(--)", " $1 "),
-    (r"''", " '' "),
-    (r"''", " '' "),
-];
+/// Punctuation rules for splitting. Regexes pre-compiled at load time.
+static PUNCTUATION: Lazy<Vec<(Regex, &str)>> = Lazy::new(|| {
+    let patterns: &[(&str, &str)] = &[
+        (r"([\[\](){}<>])", " $1 "),
+        (r"([:;,.?!])", " $1 "),
+        (r"(--)", " $1 "),
+        (r"''", " '' "),
+        (r"''", " '' "),
+    ];
+    patterns.iter().filter_map(|(p, r)| Regex::new(p).ok().map(|re| (re, *r))).collect()
+});
+
+/// Collapse multiple spaces — pre-compiled at load time.
+static COLLAPSE_SPACES: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s+").unwrap());
 
 /// Tokenize text using Treebank rules.
 pub fn tokenize_treebank(text: &str) -> Vec<String> {
     let mut s = String::from(text);
 
     // Apply contraction rules
-    for (pattern, replacement) in CONTRACTIONS2 {
-        if let Ok(re) = Regex::new(pattern) {
-            s = re.replace_all(&s, *replacement).to_string();
-        }
+    for (re, replacement) in CONTRACTIONS2.iter() {
+        s = re.replace_all(&s, *replacement).to_string();
     }
 
     // Apply punctuation rules
-    for (pattern, replacement) in PUNCTUATION {
-        if let Ok(re) = Regex::new(pattern) {
-            s = re.replace_all(&s, *replacement).to_string();
-        }
+    for (re, replacement) in PUNCTUATION.iter() {
+        s = re.replace_all(&s, *replacement).to_string();
     }
 
     // Collapse multiple spaces
-    if let Ok(re) = Regex::new(r"\s+") {
-        s = re.replace_all(&s, " ").to_string();
-    }
+    s = COLLAPSE_SPACES.replace_all(&s, " ").to_string();
 
     // Trim
     let s = s.trim().to_string();
@@ -74,7 +77,6 @@ pub fn tokenize_treebank(text: &str) -> Vec<String> {
 
 /// TreebankWordTokenizer — Penn Treebank tokenization.
 #[pyclass(name = "TreebankWordTokenizer", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct TreebankWordTokenizer;
 
 #[pymethods]
@@ -107,7 +109,6 @@ impl TreebankWordTokenizer {
 
 /// TreebankWordDetokenizer — detokenize Treebank tokens back to text.
 #[pyclass(name = "TreebankWordDetokenizer", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct TreebankWordDetokenizer;
 
 #[pymethods]

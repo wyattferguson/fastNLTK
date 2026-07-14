@@ -2,7 +2,6 @@
 use pyo3::prelude::*;
 
 #[pyclass(name = "RSLPStemmer", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct RSLPStemmer;
 
 #[pymethods]

@@ -6,10 +6,8 @@ Resolves and loads NLTK data files (models, corpora, tokenizers, taggers).
 
 import os
 import pickle
-from pathlib import Path
 
 import nltk.data as _nltk_data
-
 
 # ── Data path resolution ─────────────────────────────────
 

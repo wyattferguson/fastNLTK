@@ -3,10 +3,10 @@
 These tests verify that fastNLTK's output matches NLTK's output exactly.
 """
 
-import pytest
 
 import nltk
-from fastnltk.tokenize import SpaceTokenizer, TabTokenizer, LineTokenizer
+
+from fastnltk.tokenize import LineTokenizer, SpaceTokenizer, TabTokenizer
 
 
 class TestSpaceTokenizer:

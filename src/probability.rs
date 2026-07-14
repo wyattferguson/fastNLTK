@@ -233,6 +233,7 @@ impl ConditionalFreqDist {
     }
 
     /// Return the total number of samples across all conditions.
+    #[allow(non_snake_case)]
     fn N(&self) -> u64 {
         self.conditions.values().map(|fd| fd.N()).sum()
     }

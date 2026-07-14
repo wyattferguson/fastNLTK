@@ -2,29 +2,25 @@
 fastnltk.classify — Drop-in replacement for nltk.classify.
 """
 
+import warnings
+
+import nltk.classify as _nltk_classify
+from nltk.classify import (
+    ClassifierI,
+    DecisionTreeClassifier,
+    MaxentClassifier,
+    TextCat,
+)
+from nltk.classify.util import accuracy, apply_features, log_likelihood
+
 _rust_available = False
 try:
     from fastnltk._rust import NaiveBayesClassifier as _RustNaiveBayesClassifier
     _rust_available = True
 except ImportError:
-    pass
-
-import nltk.classify as _nltk_classify
-from nltk.classify import (
-    ClassifierI,
-    MultiClassifierI,
-    DecisionTreeClassifier,
-    MaxentClassifier,
-    BinaryMaxentFeatureEncoding,
-    TypedMaxentFeatureEncoding,
-    SklearnClassifier,
-    TextCat,
-    PositiveNaiveBayesClassifier,
-    call_megam,
-    config_megam,
-)
-
-from nltk.classify.util import accuracy, apply_features, log_likelihood
+    warnings.warn(
+        "fastnltk._rust extension not available; falling back to pure-NLTK classifiers"
+    )
 
 __all__ = [
     "NaiveBayesClassifier",

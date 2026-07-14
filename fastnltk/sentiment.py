@@ -1,14 +1,18 @@
 """fastnltk.sentiment — Drop-in replacement for nltk.sentiment."""
 
+import warnings
+
+import nltk.sentiment as _nltk_sentiment
+from nltk.sentiment import SentimentAnalyzer
+
 _rust_available = False
 try:
     from fastnltk._rust import SentimentIntensityAnalyzer as _RustSentimentIntensityAnalyzer
     _rust_available = True
 except ImportError:
-    pass
-
-import nltk.sentiment as _nltk_sentiment
-from nltk.sentiment import SentimentAnalyzer
+    warnings.warn(
+        "fastnltk._rust extension not available; falling back to pure-NLTK sentiment"
+    )
 
 __all__ = ["SentimentAnalyzer", "SentimentIntensityAnalyzer"]
 

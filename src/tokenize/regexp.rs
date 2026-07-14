@@ -81,7 +81,6 @@ impl RegexpTokenizer {
 
 /// Tokenize on whitespace.
 #[pyclass(name = "WhitespaceTokenizer", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct WhitespaceTokenizer;
 
 #[pymethods]
@@ -157,7 +156,6 @@ impl WordPunctTokenizer {
 
 /// Tokenize on blank lines (empty lines or lines with only whitespace).
 #[pyclass(name = "BlanklineTokenizer", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct BlanklineTokenizer;
 
 #[pymethods]

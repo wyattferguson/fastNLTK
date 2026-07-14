@@ -1,14 +1,18 @@
 """fastnltk.translate — Drop-in replacement for nltk.translate."""
 
+import warnings
+
+from nltk.translate import *  # noqa: F403
+
 _rust_available = False
 try:
-    from fastnltk._rust import bleu_score as _rust_bleu, corpus_bleu as _rust_corpus_bleu
+    from fastnltk._rust import bleu_score as _rust_bleu
+    from fastnltk._rust import corpus_bleu as _rust_corpus_bleu
     _rust_available = True
 except ImportError:
-    pass
-
-import nltk.translate as _nltk_translate
-from nltk.translate import *  # noqa: F401, F403
+    warnings.warn(
+        "fastnltk._rust extension not available; falling back to pure-NLTK translate"
+    )
 
 __all__ = ["bleu_score", "corpus_bleu"]
 

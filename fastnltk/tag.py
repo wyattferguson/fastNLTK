@@ -8,49 +8,49 @@ falls back to original nltk.tag for unimplemented pieces.
 import functools
 import os
 import pickle
+import warnings
+
+import nltk.tag as _nltk_tag
+from nltk.data import find
+from nltk.tag import (
+    AffixTagger,
+    BigramTagger,
+    BrillTagger,
+    BrillTaggerTrainer,
+    ClassifierBasedPOSTagger,
+    ClassifierBasedTagger,
+    ContextTagger,
+    CRFTagger,
+    DefaultTagger,
+    HiddenMarkovModelTagger,
+    HiddenMarkovModelTrainer,
+    NgramTagger,
+    RegexpTagger,
+    SequentialBackoffTagger,
+    TaggerI,
+    TnT,
+    TrigramTagger,
+    UnigramTagger,
+    map_tag,
+)
 
 _rust_available = False
 try:
     from fastnltk._rust import PerceptronTagger as _RustPerceptronTagger
     _rust_available = True
 except ImportError:
-    pass
+    warnings.warn(
+        "fastnltk._rust extension not available; falling back to pure-NLTK tagger"
+    )
 
-import nltk.tag as _nltk_tag
-from nltk.tag import (
-    TaggerI,
-    SequentialBackoffTagger,
-    ContextTagger,
-    DefaultTagger,
-    NgramTagger,
-    UnigramTagger,
-    BigramTagger,
-    TrigramTagger,
-    AffixTagger,
-    RegexpTagger,
-    ClassifierBasedTagger,
-    ClassifierBasedPOSTagger,
-    TnT,
-    HiddenMarkovModelTagger,
-    HiddenMarkovModelTrainer,
-    BrillTagger,
-    BrillTaggerTrainer,
-    HunposTagger,
-    StanfordTagger,
-    StanfordPOSTagger,
-    StanfordNERTagger,
-    SennaTagger,
-    SennaChunkTagger,
-    SennaNERTagger,
-    CRFTagger,
-    str2tuple,
-    tuple2str,
-    untag,
-    tagset_mapping,
-    map_tag,
-)
 
-from nltk.data import load, find
+def _load_tagger_model(tagger):
+    """Load NLTK perceptron tagger weights into a Rust or NLTK tagger."""
+    path = find("taggers/averaged_perceptron_tagger/")
+    pickle_path = os.path.join(str(path), "averaged_perceptron_tagger.pickle")
+    with open(pickle_path, "rb") as f:
+        model_data = pickle.load(f)
+    tagger.load(model_data[0], model_data[1], sorted(model_data[2]))
 
 __all__ = [
     "pos_tag",
@@ -81,24 +81,13 @@ __all__ = [
 def _get_tagger():
     """Lazy-loaded Rust perceptron tagger with NLTK weights."""
     tagger = _RustPerceptronTagger()
-
     try:
-        path = find("taggers/averaged_perceptron_tagger/")
-        pickle_path = os.path.join(str(path), "averaged_perceptron_tagger.pickle")
-        with open(pickle_path, "rb") as f:
-            model_data = pickle.load(f)
-
-        weights_dict = model_data[0]
-        tagdict = model_data[1]
-        classes = sorted(model_data[2])
-
-        tagger.load(weights_dict, tagdict, classes)
+        _load_tagger_model(tagger)
     except (LookupError, FileNotFoundError, OSError) as e:
         raise RuntimeError(
             "NLTK perceptron tagger data not found. "
             "Run: python -m nltk.downloader averaged_perceptron_tagger"
         ) from e
-
     return tagger
 
 
@@ -150,11 +139,7 @@ class PerceptronTagger:
         self._impl = _RustPerceptronTagger()
         if load_model:
             try:
-                path = find("taggers/averaged_perceptron_tagger/")
-                pickle_path = os.path.join(str(path), "averaged_perceptron_tagger.pickle")
-                with open(pickle_path, "rb") as f:
-                    model_data = pickle.load(f)
-                self._impl.load(model_data[0], model_data[1], sorted(model_data[2]))
+                _load_tagger_model(self._impl)
             except (LookupError, FileNotFoundError, OSError):
                 pass
 

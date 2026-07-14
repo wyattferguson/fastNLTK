@@ -13,7 +13,6 @@ static RULES: &[(&str, &str, i32)] = &[
 ];
 
 #[pyclass(name = "LancasterStemmer", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct LancasterStemmer;
 
 #[pymethods]

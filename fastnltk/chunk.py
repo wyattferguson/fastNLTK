@@ -5,15 +5,13 @@ fastnltk.chunk — Drop-in replacement for nltk.chunk.
 import nltk.chunk as _nltk_chunk
 from nltk.chunk import (
     ChunkParserI,
+    ChunkScore,
+    Maxent_NE_Chunker,
     RegexpChunkParser,
     RegexpParser,
-    Maxent_NE_Chunker,
-    ChunkScore,
     accuracy,
     conllstr2tree,
     conlltags2tree,
-    ieerstr2tree,
-    tagstr2tree,
     tree2conllstr,
     tree2conlltags,
 )

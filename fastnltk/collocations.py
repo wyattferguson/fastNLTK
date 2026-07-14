@@ -1,18 +1,26 @@
 """fastnltk.collocations — Drop-in replacement for nltk.collocations."""
 
+import warnings
+
+from nltk.probability import FreqDist
+from nltk.util import ngrams
+
 _rust_available = False
 try:
     from fastnltk._rust import (
         BigramCollocationFinder as _RustBigramCollocationFinder,
-        TrigramCollocationFinder as _RustTrigramCollocationFinder,
+    )
+    from fastnltk._rust import (
         QuadgramCollocationFinder as _RustQuadgramCollocationFinder,
+    )
+    from fastnltk._rust import (
+        TrigramCollocationFinder as _RustTrigramCollocationFinder,
     )
     _rust_available = True
 except ImportError:
-    pass
-
-from nltk.probability import FreqDist
-from nltk.util import ngrams
+    warnings.warn(
+        "fastnltk._rust extension not available; falling back to pure-NLTK collocations"
+    )
 
 __all__ = [
     "BigramCollocationFinder",
@@ -42,16 +50,16 @@ class BigramCollocationFinder:
 
     def score_ngrams(self, score_fn):
         if _rust_available and self._impl:
-            name = getattr(score_fn, '__name__', str(score_fn)).lower()
-            m = {'raw_freq': 'raw_freq', 'pmi': 'pmi', 'chi_sq': 'chi_sq', 'likelihood_ratio': 'likelihood_ratio'}
-            return self._impl.score_ngrams(m.get(name, 'raw_freq'))
+            name = getattr(score_fn, "__name__", str(score_fn)).lower()
+            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            return self._impl.score_ngrams(m.get(name, "raw_freq"))
         return []
 
     def nbest(self, score_fn, n):
         if _rust_available and self._impl:
-            name = getattr(score_fn, '__name__', str(score_fn)).lower()
-            m = {'raw_freq': 'raw_freq', 'pmi': 'pmi', 'chi_sq': 'chi_sq', 'likelihood_ratio': 'likelihood_ratio'}
-            return self._impl.nbest(m.get(name, 'raw_freq'), n)
+            name = getattr(score_fn, "__name__", str(score_fn)).lower()
+            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            return self._impl.nbest(m.get(name, "raw_freq"), n)
         return []
 
     def apply_freq_filter(self, min_freq):
@@ -81,12 +89,16 @@ class TrigramCollocationFinder:
 
     def score_ngrams(self, score_fn):
         if _rust_available and self._impl:
-            return self._impl.score_ngrams('raw_freq')
+            name = getattr(score_fn, "__name__", str(score_fn)).lower()
+            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            return self._impl.score_ngrams(m.get(name, "raw_freq"))
         return []
 
     def nbest(self, score_fn, n):
         if _rust_available and self._impl:
-            return self._impl.nbest('raw_freq', n)
+            name = getattr(score_fn, "__name__", str(score_fn)).lower()
+            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            return self._impl.nbest(m.get(name, "raw_freq"), n)
         return []
 
     def apply_freq_filter(self, min_freq):
@@ -116,12 +128,16 @@ class QuadgramCollocationFinder:
 
     def score_ngrams(self, score_fn):
         if _rust_available and self._impl:
-            return self._impl.score_ngrams('raw_freq')
+            name = getattr(score_fn, "__name__", str(score_fn)).lower()
+            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            return self._impl.score_ngrams(m.get(name, "raw_freq"))
         return []
 
     def nbest(self, score_fn, n):
         if _rust_available and self._impl:
-            return self._impl.nbest('raw_freq', n)
+            name = getattr(score_fn, "__name__", str(score_fn)).lower()
+            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            return self._impl.nbest(m.get(name, "raw_freq"), n)
         return []
 
     def apply_freq_filter(self, min_freq):

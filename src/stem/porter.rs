@@ -13,7 +13,6 @@ use pyo3::prelude::*;
 
 /// Porter stemmer implementation.
 #[pyclass(name = "PorterStemmer", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct PorterStemmer;
 
 #[pymethods]

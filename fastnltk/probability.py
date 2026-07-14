@@ -2,41 +2,33 @@
 fastnltk.probability — Drop-in replacement for nltk.probability.
 """
 
-_rust_available = False
-try:
-    from fastnltk._rust import (
-        FreqDist as _RustFreqDist,
-        ConditionalFreqDist as _RustConditionalFreqDist,
-    )
-    _rust_available = True
-except ImportError:
-    pass
+import warnings
 
 import nltk.probability as _nltk_probability
 from nltk.probability import (
-    ProbDistI,
-    UniformProbDist,
-    DictionaryProbDist,
-    MLEProbDist,
-    LidstoneProbDist,
-    LaplaceProbDist,
-    ELEProbDist,
-    HeldoutProbDist,
-    CrossValidationProbDist,
-    WittenBellProbDist,
-    SimpleGoodTuringProbDist,
-    MutableProbDist,
-    KneserNeyProbDist,
-    ConditionalFreqDist,
-    ConditionalProbDistI,
     ConditionalProbDist,
-    ImmutableProbabilisticMixIn,
-    ProbabilisticMixIn,
-    add_logs,
-    sum_logs,
-    entropy,
-    log_likelihood,
+    KneserNeyProbDist,
+    LaplaceProbDist,
+    LidstoneProbDist,
+    MLEProbDist,
+    ProbDistI,
+    SimpleGoodTuringProbDist,
+    WittenBellProbDist,
 )
+
+_rust_available = False
+try:
+    from fastnltk._rust import (
+        ConditionalFreqDist as _RustConditionalFreqDist,
+    )
+    from fastnltk._rust import (
+        FreqDist as _RustFreqDist,
+    )
+    _rust_available = True
+except ImportError:
+    warnings.warn(
+        "fastnltk._rust extension not available; falling back to pure-NLTK probability"
+    )
 
 __all__ = [
     "FreqDist",

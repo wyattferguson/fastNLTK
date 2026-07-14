@@ -2,7 +2,6 @@
 use pyo3::prelude::*;
 
 #[pyclass(name = "Cistem", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct Cistem;
 
 #[pymethods]
