@@ -5,23 +5,14 @@ fastnltk.classify — Drop-in replacement for nltk.classify.
 import warnings
 
 import nltk.classify as _nltk_classify
-from nltk.classify import (
-    ClassifierI,
-    DecisionTreeClassifier,
-)
+from nltk.classify import ClassifierI, DecisionTreeClassifier
 from nltk.classify.util import accuracy, apply_features, log_likelihood
 
 _rust_available = False
 try:
-    from fastnltk._rust import (
-        MaxentClassifier as _RustMaxentClassifier,
-    )
-    from fastnltk._rust import (
-        NaiveBayesClassifier as _RustNaiveBayesClassifier,
-    )
-    from fastnltk._rust import (
-        TextCat as _RustTextCat,
-    )
+    from fastnltk._rust import MaxentClassifier as _RustMaxentClassifier
+    from fastnltk._rust import NaiveBayesClassifier as _RustNaiveBayesClassifier
+    from fastnltk._rust import TextCat as _RustTextCat
     _rust_available = True
 except ImportError:
     warnings.warn(
@@ -30,6 +21,7 @@ except ImportError:
 
 __all__ = [
     "NaiveBayesClassifier",
+    "PositiveNaiveBayesClassifier",
     "ClassifierI",
     "DecisionTreeClassifier",
     "MaxentClassifier",
@@ -128,3 +120,23 @@ class NaiveBayesClassifier:
 
     def show_most_informative_features(self, n=10):
         return self._impl.show_most_informative_features(n)
+
+
+class PositiveNaiveBayesClassifier:
+    """Positive Naive Bayes for positive + unlabeled data."""
+    @staticmethod
+    def train(positive_featuresets, unlabeled_featuresets):
+        """Train from positive and unlabeled feature sets.
+
+        Treats unlabeled as negative. Uses Rust NB when available.
+        """
+        from nltk.classify import PositiveNaiveBayesClassifier as _NltkPositiveNB
+
+        if _rust_available:
+            from fastnltk.classify import NaiveBayesClassifier
+
+            labeled = [(feats, "pos") for feats in positive_featuresets] + [
+                (feats, "neg") for feats in unlabeled_featuresets
+            ]
+            return NaiveBayesClassifier.train(labeled)
+        return _NltkPositiveNB.train(positive_featuresets, unlabeled_featuresets)
