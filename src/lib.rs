@@ -7,6 +7,7 @@ use pyo3::prelude::*;
 
 mod prelude;
 pub mod data;
+pub mod chunk;
 pub mod lm;
 pub mod tokenize;
 pub mod stem;
@@ -51,6 +52,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // ── Translation ──────────────────────────────────────
     translate::register_module(m)?;
+
+    // ── Chunking ───────────────────────────────────────
+    chunk::register_module(m)?;
 
     Ok(())
 }
