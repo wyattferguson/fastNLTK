@@ -9,6 +9,8 @@ Rust-accelerated LM models:
 
 import warnings
 
+import nltk.lm as _nltk_lm
+
 from nltk.lm.preprocessing import (
     everygrams,
     pad_both_ends,
@@ -47,12 +49,15 @@ __all__ = [
     "MLE", "Lidstone", "Laplace",
     "KneserNeyInterpolated",
     "StupidBackoff", "WittenBellInterpolated",
+    "AbsoluteDiscountingInterpolated",
     "padded_everygrams",
     "everygrams",
     "pad_both_ends",
     "pad_sequence",
     "log_base2",
-]
+    "NgramCounter",
+    "Vocabulary",
+]  # noqa: E501
 
 
 class MLE:
@@ -222,3 +227,18 @@ class StupidBackoff:
     @property
     def fitted(self):
         return self._impl.fitted()
+
+
+# ── NLTK re-exports for API compatibility ─────
+
+AbsoluteDiscountingInterpolated = _nltk_lm.AbsoluteDiscountingInterpolated
+NgramCounter = _nltk_lm.NgramCounter
+Vocabulary = _nltk_lm.Vocabulary
+
+api = _nltk_lm.api
+counter = _nltk_lm.counter
+models = _nltk_lm.models
+preprocessing = _nltk_lm.preprocessing
+smoothing = _nltk_lm.smoothing
+util = _nltk_lm.util
+vocabulary = _nltk_lm.vocabulary

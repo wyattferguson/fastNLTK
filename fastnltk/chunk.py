@@ -105,4 +105,8 @@ ne_chunker = _nltk_chunk.ne_chunker
 named_entity = _nltk_chunk.named_entity
 regexp = _nltk_chunk.regexp
 api = _nltk_chunk.api
+RegexpChunkParser = _nltk_chunk.RegexpChunkParser
+ieerstr2tree = _nltk_chunk.ieerstr2tree
+tagstr2tree = _nltk_chunk.tagstr2tree
+
 util = _nltk_chunk.util

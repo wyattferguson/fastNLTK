@@ -34,3 +34,4 @@ benchmarks/data/*.txt
 # OS
 .DS_Store
 Thumbs.db
+nul
