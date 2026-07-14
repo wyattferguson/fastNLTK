@@ -10,6 +10,8 @@ use pyo3::prelude::*;
 
 pub mod tableau;
 pub mod resolution;
+pub mod discourse;
+pub mod nonmonotonic;
 
 #[pyclass(name = "ProverResult", module = "fastnltk._rust")]
 #[derive(Clone)]
@@ -165,5 +167,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ProverResult>()?;
     tableau::register_module(m)?;
     resolution::register_module(m)?;
+    discourse::register_module(m)?;
+    nonmonotonic::register_module(m)?;
     Ok(())
 }

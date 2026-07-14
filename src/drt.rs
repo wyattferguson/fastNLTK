@@ -244,12 +244,18 @@ impl DRS {
     /// Convert DRS to a first-order logic formula.
     pub fn to_fol(&self) -> Expression {
         // DRS([x1,...,xn],[C1,...,Cn]) becomes exists x1...exists xn.(C1 & ... & Cn)
-        let mut body = Expression::Constant("true".to_string(), None);
-
-        for cond in &self.conditions {
-            let cond_fol = cond_to_fol(cond);
-            body = Expression::And(Box::new(body), Box::new(cond_fol));
-        }
+        // Build conjunction from conditions without artificial "true" sentinel
+        let mut cond_iter = self.conditions.iter();
+        let body = match cond_iter.next() {
+            None => return Expression::Constant("true".to_string(), None),
+            Some(first) => {
+                let mut body = cond_to_fol(first);
+                for cond in cond_iter {
+                    body = Expression::And(Box::new(body), Box::new(cond_to_fol(cond)));
+                }
+                body
+            }
+        };
 
         // Wrap in existential quantifiers (right-to-left)
         let mut result = body;

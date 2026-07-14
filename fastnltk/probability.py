@@ -2,8 +2,6 @@
 fastnltk.probability — Drop-in replacement for nltk.probability.
 """
 
-import warnings
-
 import nltk.probability as _nltk_probability
 from nltk.probability import (
     ConditionalProbDist,
@@ -16,19 +14,10 @@ from nltk.probability import (
     WittenBellProbDist,
 )
 
-_rust_available = False
-try:
-    from fastnltk._rust import (
-        ConditionalFreqDist as _RustConditionalFreqDist,
-    )
-    from fastnltk._rust import (
-        FreqDist as _RustFreqDist,
-    )
-    _rust_available = True
-except ImportError:
-    warnings.warn(
-        "fastnltk._rust extension not available; falling back to pure-NLTK probability"
-    )
+from fastnltk._rust import (
+    ConditionalFreqDist as _RustConditionalFreqDist,
+    FreqDist as _RustFreqDist,
+)
 
 __all__ = [
     "FreqDist",
@@ -45,12 +34,9 @@ __all__ = [
 
 
 class FreqDist:
-    """Frequency distribution — Rust-accelerated when available."""
+    """Frequency distribution — Rust-accelerated."""
     def __init__(self, samples=None):
-        if _rust_available:
-            self._impl = _RustFreqDist(samples or [])
-        else:
-            self._impl = _nltk_probability.FreqDist(samples or [])
+        self._impl = _RustFreqDist(samples or [])
 
     def N(self):
         return self._impl.N()
@@ -113,10 +99,7 @@ class FreqDist:
 class ConditionalFreqDist:
     """Conditional frequency distribution — Rust-accelerated."""
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustConditionalFreqDist()
-        else:
-            self._impl = _nltk_probability.ConditionalFreqDist()
+        self._impl = _RustConditionalFreqDist()
 
     def __getitem__(self, condition):
         return self._impl.__getitem__(condition)
@@ -137,8 +120,7 @@ class ConditionalFreqDist:
         return _nltk_probability.ConditionalFreqDist().tabulate(*args, **kwargs)
 
 
-# ── NLTK re-exports for API compatibility ─────
-
+# ── NLTK re-exports ─────
 ConditionalProbDistI = _nltk_probability.ConditionalProbDistI
 CrossValidationProbDist = _nltk_probability.CrossValidationProbDist
 DictionaryConditionalProbDist = _nltk_probability.DictionaryConditionalProbDist

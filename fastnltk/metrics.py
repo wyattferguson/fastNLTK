@@ -1,16 +1,30 @@
 """
 fastnltk.metrics — Drop-in replacement for nltk.metrics.
-"""
 
-import warnings
+All metric functions are Rust-accelerated via the compiled `_rust` extension.
+"""
 
 import nltk.metrics as _nltk_metrics
 
-# ── NLTK fallback imports (gracefully handle version differences) ────
+from fastnltk._rust import (
+    binary_distance as _rust_binary_distance,
+    dice_similarity as _rust_dice_similarity,
+    edit_distance as _rust_edit_distance_fn,
+    jaccard_distance as _rust_jaccard_distance,
+    jaro_similarity as _rust_jaro_similarity,
+    jaro_winkler_similarity as _rust_jaro_winkler_similarity,
+    windowdiff as _rust_windowdiff,
+    pk as _rust_pk,
+    kappa as _rust_kappa,
+    pi as _rust_pi,
+    alpha as _rust_alpha,
+    spearman as _rust_spearman,
+    BigramAssocMeasures as _RustBigramAssocMeasures,
+)
 
+# NLTK re-exports for API compatibility
 try:
     from nltk.metrics import (
-        BigramAssocMeasures,
         ConfusionMatrix,
         QuadgramAssocMeasures,
         TrigramAssocMeasures,
@@ -19,55 +33,27 @@ try:
         recall,
     )
 except ImportError:
-    BigramAssocMeasures = getattr(_nltk_metrics, "BigramAssocMeasures", None)
+    ConfusionMatrix = getattr(_nltk_metrics, "ConfusionMatrix", None)
     TrigramAssocMeasures = getattr(_nltk_metrics, "TrigramAssocMeasures", None)
     QuadgramAssocMeasures = getattr(_nltk_metrics, "QuadgramAssocMeasures", None)
-    ConfusionMatrix = getattr(_nltk_metrics, "ConfusionMatrix", None)
     precision = getattr(_nltk_metrics, "precision", None)
     recall = getattr(_nltk_metrics, "recall", None)
     f_measure = getattr(_nltk_metrics, "f_measure", None)
 
 try:
     from nltk.metrics.distance import (
-        binary_distance,
-        custom_distance,
         interval_distance,
-        jaccard_distance,
+        custom_distance,
         masi_distance,
     )
 except ImportError:
-    jaccard_distance = binary_distance = masi_distance = None
-    interval_distance = custom_distance = None
+    masi_distance = interval_distance = custom_distance = None
 
-# Re-export NLTK names for API compatibility
 AnnotationTask = getattr(_nltk_metrics, "AnnotationTask", None)
 ContingencyMeasures = getattr(_nltk_metrics, "ContingencyMeasures", None)
 approxrand = getattr(_nltk_metrics, "approxrand", None)
 log_likelihood = getattr(_nltk_metrics, "log_likelihood", None)
-windowdiff = getattr(_nltk_metrics, "windowdiff", None)
-pk = getattr(_nltk_metrics, "pk", None)
 bcubed = getattr(_nltk_metrics, "bcubed", None)
-
-_rust_available = False
-try:
-    from fastnltk._rust import binary_distance as _rust_binary_distance
-    from fastnltk._rust import dice_similarity as _rust_dice_similarity
-    from fastnltk._rust import edit_distance as _rust_edit_distance_fn
-    from fastnltk._rust import jaccard_distance as _rust_jaccard_distance
-    from fastnltk._rust import jaro_similarity as _rust_jaro_similarity
-    from fastnltk._rust import jaro_winkler_similarity as _rust_jaro_winkler_similarity
-    from fastnltk._rust import windowdiff as _rust_windowdiff
-    from fastnltk._rust import pk as _rust_pk
-    from fastnltk._rust import kappa as _rust_kappa
-    from fastnltk._rust import pi as _rust_pi
-    from fastnltk._rust import alpha as _rust_alpha
-    from fastnltk._rust import spearman as _rust_spearman
-    from fastnltk._rust import BigramAssocMeasures as _RustBigramAssocMeasures
-    _rust_available = True
-except ImportError:
-    warnings.warn(
-        "fastnltk._rust extension not available; falling back to pure-NLTK metrics"
-    )
 
 __all__ = [
     "edit_distance",
@@ -94,80 +80,37 @@ __all__ = [
 
 
 def jaccard_distance(s1, s2):
-    if _rust_available:
-        return _rust_jaccard_distance(s1, s2)
-    from nltk.metrics.distance import jaccard_distance as _nltk_j
-
-    return _nltk_j(set(s1 or []), set(s2 or []))
+    return _rust_jaccard_distance(s1, s2)
 
 
 def binary_distance(s1, s2):
-    if _rust_available:
-        return _rust_binary_distance(s1, s2)
-    from nltk.metrics.distance import binary_distance as _nltk_b
-
-    return _nltk_b(set(s1 or []), set(s2 or []))
+    return _rust_binary_distance(s1, s2)
 
 
 def edit_distance(s1, s2, substitution_cost=1, transpositions=False):
-    if _rust_available:
-        return _rust_edit_distance_fn(s1, s2, substitution_cost, transpositions)
-    from nltk.metrics.distance import edit_distance as _nltk_edit_distance
-
-    return _nltk_edit_distance(s1, s2, substitution_cost, transpositions)
+    return _rust_edit_distance_fn(s1, s2, substitution_cost, transpositions)
 
 
 def jaro_similarity(x, y):
-    if _rust_available:
-        return _rust_jaro_similarity(x, y)
-    from nltk.metrics.distance import jaro_similarity as _nltk_jaro
-
-    return _nltk_jaro(x, y)
+    return _rust_jaro_similarity(x, y)
 
 
 def jaro_winkler_similarity(x, y, p=0.1, max_l=4):
-    if _rust_available:
-        return _rust_jaro_winkler_similarity(x, y, p, max_l)
-    from nltk.metrics.distance import jaro_winkler_similarity as _nltk_jw
-
-    return _nltk_jw(x, y, p, max_l)
+    return _rust_jaro_winkler_similarity(x, y, p, max_l)
 
 
 def dice_similarity(x, y):
-    if _rust_available:
-        return _rust_dice_similarity(x, y)
-    from nltk.metrics.distance import jaccard_distance
-
-    return 1.0 - jaccard_distance(set(x.split()), set(y.split()))
+    return _rust_dice_similarity(x, y)
 
 
+# Rust exports (no fallback)
+windowdiff = _rust_windowdiff
+pk = _rust_pk
+kappa = _rust_kappa
+pi = _rust_pi
+alpha = _rust_alpha
+spearman = _rust_spearman
+BigramAssocMeasures = _RustBigramAssocMeasures
+
+# NLTK re-exports
 alignment_error_rate = _nltk_metrics.alignment_error_rate
-
-# ── New Phase B+C exports ────────────────────────────────
-
-if _rust_available:
-    windowdiff = _rust_windowdiff
-    pk = _rust_pk
-    kappa = _rust_kappa
-    pi = _rust_pi
-    alpha = _rust_alpha
-    spearman = _rust_spearman
-    BigramAssocMeasures = _RustBigramAssocMeasures
-else:
-    # Re-export from NLTK
-    try:
-        from nltk.metrics.segmentation import windowdiff, pk
-    except ImportError:
-        windowdiff = pk = None
-    try:
-        from nltk.metrics.agreement import kappa, pi, alpha
-    except ImportError:
-        kappa = pi = alpha = None
-    try:
-        from nltk.metrics.spearman import spearman
-    except ImportError:
-        spearman = None
-    try:
-        from nltk.metrics.association import BigramAssocMeasures
-    except ImportError:
-        BigramAssocMeasures = None

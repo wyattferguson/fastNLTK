@@ -2,6 +2,10 @@
 //!
 //! NLTK equivalent: nltk.ccg.api
 
+pub mod combinator;
+pub mod lexicon;
+pub mod chart;
+
 use std::fmt;
 use pyo3::prelude::*;
 
@@ -183,6 +187,7 @@ fn from_string(s: &str) -> PyResult<Category> {
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Category>()?;
     m.add_function(wrap_pyfunction!(from_string, m)?)?;
+    chart::register_module(m)?;
     Ok(())
 }
 

@@ -6,19 +6,10 @@ model evaluation. DRT (Discourse Representation Theory).
 Submodules (boxer, glue, etc.) fall back to NLTK.
 """
 
-import warnings
-
 import nltk.sem as _nltk_sem
 
-_rust_available = False
-try:
-    from fastnltk._rust import fromstring as _rust_fromstring
-    from fastnltk._rust import simplify as _rust_simplify
-    _rust_available = True
-except ImportError:
-    warnings.warn(
-        "fastnltk._rust extension not available; falling back to NLTK sem"
-    )
+from fastnltk._rust import fromstring as _rust_fromstring
+from fastnltk._rust import simplify as _rust_simplify
 
 # Submodule pass-through (version-safe)
 for _attr in ["boxer", "drt", "glue", "linearlogic", "lfg", "relextract",
@@ -43,12 +34,8 @@ __all__ = [
 
 
 def fromstring(formula, type_check=False):
-    if _rust_available:
-        return _rust_fromstring(formula)
-    return _nltk_sem.logic.Expression.fromstring(formula)
+    return _rust_fromstring(formula)
 
 
 def simplify(formula):
-    if _rust_available:
-        return _rust_simplify(formula)
-    return _nltk_sem.logic.simplify(formula)
+    return _rust_simplify(formula)

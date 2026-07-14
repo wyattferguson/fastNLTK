@@ -1,14 +1,12 @@
 """
 fastnltk.tag — Drop-in replacement for nltk.tag.
 
-Delegates to compiled Rust extension where available,
-falls back to original nltk.tag for unimplemented pieces.
+All taggers are Rust-accelerated via the compiled `_rust` extension.
 """
 
 import functools
 import os
 import pickle
-import warnings
 
 import nltk.tag as _nltk_tag
 from nltk.data import find
@@ -27,41 +25,34 @@ from nltk.tag import (
     map_tag,
 )
 
-_rust_available = False
-try:
-    from fastnltk._rust import (
-        AffixTagger as _RustAffixTagger,
-    )
-    from fastnltk._rust import (
-        BigramTagger as _RustBigramTagger,
-    )
-    from fastnltk._rust import (
-        DefaultTagger as _RustDefaultTagger,
-    )
-    from fastnltk._rust import (
-        PerceptronTagger as _RustPerceptronTagger,
-    )
-    from fastnltk._rust import (
-        RegexpTagger as _RustRegexpTagger,
-    )
-    from fastnltk._rust import (
-        TnT as _RustTnT,
-    )
-    from fastnltk._rust import (
-        TrigramTagger as _RustTrigramTagger,
-    )
-    from fastnltk._rust import (
-        UnigramTagger as _RustUnigramTagger,
-    )
-    _rust_available = True
-except ImportError:
-    warnings.warn(
-        "fastnltk._rust extension not available; falling back to pure-NLTK tagger"
-    )
+from fastnltk._rust import (
+    AffixTagger as _RustAffixTagger,
+)
+from fastnltk._rust import (
+    BigramTagger as _RustBigramTagger,
+)
+from fastnltk._rust import (
+    DefaultTagger as _RustDefaultTagger,
+)
+from fastnltk._rust import (
+    PerceptronTagger as _RustPerceptronTagger,
+)
+from fastnltk._rust import (
+    RegexpTagger as _RustRegexpTagger,
+)
+from fastnltk._rust import (
+    TnT as _RustTnT,
+)
+from fastnltk._rust import (
+    TrigramTagger as _RustTrigramTagger,
+)
+from fastnltk._rust import (
+    UnigramTagger as _RustUnigramTagger,
+)
 
 
 def _load_tagger_model(tagger):
-    """Load NLTK perceptron tagger weights into a Rust or NLTK tagger."""
+    """Load NLTK perceptron tagger weights into Rust tagger."""
     path = find("taggers/averaged_perceptron_tagger/")
     pickle_path = os.path.join(str(path), "averaged_perceptron_tagger.pickle")
     with open(pickle_path, "rb") as f:
@@ -111,10 +102,8 @@ def pos_tag(tokens, tagset=None, lang="eng"):
     """POS tagging (Rust-accelerated).
 
     Returns a list of (word, tag) tuples.
-    Falls back to NLTK if Rust tagger is unavailable.
+    Falls back to NLTK if tagger data is unavailable.
     """
-    if not _rust_available:
-        return _nltk_tag.pos_tag(tokens, tagset, lang)
     try:
         tagger = _get_tagger()
         result = tagger.tag(tokens)
@@ -130,8 +119,6 @@ def pos_tag(tokens, tagset=None, lang="eng"):
 
 def pos_tag_sents(sentences, tagset=None, lang="eng"):
     """POS tagging for multiple sentences (Rust-accelerated)."""
-    if not _rust_available:
-        return _nltk_tag.pos_tag_sents(sentences, tagset, lang)
     try:
         tagger = _get_tagger()
         results = tagger.tag_sents(sentences)
@@ -149,9 +136,6 @@ def pos_tag_sents(sentences, tagset=None, lang="eng"):
 class PerceptronTagger:
     """Rust-accelerated averaged perceptron tagger."""
     def __init__(self, load_model=True):
-        if not _rust_available:
-            self._impl = _nltk_tag.PerceptronTagger()
-            return
         self._impl = _RustPerceptronTagger()
         if load_model:
             try:
@@ -169,10 +153,7 @@ class PerceptronTagger:
 class TnT:
     """TnT trigram HMM tagger — Rust-accelerated."""
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustTnT()
-        else:
-            self._impl = _nltk_tag.TnT()
+        self._impl = _RustTnT()
 
     def train(self, sentences):
         self._impl.train(sentences)
@@ -187,10 +168,7 @@ class TnT:
 class DefaultTagger:
     """Assign same tag to every token — Rust-accelerated."""
     def __init__(self, tag):
-        if _rust_available:
-            self._impl = _RustDefaultTagger(tag)
-        else:
-            self._impl = _nltk_tag.DefaultTagger(tag)
+        self._impl = _RustDefaultTagger(tag)
 
     def tag(self, tokens):
         return self._impl.tag(tokens)
@@ -202,10 +180,7 @@ class DefaultTagger:
 class UnigramTagger:
     """Unigram tagger — Rust-accelerated lookup."""
     def __init__(self, backoff=None):
-        if _rust_available:
-            self._impl = _RustUnigramTagger(backoff)
-        else:
-            self._impl = _nltk_tag.UnigramTagger(backoff=backoff)
+        self._impl = _RustUnigramTagger(backoff)
 
     def train(self, sentences):
         self._impl.train(sentences)
@@ -223,10 +198,7 @@ class UnigramTagger:
 class BigramTagger:
     """Bigram tagger — Rust-accelerated lookup."""
     def __init__(self, backoff=None):
-        if _rust_available:
-            self._impl = _RustBigramTagger(backoff)
-        else:
-            self._impl = _nltk_tag.BigramTagger(backoff=backoff)
+        self._impl = _RustBigramTagger(backoff)
 
     def train(self, sentences):
         self._impl.train(sentences)
@@ -241,10 +213,7 @@ class BigramTagger:
 class TrigramTagger:
     """Trigram tagger — Rust-accelerated lookup."""
     def __init__(self, backoff=None):
-        if _rust_available:
-            self._impl = _RustTrigramTagger(backoff)
-        else:
-            self._impl = _nltk_tag.TrigramTagger(backoff=backoff)
+        self._impl = _RustTrigramTagger(backoff)
 
     def train(self, sentences):
         self._impl.train(sentences)
@@ -259,10 +228,7 @@ class TrigramTagger:
 class AffixTagger:
     """Affix (suffix/prefix) tagger — Rust-accelerated."""
     def __init__(self, affix_len=3, use_suffix=True, backoff=None):
-        if _rust_available:
-            self._impl = _RustAffixTagger(affix_len, use_suffix, backoff)
-        else:
-            self._impl = _nltk_tag.AffixTagger(affix_len=affix_len, backoff=backoff)
+        self._impl = _RustAffixTagger(affix_len, use_suffix, backoff)
 
     def train(self, sentences):
         self._impl.train(sentences)
@@ -274,10 +240,7 @@ class AffixTagger:
 class RegexpTagger:
     """Regexp pattern tagger — Rust-accelerated."""
     def __init__(self, patterns, backoff=None):
-        if _rust_available:
-            self._impl = _RustRegexpTagger(patterns, backoff)
-        else:
-            self._impl = _nltk_tag.RegexpTagger(patterns, backoff=backoff)
+        self._impl = _RustRegexpTagger(patterns, backoff)
 
     def tag(self, tokens):
         return self._impl.tag(tokens)

@@ -773,11 +773,13 @@ pub fn model_evaluate(
     assignment: &Assignment,
 ) -> Result<bool, String> {
     match expr {
+        Expression::Constant(name, _) => {
+            if name == "true" { Ok(true) }
+            else if name == "false" { Ok(false) }
+            else { Ok(domain.contains(name)) }
+        }
         Expression::Variable(name, _) => {
             Ok(assignment.contains_key(name))
-        }
-        Expression::Constant(name, _) => {
-            Ok(domain.contains(name))
         }
         Expression::Application(func, arg) => {
             let pred_name = match func.as_ref() {

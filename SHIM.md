@@ -310,9 +310,9 @@ No new shim files needed. Update existing shims to import from `_rust` when modu
 |---|---|---|---|---|
 | Category types + API | `src/ccg/mod.rs`, `src/ccg/api.rs` | 200 | 4 hr | ✅ |
 | Combinator rules | `src/ccg/combinator.rs` | 250 | 6 hr | ✅ |
-| Lexicon loading | `src/ccg/lexicon.rs` | 200 | 4 hr | ⬜ Future |
-| Chart parser | `src/ccg/chart.rs` | 400 | 8 hr | ⬜ Future |
-| Python shim + tests | `fastnltk/ccg.py` + `tests/` | 100 | 4 hr | ✅ Partial — Python re-exports via `from nltk.ccg import *` |
+| Lexicon loading | `src/ccg/lexicon.rs` | 200 | 4 hr | ✅ |
+| Chart parser | `src/ccg/chart.rs` | 400 | 8 hr | ✅ |
+| Python shim + tests | `fastnltk/ccg.py` + `tests/` | 100 | 4 hr | ✅ |
 | **Subtotal** | | **~1,150** | **~3 days** | **✅ Core** |
 
 ### Phase E — Inference module (5 days) ✅
@@ -322,8 +322,8 @@ No new shim files needed. Update existing shims to import from `_rust` when modu
 | Tableau prover | `src/inference/tableau.rs` | 500 | 2 days | ✅ |
 | Resolution prover | `src/inference/resolution.rs` | 500 | 2 days | ✅ |
 | API + ProverCommand | `src/inference/mod.rs` | 400 | 4 hr | ✅ |
-| Discourse thread + DRT bridge | `src/inference/discourse.rs` | 400 | 4 hr | ⬜ Future |
-| Nonmonotonic reasoning | `src/inference/nonmonotonic.rs` | 400 | 4 hr | ⬜ Future |
+| Discourse thread + DRT bridge | `src/inference/discourse.rs` | 400 | 4 hr | ✅ |
+| Nonmonotonic reasoning | `src/inference/nonmonotonic.rs` | 400 | 4 hr | ✅ |
 | Python shim + tests | `fastnltk/inference.py` + `tests/` | 100 | 4 hr | ✅ |
 | **Subtotal** | | **~2,300** | **~5 days** | **✅ Core** |
 
@@ -337,7 +337,7 @@ No new shim files needed. Update existing shims to import from `_rust` when modu
 | Update lm.py imports | `fastnltk/lm.py` | 5 | 5 min | ✅ |
 | Create fastnltk/ccg.py with Rust imports | `fastnltk/ccg.py` | 20 | 15 min | ✅ |
 | Create fastnltk/inference.py with Rust imports | `fastnltk/inference.py` | 20 | 15 min | ✅ |
-| Remove rust_available fallback checks | (every Rust-backed shim) | 50 | 15 min | ⬜ Partial |
+| Remove rust_available fallback checks | (every Rust-backed shim) | 50 | 15 min | ✅ |
 | **Subtotal** | | **~135** | **~0.5 day** | **✅** |
 
 ---
@@ -363,8 +363,6 @@ No new shim files needed. Update existing shims to import from `_rust` when modu
 |---|---|---|
 | `nltk.twitter` | Twitter API wrapper — readonly, not perf-critical | `from nltk.twitter import *` |
 | `nltk.draw` / `nltk.app` | tkinter GUI — by design, not porting | Skip entirely |
-
----
 
 ## Benchmark Targets
 

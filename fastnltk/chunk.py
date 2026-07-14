@@ -2,8 +2,6 @@
 fastnltk.chunk — Drop-in replacement for nltk.chunk.
 """
 
-import warnings
-
 import nltk.chunk as _nltk_chunk
 from nltk.chunk import (
     ChunkParserI,
@@ -16,14 +14,7 @@ from nltk.chunk import (
     tree2conlltags,
 )
 
-_rust_available = False
-try:
-    from fastnltk._rust import RegexpParser as _RustRegexpParser
-    _rust_available = True
-except ImportError:
-    warnings.warn(
-        "fastnltk._rust extension not available; falling back to pure-NLTK chunk"
-    )
+from fastnltk._rust import RegexpParser as _RustRegexpParser
 
 __all__ = [
     "ChunkParserI",
@@ -43,16 +34,11 @@ __all__ = [
 class RegexpParser:
     """Rust-accelerated RegexpParser for chunk grammar matching."""
     def __init__(self, grammar):
-        if _rust_available:
-            self._impl = _RustRegexpParser(grammar)
-        else:
-            self._impl = _nltk_chunk.RegexpParser(grammar)
+        self._impl = _RustRegexpParser(grammar)
 
     def parse(self, tokens):
-        if _rust_available:
-            result = self._impl.parse(tokens)
-            return _iob_to_tree(result)
-        return self._impl.parse(tokens)
+        result = self._impl.parse(tokens)
+        return _iob_to_tree(result)
 
 
 def _iob_to_tree(iob_tags):
@@ -90,17 +76,14 @@ def _iob_to_tree(iob_tags):
 
 
 def ne_chunk(tagged_tokens, binary=False):
-    """Named entity chunking."""
     return _nltk_chunk.ne_chunk(tagged_tokens, binary)
 
 
 def ne_chunk_sents(tagged_sentences, binary=False):
-    """Named entity chunking for multiple sentences."""
     return _nltk_chunk.ne_chunk_sents(tagged_sentences, binary)
 
 
-# ── NLTK re-exports for API compatibility ─────
-
+# ── NLTK re-exports ─────
 ne_chunker = _nltk_chunk.ne_chunker
 named_entity = _nltk_chunk.named_entity
 regexp = _nltk_chunk.regexp
@@ -108,5 +91,4 @@ api = _nltk_chunk.api
 RegexpChunkParser = _nltk_chunk.RegexpChunkParser
 ieerstr2tree = _nltk_chunk.ieerstr2tree
 tagstr2tree = _nltk_chunk.tagstr2tree
-
 util = _nltk_chunk.util

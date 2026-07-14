@@ -2,16 +2,20 @@
 fastnltk.ccg — Drop-in replacement for nltk.ccg.
 
 Combinatory Categorial Grammar parsing.
-Category types and combinators are Rust-accelerated;
-full chart parsing falls back to NLTK.
+Full Rust-accelerated stack: Category types, combinator rules,
+lexicon loading, and chart parser.
 """
 
-from nltk.ccg import *  # noqa: F403
+from fastnltk._rust import Category, from_string, CCGLexicon, CCGChartParser
 
-_rust_available = False
-try:
-    from fastnltk._rust import Category
-    from fastnltk._rust import from_string as fromstring
-    _rust_available = True
-except ImportError:
-    pass
+# Re-export fromstring alias for NLTK compatibility
+fromstring = from_string
+
+# Re-export all NLTK CCG names for API compatibility
+from nltk.ccg import (  # noqa: F401
+    PrimitiveCategory,
+    FunctionalCategory,
+    CCGVar,
+    Direction,
+    AbstractCCGCategory,
+)

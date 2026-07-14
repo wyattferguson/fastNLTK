@@ -1,48 +1,26 @@
 # Remaining Work — Future, Partial & Not Yet Ported
 
-Items extracted from `SHIM.md` + other NLTK modules not yet accelerated.
+> **All previously listed Future and Partial items are now complete.**
+> See milestones below for what's next.
 
 ---
 
-## 🔲 Future / Deferred Items
+## ✅ Completed (as of this REMAINS.md update)
 
-Items explicitly deferred to a later iteration.
+### Future items now done
 
-### CCG Module (Phase D)
-
-| Item | File | Est LoC | What's Missing |
-|---|---|---|---|
-| **Lexicon loading** | `src/ccg/lexicon.rs` | ~200 | `HashMap<String, Vec<Category>>` with file I/O for CCGbank/simple format. NLTK fallback via `from nltk.ccg import *` active. |
-| **Chart parser** | `src/ccg/chart.rs` | ~400 | CCG chart parser building on Earley infrastructure. NLTK fallback active. |
-
-### Inference Module (Phase E)
-
-| Item | File | Est LoC | What's Missing |
-|---|---|---|---|
-| **Discourse thread + DRT bridge** | `src/inference/discourse.rs` | ~400 | Discourse processing for DRT, reading comprehension QA. Builds on `src/drt.rs`. |
-| **Nonmonotonic reasoning** | `src/inference/nonmonotonic.rs` | ~400 | `DefaultReasoner`, `ClosedWorldReasoner`. Custom data structures for extension tracking. |
-
----
-
-## 🔲 Partial / Uncoupled Items
-
-Items where some Rust code exists but is not yet wired to Python.
-
-### Fallback Guards
-
-| Item | Scope | What to Do |
+| Item | File | What Was Done |
 |---|---|---|
-| **Remove `rust_available` fallback checks** | All Rust-backed shims (tokenize.py, tag.py, metrics.py, lm.py, ccg.py, inference.py) | Strip `try: from fastnltk._rust import ... / except: rust_available = False` pattern. Currently kept as defensive fallback — safe to remove once Rust extension is guaranteed present in all deployment scenarios. |
+| **CCG lexicon loading** | `src/ccg/lexicon.rs` | `HashMap<String, Vec<Category>>` with file I/O. Registered as PyO3 `CCGLexicon` class. |
+| **CCG chart parser** | `src/ccg/chart.rs` | CKY-style CCG chart parser using combinator rules. `CCGChartParser` class. |
+| **Discourse thread + DRT bridge** | `src/inference/discourse.rs` | `DiscourseThread` with DRS merge, FOL conversion, yes/no question answering. |
+| **Nonmonotonic reasoning** | `src/inference/nonmonotonic.rs` | `DefaultReasoner` (extension computation), `ClosedWorldReasoner` (CWA). |
 
----
+### Partial items now done
 
-## 🔲 Skipped Items (Deliberate)
-
-Items considered for Rust port and rejected.
-
-| Item | Reason | Current Status |
-|---|---|---|
-| **NIST tokenizer** | `NISTTokenizer` does not exist in NLTK's `nltk.tokenize` module | No-op, removed from plan |
+| Item | What Was Changed |
+|---|---|
+| **Remove `rust_available` fallback checks** | Stripped from all 21 Python shims. Each now directly imports from `_rust`. NLTK fallbacks kept only for runtime data (missing tagger models, punkt data). |
 
 ---
 
@@ -71,11 +49,11 @@ Modules that remain as pure Python re-exports from NLTK.
 
 | Module | Reason for Staying | Strategy |
 |---|---|---|
-| `nltk.twitter` | Twitter API wrapper — network I/O bound, not perf-critical | `from nltk.twitter import *` |
+| `nltk.twitter` | Twitter API wrapper — network I/O bound | `from nltk.twitter import *` |
 | `nltk.classify` | Thin wrappers around sklearn / numpy models | `from nltk.classify import *` |
 | `nltk.cluster` | Wrappers for scipy / numpy clustering | `from nltk.cluster import *` |
 | `nltk.sentiment` | VADER lexicon + rule-based sent (trivial) | `from nltk.sentiment import *` |
-| `nltk.translate` | IBM Model1-3 with EM training — data-parallel, numpy-dependent | `from nltk.translate import *` |
+| `nltk.translate` | IBM Model1-3 with EM training — numpy-dependent | `from nltk.translate import *` |
 | `nltk.toolbox` | SIL Toolbox data format parser | `from nltk.toolbox import *` |
 
 ### Already Ported (Coverage Check)
@@ -87,15 +65,15 @@ Modules that remain as pure Python re-exports from NLTK.
 | `nltk.lm` | ✅ **Full coverage** | MLE, Lidstone, Laplace, KneserNey, WittenBell, StupidBackoff |
 | `nltk.probability` | ✅ **Full coverage** | FreqDist + all LM-backed distributions |
 | `nltk.metrics` | ✅ **Full coverage** | segmentation, association, agreement, Spearman, edit_distance |
-| `nltk.ccg` | ⚠️ **Partial** | Category types + combinator rules in Rust. Lexicon + chart parser fall through to NLTK. |
-| `nltk.inference` | ⚠️ **Partial** | Tableau + Resolution provers in Rust. Discourse + nonmonotonic fall through to NLTK. |
-| `nltk.parse` | ⚠️ **Partial** | Earley parser in Rust. Other parsers (chart, recursive descent, shift-reduce) fall through. |
-| `nltk.sem` | ⚠️ **Partial** | Expression types + valuation in Rust. Inference utilities via NLTK. |
+| `nltk.ccg` | ✅ **Full coverage** | Category types + combinators + lexicon + chart parser in Rust |
+| `nltk.inference` | ✅ **Full coverage** | Tableau + Resolution + Discourse + nonmonotonic in Rust |
+| `nltk.parse` | ⚠️ **Partial** | Earley parser in Rust. Other parsers (chart, recursive descent) via NLTK. |
+| `nltk.sem` | ✅ **Full coverage** | Expression types + parsing + evaluation + DRT in Rust |
 | `nltk.tree` | ✅ **Full coverage** | Tree + ParentedTree + ImmutableTree in Rust |
-| `nltk.chunk` | ✅ **Full coverage** | ChunkParser + RegexpChunkParser cascade in Rust |
+| `nltk.chunk` | ✅ **Full coverage** | RegexpParser in Rust |
 | `nltk.collocations` | ✅ **Full coverage** | BigramCollocationFinder via AssociationMeasures in Rust |
 | `nltk.stem` | ✅ **Full coverage** | Porter + Lancaster + ISRI stemmers in Rust |
-| `nltk.chat` | ✅ **Full coverage** | Eliza + other chatbot scripts |
+| `nltk.chat` | ✅ **Full coverage** | Chat class in Rust |
 
 ---
 
@@ -103,8 +81,12 @@ Modules that remain as pure Python re-exports from NLTK.
 
 | Milestone | Items Needed | Priority |
 |---|---|---|
-| **v1.0 release** | CI pipeline, PyPI publishing, benchmark harness | High |
-| **CCG full support** | `lexicon.rs` + `chart.rs` — eliminates last NLTK fallback in CCG | Medium |
-| **Inference full support** | `discourse.rs` + `nonmonotonic.rs` — eliminates last NLTK fallback in inference | Medium |
-| **Remove fallback guards** | Strip `rust_available` pattern from all shims | Low (after CI deployment) |
-| **NIST tokenizer re-eval** | Verify if newer NLTK versions added it | Low |
+| **v1.0 release** | CI pipeline (GitHub Actions), PyPI publishing, benchmark harness | High |
+| **Expand parse coverage** | Chart parser, recursive descent, shift-reduce parsers in Rust | Low |
+
+## 🔲 Skipped Items (Deliberate)
+
+| Item | Reason |
+|---|---|
+| **NIST tokenizer** | `NISTTokenizer` does not exist in NLTK's `nltk.tokenize` |
+| **Prover9/Mace4 wrappers** | External binaries — stay in Python via `from nltk.inference import *` |

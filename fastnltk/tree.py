@@ -6,19 +6,10 @@ leaves(), height(), productions(), subtrees(), pprint().
 Falls back to NLTK for complex tree operations.
 """
 
-import warnings
-
 import nltk.tree as _nltk_tree
 from nltk.tree import *  # noqa: F403
 
-_rust_available = False
-try:
-    from fastnltk._rust import Tree as _RustTree
-    _rust_available = True
-except ImportError:
-    warnings.warn(
-        "fastnltk._rust extension not available; falling back to NLTK tree"
-    )
+from fastnltk._rust import Tree as _RustTree
 
 __all__ = [
     "Tree",
@@ -35,16 +26,11 @@ __all__ = [
 class Tree:
     """Rust-accelerated Tree data structure matching NLTK's Tree API."""
     def __init__(self, label, children=None):
-        if _rust_available:
-            self._impl = _RustTree(label, children or [])
-        else:
-            self._impl = _nltk_tree.Tree(label, children or [])
+        self._impl = _RustTree(label, children or [])
 
     @classmethod
     def from_string(cls, string):
-        if _rust_available:
-            return cls.__new__(cls)._from_impl(_RustTree.from_string(string))
-        return _nltk_tree.Tree.from_string(string)
+        return cls.__new__(cls)._from_impl(_RustTree.from_string(string))
 
     @classmethod
     def _from_impl(cls, impl):
@@ -68,9 +54,7 @@ class Tree:
         return self._impl.productions()
 
     def subtrees(self, filter_fn=None):
-        if _rust_available:
-            return [Tree._from_impl(_RustTree.from_string(s)) for s in self._impl.subtrees()]
-        return self._impl.subtrees(filter_fn)
+        return [Tree._from_impl(_RustTree.from_string(s)) for s in self._impl.subtrees()]
 
     def pprint(self):
         return self._impl.pprint()

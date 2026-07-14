@@ -2,17 +2,18 @@
 fastnltk.inference — Drop-in replacement for nltk.inference.
 
 Theorem prover interfaces (Prover9, Mace, Tableau, Resolution).
-TableauProver and ResolutionProver are Rust-accelerated;
-Prover9/Mace wrappers fall back to NLTK.
+Full Rust-accelerated stack: TableauProver, ResolutionProver,
+DiscourseThread, DefaultReasoner, ClosedWorldReasoner.
 """
 
-from nltk.inference import *  # noqa: F403
+from fastnltk._rust import TableauProver, ResolutionProver, ProverResult
+from fastnltk._rust import DiscourseThread, DefaultReasoner, DefaultRule, ClosedWorldReasoner
 
-_rust_available = False
-try:
-    from fastnltk._rust import TableauProver
-    from fastnltk._rust import ResolutionProver
-    from fastnltk._rust import ProverResult
-    _rust_available = True
-except ImportError:
-    pass
+# Re-export NLTK names for API compatibility
+from nltk.inference import (  # noqa: F401
+    Prover9,
+    Mace,
+    ProverCommand,
+    Prover,
+    get_prover,
+)

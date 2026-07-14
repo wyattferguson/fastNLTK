@@ -1,46 +1,19 @@
 """fastnltk.stem — Drop-in replacement for nltk.stem."""
 
-import warnings
-
 import nltk.stem as _nltk_stem
 
-_rust_available = False
-try:
-    from fastnltk._rust import (
-        ARLSTem as _RustARLSTem,
-    )
-    from fastnltk._rust import (
-        ARLSTem2 as _RustARLSTem2,
-    )
-    from fastnltk._rust import (
-        Cistem as _RustCistem,
-    )
-    from fastnltk._rust import (
-        ISRIStemmer as _RustISRIStemmer,
-    )
-    from fastnltk._rust import (
-        LancasterStemmer as _RustLancasterStemmer,
-    )
-    from fastnltk._rust import (
-        PorterStemmer as _RustPorterStemmer,
-    )
-    from fastnltk._rust import (
-        RegexpStemmer as _RustRegexpStemmer,
-    )
-    from fastnltk._rust import (
-        RSLPStemmer as _RustRSLPStemmer,
-    )
-    from fastnltk._rust import (
-        SnowballStemmer as _RustSnowballStemmer,
-    )
-    from fastnltk._rust import (
-        WordNetLemmatizer as _RustWordNetLemmatizer,
-    )
-    _rust_available = True
-except ImportError:
-    warnings.warn(
-        "fastnltk._rust extension not available; falling back to pure-NLTK stemmers"
-    )
+from fastnltk._rust import (
+    ARLSTem as _RustARLSTem,
+    ARLSTem2 as _RustARLSTem2,
+    Cistem as _RustCistem,
+    ISRIStemmer as _RustISRIStemmer,
+    LancasterStemmer as _RustLancasterStemmer,
+    PorterStemmer as _RustPorterStemmer,
+    RegexpStemmer as _RustRegexpStemmer,
+    RSLPStemmer as _RustRSLPStemmer,
+    SnowballStemmer as _RustSnowballStemmer,
+    WordNetLemmatizer as _RustWordNetLemmatizer,
+)
 
 __all__ = [
     "SnowballStemmer", "PorterStemmer", "LancasterStemmer", "RegexpStemmer",
@@ -51,10 +24,7 @@ __all__ = [
 
 class SnowballStemmer:
     def __init__(self, language="english"):
-        if _rust_available:
-            self._impl = _RustSnowballStemmer(language)
-        else:
-            self._impl = _nltk_stem.SnowballStemmer(language)
+        self._impl = _RustSnowballStemmer(language)
         self._language = language
 
     def stem(self, word):
@@ -67,10 +37,7 @@ class SnowballStemmer:
 
 class PorterStemmer:
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustPorterStemmer()
-        else:
-            self._impl = _nltk_stem.PorterStemmer()
+        self._impl = _RustPorterStemmer()
 
     def stem(self, word):
         return self._impl.stem(word)
@@ -78,10 +45,7 @@ class PorterStemmer:
 
 class LancasterStemmer:
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustLancasterStemmer()
-        else:
-            self._impl = _nltk_stem.LancasterStemmer()
+        self._impl = _RustLancasterStemmer()
 
     def stem(self, word):
         return self._impl.stem(word)
@@ -89,10 +53,7 @@ class LancasterStemmer:
 
 class RegexpStemmer:
     def __init__(self, min_length=0):
-        if _rust_available:
-            self._impl = _RustRegexpStemmer(min_length)
-        else:
-            self._impl = _nltk_stem.RegexpStemmer(min_length)
+        self._impl = _RustRegexpStemmer(min_length)
 
     def stem(self, word):
         return self._impl.stem(word)
@@ -100,10 +61,7 @@ class RegexpStemmer:
 
 class ISRIStemmer:
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustISRIStemmer()
-        else:
-            self._impl = _nltk_stem.ISRIStemmer()
+        self._impl = _RustISRIStemmer()
 
     def stem(self, word):
         return self._impl.stem(word)
@@ -111,10 +69,7 @@ class ISRIStemmer:
 
 class Cistem:
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustCistem()
-        else:
-            self._impl = _nltk_stem.Cistem()
+        self._impl = _RustCistem()
 
     def stem(self, word):
         return self._impl.stem(word)
@@ -122,10 +77,7 @@ class Cistem:
 
 class RSLPStemmer:
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustRSLPStemmer()
-        else:
-            self._impl = _nltk_stem.RSLPStemmer()
+        self._impl = _RustRSLPStemmer()
 
     def stem(self, word):
         return self._impl.stem(word)
@@ -134,10 +86,7 @@ class RSLPStemmer:
 class WordNetLemmatizer:
     """WordNet lemmatizer — Rust-accelerated morphy algorithm."""
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustWordNetLemmatizer()
-        else:
-            self._impl = _nltk_stem.WordNetLemmatizer()
+        self._impl = _RustWordNetLemmatizer()
 
     def lemmatize(self, word, pos="n"):
         return self._impl.lemmatize(word, pos)
@@ -146,10 +95,7 @@ class WordNetLemmatizer:
 class ARLSTem:
     """Arabic stemmer — Rust-accelerated."""
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustARLSTem()
-        else:
-            self._impl = _nltk_stem.ARLSTem()
+        self._impl = _RustARLSTem()
 
     def stem(self, word):
         return self._impl.stem(word)
@@ -158,19 +104,14 @@ class ARLSTem:
 class ARLSTem2:
     """Arabic stemmer v2 — Rust-accelerated."""
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustARLSTem2()
-        else:
-            self._impl = _nltk_stem.ARLSTem2()
+        self._impl = _RustARLSTem2()
 
     def stem(self, word):
         return self._impl.stem(word)
 
 
-# ── NLTK re-exports for API compatibility ─────
-
+# ── NLTK re-exports ─────
 StemmerI = _nltk_stem.StemmerI
-
 api = _nltk_stem.api
 arlstem = _nltk_stem.arlstem
 arlstem2 = _nltk_stem.arlstem2

@@ -1,13 +1,8 @@
 """
 fastnltk.lm — Drop-in replacement for nltk.lm.
 
-Rust-accelerated LM models:
-  - MLE, Lidstone, Laplace — compiled Rust via rustling, 11-39x faster
-  - KneserNeyInterpolated — compiled Rust
-  - WittenBellInterpolated, StupidBackoff — fall back to NLTK (no Rust crate)
+All LM models are Rust-accelerated via the compiled `_rust` extension.
 """
-
-import warnings
 
 import nltk.lm as _nltk_lm
 
@@ -19,31 +14,14 @@ from nltk.lm.preprocessing import (
 )
 from nltk.lm.util import log_base2
 
-_rust_available = False
-try:
-    from fastnltk._rust import (
-        MLE as _RustMLE,
-    )
-    from fastnltk._rust import (
-        KneserNeyInterpolated as _RustKneserNeyInterpolated,
-    )
-    from fastnltk._rust import (
-        Laplace as _RustLaplace,
-    )
-    from fastnltk._rust import (
-        Lidstone as _RustLidstone,
-    )
-    from fastnltk._rust import (
-        StupidBackoff as _RustStupidBackoff,
-    )
-    from fastnltk._rust import (
-        WittenBellInterpolated as _RustWittenBellInterpolated,
-    )
-    _rust_available = True
-except ImportError:
-    warnings.warn(
-        "fastnltk._rust extension not available; falling back to pure-NLTK LM"
-    )
+from fastnltk._rust import (
+    MLE as _RustMLE,
+    KneserNeyInterpolated as _RustKneserNeyInterpolated,
+    Laplace as _RustLaplace,
+    Lidstone as _RustLidstone,
+    StupidBackoff as _RustStupidBackoff,
+    WittenBellInterpolated as _RustWittenBellInterpolated,
+)
 
 __all__ = [
     "MLE", "Lidstone", "Laplace",
@@ -57,16 +35,12 @@ __all__ = [
     "log_base2",
     "NgramCounter",
     "Vocabulary",
-]  # noqa: E501
+]
 
 
 class MLE:
     def __init__(self, order):
-        if _rust_available:
-            self._impl = _RustMLE(order)
-        else:
-            from nltk.lm import MLE as _NltkMLE
-            self._impl = _NltkMLE(order)
+        self._impl = _RustMLE(order)
 
     def fit(self, sentences, vocabulary=None):
         self._impl.fit(sentences)
@@ -95,11 +69,7 @@ class MLE:
 
 class Lidstone:
     def __init__(self, order, gamma):
-        if _rust_available:
-            self._impl = _RustLidstone(order, gamma)
-        else:
-            from nltk.lm import Lidstone as _NltkLidstone
-            self._impl = _NltkLidstone(order, gamma)
+        self._impl = _RustLidstone(order, gamma)
 
     def fit(self, sentences, vocabulary=None):
         self._impl.fit(sentences)
@@ -128,11 +98,7 @@ class Lidstone:
 
 class Laplace:
     def __init__(self, order):
-        if _rust_available:
-            self._impl = _RustLaplace(order)
-        else:
-            from nltk.lm import Laplace as _NltkLaplace
-            self._impl = _NltkLaplace(order)
+        self._impl = _RustLaplace(order)
 
     def fit(self, sentences, vocabulary=None):
         self._impl.fit(sentences)
@@ -161,11 +127,7 @@ class Laplace:
 
 class KneserNeyInterpolated:
     def __init__(self, order, discount=0.75):
-        if _rust_available:
-            self._impl = _RustKneserNeyInterpolated(order, discount)
-        else:
-            from nltk.lm import KneserNeyInterpolated as _NltkKNI
-            self._impl = _NltkKNI(order)
+        self._impl = _RustKneserNeyInterpolated(order, discount)
 
     def fit(self, sentences):
         self._impl.fit(sentences)
@@ -184,11 +146,7 @@ class KneserNeyInterpolated:
 
 class WittenBellInterpolated:
     def __init__(self, order):
-        if _rust_available:
-            self._impl = _RustWittenBellInterpolated(order)
-        else:
-            from nltk.lm import WittenBellInterpolated as _NltkWB
-            self._impl = _NltkWB(order)
+        self._impl = _RustWittenBellInterpolated(order)
 
     def fit(self, sentences):
         self._impl.fit(sentences)
@@ -208,11 +166,7 @@ class WittenBellInterpolated:
 class StupidBackoff:
     """Stupid backoff LM — Rust-accelerated."""
     def __init__(self, order, alpha=0.4):
-        if _rust_available:
-            self._impl = _RustStupidBackoff(order, alpha)
-        else:
-            from nltk.lm import StupidBackoff as _NltkSB
-            self._impl = _NltkSB(order, alpha)
+        self._impl = _RustStupidBackoff(order, alpha)
 
     def fit(self, sentences):
         self._impl.fit(sentences)

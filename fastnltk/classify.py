@@ -2,22 +2,15 @@
 fastnltk.classify — Drop-in replacement for nltk.classify.
 """
 
-import warnings
-
 import nltk.classify as _nltk_classify
 from nltk.classify import ClassifierI, DecisionTreeClassifier
 from nltk.classify.util import accuracy, apply_features, log_likelihood
 
-_rust_available = False
-try:
-    from fastnltk._rust import MaxentClassifier as _RustMaxentClassifier
-    from fastnltk._rust import NaiveBayesClassifier as _RustNaiveBayesClassifier
-    from fastnltk._rust import TextCat as _RustTextCat
-    _rust_available = True
-except ImportError:
-    warnings.warn(
-        "fastnltk._rust extension not available; falling back to pure-NLTK classifiers"
-    )
+from fastnltk._rust import (
+    MaxentClassifier as _RustMaxentClassifier,
+    NaiveBayesClassifier as _RustNaiveBayesClassifier,
+    TextCat as _RustTextCat,
+)
 
 __all__ = [
     "NaiveBayesClassifier",
@@ -35,10 +28,7 @@ __all__ = [
 class TextCat:
     """Language detection — Rust-accelerated via whatlang."""
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustTextCat()
-        else:
-            self._impl = _nltk_classify.TextCat()
+        self._impl = _RustTextCat()
 
     def guess_language(self, text):
         return self._impl.guess_language(text)
@@ -48,28 +38,20 @@ class TextCat:
 
     @staticmethod
     def supported_languages():
-        return _RustTextCat.supported_languages() if _rust_available else ["unknown"]
+        return _RustTextCat.supported_languages()
 
 
 class MaxentClassifier:
     """Maximum Entropy classifier — Rust-accelerated GIS training."""
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustMaxentClassifier()
-        else:
-            self._impl = None  # set by train()
+        self._impl = None  # set by train()
 
     @classmethod
     def train(cls, labeled_featuresets, max_iter=100, algorithm="gis", **kwargs):
-        """Train a Maxent classifier using GIS."""
         inst = cls()
-        if _rust_available:
-            sigma = kwargs.get("gaussian_prior_sigma", 0.0)
-            inst._impl.train(labeled_featuresets, max_iter, sigma)
-        else:
-            inst._impl = _nltk_classify.MaxentClassifier.train(
-                labeled_featuresets, algorithm, max_iter=max_iter, **kwargs
-            )
+        sigma = kwargs.get("gaussian_prior_sigma", 0.0)
+        inst._impl = _RustMaxentClassifier()
+        inst._impl.train(labeled_featuresets, max_iter, sigma)
         return inst
 
     def classify(self, features):
@@ -86,33 +68,21 @@ class MaxentClassifier:
 
 
 class NaiveBayesClassifier:
-    """Naive Bayes classifier — Rust-accelerated when available."""
+    """Naive Bayes classifier — Rust-accelerated."""
     def __init__(self):
-        if _rust_available:
-            self._impl = _RustNaiveBayesClassifier()
-        else:
-            self._impl = None  # set by train()
+        self._impl = None  # set by train()
 
     @classmethod
     def train(cls, labeled_featuresets, estimator=None, **kwargs):
-        """Train a Naive Bayes classifier."""
         inst = cls()
-        if _rust_available:
-            inst._impl.train(labeled_featuresets)
-        else:
-            inst._impl = _nltk_classify.NaiveBayesClassifier.train(
-                labeled_featuresets, estimator, **kwargs
-            )
+        inst._impl = _RustNaiveBayesClassifier()
+        inst._impl.train(labeled_featuresets)
         return inst
 
     def classify(self, features):
-        if _rust_available:
-            return self._impl.classify(features)
         return self._impl.classify(features)
 
     def labels(self):
-        if _rust_available:
-            return self._impl.labels()
         return self._impl.labels()
 
     def prob_classify(self, features):
@@ -126,26 +96,14 @@ class PositiveNaiveBayesClassifier:
     """Positive Naive Bayes for positive + unlabeled data."""
     @staticmethod
     def train(positive_featuresets, unlabeled_featuresets):
-        """Train from positive and unlabeled feature sets.
-
-        Treats unlabeled as negative. Uses Rust NB when available.
-        """
-        from nltk.classify import PositiveNaiveBayesClassifier as _NltkPositiveNB
-
-        if _rust_available:
-            from fastnltk.classify import NaiveBayesClassifier
-
-            labeled = [(feats, "pos") for feats in positive_featuresets] + [
-                (feats, "neg") for feats in unlabeled_featuresets
-            ]
-            return NaiveBayesClassifier.train(labeled)
-        return _NltkPositiveNB.train(positive_featuresets, unlabeled_featuresets)
+        from fastnltk.classify import NaiveBayesClassifier
+        labeled = [(feats, "pos") for feats in positive_featuresets] + [
+            (feats, "neg") for feats in unlabeled_featuresets
+        ]
+        return NaiveBayesClassifier.train(labeled)
 
 
-# ── NLTK re-exports for API compatibility ─────
-
-# ── NLTK re-exports for API compatibility ─────
-
+# ── NLTK re-exports ─────
 BinaryMaxentFeatureEncoding = _nltk_classify.BinaryMaxentFeatureEncoding
 ConditionalExponentialClassifier = _nltk_classify.ConditionalExponentialClassifier
 MultiClassifierI = _nltk_classify.MultiClassifierI
@@ -156,7 +114,6 @@ call_megam = _nltk_classify.call_megam
 config_megam = _nltk_classify.config_megam
 config_weka = _nltk_classify.config_weka
 tadm = _nltk_classify.tadm
-
 api = _nltk_classify.api
 decisiontree = _nltk_classify.decisiontree
 maxent = _nltk_classify.maxent
