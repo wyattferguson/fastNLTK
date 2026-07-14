@@ -48,7 +48,12 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - run: cargo test
+      - name: Install Python dev headers (needed by PyO3 for linking test binary)
+        run: sudo apt-get update && sudo apt-get install -y python3-dev
+      - name: Run tests
+        run: cargo test
+        env:
+          PYO3_PYTHON: python3
 
   deny:
     runs-on: ubuntu-latest
