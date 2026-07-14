@@ -8,12 +8,14 @@ import nltk.classify as _nltk_classify
 from nltk.classify import (
     ClassifierI,
     DecisionTreeClassifier,
-    MaxentClassifier,
 )
 from nltk.classify.util import accuracy, apply_features, log_likelihood
 
 _rust_available = False
 try:
+    from fastnltk._rust import (
+        MaxentClassifier as _RustMaxentClassifier,
+    )
     from fastnltk._rust import (
         NaiveBayesClassifier as _RustNaiveBayesClassifier,
     )
@@ -55,6 +57,40 @@ class TextCat:
     @staticmethod
     def supported_languages():
         return _RustTextCat.supported_languages() if _rust_available else ["unknown"]
+
+
+class MaxentClassifier:
+    """Maximum Entropy classifier — Rust-accelerated GIS training."""
+    def __init__(self):
+        if _rust_available:
+            self._impl = _RustMaxentClassifier()
+        else:
+            self._impl = None  # set by train()
+
+    @classmethod
+    def train(cls, labeled_featuresets, max_iter=100, algorithm="gis", **kwargs):
+        """Train a Maxent classifier using GIS."""
+        inst = cls()
+        if _rust_available:
+            sigma = kwargs.get("gaussian_prior_sigma", 0.0)
+            inst._impl.train(labeled_featuresets, max_iter, sigma)
+        else:
+            inst._impl = _nltk_classify.MaxentClassifier.train(
+                labeled_featuresets, algorithm, max_iter=max_iter, **kwargs
+            )
+        return inst
+
+    def classify(self, features):
+        return self._impl.classify(features)
+
+    def labels(self):
+        return self._impl.labels()
+
+    def prob_classify(self, features):
+        return self._impl.prob_classify(features)
+
+    def show_most_informative_features(self, n=10):
+        return self._impl.show_most_informative_features(n)
 
 
 class NaiveBayesClassifier:
