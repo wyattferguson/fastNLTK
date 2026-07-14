@@ -1,18 +1,15 @@
 """
 fastnltk.lm — Drop-in replacement for nltk.lm.
 
-Rust-accelerated LM models via rustling crate:
-  - MLE, Lidstone, Laplace — compiled Rust, 11-39x faster
-  - KneserNey, WittenBell, StupidBackoff — fall back to NLTK (no Rust crate)
+Rust-accelerated LM models:
+  - MLE, Lidstone, Laplace — compiled Rust via rustling, 11-39x faster
+  - KneserNeyInterpolated — compiled Rust
+  - WittenBellInterpolated, StupidBackoff — fall back to NLTK (no Rust crate)
 """
 
 import warnings
 
-from nltk.lm import (
-    KneserNeyInterpolated,
-    StupidBackoff,
-    WittenBellInterpolated,
-)
+from nltk.lm import StupidBackoff, WittenBellInterpolated
 from nltk.lm.preprocessing import (
     everygrams,
     pad_both_ends,
@@ -25,6 +22,9 @@ _rust_available = False
 try:
     from fastnltk._rust import (
         MLE as _RustMLE,
+    )
+    from fastnltk._rust import (
+        KneserNeyInterpolated as _RustKneserNeyInterpolated,
     )
     from fastnltk._rust import (
         Laplace as _RustLaplace,
@@ -40,7 +40,8 @@ except ImportError:
 
 __all__ = [
     "MLE", "Lidstone", "Laplace",
-    "KneserNeyInterpolated", "StupidBackoff", "WittenBellInterpolated",
+    "KneserNeyInterpolated",
+    "StupidBackoff", "WittenBellInterpolated",
     "padded_everygrams",
     "everygrams",
     "pad_both_ends",
@@ -50,14 +51,11 @@ __all__ = [
 
 
 class MLE:
-    """Maximum Likelihood Estimation language model — Rust-accelerated."""
-
     def __init__(self, order):
         if _rust_available:
             self._impl = _RustMLE(order)
         else:
             from nltk.lm import MLE as _NltkMLE
-
             self._impl = _NltkMLE(order)
 
     def fit(self, sentences, vocabulary=None):
@@ -86,14 +84,11 @@ class MLE:
 
 
 class Lidstone:
-    """Lidstone (additive) smoothing language model — Rust-accelerated."""
-
     def __init__(self, order, gamma):
         if _rust_available:
             self._impl = _RustLidstone(order, gamma)
         else:
             from nltk.lm import Lidstone as _NltkLidstone
-
             self._impl = _NltkLidstone(order, gamma)
 
     def fit(self, sentences, vocabulary=None):
@@ -122,14 +117,11 @@ class Lidstone:
 
 
 class Laplace:
-    """Laplace (add-one) smoothing language model — Rust-accelerated."""
-
     def __init__(self, order):
         if _rust_available:
             self._impl = _RustLaplace(order)
         else:
             from nltk.lm import Laplace as _NltkLaplace
-
             self._impl = _NltkLaplace(order)
 
     def fit(self, sentences, vocabulary=None):
@@ -151,6 +143,29 @@ class Laplace:
     @property
     def vocab_size(self):
         return self._impl.vocab_size()
+
+    @property
+    def fitted(self):
+        return self._impl.fitted()
+
+
+class KneserNeyInterpolated:
+    def __init__(self, order, discount=0.75):
+        if _rust_available:
+            self._impl = _RustKneserNeyInterpolated(order, discount)
+        else:
+            from nltk.lm import KneserNeyInterpolated as _NltkKNI
+            self._impl = _NltkKNI(order)
+
+    def fit(self, sentences):
+        self._impl.fit(sentences)
+
+    def score(self, word, context=None):
+        return self._impl.score(word, context)
+
+    @property
+    def order(self):
+        return self._impl.order()
 
     @property
     def fitted(self):

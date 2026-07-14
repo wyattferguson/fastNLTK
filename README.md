@@ -169,7 +169,9 @@ fastNLTK is a **drop-in replacement** for NLTK. This means:
 | `classify` | NaiveBayes, PositiveNaiveBayes, MaxEnt (GIS), TextCat (whatlang) | ✅ v0.4 |
 | `collocations` | Bigram, Trigram, Quadgram finders | ✅ v0.4 |
 | `probability` | FreqDist, ConditionalFreqDist | ✅ v0.4 |
-| `lm` | MLE, Lidstone, Laplace (rustling); KneserNey/WittenBell/StupidBackoff fall back to NLTK | ✅ v0.5 |
+| `lm` | MLE, Lidstone, Laplace, KneserNeyInterpolated (Rust) | ✅ v0.5 |
+| `cluster` | KMeansClusterer (Euclidean distance + iterative refinement) | ✅ v0.6 |
+| `chat` | Chat (compiled regex pattern matching) | ✅ v0.6 |
 | `sentiment` | VADER | ✅ v0.5 |
 | `translate` | BLEU, corpus_bleu | ✅ v0.5 |
 | `metrics` | edit_distance, jaro, jaro_winkler, dice, jaccard, binary, precision, recall, f_measure | ✅ v0.2 |
@@ -181,16 +183,12 @@ fastNLTK is a **drop-in replacement** for NLTK. This means:
 
 | Module | Strategy |
 |---|---|
-| `parse` | Pure Python — wraps nltk.parse |
-| `corpus` | Pure Python — wraps nltk.corpus |
 | `sem` | Pure Python — wraps nltk.sem |
 | `inference` | Pure Python — wraps nltk.inference |
-| `cluster` | Pure Python — wraps nltk.cluster |
 | `ccg` | Pure Python — wraps nltk.ccg |
-| `chat` | Pure Python — wraps nltk.chat |
 | `twitter` | Pure Python — wraps nltk.twitter |
 | `downloader` | Pure Python — wraps nltk.downloader |
-| KneserNey, WittenBell, StupidBackoff (LM) | Pure Python — wraps nltk.lm (no smoothing crate) |
+| WittenBellInterpolated, StupidBackoff (LM) | Pure Python — wraps nltk.lm (no Rust smoothing crate) |
 | NE chunker, ChunkScore, conll I/O | Pure Python — wraps nltk.chunk |
 | ParentedTree, ImmutableTree, MultiParentedTree, ProbabilisticTree | Pure Python — wraps nltk.tree (complex tree variants) |
 
@@ -345,7 +343,7 @@ maturin build --release --out dist
 
 ### What We Write from Scratch
 
-Despite heavy crate reuse, ~9,000 LoC of Rust is custom for NLTK compatibility:
+Despite heavy crate reuse, ~11,000 LoC of Rust is custom for NLTK compatibility:
 
 - **Punkt sentence tokenizer** (~1,200 LoC) — no existing Rust crate handles NLTK's trained model format
 - **Treebank/Tweet tokenizers** (~700 LoC) — NLTK-specific regex rule-sets
@@ -361,6 +359,13 @@ Despite heavy crate reuse, ~9,000 LoC of Rust is custom for NLTK compatibility:
 - **Tree data structure** (~400 LoC) — recursive Tree with leaves, height, productions, bracket-string parsing
 - **Data layer** (~300 LoC) — nltk_data finder, pickle → bincode converter
 - **TextCat bridge** (~50 LoC) — whatlang language detection wrapper
+- **Sequential taggers** (~550 LoC) — Default/Unigram/Bigram/Trigram/Affix/Regexp taggers
+- **ARLSTem/ARLSTem2** (~350 LoC) — Arabic stemmers
+- **PlaintextCorpusReader** (~150 LoC) — file I/O + tokenization
+- **Earley chart parser** (~500 LoC) — Earley's algorithm for any CFG
+- **Chat** (~150 LoC) — compiled regex pattern matching
+- **KMeansClusterer** (~200 LoC) — iterative distance computation
+- **KneserNeyInterpolated** (~100 LoC) — Kneser-Ney smoothing
 
 ---
 
