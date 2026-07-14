@@ -27,6 +27,9 @@ try:
     from fastnltk._rust import (
         SnowballStemmer as _RustSnowballStemmer,
     )
+    from fastnltk._rust import (
+        WordNetLemmatizer as _RustWordNetLemmatizer,
+    )
     _rust_available = True
 except ImportError:
     warnings.warn(
@@ -35,7 +38,7 @@ except ImportError:
 
 __all__ = [
     "SnowballStemmer", "PorterStemmer", "LancasterStemmer", "RegexpStemmer",
-    "ISRIStemmer", "Cistem", "RSLPStemmer",
+    "ISRIStemmer", "Cistem", "RSLPStemmer", "WordNetLemmatizer",
 ]
 
 
@@ -119,3 +122,15 @@ class RSLPStemmer:
 
     def stem(self, word):
         return self._impl.stem(word)
+
+
+class WordNetLemmatizer:
+    """WordNet lemmatizer — Rust-accelerated morphy algorithm."""
+    def __init__(self):
+        if _rust_available:
+            self._impl = _RustWordNetLemmatizer()
+        else:
+            self._impl = _nltk_stem.WordNetLemmatizer()
+
+    def lemmatize(self, word, pos="n"):
+        return self._impl.lemmatize(word, pos)
