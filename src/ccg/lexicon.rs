@@ -9,6 +9,7 @@
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use hashbrown::HashMap;
+use smol_str::SmolStr;
 
 use crate::ccg::{parse_category, Category};
 
@@ -20,7 +21,7 @@ use crate::ccg::{parse_category, Category};
 #[pyclass(name = "CCGLexicon", module = "fastnltk._rust")]
 #[derive(Clone)]
 pub struct CCGLexicon {
-    entries: HashMap<String, Vec<Category>>,
+    entries: HashMap<SmolStr, Vec<Category>>,
 }
 
 #[pymethods]
@@ -28,12 +29,12 @@ impl CCGLexicon {
     #[new]
     #[pyo3(signature = (entries=None))]
     pub fn new(entries: Option<Vec<(String, String)>>) -> PyResult<Self> {
-        let mut map: HashMap<String, Vec<Category>> = HashMap::new();
+        let mut map: HashMap<SmolStr, Vec<Category>> = HashMap::new();
         if let Some(entries) = entries {
             for (word, cat_str) in entries {
                 let cat = parse_category(&cat_str)
                     .ok_or_else(|| PyValueError::new_err(format!("Invalid category: {cat_str}")))?;
-                map.entry(word).or_default().push(cat);
+                map.entry(SmolStr::new(&word)).or_default().push(cat);
             }
         }
         Ok(CCGLexicon { entries: map })
@@ -52,7 +53,7 @@ impl CCGLexicon {
     pub fn add(&mut self, word: &str, cat_str: &str) -> PyResult<()> {
         let cat = parse_category(cat_str)
             .ok_or_else(|| PyValueError::new_err(format!("Invalid category: {cat_str}")))?;
-        self.entries.entry(word.to_string()).or_default().push(cat);
+        self.entries.entry(SmolStr::new(word)).or_default().push(cat);
         Ok(())
     }
 
@@ -66,7 +67,7 @@ impl CCGLexicon {
         let mut result: Vec<(String, Vec<String>)> = self
             .entries
             .iter()
-            .map(|(w, cats)| (w.clone(), cats.iter().map(|c| c.to_string()).collect()))
+            .map(|(w, cats)| (w.to_string(), cats.iter().map(|c| c.to_string()).collect()))
             .collect();
         result.sort_by(|a, b| a.0.cmp(&b.0));
         result
@@ -82,7 +83,7 @@ impl CCGLexicon {
         self.entries.contains_key(word)
     }
 
-    pub(crate) fn categories(&self) -> &HashMap<String, Vec<Category>> {
+    pub(crate) fn categories(&self) -> &HashMap<SmolStr, Vec<Category>> {
         &self.entries
     }
 }

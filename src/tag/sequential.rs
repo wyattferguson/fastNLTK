@@ -9,9 +9,9 @@
 //! All are pure lookup tables — no training loops, just counting + HashMap reads.
 
 use std::collections::HashMap;
-use std::sync::Arc;
 
 use hashbrown::HashMap as FastMap;
+use smol_str::SmolStr;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -51,9 +51,9 @@ impl DefaultTagger {
 
 #[pyclass(name = "UnigramTagger", module = "fastnltk._rust")]
 pub struct UnigramTagger {
-    word_to_tag: FastMap<String, String>,
-    default_tag: Option<String>,
-    backoff: Option<String>,
+    word_to_tag: FastMap<SmolStr, SmolStr>,
+    default_tag: Option<SmolStr>,
+    backoff: Option<SmolStr>,
 }
 
 #[pymethods]
@@ -64,25 +64,25 @@ impl UnigramTagger {
         UnigramTagger {
             word_to_tag: FastMap::new(),
             default_tag: None,
-            backoff: backoff.map(|s| s.to_string()),
+            backoff: backoff.map(SmolStr::new),
         }
     }
 
     /// Train on a list of tagged sentences: [[(word, tag), ...], ...]
     fn train(&mut self, sentences: &Bound<'_, PyList>) -> PyResult<()> {
-        let mut counts: FastMap<String, FastMap<String, u64>> = FastMap::new();
-        let mut tag_counts: FastMap<String, u64> = FastMap::new();
+        let mut counts: FastMap<SmolStr, FastMap<SmolStr, u64>> = FastMap::new();
+        let mut tag_counts: FastMap<SmolStr, u64> = FastMap::new();
 
         for item in sentences.iter() {
             let sent: Vec<(String, String)> = item.extract()?;
             for (word, tag) in &sent {
                 counts
-                    .entry(word.clone())
+                    .entry(SmolStr::new(word))
                     .or_default()
-                    .entry(tag.clone())
+                    .entry(SmolStr::new(tag))
                     .and_modify(|c| *c += 1)
                     .or_insert(1);
-                *tag_counts.entry(tag.clone()).or_insert(0) += 1;
+                *tag_counts.entry(SmolStr::new(tag)).or_insert(0) += 1;
             }
         }
 
@@ -111,11 +111,11 @@ impl UnigramTagger {
             .map(|w| {
                 let tag = self
                     .word_to_tag
-                    .get(&w)
+                    .get(w.as_str())
                     .or(self.default_tag.as_ref())
                     .cloned()
                     .unwrap_or_default();
-                (w, tag)
+                (w, tag.to_string())
             })
             .collect()
     }
