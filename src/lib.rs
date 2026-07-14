@@ -13,6 +13,7 @@ pub mod corpus;
 pub mod data;
 pub mod lm;
 pub mod metrics;
+pub mod parse;
 pub mod probability;
 pub mod sentiment;
 pub mod stem;
@@ -63,6 +64,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // ── Tree ─────────────────────────────────────────────
     tree::register_module(m)?;
+
+    // ── Parsing ────────────────────────────────────────
+    parse::register_module(m)?;
 
     Ok(())
 }
