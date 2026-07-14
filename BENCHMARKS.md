@@ -1,7 +1,8 @@
 # Benchmarks
 
 > **Last updated:** 2026-07-14 (release build, Intel i7-12700, 32GB RAM)  
-> **v0.2.0 final:** mimalloc, smol_str, phf lexicon, SmallVec, thiserror, Rc<CCGEdge>, Logos DFA, cached Display — Toktok 3.8x, CCG 1.9x, TextTiling 4.5ms, avg 23.9x
+> **v0.2.0 final:** clippy 0 errors, 279 Rust tests, 254 Python tests, sem/lm/prob/seq module split  
+> Toktok 3.8x, CCG 1.9x, TextTiling 4.3ms, HMM 0.16ms, KneserNey 0.003ms, avg 23.9x
 >
 > Times are **median** of 30+ iterations. "—" means fastNLTK-only (no NLTK comparison).
 >
