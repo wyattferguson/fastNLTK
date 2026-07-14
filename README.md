@@ -41,47 +41,31 @@ tokens = nltk.word_tokenize("Hello, world!")
 
 ## Performance
 
-**68 automated benchmarks** across all 24 Rust modules. Average **28×** vs NLTK.
-Every function below has an NLTK counterpart unless noted in [BENCHMARKS.md](BENCHMARKS.md).
+**68 automated benchmarks** across all 16 Rust modules. Geometric mean **8.5×** vs NLTK
+(51 NLTK comparison benchmarks, 17 fastNLTK-only). Every function below has an NLTK
+counterpart unless noted in [BENCHMARKS.md](BENCHMARKS.md).
 
-| Module | Benchmarks | Best Speedup | Engine |
-|---|---|---|---|
-| [classify](BENCHMARKS.md) | 4 | **377×** | Maxent GIS training, NaiveBayes, TextCat |
-| [metrics](BENCHMARKS.md) | 4 | **242×** | Pure algorithmic port, zero Python overhead |
-| [tokenize](BENCHMARKS.md) | 16 | **145×** | Compiled regex via `regex` crate + logos |
-| [tag](BENCHMARKS.md) | 9 | **98×** | rustling HMM, hashbrown FastMap lookups |
-| [sentiment](BENCHMARKS.md) | 1 | **50×** | VADER in Rust, no regex re-compilation |
-| [parse](BENCHMARKS.md) | 2 | **30×** | Earley parser in Rust, CFG grammar parsing |
-| [collocations](BENCHMARKS.md) | 3 | **23×** | FastMap ngram frequency counting |
-| [stem](BENCHMARKS.md) | 8 | **24×** | rust-stemmers (Snowball C), ISRI in Rust |
-| [sem](BENCHMARKS.md) | 1 | **19×** | Expression parser in Rust |
-| [translate](BENCHMARKS.md) | 1 | **10×** | BLEU in Rust |
-| [tree](BENCHMARKS.md) | 1 | **10×** | Tree parser in Rust |
-| [chunk](BENCHMARKS.md) | 1 | **7×** | Regexp chunk parser |
-| [probability](BENCHMARKS.md) | 4 | **12×** | FreqDist, ConditionalFreqDist, prob dists |
-| [cluster](BENCHMARKS.md) | 1 | **4×** | K-means Lloyd's algorithm |
-| [lm](BENCHMARKS.md) | 6 | — | MLE, Lidstone, Laplace, StupidBackoff, KneserNey, WittenBell ¹ |
-| [ccg](BENCHMARKS.md) | 1 | **2×** | CCG category parsing |
-| [chat](BENCHMARKS.md) | 1 | **3×** | Eliza chatbot |
-| [inference](BENCHMARKS.md) | 4 | — | Tableau, Resolution, Discourse, DefaultReasoner ¹ |
-
-¹ fastNLTK-only — no NLTK equivalent or incompatible API.
-| [sentiment](BENCHMARKS.md) | 1 | **46×** | VADER algorithm in Rust vs Python |
-| [sem](BENCHMARKS.md) | 1 | **38×** | Recursive descent parser in native code |
-| [parse](BENCHMARKS.md) | 1 | **27×** | Earley chart parsing in Rust |
-| [stem](BENCHMARKS.md) | 4 | **22×** | `rust-stemmers` + algorithmic ports |
-| [tree](BENCHMARKS.md) | 1 | **11×** | Bracket parser in Rust |
-| [tag](BENCHMARKS.md) | 8 | **10×** | Hash lookups + compiled regex dispatch |
-| [translate](BENCHMARKS.md) | 1 | **10×** | Tight DP loop in native code |
-| [collocations](BENCHMARKS.md) | 1 | **9×** | HashMap counting in native code |
-| [classify](BENCHMARKS.md) | 2 | **8×** | GIL-released training loops |
-| [probability](BENCHMARKS.md) | 1 | **6×** | Hash table ops in native code |
-| [chunk](BENCHMARKS.md) | 1 | **4×** | Compiled chunk grammar, no Python regex |
-| [cluster](BENCHMARKS.md) | 1 | **4×** | K-means in native code |
-| [chat](BENCHMARKS.md) | 1 | **4×** | Simple pattern match in Rust |
-| [ccg](BENCHMARKS.md) | 1 | **2×** | Pure Rust string parsing |
-| [lm](BENCHMARKS.md) | 2 | fastNLTK-only | Ngram + smoothing via `rustling` |
-| [inference](BENCHMARKS.md) | 4 | fastNLTK-only | Recursive proof search in Rust |
+| Module                        | Benchmarks     | Best Speedup | Engine                                      |
+| ----------------------------- | -------------- | ------------ | ------------------------------------------------------------ |
+| [classify](BENCHMARKS.md)     | 4              | **339×**     | Maxent GIS training in Rust                 |
+| [metrics](BENCHMARKS.md)      | 4              | **168×**     | Pure algorithmic port, zero Python overhead |
+| [tokenize](BENCHMARKS.md)     | 16             | **94×**      | Compiled regex + logos lexer                |
+| [tag](BENCHMARKS.md)          | 9              | **73×**      | rustling HMM, hashbrown FastMap lookups     |
+| [sentiment](BENCHMARKS.md)    | 1              | **38×**      | VADER in Rust, no regex re-compilation      |
+| [sem](BENCHMARKS.md)          | 1              | **28×**      | Expression parser in Rust                   |
+| [parse](BENCHMARKS.md)        | 2              | **26×**      | Earley + CFG parsing                        |
+| [collocations](BENCHMARKS.md) | 3              | **23×**      | FastMap ngram frequency counting            |
+| [stem](BENCHMARKS.md)         | 8              | **15×**      | rust-stemmers (Snowball C) + native Rust    |
+| [translate](BENCHMARKS.md)    | 1              | **9×**       | BLEU in Rust                                |
+| [tree](BENCHMARKS.md)         | 1              | **9×**       | Tree parser in Rust                         |
+| [chunk](BENCHMARKS.md)        | 1              | **7×**       | Regexp chunk parser                         |
+| [probability](BENCHMARKS.md)  | 4              | **6×**       | FreqDist, ConditionalFreqDist, prob dists   |
+| [cluster](BENCHMARKS.md)      | 1              | **4×**       | K-means Lloyd's algorithm                   |
+| [chat](BENCHMARKS.md)         | 1              | **3×**       | Eliza chatbot                               |
+| [ccg](BENCHMARKS.md)          | 1              | **2×**       | CCG category parsing                        |
+| lm                            | 6              | —                                           | MLE, Lidstone, Laplace, StupidBackoff, KneserNey, WittenBell ¹ |
+| inference                     | 4              | —                                           | Tableau, Resolution, Discourse, DefaultReasoner ¹              |
+| **Totals**                    | **68**         | **339×**                                    | **geom mean 8.5×** (51 NLTK comparisons, 16 Rust modules)      |
 
 [Full benchmark details →](BENCHMARKS.md)
 

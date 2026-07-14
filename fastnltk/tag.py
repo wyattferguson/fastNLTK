@@ -151,9 +151,10 @@ class PerceptronTagger:
 
 
 class TnT:
-    """TnT trigram HMM tagger — Rust-accelerated."""
+    """TnT trigram HMM tagger — delegates to NLTK (Rust impl still being optimized)."""
     def __init__(self):
-        self._impl = _RustTnT()
+        import nltk.tag
+        self._impl = nltk.tag.TnT()
 
     def train(self, sentences):
         self._impl.train(sentences)

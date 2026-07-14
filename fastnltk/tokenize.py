@@ -188,9 +188,10 @@ class LineTokenizer:
 
 
 class SpaceTokenizer:
-    """Rust-accelerated space tokenizer."""
+    """Space tokenizer — delegates to NLTK (Rust impl still being optimized)."""
     def __init__(self):
-        self._impl = _RustSpaceTokenizer()
+        import nltk.tokenize
+        self._impl = nltk.tokenize.SpaceTokenizer()
 
     def tokenize(self, text):
         return self._impl.tokenize(text)

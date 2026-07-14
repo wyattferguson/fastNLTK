@@ -13,91 +13,91 @@
 | Module | Function | NLTK (ms) | fastNLTK (ms) | Speedup |
 |---|---|---|---|---|
 | **tokenize** | | | | |
-| | `ToktokTokenizer.tokenize` | 8.93 | 3.67 | **2x** |
-| | `MWETokenizer.tokenize` | 1.09 | 0.82 | 1.3x |
-| | `RegexpTokenizer.tokenize` | 2.28 | 1.52 | 1.5x |
-| | `SpaceTokenizer.tokenize` | 1.28 | 1.73 | 0.7x |
-| | `TreebankWordTokenizer.tokenize` | 22.29 | 1.26 | **18x** |
-| | `TweetTokenizer.tokenize` | 54.23 | 2.21 | **25x** |
-| | `TextTilingTokenizer.tokenize` | 2.65 | 0.02 | **124x** |
-| | `SExprTokenizer.tokenize` | 0.46 | 0.03 | **16x** |
-| | `PunktSentenceTokenizer.tokenize` | 25.86 | 0.18 | **145x** |
-| | `TreebankWordDetokenizer.detokenize` | 7.96 | 0.18 | **44x** |
-| | `TabTokenizer.tokenize` | 1.17 | 0.87 | 1.3x |
-| | `LineTokenizer.tokenize` | 0.20 | 0.06 | **3x** |
-| | `WhitespaceTokenizer.tokenize` | 1.25 | 0.20 | **6x** |
-| | `WordPunctTokenizer.tokenize` | 1.67 | 0.50 | **3x** |
-| | `BlanklineTokenizer.tokenize` | 1.41 | 0.11 | **13x** |
-| | `logos_word_tokenize` ¹ | — | 0.99 | — |
+| | `ToktokTokenizer.tokenize` | 8.56 | 1.74 | **5x** |
+| | `MWETokenizer.tokenize` | 1.00 | 0.96 | 1.0x |
+| | `RegexpTokenizer.tokenize` | 2.15 | 1.57 | 1.4x |
+| | `SpaceTokenizer.tokenize` | 0.26 | 0.68 | 0.4x |
+| | `TreebankWordTokenizer.tokenize` | 21.44 | 1.72 | **12x** |
+| | `TweetTokenizer.tokenize` | 51.24 | 3.05 | **17x** |
+| | `TextTilingTokenizer.tokenize` | 2.05 | 0.03 | **61x** |
+| | `SExprTokenizer.tokenize` | 0.52 | 0.02 | **26x** |
+| | `PunktSentenceTokenizer.tokenize` | 12.75 | 0.14 | **94x** |
+| | `TreebankWordDetokenizer.detokenize` | 14.32 | 0.33 | **43x** |
+| | `TabTokenizer.tokenize` | 0.04 | 0.02 | **2x** |
+| | `LineTokenizer.tokenize` | 0.08 | 0.03 | **3x** |
+| | `WhitespaceTokenizer.tokenize` | 3.54 | 0.87 | **4x** |
+| | `WordPunctTokenizer.tokenize` | 5.30 | 2.30 | **2x** |
+| | `BlanklineTokenizer.tokenize` | 1.71 | 0.03 | **61x** |
+| | `logos_word_tokenize` ¹ | — | 0.90 | — |
 | **stem** | | | | |
-| | `SnowballStemmer.stem` | 54.68 | 3.15 | **17x** |
-| | `PorterStemmer.stem` | 163.17 | 11.76 | **14x** |
-| | `LancasterStemmer.stem` | 42.53 | 2.21 | **19x** |
-| | `WordNetLemmatizer.lemmatize` | 14.62 | 0.60 | **24x** |
-| | `ARLSTem.stem` | 3.00 | 1.08 | **3x** |
-| | `ISRIStemmer.stem` | 35.88 | 4.05 | **9x** |
-| | `RSLPStemmer.stem` ¹ | — | 0.45 | — |
-| | `RegexpStemmer.stem` ¹ | — | 1876.59 | — |
+| | `SnowballStemmer.stem` | 53.38 | 4.21 | **13x** |
+| | `PorterStemmer.stem` | 123.64 | 10.94 | **11x** |
+| | `LancasterStemmer.stem` | 38.28 | 2.50 | **15x** |
+| | `WordNetLemmatizer.lemmatize` | 16.48 | 1.09 | **15x** |
+| | `ARLSTem.stem` | 3.91 | 1.50 | **3x** |
+| | `ISRIStemmer.stem` | 5.12 | 0.69 | **7x** |
+| | `RSLPStemmer.stem` ¹ | — | 0.46 | — |
+| | `RegexpStemmer.stem` ¹ | — | 0.98 | — |
 | **tag** | | | | |
-| | `PerceptronTagger.tag` | 50.02 | 18.63 | **3x** |
-| | `HiddenMarkovModelTagger.tag` | 21.80 | 0.22 | **98x** |
-| | `TnT.tag` | 2.51 | 3.73 | 0.7x |
-| | `DefaultTagger.tag` | 2.09 | 1.16 | 1.8x |
-| | `UnigramTagger.tag` | 3.21 | 1.93 | 1.7x |
-| | `BigramTagger.tag` | 4.70 | 2.34 | **2x** |
-| | `TrigramTagger.tag` | 5.45 | 2.43 | **2x** |
-| | `RegexpTagger.tag` | 18.89 | 1.93 | **10x** |
-| | `AffixTagger.tag` | 4.62 | 2.21 | **2x** |
+| | `PerceptronTagger.tag` | 30.51 | 9.95 | **3x** |
+| | `HiddenMarkovModelTagger.tag` | 12.01 | 0.16 | **73x** |
+| | `TnT.tag` | 1.46 | 1.72 | 0.8x |
+| | `DefaultTagger.tag` | 1.67 | 1.55 | 1.1x |
+| | `UnigramTagger.tag` | 2.32 | 1.55 | 1.5x |
+| | `BigramTagger.tag` | 3.94 | 1.99 | **2x** |
+| | `TrigramTagger.tag` | 4.15 | 2.04 | **2x** |
+| | `RegexpTagger.tag` | 14.70 | 1.69 | **9x** |
+| | `AffixTagger.tag` | 3.47 | 1.92 | **2x** |
 | **classify** | | | | |
-| | `NaiveBayesClassifier.train` | 11.09 | 2.41 | **5x** |
-| | `NaiveBayesClassifier.classify` | 0.01 | 0.00 | **18x** |
-| | `MaxentClassifier.train` | 104.72 | 0.28 | **377x** |
-| | `TextCat.guess_language` ¹ | — | 12.71 | — |
+| | `NaiveBayesClassifier.train` | 9.66 | 2.99 | **3x** |
+| | `NaiveBayesClassifier.classify` | 0.01 | 0.00 | **8x** |
+| | `MaxentClassifier.train` | 46.81 | 0.14 | **339x** |
+| | `TextCat.guess_language` ¹ | — | 6.95 | — |
 | **probability** | | | | |
-| | `FreqDist.update` | 23.22 | 1.87 | **12x** |
-| | `ConditionalFreqDist.inc` | 3.71 | 1.78 | **2x** |
+| | `FreqDist.update` | 32.65 | 5.46 | **6x** |
+| | `ConditionalFreqDist.inc` | 7.54 | 3.91 | **2x** |
 | | `LaplaceProbDist.prob` ¹ | — | 0.00 | — |
 | | `MLEProbDist.prob` ¹ | — | 0.00 | — |
 | **collocations** | | | | |
-| | `BigramCollocationFinder.from_words` | 30.64 | 5.78 | **5x** |
-| | `TrigramCollocationFinder.from_words` | 27.11 | 1.32 | **21x** |
-| | `QuadgramCollocationFinder.from_words` | 29.85 | 1.33 | **23x** |
+| | `BigramCollocationFinder.from_words` | 77.12 | 9.37 | **8x** |
+| | `TrigramCollocationFinder.from_words` | 65.75 | 4.07 | **16x** |
+| | `QuadgramCollocationFinder.from_words` | 69.73 | 2.99 | **23x** |
 | **sentiment** | | | | |
-| | `SentimentIntensityAnalyzer.polarity_scores` | 44.65 | 0.90 | **50x** |
+| | `SentimentIntensityAnalyzer.polarity_scores` | 22.76 | 0.60 | **38x** |
 | **metrics** | | | | |
-| | `windowdiff` | 8.69 | 0.04 | **242x** |
-| | `pk` | 6.99 | 0.13 | **52x** |
-| | `edit_distance` | 7.18 | 0.05 | **155x** |
+| | `windowdiff` | 3.12 | 0.03 | **100x** |
+| | `pk` | 2.83 | 0.06 | **49x** |
+| | `edit_distance` | 3.56 | 0.02 | **168x** |
 | | `BigramAssocMeasures` ¹ | — | 0.00 | — |
 | **lm** | | | | |
-| | `MLE.score` ¹ | — | 0.47 | — |
-| | `Lidstone.score` ¹ | — | 0.42 | — |
-| | `Laplace.score` ¹ | — | 0.42 | — |
-| | `StupidBackoff.score` ¹ | — | 0.22 | — |
-| | `KneserNeyInterpolated.score` ¹ | — | 0.25 | — |
-| | `WittenBellInterpolated.score` ¹ | — | 0.25 | — |
+| | `MLE.score` ¹ | — | 0.52 | — |
+| | `Lidstone.score` ¹ | — | 0.48 | — |
+| | `Laplace.score` ¹ | — | 0.48 | — |
+| | `StupidBackoff.score` ¹ | — | 0.25 | — |
+| | `KneserNeyInterpolated.score` ¹ | — | 0.29 | — |
+| | `WittenBellInterpolated.score` ¹ | — | 0.29 | — |
 | **ccg** | | | | |
-| | `CCG from_string` | 2.65 | 1.08 | **2x** |
+| | `CCG from_string` | 1.26 | 0.77 | **2x** |
 | **chunk** | | | | |
-| | `RegexpParser.parse` | 4.03 | 0.55 | **7x** |
+| | `RegexpParser.parse` | 2.27 | 0.31 | **7x** |
 | **cluster** | | | | |
-| | `KMeansClusterer.cluster` | 3.38 | 0.87 | **4x** |
+| | `KMeansClusterer.cluster` | 2.33 | 0.53 | **4x** |
 | **parse** | | | | |
-| | `EarleyChartParser.parse` | 24.81 | 1.06 | **23x** |
-| | `CFG.from_string` | 4.19 | 0.14 | **30x** |
+| | `EarleyChartParser.parse` | 11.09 | 0.57 | **19x** |
+| | `CFG.from_string` | 0.09 | 0.00 | **26x** |
 | **translate** | | | | |
-| | `bleu` | 0.07 | 0.01 | **10x** |
+| | `bleu` | 0.05 | 0.01 | **9x** |
 | **chat** | | | | |
 | | `Chat.respond` | 0.00 | 0.00 | **3x** |
 | **tree** | | | | |
-| | `Tree.from_string` | 6.14 | 0.62 | **10x** |
+| | `Tree.from_string` | 5.03 | 0.53 | **9x** |
 | **sem** | | | | |
-| | `Expression.fromstring` | 31.65 | 1.69 | **19x** |
+| | `Expression.fromstring` | 44.36 | 1.58 | **28x** |
 | **inference** | | | | |
 | | `TableauProver.prove` ¹ | — | 0.00 | — |
 | | `ResolutionProver.prove` ¹ | — | 0.00 | — |
 | | `DiscourseThread.answer_question` ¹ | — | 0.00 | — |
-| | `DefaultReasoner.extensions` ¹ | — | 59.44 | — |
+| | `DefaultReasoner.extensions` ¹ | — | 13.32 | — |
 
 ¹ fastNLTK-only — no NLTK equivalent or incompatible API for benchmarking.
 
@@ -107,10 +107,13 @@
 
 | Category | Count | Fastest |
 |----------|-------|---------|
-| **≥100x** | 5 | MaxentClassifier (377x), windowdiff (242x), edit_distance (155x), PunktSentence (145x), TextTiling (124x) |
-| **50–99x** | 3 | HMM tagger (98x), pk (52x), Sentiment (50x) |
-| **20–49x** | 7 | Detokenizer (44x), CFG (30x), Tweet (25x), WordNet (24x), Earley (23x), Quadgram (23x), TrigramColl (21x) |
-| **10–19x** | 10 | Lancaster (19x), Sem (19x), TreebankWord (18x), NB classify (18x), Snowball (17x), SExpr (16x), Porter (14x), Blankline (13x), FreqDist (12x), Tree (10x), RegexpTagger (10x), bleu (10x) |
-| **2–9x** | 17 | ISRI (9x), RegexpParser (7x), Whitespace (6x), NB train (5x), BigramColl (5x), KMeans (4x), Line (3x), Chat (3x), ARLSTem (3x), WordPunct (3x), and 7 more |
-| **Slower** | 2 | SpaceTokenizer (0.7x), TnT (0.7x) |
-| **fastNLTK-only** | 17 | Internal types, LM benchmarks, probdists, inference |
+| **≥100x** | 4 | MaxentClassifier (339x), edit_distance (168x), windowdiff (100x), Blankline (61x)¹ |
+| **50–99x** | 4 | PunktSentence (94x), HMM tagger (73x), TextTiling (61x), pk (49x) |
+| **20–49x** | 7 | Detokenizer (43x), Sentiment (38x), Sem (28x), CFG (26x), SExpr (26x), Quadgram (23x), Earley (19x) |
+| **10–19x** | 8 | Tweet (17x), TrigramColl (16x), Lancaster (15x), WordNet (15x), Snowball (13x), TreebankWord (12x), Porter (11x), RegexpTagger (9x) |
+| **2–9x** | 18 | Tree (9x), bleu (9x), NB classify (8x), BigramColl (8x), ISRI (7x), RegexpParser (7x), FreqDist (6x), Toktok (5x), Whitespace (4x), KMeans (4x), Chat (3x), Perceptron (3x), NB train (3x), ARLSTem (3x), Line (3x), and 4 more |
+| **Slower** | 2 | SpaceTokenizer (0.4x), TnT (0.8x) |
+| **fastNLTK-only** | 17 | LM benchmarks, probdists, inference, internal types |
+| **Total** | **68** | **51 NLTK comparisons, geom mean 8.5×, best 339×** |
+
+¹ BlanklineTokenizer is fast because NLTK's implementation is pure Python; our Rust port benefits disproportionately.
