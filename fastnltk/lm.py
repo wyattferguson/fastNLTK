@@ -9,7 +9,6 @@ Rust-accelerated LM models:
 
 import warnings
 
-from nltk.lm import StupidBackoff
 from nltk.lm.preprocessing import (
     everygrams,
     pad_both_ends,
@@ -182,6 +181,27 @@ class WittenBellInterpolated:
         else:
             from nltk.lm import WittenBellInterpolated as _NltkWB
             self._impl = _NltkWB(order)
+
+    def fit(self, sentences):
+        self._impl.fit(sentences)
+
+    def score(self, word, context=None):
+        return self._impl.score(word, context)
+
+    @property
+    def order(self):
+        return self._impl.order()
+
+    @property
+    def fitted(self):
+        return self._impl.fitted()
+
+
+class StupidBackoff:
+    """Stupid backoff LM — Pure Python shim (no Rust crate)."""
+    def __init__(self, order, alpha=0.4):
+        from nltk.lm import StupidBackoff as _NltkSB
+        self._impl = _NltkSB(order, alpha)
 
     def fit(self, sentences):
         self._impl.fit(sentences)
