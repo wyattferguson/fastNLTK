@@ -11,6 +11,7 @@ pub mod punkt;
 pub mod sexpr;
 pub mod toktok;
 pub mod mwe;
+pub mod texttiling;
 
 use pyo3::prelude::*;
 
@@ -46,6 +47,9 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // MWE tokenizer
     m.add_class::<mwe::MWETokenizer>()?;
+
+    // TextTiling tokenizer
+    m.add_class::<texttiling::TextTilingTokenizer>()?;
 
     // Free functions
     m.add_function(wrap_pyfunction!(sent_tokenize_py, m)?)?;

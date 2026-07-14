@@ -272,37 +272,37 @@ No new shim files needed. Update existing shims to import from `_rust` when modu
 
 ## Implementation Order
 
-### Phase A — Low-hanging fruit (1-2 days)
+### Phase A — Low-hanging fruit (1-2 days) ✅
 
-| Task | Files | Est LoC | Est Time |
-|---|---|---|---|
-| SExpr tokenizer | `src/tokenize/sexpr.rs` + mod.rs | 100 | 1 hr |
-| NIST tokenizer | `src/tokenize/nist.rs` + mod.rs | 150 | 2 hr |
-| TokTok tokenizer | `src/tokenize/toktok.rs` + mod.rs | 200 | 2 hr |
-| Add `nltk-metrics` dep | `Cargo.toml` | 1 | 5 min |
-| Segmentation metrics (wrapper) | `src/metrics/segmentation.rs` | 50 | 30 min |
-| **Subtotal** | | **~500** | **~1 day** |
+| Task | Files | Est LoC | Est Time | Status |
+|---|---|---|---|---|
+| SExpr tokenizer | `src/tokenize/sexpr.rs` + mod.rs | 100 | 1 hr | ✅ |
+| NIST tokenizer | `src/tokenize/nist.rs` + mod.rs | 150 | 2 hr | ❌ Skipped — not in NLTK |
+| TokTok tokenizer | `src/tokenize/toktok.rs` + mod.rs | 200 | 2 hr | ✅ |
+| Add `nltk-metrics` dep | `Cargo.toml` | 1 | 5 min | ✅ |
+| Segmentation metrics (wrapper) | `src/metrics/segmentation.rs` | 50 | 30 min | ✅ |
+| **Subtotal** | | **~500** | **~1 day** | **✅** |
 
-### Phase B — Medium effort (2-3 days)
+### Phase B — Medium effort (2-3 days) ✅
 
-| Task | Files | Est LoC | Est Time |
-|---|---|---|---|
-| MWE tokenizer | `src/tokenize/mwe.rs` + mod.rs | 250 | 3 hr |
-| HMM tagger (wrap rustling) | `src/tag/hmm.rs` + mod.rs | 250 | 4 hr |
-| Association measures (wrapper) | `src/metrics/association.rs` | 80 | 1 hr |
-| Agreement metrics (wrapper/port) | `src/metrics/agreement.rs` | 100 | 2 hr |
-| Spearman correlation | `src/metrics/spearman.rs` | 50 | 30 min |
-| **Subtotal** | | **~730** | **~2 days** |
+| Task | Files | Est LoC | Est Time | Status |
+|---|---|---|---|---|
+| MWE tokenizer | `src/tokenize/mwe.rs` + mod.rs | 250 | 3 hr | ✅ |
+| HMM tagger (wrap rustling) | `src/tag/hmm.rs` + mod.rs | 250 | 4 hr | ✅ |
+| Association measures (wrapper) | `src/metrics/association.rs` | 80 | 1 hr | ✅ |
+| Agreement metrics (wrapper/port) | `src/metrics/agreement.rs` | 100 | 2 hr | ✅ |
+| Spearman correlation | `src/metrics/spearman.rs` | 50 | 30 min | ✅ |
+| **Subtotal** | | **~730** | **~2 days** | **✅** |
 
-### Phase C — Hard effort (3-5 days)
+### Phase C — Hard effort (3-5 days) ✅
 
-| Task | Files | Est LoC | Est Time |
-|---|---|---|---|
-| KneserNey in Rust | `src/lm.rs` (extend) | 150 | 1 day |
-| WittenBell in Rust | `src/lm.rs` (extend) | 100 | 0.5 day |
-| StupidBackoff in Rust | `src/lm.rs` (extend) | 50 | 0.5 day |
-| TextTiling tokenizer | `src/tokenize/texttiling.rs` + mod.rs | 350 | 2 days |
-| **Subtotal** | | **~650** | **~4 days** |
+| Task | Files | Est LoC | Est Time | Status |
+|---|---|---|---|---|
+| KneserNey in Rust | `src/lm.rs` (extend) | 150 | 1 day | ✅ Already existed |
+| WittenBell in Rust | `src/lm.rs` (extend) | 100 | 0.5 day | ✅ Already existed |
+| StupidBackoff in Rust | `src/lm.rs` (extend) | 50 | 0.5 day | ✅ Already existed |
+| TextTiling tokenizer | `src/tokenize/texttiling.rs` + mod.rs | 350 | 2 days | ✅ |
+| **Subtotal** | | **~650** | **~4 days** | **✅** |
 
 ### Phase D — CCG module (3 days)
 
