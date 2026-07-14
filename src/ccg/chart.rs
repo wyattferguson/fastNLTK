@@ -1,19 +1,13 @@
 //! CCG Chart Parser — CKY-style CCG parsing with combinators.
 //!
 //! Implements a bottom-up chart parser for Combinatory Categorial Grammar.
-//! The parser uses a CKY-style dynamic programming approach:
-//!   1. Initialize chart with lexical categories from `CCGLexicon`
-//!   2. For each span size 2..n, try all split points and apply combinators
-//!   3. Collect parses that span the entire input with category S
-//!
-//! Supports forward/backward application (FA, BA), composition (FC, BC),
-//! crossed composition (FX, BX). Unknown words receive default NP/N categories.
+//! Uses a flat `Vec<Vec<Vec<CCGEdge>>>` chart (O(1) array indexing)
+//! instead of HashMap for maximum parser throughput.
 //!
 //! NLTK equivalent: nltk.ccg.chart.CCGChartParser
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use hashbrown::HashMap;
 
 use crate::ccg::combinator::{self, Combinator};
 use crate::ccg::lexicon::CCGLexicon;
@@ -54,7 +48,8 @@ impl CCGEdge {
     }
 }
 
-/// The CCG chart parser, using CKY-style dynamic programming.
+/// The CCG chart parser, using CKY-style dynamic programming
+/// with flat 3D array (span × start → edges) for O(1) cell access.
 #[pyclass(name = "CCGChartParser", module = "fastnltk._rust")]
 pub struct CCGChartParser {
     lexicon: CCGLexicon,
@@ -84,7 +79,15 @@ impl CCGChartParser {
             )));
         }
 
-        let mut chart: HashMap<(usize, usize), Vec<CCGEdge>> = HashMap::new();
+        // Flat 3D chart: chart[span][start] → Vec<CCGEdge>
+        // Span 0 is unused; spans go 1..=n.
+        // span s has (n - s + 1) possible start positions.
+        let mut chart: Vec<Vec<Vec<CCGEdge>>> = (0..=n)
+            .map(|s| {
+                let count = if s == 0 { 0 } else { n - s + 1 };
+                (0..count).map(|_| Vec::new()).collect()
+            })
+            .collect();
 
         // Initialize with lexical categories (span=1)
         for (i, word) in words.iter().enumerate() {
@@ -92,24 +95,15 @@ impl CCGChartParser {
             if cats.is_empty() {
                 // Unknown word — assign NP and N categories
                 if let Some(np) = crate::ccg::parse_category("NP") {
-                    chart
-                        .entry((1, i))
-                        .or_default()
-                        .push(CCGEdge::new_lexical(np, i));
+                    chart[1][i].push(CCGEdge::new_lexical(np, i));
                 }
                 if let Some(n) = crate::ccg::parse_category("N") {
-                    chart
-                        .entry((1, i))
-                        .or_default()
-                        .push(CCGEdge::new_lexical(n, i));
+                    chart[1][i].push(CCGEdge::new_lexical(n, i));
                 }
                 continue;
             }
             for cat in cats {
-                chart
-                    .entry((1, i))
-                    .or_default()
-                    .push(CCGEdge::new_lexical(cat.clone(), i));
+                chart[1][i].push(CCGEdge::new_lexical(cat.clone(), i));
             }
         }
 
@@ -122,29 +116,31 @@ impl CCGChartParser {
                 let mut new_edges: Vec<CCGEdge> = Vec::new();
 
                 for split in (start + 1)..end {
-                    let left_edges = chart.get(&(split - start, start));
-                    let right_edges = chart.get(&(end - split, split));
+                    let left_span = split - start;
+                    let right_span = end - split;
+                    let lefts = &chart[left_span][start];
+                    let rights = &chart[right_span][split];
 
-                    if let (Some(lefts), Some(rights)) = (left_edges, right_edges) {
-                        for l in lefts {
-                            for r in rights {
-                                for comb in &combinators {
-                                    let kind_l = l.cat.kind();
-                                    let kind_r = r.cat.kind();
-                                    if let Some(result_kind) = apply_with_variants(
-                                        kind_l, kind_r, comb,
-                                    ) {
-                                        let result_str = format_kind(&result_kind);
-                                        if let Some(result_cat) =
-                                            crate::ccg::parse_category(&result_str)
-                                        {
-                                            new_edges.push(CCGEdge::combined(
-                                                result_cat,
-                                                l.clone(),
-                                                r.clone(),
-                                                combinator::combinator_name(comb),
-                                            ));
-                                        }
+                    if lefts.is_empty() || rights.is_empty() {
+                        continue;
+                    }
+
+                    for l in lefts {
+                        for r in rights {
+                            for comb in &combinators {
+                                if let Some(result_kind) =
+                                    apply_with_variants(l.cat.kind(), r.cat.kind(), comb)
+                                {
+                                    let result_str = format_kind(&result_kind);
+                                    if let Some(result_cat) =
+                                        crate::ccg::parse_category(&result_str)
+                                    {
+                                        new_edges.push(CCGEdge::combined(
+                                            result_cat,
+                                            l.clone(),
+                                            r.clone(),
+                                            combinator::combinator_name(comb),
+                                        ));
                                     }
                                 }
                             }
@@ -153,43 +149,34 @@ impl CCGChartParser {
                 }
 
                 if !new_edges.is_empty() {
-                    chart.entry((span, start)).or_default().extend(new_edges);
+                    chart[span][start] = new_edges;
                 }
             }
         }
 
         // Collect results: edges spanning all words with S category
-        let results: Vec<String> = chart
-            .get(&(n, 0))
-            .map(|edges| {
-                edges
-                    .iter()
-                    .filter(|e| e.cat.to_string() == "S")
-                    .enumerate()
-                    .map(|(i, e)| format!("Parse {}: {} (rule: {})", i + 1, e.cat, e.rule))
-                    .collect()
-            })
-            .unwrap_or_default();
+        let final_edges: Vec<String> = chart[n][0]
+            .iter()
+            .filter(|e| e.cat.to_string() == "S")
+            .enumerate()
+            .map(|(i, e)| format!("Parse {}: {} (rule: {})", i + 1, e.cat, e.rule))
+            .collect();
 
-        if results.is_empty() {
-            let any_results: Vec<String> = chart
-                .get(&(n, 0))
-                .map(|edges| {
-                    edges
-                        .iter()
-                        .enumerate()
-                        .map(|(i, e)| format!("Derivation {}: {} (rule: {})", i + 1, e.cat, e.rule))
-                        .collect()
-                })
-                .unwrap_or_default();
+        if !final_edges.is_empty() {
+            return Ok(final_edges);
+        }
 
-            if any_results.is_empty() {
-                Ok(vec!["No parse found".to_string()])
-            } else {
-                Ok(any_results)
-            }
+        // Try any complete spanning parse
+        let any_results: Vec<String> = chart[n][0]
+            .iter()
+            .enumerate()
+            .map(|(i, e)| format!("Derivation {}: {} (rule: {})", i + 1, e.cat, e.rule))
+            .collect();
+
+        if any_results.is_empty() {
+            Ok(vec!["No parse found".to_string()])
         } else {
-            Ok(results)
+            Ok(any_results)
         }
     }
 }
@@ -200,7 +187,6 @@ fn apply_with_variants(
     right: &CategoryKind,
     comb: &Combinator,
 ) -> Option<CategoryKind> {
-    // Try standard application
     if let Some(result) = combinator::apply_combinator(left, right, comb) {
         return Some(result);
     }
@@ -208,7 +194,6 @@ fn apply_with_variants(
     let name = combinator::combinator_name(comb);
     match name {
         "FC" => {
-            // Forward composition: A/B + B/C -> A/C
             if let (
                 CategoryKind::Functional { result: lr, argument: la, is_forward: true },
                 CategoryKind::Functional { result: rr, argument: ra, is_forward: true },
@@ -225,7 +210,6 @@ fn apply_with_variants(
             None
         }
         "BC" => {
-            // Backward composition: B\\C + A\\B -> A\\C
             if let (
                 CategoryKind::Functional { result: rr, argument: ra, is_forward: false },
                 CategoryKind::Functional { result: _, argument: la, is_forward: false },
@@ -242,7 +226,6 @@ fn apply_with_variants(
             None
         }
         "FX" => {
-            // Forward crossed composition: A/B + C\\B -> A\\C
             if let (
                 CategoryKind::Functional { result: lr, argument: la, is_forward: true },
                 CategoryKind::Functional { result: _, argument: ra, is_forward: false },
@@ -259,7 +242,6 @@ fn apply_with_variants(
             None
         }
         "BX" => {
-            // Backward crossed composition: B/C + A\\B -> A/C
             if let (
                 CategoryKind::Functional { result: rr, argument: _, is_forward: true },
                 CategoryKind::Functional { result: _, argument: la, is_forward: false },
@@ -282,11 +264,7 @@ fn apply_with_variants(
 fn format_kind(k: &CategoryKind) -> String {
     match k {
         CategoryKind::Primitive(l) => l.clone(),
-        CategoryKind::Functional {
-            result,
-            argument,
-            is_forward,
-        } => {
+        CategoryKind::Functional { result, argument, is_forward } => {
             let r = format_kind(result);
             let a = format_kind(argument);
             if *is_forward {

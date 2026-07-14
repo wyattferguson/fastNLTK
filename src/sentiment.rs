@@ -119,7 +119,7 @@ pub struct SentimentIntensityAnalyzer {
 impl SentimentIntensityAnalyzer {
     #[new]
     fn new() -> Self {
-        let mut lex = HashMap::new();
+        let mut lex: HashMap<String, f64> = HashMap::new();
         for (k, v) in default_lexicon() {
             lex.insert(k.to_string(), v);
         }
@@ -128,11 +128,11 @@ impl SentimentIntensityAnalyzer {
 
     /// Compute sentiment scores for text.
     #[pyo3(signature = (text))]
-    fn polarity_scores(&self, text: &str) -> HashMap<String, f64> {
+    fn polarity_scores(&self, text: &str) -> std::collections::HashMap<String, f64> {
         let words: Vec<String> = text.unicode_words().map(|w| w.to_lowercase()).collect();
         let word_refs: Vec<&str> = words.iter().map(|s| s.as_str()).collect();
 
-        let mut sentiments: Vec<f64> = Vec::new();
+        let mut sentiments: Vec<f64> = Vec::with_capacity(word_refs.len());
         let mut i = 0;
 
         while i < word_refs.len() {
