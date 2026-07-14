@@ -6,14 +6,12 @@ Full Rust-accelerated stack: TableauProver, ResolutionProver,
 DiscourseThread, DefaultReasoner, ClosedWorldReasoner.
 """
 
-from fastnltk._rust import TableauProver, ResolutionProver, ProverResult
-from fastnltk._rust import DiscourseThread, DefaultReasoner, DefaultRule, ClosedWorldReasoner
 
 # Re-export NLTK names for API compatibility
 from nltk.inference import (  # noqa: F401
-    Prover9,
     Mace,
-    ProverCommand,
     Prover,
+    Prover9,
+    ProverCommand,
     get_prover,
 )

@@ -4,14 +4,32 @@ import nltk.stem as _nltk_stem
 
 from fastnltk._rust import (
     ARLSTem as _RustARLSTem,
+)
+from fastnltk._rust import (
     ARLSTem2 as _RustARLSTem2,
+)
+from fastnltk._rust import (
     Cistem as _RustCistem,
+)
+from fastnltk._rust import (
     ISRIStemmer as _RustISRIStemmer,
+)
+from fastnltk._rust import (
     LancasterStemmer as _RustLancasterStemmer,
+)
+from fastnltk._rust import (
     PorterStemmer as _RustPorterStemmer,
+)
+from fastnltk._rust import (
     RegexpStemmer as _RustRegexpStemmer,
+)
+from fastnltk._rust import (
     RSLPStemmer as _RustRSLPStemmer,
+)
+from fastnltk._rust import (
     SnowballStemmer as _RustSnowballStemmer,
+)
+from fastnltk._rust import (
     WordNetLemmatizer as _RustWordNetLemmatizer,
 )
 

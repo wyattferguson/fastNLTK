@@ -5,6 +5,7 @@ Rust-accelerated Chat class with compiled regex pattern matching.
 """
 
 from nltk.chat import *  # noqa: F403
+
 from fastnltk._rust import Chat as _RustChat
 
 

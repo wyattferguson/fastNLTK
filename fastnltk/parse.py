@@ -5,7 +5,6 @@ Rust-accelerated CFG + EarleyChartParser for context-free grammar parsing.
 Other parsers (chart, dependency, PCFG, etc.) fall back to NLTK.
 """
 
-import nltk.parse as _nltk_parse
 from nltk.parse import *  # noqa: F403
 
 from fastnltk._rust import CFG as _RustCFG

@@ -2,9 +2,7 @@
 //!
 //! NLTK equivalent: nltk.ccg.combinator
 
-use pyo3::prelude::*;
-
-use crate::ccg::{Category, CategoryKind};
+use crate::ccg::CategoryKind;
 
 /// Direction of combination.
 #[derive(Clone, Copy, PartialEq)]

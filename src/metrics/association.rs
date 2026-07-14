@@ -13,7 +13,7 @@ pub struct BigramAssocMeasures;
 #[pymethods]
 impl BigramAssocMeasures {
     #[staticmethod]
-    fn pmi(count: f64, n: f64, n_ii: f64, n_ix: f64, n_xi: f64) -> f64 {
+    fn pmi(_count: f64, n: f64, n_ii: f64, n_ix: f64, n_xi: f64) -> f64 {
         // PMI = log( (n_ii * N) / (n_ix * n_xi) ) / log(2)
         let expected = (n_ix * n_xi) / n;
         if expected <= 0.0 || n_ii <= 0.0 {
@@ -23,7 +23,7 @@ impl BigramAssocMeasures {
     }
 
     #[staticmethod]
-    fn chi_sq(count: f64, n: f64, n_ii: f64, n_ix: f64, n_xi: f64) -> f64 {
+    fn chi_sq(_count: f64, n: f64, n_ii: f64, n_ix: f64, n_xi: f64) -> f64 {
         let n_oi = n_ix - n_ii;
         let n_io = n_xi - n_ii;
         let n_oo = n - n_ii - n_oi - n_io;
@@ -39,7 +39,7 @@ impl BigramAssocMeasures {
     }
 
     #[staticmethod]
-    fn likelihood_ratio(count: f64, n: f64, n_ii: f64, n_ix: f64, n_xi: f64) -> f64 {
+    fn likelihood_ratio(_count: f64, n: f64, n_ii: f64, n_ix: f64, n_xi: f64) -> f64 {
         let n_oi = n_ix - n_ii;
         let n_io = n_xi - n_ii;
         let n_oo = n - n_ii - n_oi - n_io;

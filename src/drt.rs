@@ -9,14 +9,13 @@
 //!
 //! Phase 3 of the sem module port.
 
-use std::collections::HashMap;
 use std::fmt;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use crate::sem::{
-    self, model_evaluate, parse_expression, Assignment, Expression, Individual, Valuation,
+    model_evaluate, Assignment, Expression, Individual, Valuation,
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -406,6 +405,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     #[test]
     fn test_parse_simple_drs() {

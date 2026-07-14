@@ -5,7 +5,6 @@ All LM models are Rust-accelerated via the compiled `_rust` extension.
 """
 
 import nltk.lm as _nltk_lm
-
 from nltk.lm.preprocessing import (
     everygrams,
     pad_both_ends,
@@ -16,10 +15,20 @@ from nltk.lm.util import log_base2
 
 from fastnltk._rust import (
     MLE as _RustMLE,
+)
+from fastnltk._rust import (
     KneserNeyInterpolated as _RustKneserNeyInterpolated,
+)
+from fastnltk._rust import (
     Laplace as _RustLaplace,
+)
+from fastnltk._rust import (
     Lidstone as _RustLidstone,
+)
+from fastnltk._rust import (
     StupidBackoff as _RustStupidBackoff,
+)
+from fastnltk._rust import (
     WittenBellInterpolated as _RustWittenBellInterpolated,
 )
 

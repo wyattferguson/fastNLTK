@@ -18,16 +18,28 @@ from fastnltk._rust import (
     LineTokenizer as _RustLineTokenizer,
 )
 from fastnltk._rust import (
+    MWETokenizer as _RustMWETokenizer,
+)
+from fastnltk._rust import (
     PunktSentenceTokenizer as _RustPunktSentenceTokenizer,
 )
 from fastnltk._rust import (
     RegexpTokenizer as _RustRegexpTokenizer,
 )
 from fastnltk._rust import (
+    SExprTokenizer as _RustSExprTokenizer,
+)
+from fastnltk._rust import (
     SpaceTokenizer as _RustSpaceTokenizer,
 )
 from fastnltk._rust import (
     TabTokenizer as _RustTabTokenizer,
+)
+from fastnltk._rust import (
+    TextTilingTokenizer as _RustTextTilingTokenizer,
+)
+from fastnltk._rust import (
+    ToktokTokenizer as _RustToktokTokenizer,
 )
 from fastnltk._rust import (
     TreebankWordDetokenizer as _RustTreebankWordDetokenizer,
@@ -47,25 +59,11 @@ from fastnltk._rust import (
 from fastnltk._rust import (
     word_tokenize as _rust_word_tokenize,
 )
-from fastnltk._rust import (
-    SExprTokenizer as _RustSExprTokenizer,
-)
-from fastnltk._rust import (
-    ToktokTokenizer as _RustToktokTokenizer,
-)
-from fastnltk._rust import (
-    MWETokenizer as _RustMWETokenizer,
-)
-from fastnltk._rust import (
-    TextTilingTokenizer as _RustTextTilingTokenizer,
-)
 
 __all__ = [
     "sent_tokenize",
     "word_tokenize",
     "regexp_tokenize",
-    "regexp_span_tokenize",
-    "string_span_tokenize",
     "RegexpTokenizer",
     "WhitespaceTokenizer",
     "WordPunctTokenizer",
@@ -77,6 +75,7 @@ __all__ = [
     "TreebankWordDetokenizer",
     "TweetTokenizer",
     "PunktSentenceTokenizer",
+    "PunktTokenizer",
     "MWETokenizer",
     "ToktokTokenizer",
     "SExprTokenizer",
@@ -90,6 +89,7 @@ def _get_punkt_tokenizer():
     tok = _RustPunktSentenceTokenizer()
     try:
         import pickle
+
         from nltk.data import find
         path = find("tokenizers/punkt/english.pickle")
         with open(str(path), "rb") as f:
@@ -285,27 +285,11 @@ toktok = _nltk_tokenize.toktok
 treebank = _nltk_tokenize.treebank
 util = _nltk_tokenize.util
 NLTKWordTokenizer = _nltk_tokenize.NLTKWordTokenizer
-# Version-dependent imports — always re-export what NLTK provides
-try:
-    from nltk.tokenize import MWETokenizer as _NltkMWETokenizer
-    MWETokenizer = _RustMWETokenizer
-except ImportError:
-    MWETokenizer = _RustMWETokenizer
-try:
-    from nltk.tokenize import ToktokTokenizer as _NltkToktokTokenizer
-    ToktokTokenizer = _RustToktokTokenizer
-except ImportError:
-    ToktokTokenizer = _RustToktokTokenizer
-try:
-    from nltk.tokenize import SExprTokenizer as _NltkSExprTokenizer
-    SExprTokenizer = _RustSExprTokenizer
-except ImportError:
-    SExprTokenizer = _RustSExprTokenizer
-try:
-    from nltk.tokenize import TextTilingTokenizer as _NltkTextTilingTokenizer
-    TextTilingTokenizer = _RustTextTilingTokenizer
-except ImportError:
-    TextTilingTokenizer = _RustTextTilingTokenizer
+# Rust-backed tokenizers (all directly from _rust — no NLTK fallback)
+MWETokenizer = _RustMWETokenizer
+ToktokTokenizer = _RustToktokTokenizer
+SExprTokenizer = _RustSExprTokenizer
+TextTilingTokenizer = _RustTextTilingTokenizer
 blankline_tokenize = _nltk_tokenize.blankline_tokenize
 casual_tokenize = _nltk_tokenize.casual_tokenize
 line_tokenize = _nltk_tokenize.line_tokenize

@@ -1,12 +1,14 @@
 """fastnltk.collocations — Drop-in replacement for nltk.collocations."""
 
 import nltk.collocations as _nltk_collocations
-from nltk.probability import FreqDist
-from nltk.util import ngrams
 
 from fastnltk._rust import (
     BigramCollocationFinder as _RustBigramCollocationFinder,
+)
+from fastnltk._rust import (
     QuadgramCollocationFinder as _RustQuadgramCollocationFinder,
+)
+from fastnltk._rust import (
     TrigramCollocationFinder as _RustTrigramCollocationFinder,
 )
 

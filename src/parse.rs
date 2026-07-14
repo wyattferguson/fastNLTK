@@ -317,7 +317,7 @@ fn predict(chart: &mut Vec<Vec<EarleyState>>, pos: usize, grammar: &CFG) {
     }
 }
 
-fn complete(chart: &mut Vec<Vec<EarleyState>>, pos: usize, lhs: &str, grammar: &CFG) {
+fn complete(chart: &mut Vec<Vec<EarleyState>>, pos: usize, lhs: &str, _grammar: &CFG) {
     let states = chart[pos].clone();
     for k in 0..pos {
         for state in &states {

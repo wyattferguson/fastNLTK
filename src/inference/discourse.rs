@@ -13,10 +13,9 @@
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use std::collections::HashMap;
 
 use crate::drt::DRS;
-use crate::sem::{self, model_evaluate, Assignment, Expression, Individual, Valuation};
+use crate::sem::{Assignment, Individual, Valuation};
 
 /// A discourse representation thread: sequence of DRSs with referent tracking.
 #[pyclass(name = "DiscourseThread", module = "fastnltk._rust")]
@@ -174,6 +173,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 mod tests {
     use super::*;
     use crate::drt::DRS;
+    use std::collections::HashMap;
 
     #[test]
     fn test_empty_thread() {

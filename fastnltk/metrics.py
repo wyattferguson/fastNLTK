@@ -7,19 +7,43 @@ All metric functions are Rust-accelerated via the compiled `_rust` extension.
 import nltk.metrics as _nltk_metrics
 
 from fastnltk._rust import (
-    binary_distance as _rust_binary_distance,
-    dice_similarity as _rust_dice_similarity,
-    edit_distance as _rust_edit_distance_fn,
-    jaccard_distance as _rust_jaccard_distance,
-    jaro_similarity as _rust_jaro_similarity,
-    jaro_winkler_similarity as _rust_jaro_winkler_similarity,
-    windowdiff as _rust_windowdiff,
-    pk as _rust_pk,
-    kappa as _rust_kappa,
-    pi as _rust_pi,
-    alpha as _rust_alpha,
-    spearman as _rust_spearman,
     BigramAssocMeasures as _RustBigramAssocMeasures,
+)
+from fastnltk._rust import (
+    alpha as _rust_alpha,
+)
+from fastnltk._rust import (
+    binary_distance as _rust_binary_distance,
+)
+from fastnltk._rust import (
+    dice_similarity as _rust_dice_similarity,
+)
+from fastnltk._rust import (
+    edit_distance as _rust_edit_distance_fn,
+)
+from fastnltk._rust import (
+    jaccard_distance as _rust_jaccard_distance,
+)
+from fastnltk._rust import (
+    jaro_similarity as _rust_jaro_similarity,
+)
+from fastnltk._rust import (
+    jaro_winkler_similarity as _rust_jaro_winkler_similarity,
+)
+from fastnltk._rust import (
+    kappa as _rust_kappa,
+)
+from fastnltk._rust import (
+    pi as _rust_pi,
+)
+from fastnltk._rust import (
+    pk as _rust_pk,
+)
+from fastnltk._rust import (
+    spearman as _rust_spearman,
+)
+from fastnltk._rust import (
+    windowdiff as _rust_windowdiff,
 )
 
 # NLTK re-exports for API compatibility
@@ -42,8 +66,8 @@ except ImportError:
 
 try:
     from nltk.metrics.distance import (
-        interval_distance,
         custom_distance,
+        interval_distance,
         masi_distance,
     )
 except ImportError:

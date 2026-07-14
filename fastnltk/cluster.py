@@ -6,6 +6,7 @@ Other clusterers (GAAC, VectorSpace) fall back to NLTK.
 """
 
 from nltk.cluster import *  # noqa: F403
+
 from fastnltk._rust import KMeansClusterer as _RustKMeansClusterer
 
 

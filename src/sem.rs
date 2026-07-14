@@ -166,7 +166,7 @@ impl Expression {
     /// Substitute variable with expression. Returns new expression.
     pub fn substitute(&self, var: &str, replacement: &Expression) -> Expression {
         match self {
-            Expression::Variable(name, typ) => {
+            Expression::Variable(name, _typ) => {
                 if name == var {
                     replacement.clone()
                 } else {

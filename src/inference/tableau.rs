@@ -4,7 +4,6 @@
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use std::collections::HashSet;
 
 use crate::inference::{Formula, ProverResult};
 

@@ -40,7 +40,7 @@ fn windowdiff(reference: &str, hypothesis: &str, k: usize, boundary: &str) -> Py
                 count2 += 1;
             }
         }
-        wd += (if count1 != count2 { 1.0 } else { 0.0 });
+        wd += if count1 != count2 { 1.0 } else { 0.0 };
     }
     Ok(wd / (n - k + 1) as f64)
 }

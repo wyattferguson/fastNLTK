@@ -8,7 +8,11 @@ from nltk.classify.util import accuracy, apply_features, log_likelihood
 
 from fastnltk._rust import (
     MaxentClassifier as _RustMaxentClassifier,
+)
+from fastnltk._rust import (
     NaiveBayesClassifier as _RustNaiveBayesClassifier,
+)
+from fastnltk._rust import (
     TextCat as _RustTextCat,
 )
 

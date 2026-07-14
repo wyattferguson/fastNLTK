@@ -6,16 +6,10 @@ Full Rust-accelerated stack: Category types, combinator rules,
 lexicon loading, and chart parser.
 """
 
-from fastnltk._rust import Category, from_string, CCGLexicon, CCGChartParser
+from fastnltk._rust import from_string as _from_string
 
-# Re-export fromstring alias for NLTK compatibility
-fromstring = from_string
+fromstring = _from_string
 
-# Re-export all NLTK CCG names for API compatibility
-from nltk.ccg import (  # noqa: F401
-    PrimitiveCategory,
-    FunctionalCategory,
-    CCGVar,
-    Direction,
-    AbstractCCGCategory,
-)
+__all__ = [
+    "fromstring",
+]

@@ -24,6 +24,7 @@ use crate::ccg::{Category, CategoryKind};
 /// Tracks the category, its input span, and optional children
 /// for derivation tree reconstruction.
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct CCGEdge {
     cat: Category,
     start: usize,
@@ -33,6 +34,7 @@ struct CCGEdge {
     /// Right child for derivation tree (None for lexical edges).
     right_child: Option<Box<CCGEdge>>,
     /// Rule name ("lex", "FA", "BA", "FC", "BC").
+    #[allow(dead_code)]
     rule: String,
 }
 
