@@ -9,7 +9,7 @@ Rust-accelerated LM models:
 
 import warnings
 
-from nltk.lm import StupidBackoff, WittenBellInterpolated
+from nltk.lm import StupidBackoff
 from nltk.lm.preprocessing import (
     everygrams,
     pad_both_ends,
@@ -31,6 +31,9 @@ try:
     )
     from fastnltk._rust import (
         Lidstone as _RustLidstone,
+    )
+    from fastnltk._rust import (
+        WittenBellInterpolated as _RustWittenBellInterpolated,
     )
     _rust_available = True
 except ImportError:
@@ -156,6 +159,29 @@ class KneserNeyInterpolated:
         else:
             from nltk.lm import KneserNeyInterpolated as _NltkKNI
             self._impl = _NltkKNI(order)
+
+    def fit(self, sentences):
+        self._impl.fit(sentences)
+
+    def score(self, word, context=None):
+        return self._impl.score(word, context)
+
+    @property
+    def order(self):
+        return self._impl.order()
+
+    @property
+    def fitted(self):
+        return self._impl.fitted()
+
+
+class WittenBellInterpolated:
+    def __init__(self, order):
+        if _rust_available:
+            self._impl = _RustWittenBellInterpolated(order)
+        else:
+            from nltk.lm import WittenBellInterpolated as _NltkWB
+            self._impl = _NltkWB(order)
 
     def fit(self, sentences):
         self._impl.fit(sentences)
