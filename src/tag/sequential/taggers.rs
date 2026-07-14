@@ -25,10 +25,7 @@ impl UnigramTagger {
     #[new]
     #[pyo3(signature = (backoff=None))]
     fn new(backoff: Option<&str>) -> Self {
-        Self {
-            word_to_tag: FastMap::new(),
-            default_tag: backoff.map(SmolStr::new),
-        }
+        Self { word_to_tag: FastMap::new(), default_tag: backoff.map(SmolStr::new) }
     }
     fn train(&mut self, sentences: &Bound<'_, PyList>) -> PyResult<()> {
         let mut counts: FastMap<SmolStr, FastMap<SmolStr, u64>> = FastMap::new();
@@ -46,32 +43,51 @@ impl UnigramTagger {
             }
         }
         for (word, tag_count) in &counts {
-            let best = tag_count.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone()).unwrap_or_default();
+            let best = tag_count
+                .iter()
+                .max_by_key(|(_, c)| **c)
+                .map(|(t, _)| t.clone())
+                .unwrap_or_default();
             self.word_to_tag.insert(word.clone(), best);
         }
         self.default_tag = tag_counts.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone());
         Ok(())
     }
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
-        tokens.into_iter().map(|w| {
-            let tag = self.word_to_tag.get(w.as_str()).or(self.default_tag.as_ref()).cloned().unwrap_or_default();
-            (w, tag.to_string())
-        }).collect()
+        tokens
+            .into_iter()
+            .map(|w| {
+                let tag = self
+                    .word_to_tag
+                    .get(w.as_str())
+                    .or(self.default_tag.as_ref())
+                    .cloned()
+                    .unwrap_or_default();
+                (w, tag.to_string())
+            })
+            .collect()
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
         sentences.into_iter().map(|s| self.tag(s)).collect()
     }
     fn evaluate(&self, sentences: &Bound<'_, PyList>) -> f64 {
-        let mut correct = 0u64; let mut total = 0u64;
+        let mut correct = 0u64;
+        let mut total = 0u64;
         for item in sentences.iter() {
             let sent: Vec<(String, String)> = item.extract().unwrap_or_default();
             let words: Vec<String> = sent.iter().map(|(w, _)| w.clone()).collect();
             let gold_tags: Vec<String> = sent.iter().map(|(_, t)| t.clone()).collect();
             let pred = self.tag(words);
-            for (p, g) in pred.iter().zip(gold_tags.iter()) { if &p.1 == g { correct += 1; } }
+            for (p, g) in pred.iter().zip(gold_tags.iter()) {
+                if &p.1 == g {
+                    correct += 1;
+                }
+            }
             total += sent.len() as u64;
         }
-        if total == 0 { return 0.0; }
+        if total == 0 {
+            return 0.0;
+        }
         correct as f64 / total as f64
     }
 }
@@ -101,13 +117,22 @@ impl BigramTagger {
             let mut prev = "START".to_string();
             for (word, tag) in &sent {
                 let key = (prev.clone(), word.clone());
-                counts.entry(key).or_default().entry(tag.clone()).and_modify(|c| *c += 1).or_insert(1);
+                counts
+                    .entry(key)
+                    .or_default()
+                    .entry(tag.clone())
+                    .and_modify(|c| *c += 1)
+                    .or_insert(1);
                 *tag_counts.entry(tag.clone()).or_insert(0) += 1;
                 prev = tag.clone();
             }
         }
         for (key, tag_count) in &counts {
-            let best = tag_count.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone()).unwrap_or_default();
+            let best = tag_count
+                .iter()
+                .max_by_key(|(_, c)| **c)
+                .map(|(t, _)| t.clone())
+                .unwrap_or_default();
             self.bigram_map.insert(key.clone(), best);
         }
         self.default_tag = tag_counts.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone());
@@ -115,27 +140,42 @@ impl BigramTagger {
     }
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
         let mut prev = "START".to_string();
-        tokens.into_iter().map(|w| {
-            let key = (prev.clone(), w.clone());
-            let tag = self.bigram_map.get(&key).or(self.default_tag.as_ref()).cloned().unwrap_or_default();
-            prev = tag.clone();
-            (w, tag)
-        }).collect()
+        tokens
+            .into_iter()
+            .map(|w| {
+                let key = (prev.clone(), w.clone());
+                let tag = self
+                    .bigram_map
+                    .get(&key)
+                    .or(self.default_tag.as_ref())
+                    .cloned()
+                    .unwrap_or_default();
+                prev = tag.clone();
+                (w, tag)
+            })
+            .collect()
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
         sentences.into_iter().map(|s| self.tag(s)).collect()
     }
     fn evaluate(&self, sentences: &Bound<'_, PyList>) -> f64 {
-        let mut correct = 0u64; let mut total = 0u64;
+        let mut correct = 0u64;
+        let mut total = 0u64;
         for item in sentences.iter() {
             let sent: Vec<(String, String)> = item.extract().unwrap_or_default();
             let words: Vec<String> = sent.iter().map(|(w, _)| w.clone()).collect();
             let gold_tags: Vec<String> = sent.iter().map(|(_, t)| t.clone()).collect();
             let pred = self.tag(words);
-            for (p, g) in pred.iter().zip(gold_tags.iter()) { if &p.1 == g { correct += 1; } }
+            for (p, g) in pred.iter().zip(gold_tags.iter()) {
+                if &p.1 == g {
+                    correct += 1;
+                }
+            }
             total += sent.len() as u64;
         }
-        if total == 0 { return 0.0; }
+        if total == 0 {
+            return 0.0;
+        }
         correct as f64 / total as f64
     }
 }
@@ -166,14 +206,23 @@ impl TrigramTagger {
             let mut prev1 = "START".to_string();
             for (word, tag) in &sent {
                 let key = (prev2.clone(), prev1.clone(), word.clone());
-                counts.entry(key).or_default().entry(tag.clone()).and_modify(|c| *c += 1).or_insert(1);
+                counts
+                    .entry(key)
+                    .or_default()
+                    .entry(tag.clone())
+                    .and_modify(|c| *c += 1)
+                    .or_insert(1);
                 *tag_counts.entry(tag.clone()).or_insert(0) += 1;
                 prev2.clone_from(&prev1);
                 prev1 = tag.clone();
             }
         }
         for (key, tag_count) in &counts {
-            let best = tag_count.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone()).unwrap_or_default();
+            let best = tag_count
+                .iter()
+                .max_by_key(|(_, c)| **c)
+                .map(|(t, _)| t.clone())
+                .unwrap_or_default();
             self.trigram_map.insert(key.clone(), best);
         }
         self.default_tag = tag_counts.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone());
@@ -182,28 +231,43 @@ impl TrigramTagger {
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
         let mut prev2 = "START".to_string();
         let mut prev1 = "START".to_string();
-        tokens.into_iter().map(|w| {
-            let key = (prev2.clone(), prev1.clone(), w.clone());
-            let tag = self.trigram_map.get(&key).or(self.default_tag.as_ref()).cloned().unwrap_or_default();
-            prev2 = prev1.clone();
-            prev1 = tag.clone();
-            (w, tag)
-        }).collect()
+        tokens
+            .into_iter()
+            .map(|w| {
+                let key = (prev2.clone(), prev1.clone(), w.clone());
+                let tag = self
+                    .trigram_map
+                    .get(&key)
+                    .or(self.default_tag.as_ref())
+                    .cloned()
+                    .unwrap_or_default();
+                prev2 = prev1.clone();
+                prev1 = tag.clone();
+                (w, tag)
+            })
+            .collect()
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
         sentences.into_iter().map(|s| self.tag(s)).collect()
     }
     fn evaluate(&self, sentences: &Bound<'_, PyList>) -> f64 {
-        let mut correct = 0u64; let mut total = 0u64;
+        let mut correct = 0u64;
+        let mut total = 0u64;
         for item in sentences.iter() {
             let sent: Vec<(String, String)> = item.extract().unwrap_or_default();
             let words: Vec<String> = sent.iter().map(|(w, _)| w.clone()).collect();
             let gold_tags: Vec<String> = sent.iter().map(|(_, t)| t.clone()).collect();
             let pred = self.tag(words);
-            for (p, g) in pred.iter().zip(gold_tags.iter()) { if &p.1 == g { correct += 1; } }
+            for (p, g) in pred.iter().zip(gold_tags.iter()) {
+                if &p.1 == g {
+                    correct += 1;
+                }
+            }
             total += sent.len() as u64;
         }
-        if total == 0 { return 0.0; }
+        if total == 0 {
+            return 0.0;
+        }
         correct as f64 / total as f64
     }
 }
@@ -245,32 +309,43 @@ impl AffixTagger {
         Ok(())
     }
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
-        tokens.into_iter().map(|w| {
-            let affix = if self.use_suffix {
-                let n = w.len().min(3);
-                SmolStr::new(&w[w.len() - n..])
-            } else {
-                SmolStr::new(&w[..w.len().min(3)])
-            };
-            let map = if self.use_suffix { &self.suffix_map } else { &self.prefix_map };
-            let tag = map.get(&affix).or(self.default_tag.as_ref()).cloned().unwrap_or_default();
-            (w, tag.to_string())
-        }).collect()
+        tokens
+            .into_iter()
+            .map(|w| {
+                let affix = if self.use_suffix {
+                    let n = w.len().min(3);
+                    SmolStr::new(&w[w.len() - n..])
+                } else {
+                    SmolStr::new(&w[..w.len().min(3)])
+                };
+                let map = if self.use_suffix { &self.suffix_map } else { &self.prefix_map };
+                let tag =
+                    map.get(&affix).or(self.default_tag.as_ref()).cloned().unwrap_or_default();
+                (w, tag.to_string())
+            })
+            .collect()
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
         sentences.into_iter().map(|s| self.tag(s)).collect()
     }
     fn evaluate(&self, sentences: &Bound<'_, PyList>) -> f64 {
-        let mut correct = 0u64; let mut total = 0u64;
+        let mut correct = 0u64;
+        let mut total = 0u64;
         for item in sentences.iter() {
             let sent: Vec<(String, String)> = item.extract().unwrap_or_default();
             let words: Vec<String> = sent.iter().map(|(w, _)| w.clone()).collect();
             let gold_tags: Vec<String> = sent.iter().map(|(_, t)| t.clone()).collect();
             let pred = self.tag(words);
-            for (p, g) in pred.iter().zip(gold_tags.iter()) { if &p.1 == g { correct += 1; } }
+            for (p, g) in pred.iter().zip(gold_tags.iter()) {
+                if &p.1 == g {
+                    correct += 1;
+                }
+            }
             total += sent.len() as u64;
         }
-        if total == 0 { return 0.0; }
+        if total == 0 {
+            return 0.0;
+        }
         correct as f64 / total as f64
     }
 }
@@ -295,27 +370,39 @@ impl RegexpTagger {
         Ok(Self { rules, default_tag: None })
     }
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
-        tokens.into_iter().map(|w| {
-            for (re, tag) in &self.rules {
-                if re.is_match(&w) { return (w, tag.to_string()); }
-            }
-            (w, self.default_tag.clone().unwrap_or_default().to_string())
-        }).collect()
+        tokens
+            .into_iter()
+            .map(|w| {
+                for (re, tag) in &self.rules {
+                    if re.is_match(&w) {
+                        return (w, tag.to_string());
+                    }
+                }
+                (w, self.default_tag.clone().unwrap_or_default().to_string())
+            })
+            .collect()
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
         sentences.into_iter().map(|s| self.tag(s)).collect()
     }
     fn evaluate(&self, sentences: &Bound<'_, PyList>) -> f64 {
-        let mut correct = 0u64; let mut total = 0u64;
+        let mut correct = 0u64;
+        let mut total = 0u64;
         for item in sentences.iter() {
             let sent: Vec<(String, String)> = item.extract().unwrap_or_default();
             let words: Vec<String> = sent.iter().map(|(w, _)| w.clone()).collect();
             let gold_tags: Vec<String> = sent.iter().map(|(_, t)| t.clone()).collect();
             let pred = self.tag(words);
-            for (p, g) in pred.iter().zip(gold_tags.iter()) { if &p.1 == g { correct += 1; } }
+            for (p, g) in pred.iter().zip(gold_tags.iter()) {
+                if &p.1 == g {
+                    correct += 1;
+                }
+            }
             total += sent.len() as u64;
         }
-        if total == 0 { return 0.0; }
+        if total == 0 {
+            return 0.0;
+        }
         correct as f64 / total as f64
     }
 }

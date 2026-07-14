@@ -139,8 +139,9 @@ pub(crate) enum Literal {
 impl Ord for Literal {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         match (self, other) {
-            (Self::Pos(p1, a1), Self::Pos(p2, a2))
-            | (Self::Neg(p1, a1), Self::Neg(p2, a2)) => p1.cmp(p2).then_with(|| a1.cmp(a2)),
+            (Self::Pos(p1, a1), Self::Pos(p2, a2)) | (Self::Neg(p1, a1), Self::Neg(p2, a2)) => {
+                p1.cmp(p2).then_with(|| a1.cmp(a2))
+            }
             (Self::Pos(..), Self::Neg(..)) => std::cmp::Ordering::Less,
             (Self::Neg(..), Self::Pos(..)) => std::cmp::Ordering::Greater,
         }

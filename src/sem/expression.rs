@@ -256,27 +256,15 @@ impl Expression {
                     _ => Self::Application(Box::new(f_simpl), Box::new(arg_simpl)),
                 }
             }
-            Self::Lambda(binder, body) => {
-                Self::Lambda(binder.clone(), Box::new(body.simplify()))
-            }
-            Self::Exists(binder, body) => {
-                Self::Exists(binder.clone(), Box::new(body.simplify()))
-            }
-            Self::All(binder, body) => {
-                Self::All(binder.clone(), Box::new(body.simplify()))
-            }
-            Self::And(a, b) => {
-                Self::And(Box::new(a.simplify()), Box::new(b.simplify()))
-            }
+            Self::Lambda(binder, body) => Self::Lambda(binder.clone(), Box::new(body.simplify())),
+            Self::Exists(binder, body) => Self::Exists(binder.clone(), Box::new(body.simplify())),
+            Self::All(binder, body) => Self::All(binder.clone(), Box::new(body.simplify())),
+            Self::And(a, b) => Self::And(Box::new(a.simplify()), Box::new(b.simplify())),
             Self::Or(a, b) => Self::Or(Box::new(a.simplify()), Box::new(b.simplify())),
             Self::Not(expr) => Self::Not(Box::new(expr.simplify())),
             Self::If(a, b) => Self::If(Box::new(a.simplify()), Box::new(b.simplify())),
-            Self::Iff(a, b) => {
-                Self::Iff(Box::new(a.simplify()), Box::new(b.simplify()))
-            }
-            Self::Equality(a, b) => {
-                Self::Equality(Box::new(a.simplify()), Box::new(b.simplify()))
-            }
+            Self::Iff(a, b) => Self::Iff(Box::new(a.simplify()), Box::new(b.simplify())),
+            Self::Equality(a, b) => Self::Equality(Box::new(a.simplify()), Box::new(b.simplify())),
             _ => self.clone(),
         }
     }

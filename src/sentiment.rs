@@ -135,7 +135,9 @@ impl SentimentIntensityAnalyzer {
 
         while i < word_refs.len() {
             let word = word_refs[i];
-            let mut valence = if let Some(&v) = self.lexicon.get(word) { v } else {
+            let mut valence = if let Some(&v) = self.lexicon.get(word) {
+                v
+            } else {
                 i += 1;
                 continue;
             };

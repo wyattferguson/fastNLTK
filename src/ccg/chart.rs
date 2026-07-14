@@ -129,8 +129,10 @@ impl CCGChartParser {
                     }
 
                     // Wrap edges in Rc for O(1) clone in combined()
-                    let left_rcs: Vec<Rc<CCGEdge>> = lefts.iter().map(|e| Rc::new(e.clone())).collect();
-                    let right_rcs: Vec<Rc<CCGEdge>> = rights.iter().map(|e| Rc::new(e.clone())).collect();
+                    let left_rcs: Vec<Rc<CCGEdge>> =
+                        lefts.iter().map(|e| Rc::new(e.clone())).collect();
+                    let right_rcs: Vec<Rc<CCGEdge>> =
+                        rights.iter().map(|e| Rc::new(e.clone())).collect();
 
                     for l in &left_rcs {
                         for r in &right_rcs {

@@ -65,13 +65,34 @@ impl Tokenizer {
         };
 
         match c {
-            '(' => { self.advance(); Ok(Token::LParen) }
-            ')' => { self.advance(); Ok(Token::RParen) }
-            ',' => { self.advance(); Ok(Token::Comma) }
-            '.' => { self.advance(); Ok(Token::Dot) }
-            '\\' => { self.advance(); Ok(Token::Lambda) }
-            '^' => { self.advance(); Ok(Token::And) }
-            '|' => { self.advance(); Ok(Token::Or) }
+            '(' => {
+                self.advance();
+                Ok(Token::LParen)
+            }
+            ')' => {
+                self.advance();
+                Ok(Token::RParen)
+            }
+            ',' => {
+                self.advance();
+                Ok(Token::Comma)
+            }
+            '.' => {
+                self.advance();
+                Ok(Token::Dot)
+            }
+            '\\' => {
+                self.advance();
+                Ok(Token::Lambda)
+            }
+            '^' => {
+                self.advance();
+                Ok(Token::And)
+            }
+            '|' => {
+                self.advance();
+                Ok(Token::Or)
+            }
             '=' => {
                 self.advance();
                 if self.peek() == Some('>') {
@@ -104,8 +125,14 @@ impl Tokenizer {
                     Err(format!("Unexpected '<' at position {}", self.pos))
                 }
             }
-            '&' => { self.advance(); Ok(Token::And) }
-            ':' => { self.advance(); Ok(Token::TypeColon) }
+            '&' => {
+                self.advance();
+                Ok(Token::And)
+            }
+            ':' => {
+                self.advance();
+                Ok(Token::TypeColon)
+            }
             _ if c.is_alphabetic() || c == '_' => {
                 let mut name = String::new();
                 while let Some(ch) = self.peek() {

@@ -3,8 +3,8 @@
 //! Resolves `nltk_data` paths and loads serialized models (pickle, bincode).
 //! Compatible with NLTK's data directory structure.
 
-use std::sync::LazyLock;
 use std::path::PathBuf;
+use std::sync::LazyLock;
 
 /// Search paths for `nltk_data`, computed once at first use.
 static DATA_SEARCH_PATHS: LazyLock<Vec<PathBuf>> = LazyLock::new(|| {

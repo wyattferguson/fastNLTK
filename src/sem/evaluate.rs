@@ -3,7 +3,6 @@
 //! Evaluates `Expression` values in a first-order model with
 //! domain, valuation, and variable assignment.
 
-
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 

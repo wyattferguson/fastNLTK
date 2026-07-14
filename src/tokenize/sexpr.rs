@@ -25,11 +25,7 @@ impl SExprTokenizer {
             return Err(PyValueError::new_err("parens must contain exactly two characters"));
         }
         let chars: Vec<char> = parens.chars().collect();
-        Ok(Self {
-            open_paren: chars[0].to_string(),
-            close_paren: chars[1].to_string(),
-            strict,
-        })
+        Ok(Self { open_paren: chars[0].to_string(), close_paren: chars[1].to_string(), strict })
     }
 
     fn tokenize(&self, text: &str) -> PyResult<Vec<String>> {

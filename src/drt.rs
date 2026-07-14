@@ -2,7 +2,7 @@
 //!
 //! Implements NLTK's `nltk.sem.drt` module:
 //!   - DRS (Discourse Representation Structure) with universe + conditions
-//!   - DRS parsing from string format: ([x,y],[dog(x),cat(y)])
+//!   - DRS parsing from string format: (\[x,y\],\[dog(x),cat(y)\])
 //!   - DRS conditions: Predicate, Equality, Negation, Implication, Disjunction
 //!   - DRS -> FOL conversion
 //!   - DRS embedding (model evaluation)
@@ -72,7 +72,7 @@ impl fmt::Display for DRSCondition {
 // ═══════════════════════════════════════════════════════════
 
 impl DRS {
-    /// Parse a DRS from bracket notation: ([x,y],[dog(x),cat(y)])
+    /// Parse a DRS from bracket notation: (\[x,y\],\[dog(x),cat(y)\])
     pub fn from_string(input: &str) -> Result<Self, String> {
         let input = input.trim();
         if !input.starts_with('(') || !input.ends_with(')') {

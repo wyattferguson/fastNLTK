@@ -5,9 +5,9 @@
 
 use std::collections::HashMap;
 
-use std::sync::LazyLock;
 use parking_lot::Mutex;
 use regex::Regex;
+use std::sync::LazyLock;
 
 static REGEX_CACHE: LazyLock<Mutex<HashMap<(String, u32), Regex>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));

@@ -67,7 +67,9 @@ impl CCGLexicon {
         let mut result: Vec<(String, Vec<String>)> = self
             .entries
             .iter()
-            .map(|(w, cats)| (w.to_string(), cats.iter().map(std::string::ToString::to_string).collect()))
+            .map(|(w, cats)| {
+                (w.to_string(), cats.iter().map(std::string::ToString::to_string).collect())
+            })
             .collect();
         result.sort_by(|a, b| a.0.cmp(&b.0));
         result

@@ -146,11 +146,7 @@ impl RegexpParser {
         }
 
         // Return (word, iob_tag) pairs
-        words
-            .into_iter()
-            .zip(iob)
-            .map(|(w, i)| (w.to_string(), i.to_string()))
-            .collect()
+        words.into_iter().zip(iob).map(|(w, i)| (w.to_string(), i.to_string())).collect()
     }
 }
 

@@ -154,11 +154,11 @@ impl PunktSentenceTokenizer {
                         || bytes[i] == b'\n'
                         || bytes[i] == b'"'
                         || bytes[i] == b'\'')
-                    {
-                        let end = i;
-                        spans.push((start, end));
-                        start = end;
-                    }
+                {
+                    let end = i;
+                    spans.push((start, end));
+                    start = end;
+                }
             }
         }
         if start < text.len() {
@@ -295,15 +295,14 @@ impl PunktSentenceTokenizer {
             }
 
             // Multi-dot tokens like "U.S." — treat as abbreviation pattern
-            if tok_text.matches('.').count() > 1
-                && idx + 1 < tokens.len() {
-                    let next = &tokens[idx + 1].1;
-                    if let Some(c) = next.chars().next() {
-                        if c.is_lowercase() || c.is_ascii_uppercase() {
-                            return false;
-                        }
+            if tok_text.matches('.').count() > 1 && idx + 1 < tokens.len() {
+                let next = &tokens[idx + 1].1;
+                if let Some(c) = next.chars().next() {
+                    if c.is_lowercase() || c.is_ascii_uppercase() {
+                        return false;
                     }
                 }
+            }
         }
 
         // For ! and ?, these are almost always sentence boundaries

@@ -47,7 +47,7 @@ pub struct MaxentClassifier {
     labels: Vec<String>,
     /// Feature names in sorted order
     feature_names: Vec<String>,
-    /// Weight matrix: [`label_index`][feature_index] → weight
+    /// Weight matrix: \[`label_index`\]\[`feature_index`\] → weight
     weights: Vec<Vec<f64>>,
     /// Max iterations used during training
     max_iter: usize,
@@ -57,12 +57,7 @@ pub struct MaxentClassifier {
 impl MaxentClassifier {
     #[new]
     fn new() -> Self {
-        Self {
-            labels: Vec::new(),
-            feature_names: Vec::new(),
-            weights: Vec::new(),
-            max_iter: 100,
-        }
+        Self { labels: Vec::new(), feature_names: Vec::new(), weights: Vec::new(), max_iter: 100 }
     }
 
     /// Train the classifier using Generalized Iterative Scaling.

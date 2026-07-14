@@ -21,7 +21,7 @@ use crate::error::FastNltkError;
 pub struct CFG {
     start_symbol: String,
     productions: Vec<Production>,
-    /// lhs -> [productions] lookup
+    /// lhs -> \[`productions`\] lookup
     lhs_index: HashMap<String, Vec<usize>>,
     /// nonterminals
     nonterminals: Vec<String>,

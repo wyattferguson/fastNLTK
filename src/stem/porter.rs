@@ -212,15 +212,14 @@ fn porter_stem(word: &str) -> String {
     }
 
     // Step 5a
-    if w.len() >= 2
-        && w[w.len() - 1] == 'e' {
-            let m = measure(&w[..w.len() - 1]);
-            if m > 1 {
-                w.pop();
-            } else if m == 1 && !ends_with_cvc(&w[..w.len() - 1]) {
-                w.pop();
-            }
+    if w.len() >= 2 && w[w.len() - 1] == 'e' {
+        let m = measure(&w[..w.len() - 1]);
+        if m > 1 {
+            w.pop();
+        } else if m == 1 && !ends_with_cvc(&w[..w.len() - 1]) {
+            w.pop();
         }
+    }
 
     // Step 5b
     if w.len() > 1 && w[w.len() - 1] == 'l' && double_consonant(&w) && measure(&w) > 1 {

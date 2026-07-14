@@ -34,26 +34,39 @@ impl FreqDist {
     #[pyo3(signature = (samples=None))]
     fn new(samples: Option<Vec<String>>) -> Self {
         let mut fd = Self { counts: HashMap::new(), total: 0 };
-        if let Some(s) = samples { fd.update(s); }
+        if let Some(s) = samples {
+            fd.update(s);
+        }
         fd
     }
     #[allow(non_snake_case)]
-    fn N(&self) -> u64 { self.total }
+    fn N(&self) -> u64 {
+        self.total
+    }
     #[allow(non_snake_case)]
-    fn B(&self) -> usize { self.counts.len() }
+    fn B(&self) -> usize {
+        self.counts.len()
+    }
     fn freq(&self, sample: &str) -> f64 {
-        if self.total == 0 { return 0.0; }
+        if self.total == 0 {
+            return 0.0;
+        }
         self.counts.get(sample).copied().unwrap_or(0) as f64 / self.total as f64
     }
     fn max(&self) -> Option<String> {
         self.counts.iter().max_by_key(|(_, &count)| count).map(|(sample, _)| sample.clone())
     }
     fn hapaxes(&self) -> Vec<String> {
-        self.counts.iter().filter(|(_, &count)| count == 1).map(|(sample, _)| sample.clone()).collect()
+        self.counts
+            .iter()
+            .filter(|(_, &count)| count == 1)
+            .map(|(sample, _)| sample.clone())
+            .collect()
     }
     fn samples(&self) -> Vec<String> {
         let mut s: Vec<String> = self.counts.keys().cloned().collect();
-        s.sort(); s
+        s.sort();
+        s
     }
     fn update(&mut self, samples: Vec<String>) {
         for sample in samples {
@@ -65,11 +78,21 @@ impl FreqDist {
         *self.counts.entry(sample.to_string()).or_insert(0) += count;
         self.total += count;
     }
-    fn copy(&self) -> Self { self.clone() }
-    fn __len__(&self) -> usize { self.total as usize }
-    fn __repr__(&self) -> String { format!("<FreqDist with {} samples and {} outcomes>", self.counts.len(), self.total) }
-    fn __getitem__(&self, sample: &str) -> u64 { self.counts.get(sample).copied().unwrap_or(0) }
-    fn __contains__(&self, sample: &str) -> bool { self.counts.contains_key(sample) }
+    fn copy(&self) -> Self {
+        self.clone()
+    }
+    fn __len__(&self) -> usize {
+        self.total as usize
+    }
+    fn __repr__(&self) -> String {
+        format!("<FreqDist with {} samples and {} outcomes>", self.counts.len(), self.total)
+    }
+    fn __getitem__(&self, sample: &str) -> u64 {
+        self.counts.get(sample).copied().unwrap_or(0)
+    }
+    fn __contains__(&self, sample: &str) -> bool {
+        self.counts.contains_key(sample)
+    }
     fn __add__(&self, other: &Self) -> Self {
         let mut result = self.clone();
         for (sample, count) in &other.counts {
@@ -124,19 +147,33 @@ pub struct ConditionalFreqDist {
 #[pymethods]
 impl ConditionalFreqDist {
     #[new]
-    fn new() -> Self { Self { conditions: HashMap::new() } }
+    fn new() -> Self {
+        Self { conditions: HashMap::new() }
+    }
     fn conditions(&self) -> Vec<String> {
         let mut conds: Vec<String> = self.conditions.keys().cloned().collect();
-        conds.sort(); conds
+        conds.sort();
+        conds
     }
     #[allow(non_snake_case)]
-    fn N(&self) -> u64 { self.conditions.values().map(FreqDist::N).sum() }
-    fn inc(&mut self, condition: &str, sample: &str) {
-        self.conditions.entry(condition.to_string()).or_insert_with(|| FreqDist::new(None)).inc(sample, 1);
+    fn N(&self) -> u64 {
+        self.conditions.values().map(FreqDist::N).sum()
     }
-    fn freqdist(&self, condition: &str) -> Option<FreqDist> { self.conditions.get(condition).cloned() }
-    fn __getitem__(&self, condition: &str) -> Option<FreqDist> { self.freqdist(condition) }
-    fn __contains__(&self, condition: &str) -> bool { self.conditions.contains_key(condition) }
+    fn inc(&mut self, condition: &str, sample: &str) {
+        self.conditions
+            .entry(condition.to_string())
+            .or_insert_with(|| FreqDist::new(None))
+            .inc(sample, 1);
+    }
+    fn freqdist(&self, condition: &str) -> Option<FreqDist> {
+        self.conditions.get(condition).cloned()
+    }
+    fn __getitem__(&self, condition: &str) -> Option<FreqDist> {
+        self.freqdist(condition)
+    }
+    fn __contains__(&self, condition: &str) -> bool {
+        self.conditions.contains_key(condition)
+    }
     fn most_common(&self, n: Option<usize>) -> Vec<(String, Vec<(String, u64)>)> {
         self.conditions.iter().map(|(cond, fd)| (cond.clone(), fd.most_common(n))).collect()
     }

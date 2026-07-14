@@ -3,8 +3,8 @@
 //! Implements `MLEProbDist` (maximum likelihood) and `LaplaceProbDist`
 //! (add-one smoothing) matching NLTK's API.
 
-use pyo3::prelude::*;
 use crate::probability::FreqDist;
+use pyo3::prelude::*;
 
 /// Maximum Likelihood Estimation probability distribution.
 #[pyclass(name = "MLEProbDist", module = "fastnltk._rust")]
@@ -17,15 +17,25 @@ pub struct MLEProbDist {
 impl MLEProbDist {
     #[new]
     #[pyo3(signature = (freqdist, _bins=None))]
-    fn new(freqdist: FreqDist, _bins: Option<usize>) -> Self { Self { freqdist } }
+    fn new(freqdist: FreqDist, _bins: Option<usize>) -> Self {
+        Self { freqdist }
+    }
     fn prob(&self, sample: &str) -> f64 {
         let n = self.freqdist.get_total();
-        if n == 0 { return 0.0; }
+        if n == 0 {
+            return 0.0;
+        }
         self.freqdist.get_count(sample) as f64 / n as f64
     }
-    fn max(&self) -> Option<String> { self.freqdist.max() }
-    fn freqdist(&self) -> FreqDist { self.freqdist.clone() }
-    fn samples(&self) -> Vec<String> { self.freqdist.samples() }
+    fn max(&self) -> Option<String> {
+        self.freqdist.max()
+    }
+    fn freqdist(&self) -> FreqDist {
+        self.freqdist.clone()
+    }
+    fn samples(&self) -> Vec<String> {
+        self.freqdist.samples()
+    }
 }
 
 /// Laplace (add-one) smoothed probability distribution.
@@ -50,16 +60,22 @@ impl LaplaceProbDist {
         let count = self.freqdist.get_count(sample);
         (count + 1) as f64 / (n + b as u64) as f64
     }
-    fn max(&self) -> Option<String> { self.freqdist.max() }
-    fn freqdist(&self) -> FreqDist { self.freqdist.clone() }
-    fn samples(&self) -> Vec<String> { self.freqdist.samples() }
+    fn max(&self) -> Option<String> {
+        self.freqdist.max()
+    }
+    fn freqdist(&self) -> FreqDist {
+        self.freqdist.clone()
+    }
+    fn samples(&self) -> Vec<String> {
+        self.freqdist.samples()
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::probability::FreqDist;
     use crate::probability::ConditionalFreqDist;
+    use crate::probability::FreqDist;
 
     fn sample_fd() -> FreqDist {
         let mut fd = FreqDist::new(None);

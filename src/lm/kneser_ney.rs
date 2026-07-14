@@ -31,7 +31,9 @@ impl KneserNeyInterpolated {
     fn fit(&mut self, sentences: Vec<Vec<String>>) {
         for sentence in &sentences {
             let mut tokens = vec!["<s>".to_string(); self.order - 1];
-            for word in sentence { tokens.push(word.clone()); }
+            for word in sentence {
+                tokens.push(word.clone());
+            }
             tokens.push("</s>".to_string());
             for token in &tokens {
                 *self.counts.entry(token.clone()).or_insert(0.0) += 1.0;
@@ -43,7 +45,9 @@ impl KneserNeyInterpolated {
 
     #[pyo3(signature = (word, _context=None))]
     fn score(&self, word: &str, _context: Option<Vec<String>>) -> f64 {
-        if !self.fitted { return 0.0; }
+        if !self.fitted {
+            return 0.0;
+        }
         let count = self.counts.get(word).copied().unwrap_or(0.0);
         let d = self.discount;
         let max_term = (count - d).max(0.0) / self.total.max(1.0);
@@ -52,6 +56,10 @@ impl KneserNeyInterpolated {
         max_term + lambda * unk_prob
     }
 
-    fn order(&self) -> usize { self.order }
-    fn fitted(&self) -> bool { self.fitted }
+    fn order(&self) -> usize {
+        self.order
+    }
+    fn fitted(&self) -> bool {
+        self.fitted
+    }
 }

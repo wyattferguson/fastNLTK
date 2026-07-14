@@ -5,9 +5,9 @@
 //!   - Punctuation splitting (parentheses, quotes, commas, etc.)
 //!   - Clitics and hyphenated words
 
-use std::sync::LazyLock;
 use pyo3::prelude::*;
 use regex::Regex;
+use std::sync::LazyLock;
 
 /// Contraction/starting rules applied in order. Regexes pre-compiled at load time.
 static CONTRACTIONS2: LazyLock<Vec<(Regex, &str)>> = LazyLock::new(|| {
@@ -121,11 +121,13 @@ impl TreebankWordDetokenizer {
     fn detokenize(&self, tokens: Vec<String>) -> String {
         let mut result = String::new();
         for (i, token) in tokens.iter().enumerate() {
-            if i > 0 && !matches!(
-                token.as_str(),
-                "." | "," | "!" | "?" | ":" | ";" | ")" | "]" | "}" | "%" | "''" | "'" | "n't"
-            ) && !token.starts_with('\'')
-            && !matches!(token.as_str(), "(" | "[" | "{" | "``")
+            if i > 0
+                && !matches!(
+                    token.as_str(),
+                    "." | "," | "!" | "?" | ":" | ";" | ")" | "]" | "}" | "%" | "''" | "'" | "n't"
+                )
+                && !token.starts_with('\'')
+                && !matches!(token.as_str(), "(" | "[" | "{" | "``")
             {
                 result.push(' ');
             }

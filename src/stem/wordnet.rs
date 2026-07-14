@@ -74,7 +74,10 @@ impl WordNetData {
     }
 
     fn lookup_exception(&self, word: &str, pos: &str) -> Option<&str> {
-        self.exceptions.get(pos).and_then(|m| m.get(&word.to_lowercase())).map(std::string::String::as_str)
+        self.exceptions
+            .get(pos)
+            .and_then(|m| m.get(&word.to_lowercase()))
+            .map(std::string::String::as_str)
     }
 }
 
