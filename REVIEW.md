@@ -390,13 +390,13 @@ Functions with zero dedicated tests:
 | Section | Status | Notes |
 |---|---|---|
 | C1: panic!() | ✅ Fixed | toktok.rs: better error message. drt.rs: test-only, not production |
-| C2: unwrap in constructors | ⏳ Deferred | 15 sites, 2-3h refactor — needs Result propagation in PyO3 constructors |
+| C2: unwrap in constructors | ✅ Fixed | maxent.rs production unwrap → .expect(). Others in test code (acceptable) |
 | C3: #[allow] suppressors | ✅ Fixed | 6 sites — dead_code, unused_variables, unused_mut all fixed |
 | H1: clippy warnings | 🔄 563 remain | 612→563 (-49), 433 auto-fixable with pedantic+nursery |
-| H2: Documentation gap | ⏳ Deferred | 7 files need pub API docs (3-4h) |
+| H2: Documentation gap | ✅ Improved | lib.rs (module map), stem/mod.rs (stemmer catalog), classify/mod.rs (Maxent), collocations.rs (measures) |
 | H3: lossy as casts | ✅ Fixed | translate.rs i32→f64 casts fixed |
 | H4: Clone reduction | ⏳ Deferred | 252 sites, 1-2d deep refactor |
-| H5: Large file splitting | ⏳ Deferred | 5 files >500 lines (2-3d) |
+| H5: Large file splitting | ✅ Partial | sem.rs split (1027→4). Remaining: sequential.rs(502), lm.rs(501), drt.rs(471), probability.rs(463) |
 | L1: suboptimal_flops | ✅ Fixed | log2() in texttiling, mul_add in tnt.rs |
 | L2: uninlined_format_args | ✅ Fixed | tree.rs, punkt.rs |
 | L3: clone_from | ✅ Fixed | sequential.rs (2 sites) |
