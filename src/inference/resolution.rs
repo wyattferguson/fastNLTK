@@ -42,7 +42,7 @@ impl ResolutionProver {
         let goal = parse_fol(goal_str)
             .ok_or_else(|| PyValueError::new_err(format!("Cannot parse: {goal_str}")))?;
 
-        let mut clauses: Vec<Clause> = Vec::new();
+        let mut clauses: Vec<Clause> = Vec::with_capacity(16);
 
         // Negate goal for proof by contradiction
         let neg = goal.negate_nnf();

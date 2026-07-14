@@ -31,7 +31,7 @@ fn alpha(data: Vec<Vec<f64>>) -> f64 {
     }
     let n = data.len() as f64;
     let mut observed_disagreement = 0.0;
-    let mut all_values: Vec<f64> = Vec::new();
+    let mut all_values: Vec<f64> = Vec::with_capacity(data.len() * 2);
     for pair in &data {
         if pair.len() >= 2 {
             observed_disagreement += (pair[0] - pair[1]).abs();
