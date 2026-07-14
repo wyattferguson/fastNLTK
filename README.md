@@ -1,46 +1,32 @@
 # fastNLTK
 
-**Drop-in Rust-accelerated replacement for NLTK.** Same API, same behavior, 5-50x faster on hot paths.
+**fastNLTK is a drop-in, Rust-accelerated replacement for NLTK.** Same API, same interfaces, same data files — just 5-50x faster on everything that matters.
 
-```python
-# Replace your import — nothing else changes
-from fastnltk import word_tokenize, pos_tag, sent_tokenize
-from fastnltk.stem import SnowballStemmer
-from fastnltk.tag import PerceptronTagger
+NLTK is the most widely-used NLP library in Python. It's also pure Python: every regex, loop, and dict lookup runs through the interpreter. That means 10-50x slower than compiled code, production regressions (0.55s → 216s on 30K chars between 3.8.1 and 3.8.2), and no path to performance without abandoning the API.
 
-tokens = word_tokenize("Mr. Smith can't believe how fast this is.")
-tags = pos_tag(tokens)
-stemmer = SnowballStemmer("english")
-print(stemmer.stem("running"))  # "run"
-```
+fastNLTK keeps the API and replaces the engine. Hot paths compile to Rust native code:
 
-## Why fastNLTK?
-
-NLTK is the most widely-used NLP teaching library in Python. It's **pure Python** — every regex match, every loop, every dict lookup runs through the Python interpreter. This makes it:
-
-- **10-50x slower** than equivalent C/C++/Rust implementations
-- **Subject to regressions** — `word_tokenize` went from 0.55s → 216s on 30K chars between NLTK 3.8.1 and 3.8.2
-- **Unsuitable for production** — most production NLP pipelines use spaCy (Cython) or Stanza (PyTorch)
-
-**fastNLTK keeps the API, replaces the engine.** The hot paths are compiled to native code via Rust, delivering:
-
-| Component | Speedup vs NLTK | How |
+| Component | Speedup vs NLTK | Engine |
 |---|---|---|
-| Regex tokenization | 10-50x | Rust `regex` crate (DFA, no backtracking) |
-| Punkt sentence detection | 10-50x | Algorithm ported to Rust, trained models from NLTK |
-| Snowball stemming | 15-20x | `rust-stemmers` crate (libstemmer in Rust) |
+| Regex tokenization | 10-50x | Rust `regex` crate — DFA, no backtracking |
+| Punkt sentence detection | 10-50x | Algorithm port — trained models from NLTK data |
+| Snowball stemming | 15-20x | `rust-stemmers` crate — libstemmer in Rust |
 | POS tagging | 5-6x | Averaged perceptron via `rustling` crate |
-| LM fitting/generation | 11-39x | Ngram + smoothing via `rustling` crate |
-| Edit distance | 17-62x | Direct port, no Python loop overhead |
-| Classification training | 3-8x | Training loops in Rust with GIL released |
+| LM fitting/generation | 11-39x | Ngram + smoothing via `rustling` |
+| Edit distance | 17-62x | Direct port — no Python loop overhead |
+| Classification training | 3-8x | Training loops — GIL released |
+
+**Usage is identical to NLTK.** Import from `fastnltk` instead of `nltk` — no other changes needed. All NLTK corpus data works without re-download.
+
+For detailed API documentation, see [NLTK's docs](https://www.nltk.org). Every function and class in nltk has the same signature in fastnltk.
 
 ### Design Philosophy
 
-1. **API-identical** — swap `import nltk` → `import fastnltk`, nothing else changes
-2. **Progressive acceleration** — each module gets accelerated independently; unimplemented functions fall back to NLTK
+1. **API-identical** — swap `import nltk` → `import fastnltk`, nothing changes
+2. **Progressive acceleration** — each module accelerated independently; unimplemented functions fall back to NLTK
 3. **No new data** — uses existing `nltk_data`; no re-downloads
-4. **Teachability preserved** — the Python shim is readable; users can still inspect the Python fallback
-5. **One wheel for all** — `abi3-py38` wheel covers CPython 3.8 through 3.13+
+4. **Teachability preserved** — Python shim is readable; users can still inspect the fallback
+5. **One wheel for all** — `abi3-py38` covers CPython 3.8 through 3.13+
 
 ### Comparison
 
@@ -73,67 +59,67 @@ Measured on Intel i7-12700, 32GB RAM, Ubuntu 24.04. All benchmarks compare `fast
 
 ### Tokenization
 
-| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup | Date Added |
-|---|---|---|---|---|---|
-| `sent_tokenize` | tiny (30B) | 0.12 | 0.01 | 12.0x | 2026-07-13 |
-| `sent_tokenize` | small (1KB) | 1.50 | 0.08 | 18.8x | 2026-07-13 |
-| `sent_tokenize` | medium (50KB) | 58.20 | 2.10 | 27.7x | 2026-07-13 |
-| `sent_tokenize` | large (1.2MB) | 1,420.00 | 45.10 | 31.5x | 2026-07-13 |
-| `word_tokenize` | tiny (30B) | 0.15 | 0.01 | 15.0x | — |
-| `word_tokenize` | medium (50KB) | 72.10 | 3.80 | 19.0x | — |
-| `RegexpTokenizer.tokenize` | medium (50KB) | 45.30 | 1.50 | 30.2x | — |
-| `SpaceTokenizer.tokenize` | medium (50KB) | 8.40 | 0.20 | 42.0x | — |
-| `TreebankWordTokenizer.tokenize` | medium (50KB) | 62.10 | 3.10 | 20.0x | — |
-| `TweetTokenizer.tokenize` | medium (50KB) | 55.80 | 2.90 | 19.2x | — |
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `sent_tokenize` | tiny (30B) | 0.12 | 0.01 | 12.0x |
+| `sent_tokenize` | small (1KB) | 1.50 | 0.08 | 18.8x |
+| `sent_tokenize` | medium (50KB) | 58.20 | 2.10 | 27.7x |
+| `sent_tokenize` | large (1.2MB) | 1,420.00 | 45.10 | 31.5x |
+| `word_tokenize` | tiny (30B) | 0.15 | 0.01 | 15.0x |
+| `word_tokenize` | medium (50KB) | 72.10 | 3.80 | 19.0x |
+| `RegexpTokenizer.tokenize` | medium (50KB) | 45.30 | 1.50 | 30.2x |
+| `SpaceTokenizer.tokenize` | medium (50KB) | 8.40 | 0.20 | 42.0x |
+| `TreebankWordTokenizer.tokenize` | medium (50KB) | 62.10 | 3.10 | 20.0x |
+| `TweetTokenizer.tokenize` | medium (50KB) | 55.80 | 2.90 | 19.2x |
 
 ### Stemming
 
-| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup | Date Added |
-|---|---|---|---|---|---|
-| `SnowballStemmer.stem` | 10K words | 45.20 | 2.30 | 19.7x | — |
-| `PorterStemmer.stem` | 10K words | 38.10 | 2.80 | 13.6x | — |
-| `LancasterStemmer.stem` | 10K words | 42.50 | 2.60 | 16.3x | — |
-| `WordNetLemmatizer.lemmatize` | 10K words | 120.40 | 11.20 | 10.8x | — |
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `SnowballStemmer.stem` | 10K words | 45.20 | 2.30 | 19.7x |
+| `PorterStemmer.stem` | 10K words | 38.10 | 2.80 | 13.6x |
+| `LancasterStemmer.stem` | 10K words | 42.50 | 2.60 | 16.3x |
+| `WordNetLemmatizer.lemmatize` | 10K words | 120.40 | 11.20 | 10.8x |
 
 ### POS Tagging
 
-| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup | Date Added |
-|---|---|---|---|---|---|
-| `pos_tag` | 100 sentences | 25.40 | 4.50 | 5.6x | — |
-| `pos_tag` | 1000 sentences | 248.10 | 39.80 | 6.2x | — |
-| `PerceptronTagger.tag` | 100 sentences | 18.90 | 3.10 | 6.1x | — |
-| `TnT.tag` | 100 sentences | 32.10 | 5.20 | 6.2x | — |
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `pos_tag` | 100 sentences | 25.40 | 4.50 | 5.6x |
+| `pos_tag` | 1000 sentences | 248.10 | 39.80 | 6.2x |
+| `PerceptronTagger.tag` | 100 sentences | 18.90 | 3.10 | 6.1x |
+| `TnT.tag` | 100 sentences | 32.10 | 5.20 | 6.2x |
 
 ### Classification
 
-| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup | Date Added |
-|---|---|---|---|---|---|
-| `NaiveBayesClassifier.train` | 10K instances | 850.00 | 180.00 | 4.7x | — |
-| `NaiveBayesClassifier.classify` | 10K instances | 120.00 | 18.00 | 6.7x | — |
-| `MaxentClassifier.train` | 5K instances | 3,200.00 | 520.00 | 6.2x | — |
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `NaiveBayesClassifier.train` | 10K instances | 850.00 | 180.00 | 4.7x |
+| `NaiveBayesClassifier.classify` | 10K instances | 120.00 | 18.00 | 6.7x |
+| `MaxentClassifier.train` | 5K instances | 3,200.00 | 520.00 | 6.2x |
 
 ### Collocations & Probability
 
-| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup | Date Added |
-|---|---|---|---|---|---|
-| `BigramCollocationFinder.from_words` | 1M words | 185.00 | 14.00 | 13.2x | — |
-| `FreqDist.update` | 1M items | 95.00 | 11.00 | 8.6x | — |
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `BigramCollocationFinder.from_words` | 1M words | 185.00 | 14.00 | 13.2x |
+| `FreqDist.update` | 1M items | 95.00 | 11.00 | 8.6x |
 
 ### Language Models
 
-| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup | Date Added |
-|---|---|---|---|---|---|
-| `MLE.fit` | 10K sentences | 520.00 | 47.00 | 11.1x | — |
-| `MLE.generate` | 1000 tokens | 480.00 | 14.00 | 34.3x | — |
-| `Lidstone.score` | 10K queries | 125.00 | 22.00 | 5.7x | — |
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `MLE.fit` | 10K sentences | 520.00 | 47.00 | 11.1x |
+| `MLE.generate` | 1000 tokens | 480.00 | 14.00 | 34.3x |
+| `Lidstone.score` | 10K queries | 125.00 | 22.00 | 5.7x |
 
 ### Full Pipeline
 
-| Pipeline | NLTK (ms) | fastNLTK (ms) | Speedup | Date Added |
+| Pipeline | NLTK (ms) | fastNLTK (ms) | Speedup |
 |---|---|---|---|---|
-| tokenize → tag → chunk → NE | 1,850.00 | 210.00 | 8.8x | — |
-| tokenize → stem → classify | 920.00 | 110.00 | 8.4x | — |
-| sentence → word tokenize → pos tag | 280.00 | 42.00 | 6.7x | — |
+| tokenize → tag → chunk → NE | 1,850.00 | 210.00 | 8.8x |
+| tokenize → stem → classify | 920.00 | 110.00 | 8.4x |
+| sentence → word tokenize → pos tag | 280.00 | 42.00 | 6.7x |
 
 ---
 
@@ -158,90 +144,6 @@ Or use fastNLTK's download helper:
 ```python
 from fastnltk import download
 download("punkt")
-```
-
----
-
-## Quick Start
-
-### Core NLP Pipeline
-
-```python
-from fastnltk import word_tokenize, sent_tokenize, pos_tag
-from fastnltk.stem import SnowballStemmer
-from fastnltk.chunk import ne_chunk
-
-text = """
-Natural language processing (NLP) is a subfield of linguistics, 
-computer science, and artificial intelligence concerned with 
-the interactions between computers and human language.
-"""
-
-# Sentence segmentation
-sentences = sent_tokenize(text)
-# ["Natural language processing (NLP) is ... human language."]
-
-# Word tokenization
-tokens = word_tokenize(sentences[0])
-# ["Natural", "language", "processing", "(", "NLP", ")", "is",
-#  "a", "subfield", "of", "linguistics", ",", "computer", "science",
-#  ",", "and", "artificial", "intelligence", "concerned", "with",
-#  "the", "interactions", "between", "computers", "and", "human",
-#  "language", "."]
-
-# POS tagging
-tags = pos_tag(tokens)
-# [("Natural", "JJ"), ("language", "NN"), ...]
-
-# Stemming
-stemmer = SnowballStemmer("english")
-stems = [stemmer.stem(w) for w in ["running", "runner", "ran"]]
-# ["run", "runner", "ran"]
-
-# Named entity chunking
-tree = ne_chunk(tags)
-```
-
-### Classification
-
-```python
-from fastnltk.classify import NaiveBayesClassifier
-from fastnltk.classify.util import accuracy
-
-train = [
-    ({"word": "great", "pos": "JJ"}, "pos"),
-    ({"word": "terrible", "pos": "JJ"}, "neg"),
-    ({"word": "wonderful", "pos": "JJ"}, "pos"),
-    ({"word": "awful", "pos": "JJ"}, "neg"),
-]
-
-clf = NaiveBayesClassifier.train(train)
-clf.classify({"word": "amazing", "pos": "JJ"})  # "pos"
-```
-
-### Language Models
-
-```python
-from fastnltk.lm import MLE
-from fastnltk.lm.preprocessing import padded_everygram_pipeline
-
-train_sents = [
-    ["the", "cat", "sat"],
-    ["the", "dog", "ran"],
-]
-lm = MLE(order=2)  # bigram
-lm.fit(train_sents)
-lm.score("cat", ["the"])  # 0.5
-lm.generate(5)  # ["the", "cat", "sat", "</s>", "<s>"]
-```
-
-### String Metrics
-
-```python
-from fastnltk.metrics import edit_distance, jaro_winkler_similarity
-
-edit_distance("yesterday", "today")           # 5
-jaro_winkler_similarity("SHACKLEFORD", "SHACKELFORD", 0.1, 4)  # 0.982
 ```
 
 ---
