@@ -7,6 +7,7 @@ use pyo3::prelude::*;
 
 mod prelude;
 pub mod chunk;
+pub mod chat;
 pub mod classify;
 pub mod collocations;
 pub mod corpus;
@@ -58,6 +59,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // ── Chunking ───────────────────────────────────────
     chunk::register_module(m)?;
+
+    // ── Chat ──────────────────────────────────────────
+    chat::register_module(m)?;
 
     // ── Corpus ─────────────────────────────────────────
     corpus::register_module(m)?;
