@@ -57,16 +57,14 @@ class TestFreqDist:
 
 
 class TestConditionalFreqDist:
-    def test_matches_nltk_basic(self):
+    def test_basic(self):
         cfd = ConditionalFreqDist()
-        nltk_cfd = nltk.probability.ConditionalFreqDist()
         cfd.inc("A", "x")
         cfd.inc("A", "x")
         cfd.inc("A", "y")
         cfd.inc("B", "z")
-        nltk_cfd.inc("A", "x")
-        nltk_cfd.inc("A", "x")
-        nltk_cfd.inc("A", "y")
-        nltk_cfd.inc("B", "z")
-        assert cfd.N() == nltk_cfd.N()
-        assert set(cfd.conditions()) == set(nltk_cfd.conditions())
+        assert cfd.N() == 4
+        assert set(cfd.conditions()) == {"A", "B"}
+        assert cfd["A"]["x"] == 2
+        assert cfd["A"]["y"] == 1
+        assert cfd["B"]["z"] == 1

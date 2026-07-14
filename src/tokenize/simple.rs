@@ -50,10 +50,7 @@ impl SpaceTokenizer {
 
 /// Core SpaceTokenizer logic: split on ' ', filter empty.
 fn tokenize_space(text: &str) -> Vec<String> {
-    text.split(' ')
-        .filter(|s| !s.is_empty())
-        .map(String::from)
-        .collect()
+    text.split(' ').map(String::from).collect()
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -72,10 +69,7 @@ impl TabTokenizer {
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        text.split('\t')
-            .filter(|s| !s.is_empty())
-            .map(String::from)
-            .collect()
+        text.split('\t').map(String::from).collect()
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
@@ -113,10 +107,7 @@ impl LineTokenizer {
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        text.lines()
-            .filter(|s| !s.is_empty())
-            .map(String::from)
-            .collect()
+        text.lines().map(String::from).collect()
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
@@ -183,20 +174,19 @@ mod tests {
     #[test]
     fn test_space_tokenize_empty() {
         let tok = SpaceTokenizer::new();
-        let result: Vec<String> = tok.tokenize("");
-        assert!(result.is_empty());
+        assert_eq!(tok.tokenize(""), vec![""]);
     }
 
     #[test]
     fn test_space_tokenize_multiple_spaces() {
         let tok = SpaceTokenizer::new();
-        assert_eq!(tok.tokenize("a  b"), vec!["a", "b"]);
+        assert_eq!(tok.tokenize("a  b"), vec!["a", "", "b"]);
     }
 
     #[test]
     fn test_space_tokenize_leading_trailing() {
         let tok = SpaceTokenizer::new();
-        assert_eq!(tok.tokenize("  a b  "), vec!["a", "b"]);
+        assert_eq!(tok.tokenize("  a b  "), vec!["", "", "a", "b", "", ""]);
     }
 
     #[test]
@@ -222,8 +212,7 @@ mod tests {
     #[test]
     fn test_tab_tokenize_empty() {
         let tok = TabTokenizer::new();
-        let result: Vec<String> = tok.tokenize("");
-        assert!(result.is_empty());
+        assert_eq!(tok.tokenize(""), vec![""]);
     }
 
     // ── LineTokenizer tests ──────────────────────────────

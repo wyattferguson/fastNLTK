@@ -46,7 +46,7 @@ class TestTreebankWordTokenizer:
 
     def test_span_tokenize_basic(self):
         text = "Hello world."
-        expected = nltk.tokenize.TreebankWordTokenizer().span_tokenize(text)
+        expected = list(nltk.tokenize.TreebankWordTokenizer().span_tokenize(text))
         result = TreebankWordTokenizer().span_tokenize(text)
         assert result == expected
 

@@ -183,6 +183,9 @@ class LineTokenizer:
     def tokenize(self, text):
         return self._impl.tokenize(text)
 
+    def span_tokenize(self, text):
+        return self._impl.span_tokenize(text)
+
 
 class SpaceTokenizer:
     """Rust-accelerated space tokenizer."""

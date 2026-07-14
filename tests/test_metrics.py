@@ -35,45 +35,51 @@ class TestEditDistance:
 
 class TestJaccardDistance:
     def test_matches_nltk_identical(self):
-        expected = nltk.metrics.distance.jaccard_distance({"a", "b"}, {"a", "b"})
+        expected = nltk.jaccard_distance({"a", "b"}, {"a", "b"})
         result = jaccard_distance(["a", "b"], ["a", "b"])
         assert result == pytest.approx(expected)
 
     def test_matches_nltk_disjoint(self):
-        expected = nltk.metrics.distance.jaccard_distance({"a"}, {"b"})
+        expected = nltk.jaccard_distance({"a"}, {"b"})
         result = jaccard_distance(["a"], ["b"])
         assert result == pytest.approx(expected)
 
 
 class TestBinaryDistance:
     def test_matches_nltk_identical(self):
-        expected = nltk.metrics.distance.binary_distance({"a"}, {"a"})
+        expected = nltk.binary_distance({"a"}, {"a"})
         result = binary_distance(["a"], ["a"])
         assert result == pytest.approx(expected)
 
 
 class TestJaroSimilarity:
-    def test_matches_nltk_identical(self):
-        expected = nltk.metrics.distance.jaro_similarity("abc", "abc")
-        result = jaro_similarity("abc", "abc")
-        assert result == pytest.approx(expected)
+    def test_identical(self):
+        assert jaro_similarity("abc", "abc") == pytest.approx(1.0)
 
-    def test_matches_nltk_similar(self):
-        expected = nltk.metrics.distance.jaro_similarity("martha", "marhta")
+    def test_similar(self):
+        # martha vs marhta: expected ~0.944
         result = jaro_similarity("martha", "marhta")
-        assert result == pytest.approx(expected, rel=1e-4)
+        assert result == pytest.approx(0.944444, rel=1e-4)
+
+    def test_completely_different(self):
+        assert jaro_similarity("abc", "xyz") == pytest.approx(0.0)
 
 
 class TestJaroWinklerSimilarity:
-    def test_matches_nltk_identical(self):
-        expected = nltk.metrics.distance.jaro_winkler_similarity("abc", "abc")
-        result = jaro_winkler_similarity("abc", "abc")
-        assert result == pytest.approx(expected)
+    def test_identical(self):
+        assert jaro_winkler_similarity("abc", "abc") == pytest.approx(1.0)
+
+    def test_similar_prefix(self):
+        # "martha" vs "marhta" with common prefix "mar" → Winkler boost
+        result = jaro_winkler_similarity("martha", "marhta")
+        assert result > 0.95
 
 
 class TestDiceSimilarity:
-    def test_matches_nltk_identical(self):
-        # dice with identical bigrams should give high similarity
+    def test_identical(self):
         result = dice_similarity("hello world", "hello world")
-        # dice with identical bigrams should give high similarity
-        assert result > 0.5
+        assert result == pytest.approx(1.0)
+
+    def test_similar(self):
+        result = dice_similarity("hello world", "hello")
+        assert 0.0 < result < 1.0

@@ -42,7 +42,7 @@ class TestSpaceTokenizer:
 
     def test_span_tokenize_basic(self):
         text = "a b c"
-        expected = nltk.tokenize.SpaceTokenizer().span_tokenize(text)
+        expected = list(nltk.tokenize.SpaceTokenizer().span_tokenize(text))
         result = SpaceTokenizer().span_tokenize(text)
         assert result == expected
 
@@ -76,6 +76,6 @@ class TestLineTokenizer:
 
     def test_span_tokenize(self):
         text = "ab\ncd\nef"
-        expected = nltk.tokenize.LineTokenizer().span_tokenize(text)
+        expected = list(nltk.tokenize.LineTokenizer().span_tokenize(text))
         result = LineTokenizer().span_tokenize(text)
         assert result == expected
