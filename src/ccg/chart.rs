@@ -14,6 +14,7 @@ use crate::ccg::lexicon::CCGLexicon;
 use crate::ccg::{Category, CategoryKind};
 use crate::error::FastNltkError;
 use smallvec::{smallvec, SmallVec};
+use std::rc::Rc;
 
 /// Max edges per chart cell before heap allocation (typically 1-5 edges per cell).
 const CHART_CELL_INLINE: usize = 8;
@@ -26,8 +27,8 @@ struct CCGEdge {
     cat: Category,
     start: usize,
     end: usize,
-    left_child: Option<Box<CCGEdge>>,
-    right_child: Option<Box<CCGEdge>>,
+    left_child: Option<Rc<CCGEdge>>,
+    right_child: Option<Rc<CCGEdge>>,
     rule: String,
 }
 
@@ -43,13 +44,13 @@ impl CCGEdge {
         }
     }
 
-    fn combined(cat: Category, left: CCGEdge, right: CCGEdge, rule: &str) -> Self {
+    fn combined(cat: Category, left: &Rc<CCGEdge>, right: &Rc<CCGEdge>, rule: &str) -> Self {
         CCGEdge {
             cat,
             start: left.start,
             end: right.end,
-            left_child: Some(Box::new(left)),
-            right_child: Some(Box::new(right)),
+            left_child: Some(Rc::clone(left)),
+            right_child: Some(Rc::clone(right)),
             rule: rule.into(),
         }
     }
@@ -128,8 +129,12 @@ impl CCGChartParser {
                         continue;
                     }
 
-                    for l in lefts {
-                        for r in rights {
+                    // Wrap edges in Rc for O(1) clone in combined()
+                    let left_rcs: Vec<Rc<CCGEdge>> = lefts.iter().map(|e| Rc::new(e.clone())).collect();
+                    let right_rcs: Vec<Rc<CCGEdge>> = rights.iter().map(|e| Rc::new(e.clone())).collect();
+
+                    for l in &left_rcs {
+                        for r in &right_rcs {
                             for comb in &combinators {
                                 if let Some(result_kind) =
                                     apply_with_variants(l.cat.kind(), r.cat.kind(), comb)
@@ -140,8 +145,8 @@ impl CCGChartParser {
                                     {
                                         new_edges.push(CCGEdge::combined(
                                             result_cat,
-                                            l.clone(),
-                                            r.clone(),
+                                            l,
+                                            r,
                                             combinator::combinator_name(comb),
                                         ));
                                     }

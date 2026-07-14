@@ -3,6 +3,7 @@
 //! Implements all tokenizers from nltk.tokenize:
 //! simple (Space, Tab, Line, Char), regexp, Treebank, Tweet, Punkt, etc.
 
+pub mod logos_tokenizer;
 pub mod mwe;
 pub mod punkt;
 pub mod regexp;
@@ -54,6 +55,9 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Free functions
     m.add_function(wrap_pyfunction!(sent_tokenize_py, m)?)?;
     m.add_function(wrap_pyfunction!(word_tokenize_py, m)?)?;
+
+    // Logos fast tokenizer
+    logos_tokenizer::register_module(m)?;
 
     Ok(())
 }

@@ -1,0 +1,160 @@
+{
+  "timestamp": "2026-07-14T07:06:54Z",
+  "git_hash": "351aea6-dirty+debug",
+  "results": [
+    {
+      "name": "ToktokTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 81600
+      },
+      "nltk_ms": 8.518850023392588,
+      "fast_ms": 2.185350051149726,
+      "speedup": 3.8981626851546136,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "MWETokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "words": 13600
+      },
+      "nltk_ms": 0.9958000155165792,
+      "fast_ms": 0.8848499855957925,
+      "speedup": 1.1253885197795206,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "TextTilingTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 81600
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 4.329450021032244,
+      "iterations": 10,
+      "version": ""
+    },
+    {
+      "name": "windowdiff",
+      "group": "metrics",
+      "params": {
+        "chars": 12000
+      },
+      "nltk_ms": 3.1555999885313213,
+      "fast_ms": 0.026699970476329327,
+      "speedup": 118.18739617442262,
+      "fast_only_ms": 0.0,
+      "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "pk",
+      "group": "metrics",
+      "params": {
+        "chars": 12000
+      },
+      "nltk_ms": 4.756149894092232,
+      "fast_ms": 0.09280000813305378,
+      "speedup": 51.25161074633756,
+      "fast_only_ms": 0.0,
+      "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "HiddenMarkovModelTagger.tag",
+      "group": "tag",
+      "params": {
+        "words": 999
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.2690000692382455,
+      "iterations": 50,
+      "version": ""
+    },
+    {
+      "name": "KneserNeyInterpolated.score",
+      "group": "lm",
+      "params": {
+        "queries": 4
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.005500041879713535,
+      "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "CCG from_string",
+      "group": "ccg",
+      "params": {
+        "parses": 3500
+      },
+      "nltk_ms": 2.0441499655134976,
+      "fast_ms": 1.1174000101163983,
+      "speedup": 1.8293806577830267,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "TableauProver.prove",
+      "group": "inference",
+      "params": {
+        "formula": "P | ~P"
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.001400010660290718,
+      "iterations": 50,
+      "version": ""
+    },
+    {
+      "name": "ResolutionProver.prove",
+      "group": "inference",
+      "params": {
+        "formula": "P | ~P"
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.001500011421740055,
+      "iterations": 50,
+      "version": ""
+    },
+    {
+      "name": "DiscourseThread.answer_question",
+      "group": "inference",
+      "params": {},
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.004100031219422817,
+      "iterations": 50,
+      "version": ""
+    },
+    {
+      "name": "DefaultReasoner.extensions",
+      "group": "inference",
+      "params": {
+        "rules": 10
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 33.60879997489974,
+      "iterations": 50,
+      "version": ""
+    }
+  ]
+}
