@@ -255,7 +255,7 @@ impl NaiveBayesClassifier {
                     }
                 }
             }
-            if logprob > best_score || (logprob == best_score && logprob != f64::NEG_INFINITY) {
+            if logprob >= best_score && logprob != f64::NEG_INFINITY {
                 best_score = logprob;
                 best_label = label.clone();
             }
