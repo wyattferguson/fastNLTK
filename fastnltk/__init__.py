@@ -41,6 +41,7 @@ _modules = [
 
 for _mod_name in _modules:
     try:
-        importlib.import_module(f"fastnltk.{_mod_name}")
+        mod = importlib.import_module(f"fastnltk.{_mod_name}")
+        globals()[_mod_name] = mod
     except ImportError:
         pass

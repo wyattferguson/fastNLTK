@@ -27,3 +27,10 @@ class SentimentIntensityAnalyzer:
 
     def polarity_scores(self, text):
         return self._impl.polarity_scores(text)
+
+
+# ── NLTK re-exports for API compatibility ─────
+
+# Submodule pass-through
+sentiment_analyzer = _nltk_sentiment.sentiment_analyzer
+vader = _nltk_sentiment.vader

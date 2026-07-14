@@ -140,3 +140,36 @@ class PositiveNaiveBayesClassifier:
             ]
             return NaiveBayesClassifier.train(labeled)
         return _NltkPositiveNB.train(positive_featuresets, unlabeled_featuresets)
+
+
+# ── NLTK re-exports for API compatibility ─────
+
+# ── NLTK re-exports for API compatibility ─────
+
+BinaryMaxentFeatureEncoding = _nltk_classify.BinaryMaxentFeatureEncoding
+ConditionalExponentialClassifier = _nltk_classify.ConditionalExponentialClassifier
+MultiClassifierI = _nltk_classify.MultiClassifierI
+SklearnClassifier = _nltk_classify.SklearnClassifier
+TypedMaxentFeatureEncoding = _nltk_classify.TypedMaxentFeatureEncoding
+WekaClassifier = _nltk_classify.WekaClassifier
+call_megam = _nltk_classify.call_megam
+config_megam = _nltk_classify.config_megam
+config_weka = _nltk_classify.config_weka
+tadm = _nltk_classify.tadm
+
+api = _nltk_classify.api
+decisiontree = _nltk_classify.decisiontree
+maxent = _nltk_classify.maxent
+megam = _nltk_classify.megam
+naivebayes = _nltk_classify.naivebayes
+positivenaivebayes = _nltk_classify.positivenaivebayes
+rte_classifier = _nltk_classify.rte_classifier
+rte_classify = _nltk_classify.rte_classify
+rte_features = _nltk_classify.rte_features
+scikitlearn = _nltk_classify.scikitlearn
+senna = _nltk_classify.senna
+textcat = _nltk_classify.textcat
+util = _nltk_classify.util
+weka = _nltk_classify.weka
+RTEFeatureExtractor = _nltk_classify.RTEFeatureExtractor
+Senna = _nltk_classify.Senna

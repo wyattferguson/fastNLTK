@@ -2,6 +2,7 @@
 
 import warnings
 
+import nltk.collocations as _nltk_collocations
 from nltk.probability import FreqDist
 from nltk.util import ngrams
 
@@ -146,3 +147,13 @@ class QuadgramCollocationFinder:
 
     def apply_word_filter(self, filter_fn):
         pass
+
+
+# ── NLTK re-exports for API compatibility ─────
+
+BigramAssocMeasures = _nltk_collocations.BigramAssocMeasures
+TrigramAssocMeasures = _nltk_collocations.TrigramAssocMeasures
+QuadgramAssocMeasures = _nltk_collocations.QuadgramAssocMeasures
+ContingencyMeasures = _nltk_collocations.ContingencyMeasures
+AbstractCollocationFinder = _nltk_collocations.AbstractCollocationFinder
+demo = _nltk_collocations.demo

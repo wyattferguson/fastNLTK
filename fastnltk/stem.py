@@ -134,3 +134,25 @@ class WordNetLemmatizer:
 
     def lemmatize(self, word, pos="n"):
         return self._impl.lemmatize(word, pos)
+
+
+# ── NLTK re-exports for API compatibility ─────
+
+# ── NLTK re-exports for API compatibility ─────
+
+ARLSTem = _nltk_stem.ARLSTem
+ARLSTem2 = _nltk_stem.ARLSTem2
+StemmerI = _nltk_stem.StemmerI
+
+api = _nltk_stem.api
+arlstem = _nltk_stem.arlstem
+arlstem2 = _nltk_stem.arlstem2
+cistem = _nltk_stem.cistem
+isri = _nltk_stem.isri
+lancaster = _nltk_stem.lancaster
+porter = _nltk_stem.porter
+regexp = _nltk_stem.regexp
+rslp = _nltk_stem.rslp
+snowball = _nltk_stem.snowball
+util = _nltk_stem.util
+wordnet = _nltk_stem.wordnet

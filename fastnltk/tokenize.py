@@ -359,3 +359,35 @@ class PunktSentenceTokenizer:
 
     def load(self, params):
         return self._impl.load(params)
+
+
+# ── NLTK submodule re-exports for API compatibility ─────
+# Submodule pass-through: from fastnltk.tokenize import punkt, treebank, etc.
+api = _nltk_tokenize.api
+casual = _nltk_tokenize.casual
+destructive = _nltk_tokenize.destructive
+legality_principle = _nltk_tokenize.legality_principle
+load = _nltk_tokenize.load
+mwe = _nltk_tokenize.mwe
+punkt = _nltk_tokenize.punkt
+re = _nltk_tokenize.re
+regexp = _nltk_tokenize.regexp
+repp = _nltk_tokenize.repp
+sexpr = _nltk_tokenize.sexpr
+simple = _nltk_tokenize.simple
+sonority_sequencing = _nltk_tokenize.sonority_sequencing
+stanford_segmenter = _nltk_tokenize.stanford_segmenter
+texttiling = _nltk_tokenize.texttiling
+toktok = _nltk_tokenize.toktok
+treebank = _nltk_tokenize.treebank
+util = _nltk_tokenize.util
+NLTKWordTokenizer = _nltk_tokenize.NLTKWordTokenizer
+blankline_tokenize = _nltk_tokenize.blankline_tokenize
+casual_tokenize = _nltk_tokenize.casual_tokenize
+line_tokenize = _nltk_tokenize.line_tokenize
+sexpr_tokenize = _nltk_tokenize.sexpr_tokenize
+wordpunct_tokenize = _nltk_tokenize.wordpunct_tokenize
+
+# Also export PunktTokenizer (alias)
+if PunktSentenceTokenizer is not None:
+    PunktTokenizer = _nltk_tokenize.PunktTokenizer

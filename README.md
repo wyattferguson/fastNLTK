@@ -163,15 +163,16 @@ fastNLTK is a **drop-in replacement** for NLTK. This means:
 |---|---|---|
 | `tokenize` | All tokenizers (Punkt, Treebank, Regexp, Tweet, Simple, TokTok, etc.) | ✅ v0.1 |
 | `stem` | Snowball, Porter, Lancaster, WordNet, ISRI, Cistem, RSLP, ARLSTem, Regexp | ✅ v0.2 |
-| `tag` | Perceptron, TnT, sequential (Ngram/Uni/Bi/Trigram), HMM | ✅ v0.3 |
-| `classify` | NaiveBayes, MaxEnt, TextCat | ✅ v0.4 |
+| `tag` | Perceptron, TnT | ✅ v0.3 |
+| `classify` | NaiveBayes, PositiveNaiveBayes, MaxEnt (GIS), TextCat (whatlang) | ✅ v0.4 |
 | `collocations` | Bigram, Trigram, Quadgram finders | ✅ v0.4 |
-| `probability` | FreqDist, ConditionalFreqDist, ProbDist types | ✅ v0.4 |
-| `lm` | MLE, Lidstone, Laplace, KneserNey | ✅ v0.5 |
+| `probability` | FreqDist, ConditionalFreqDist | ✅ v0.4 |
+| `lm` | MLE, Lidstone, Laplace (rustling); KneserNey/WittenBell/StupidBackoff fall back to NLTK | ✅ v0.5 |
 | `sentiment` | VADER | ✅ v0.5 |
-| `translate` | BLEU, METEOR scoring | ✅ v0.5 |
-| `metrics` | edit_distance, jaro, jaro_winkler, dice, association, scores, segmentation | ✅ v0.2 |
-| `chunk` | RegexpChunkParser, NE chunker | ✅ v0.6 |
+| `translate` | BLEU, corpus_bleu | ✅ v0.5 |
+| `metrics` | edit_distance, jaro, jaro_winkler, dice, jaccard, binary, precision, recall, f_measure | ✅ v0.2 |
+| `chunk` | RegexpParser (grammar compilation + tag sequence matching) | ✅ v0.6 |
+| `wordnet` | WordNetLemmatizer (morphy algorithm) | ✅ v0.6 |
 
 ### What's a Python Shim (falls back to NLTK)
 
@@ -187,6 +188,8 @@ fastNLTK is a **drop-in replacement** for NLTK. This means:
 | `chat` | Pure Python — wraps nltk.chat |
 | `twitter` | Pure Python — wraps nltk.twitter |
 | `downloader` | Pure Python — wraps nltk.downloader |
+| KneserNey, WittenBell, StupidBackoff (LM) | Pure Python — wraps nltk.lm (no smoothing crate) |
+| NE chunker, ChunkScore, conll I/O | Pure Python — wraps nltk.chunk |
 
 ### What's Skipped
 
@@ -324,7 +327,8 @@ maturin build --release --out dist
 | `regex` | MIT/Apache-2.0 | Tokenization regex engine |
 | `unicode-segmentation` | MIT/Apache-2.0 | Unicode word/sentence boundaries |
 | `rust-stemmers` | MIT | Snowball stemmer (all 16 langs) |
-| `rustling` | MIT | Perceptron tagger, LM, HMM |
+| `rustling` | MIT | Perceptron tagger, LM, HMM, ngram |
+| `whatlang` | MIT | Language detection (TextCat replacement) |
 | `hashbrown` | MIT/Apache-2.0 | Faster HashMaps |
 | `rustc-hash` | Apache-2.0/MIT | FxHashMap for small-key maps |
 | `parking_lot` | Apache-2.0/MIT | Faster RwLock for model cache |
@@ -333,17 +337,21 @@ maturin build --release --out dist
 
 ### What We Write from Scratch
 
-Despite heavy crate reuse, ~6,250 LoC of Rust is custom for NLTK compatibility:
+Despite heavy crate reuse, ~8,500 LoC of Rust is custom for NLTK compatibility:
 
 - **Punkt sentence tokenizer** (~1,200 LoC) — no existing Rust crate handles NLTK's trained model format
 - **Treebank/Tweet tokenizers** (~700 LoC) — NLTK-specific regex rule-sets
 - **Porter/Lancaster/ISRI/Cistem/RSLP stemmers** (~1,200 LoC) — not in rust-stemmers
-- **WordNet lemmatizer** (~300 LoC) — morphy algorithm + dictionary lookup
+- **WordNet lemmatizer** (~300 LoC) — morphy algorithm + WordNet index file loading
+- **MaxentClassifier** (~600 LoC) — GIS training loop with feature encoding
+- **TnT tagger** (~400 LoC) — trigram HMM with Viterbi decoding + backoff smoothing
+- **Language model bridge** (~400 LoC) — wraps rustling LM types (MLE, Lidstone, Laplace)
 - **FreqDist + ProbDist types** (~500 LoC) — NLTK-specific method signatures
 - **Collocation finders** (~500 LoC) — ngram scoring with NLTK's association measures
-- **NaiveBayes + MaxEnt classifiers** (~1,000 LoC) — training + inference loops
+- **NaiveBayes** (~300 LoC) — training + prediction with Laplace smoothing
 - **RegexpChunkParser** (~300 LoC) — grammar compilation + tag sequence matching
 - **Data layer** (~300 LoC) — nltk_data finder, pickle → bincode converter
+- **TextCat bridge** (~50 LoC) — whatlang language detection wrapper
 
 ---
 

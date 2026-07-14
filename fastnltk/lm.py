@@ -9,9 +9,9 @@ Rust-accelerated LM models via rustling crate:
 import warnings
 
 from nltk.lm import (
-    KneserNey,
+    KneserNeyInterpolated,
     StupidBackoff,
-    WittenBell,
+    WittenBellInterpolated,
 )
 from nltk.lm.preprocessing import (
     everygrams,
@@ -39,12 +39,8 @@ except ImportError:
     )
 
 __all__ = [
-    "MLE",
-    "Lidstone",
-    "Laplace",
-    "KneserNey",
-    "StupidBackoff",
-    "WittenBell",
+    "MLE", "Lidstone", "Laplace",
+    "KneserNeyInterpolated", "StupidBackoff", "WittenBellInterpolated",
     "padded_everygrams",
     "everygrams",
     "pad_both_ends",

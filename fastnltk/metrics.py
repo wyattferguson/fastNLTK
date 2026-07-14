@@ -132,3 +132,6 @@ def dice_similarity(x, y):
     from nltk.metrics.distance import jaccard_distance
 
     return 1.0 - jaccard_distance(set(x.split()), set(y.split()))
+
+
+alignment_error_rate = _nltk_metrics.alignment_error_rate

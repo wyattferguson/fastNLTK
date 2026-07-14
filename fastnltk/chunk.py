@@ -49,10 +49,8 @@ class RegexpParser:
             self._impl = _nltk_chunk.RegexpParser(grammar)
 
     def parse(self, tokens):
-        # tokens is list of (word, pos_tag) tuples
         if _rust_available:
             result = self._impl.parse(tokens)
-            # Convert IOB tuples to Tree structure matching NLTK's output
             return _iob_to_tree(result)
         return self._impl.parse(tokens)
 
@@ -77,7 +75,6 @@ def _iob_to_tree(iob_tags):
             if current_chunk is not None:
                 current_chunk.append(word)
             else:
-                # I- without B-: treat as B-
                 label = tag[2:]
                 current_chunk = Tree(label, [word])
         else:  # O
@@ -100,3 +97,12 @@ def ne_chunk(tagged_tokens, binary=False):
 def ne_chunk_sents(tagged_sentences, binary=False):
     """Named entity chunking for multiple sentences."""
     return _nltk_chunk.ne_chunk_sents(tagged_sentences, binary)
+
+
+# ── NLTK re-exports for API compatibility ─────
+
+ne_chunker = _nltk_chunk.ne_chunker
+named_entity = _nltk_chunk.named_entity
+regexp = _nltk_chunk.regexp
+api = _nltk_chunk.api
+util = _nltk_chunk.util

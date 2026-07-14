@@ -1,8 +1,8 @@
 """
-fastnltk.parse — Pure Python shim wrapping nltk.parse.
+fastnltk.parse — Drop-in replacement for nltk.parse.
 
-Parsing algorithms are complex, rarely performance-critical for
-most NLTK users. Keeping as pure Python shim.
+Pure Python shim — parsing algorithms are complex, rarely performance-critical
+for most NLTK users. Keeping as pure Python wrapper.
 """
 
 from nltk.parse import *  # noqa: F403

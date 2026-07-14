@@ -166,3 +166,37 @@ class TnT:
 
     def tag_sents(self, sentences):
         return self._impl.tag_sents(sentences)
+
+
+# ── NLTK re-exports for API compatibility ─────
+
+# ── NLTK re-exports for API compatibility ─────
+
+HunposTagger = _nltk_tag.HunposTagger
+SennaChunkTagger = _nltk_tag.SennaChunkTagger
+SennaNERTagger = _nltk_tag.SennaNERTagger
+SennaTagger = _nltk_tag.SennaTagger
+StanfordNERTagger = _nltk_tag.StanfordNERTagger
+StanfordPOSTagger = _nltk_tag.StanfordPOSTagger
+StanfordTagger = _nltk_tag.StanfordTagger
+str2tuple = _nltk_tag.str2tuple
+tuple2str = _nltk_tag.tuple2str
+untag = _nltk_tag.untag
+tagset_mapping = _nltk_tag.tagset_mapping
+
+PRETRAINED_TAGGERS = _nltk_tag.PRETRAINED_TAGGERS
+load = _nltk_tag.load
+
+api = _nltk_tag.api
+brill = _nltk_tag.brill
+brill_trainer = _nltk_tag.brill_trainer
+crf = _nltk_tag.crf
+hmm = _nltk_tag.hmm
+hunpos = _nltk_tag.hunpos
+mapping = _nltk_tag.mapping
+perceptron = _nltk_tag.perceptron
+senna = _nltk_tag.senna
+sequential = _nltk_tag.sequential
+stanford = _nltk_tag.stanford
+tnt = _nltk_tag.tnt
+util = _nltk_tag.util

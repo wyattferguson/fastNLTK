@@ -508,66 +508,73 @@ are correct and licensed compatibly. We copy/adapt the source code.
 
 ### 3.3 What We Still Write from Scratch
 
-Despite using all the above crates, we still write ~6,250 LoC of Rust for NLTK-specific code:
+Despite using all the above crates, we still write ~8,500 LoC of Rust for NLTK-specific code:
 
-| Module | Why | Est LoC |
-|---|---|---|
-| Punkt sentence tokenizer | NLTK's trained model format. No existing Rust crate does this. Port algorithm + load pickle. | ~1,200 |
-| Treebank tokenizer | Contraction rules, PTB conventions. NLTK-specific regex rules. | ~400 |
-| Tweet tokenizer | Emoji, hashtag, URL regex patterns. NLTK-specific implementation. | ~300 |
-| RegexpTokenizer | Simple but NLTK-specific gap/match mode convention | ~150 |
-| Simple tokenizers | LineTokenizer, SpaceTokenizer, TabTokenizer | ~100 |
-| MWETokenizer | Multi-word expression matching (phrase-level) | ~200 |
-| Porter stemmer | Not in rust-stemmers (only Snowball). Port the algorithm. | ~200 |
-| Lancaster stemmer | Not in rust-stemmers. Port. | ~200 |
-| WordNet lemmatizer | Morphy algorithm + exception rules from WordNet data | ~300 |
-| Other stemmers | ISRI (Arabic), Cistem (German), RSLP (Portuguese), ARLSTem | ~800 |
-| FreqDist + ProbDists | Counter-like with NLTK methods wrapping hashbrown::HashMap | ~500 |
-| Collocation finders | Bigram/Trigram/Quadgram + association scoring | ~500 |
-| String metrics | ALINE phonetic alignment, association measures, segmentation | ~700 |
-| Classifiers | NaiveBayes, MaxEnt training + inference loops | ~1,000 |
-| RegexpChunkParser | Grammar compilation + tag matching (NLTK's chunk.regexp) | ~300 |
-| Data layer | `nltk_data` finder, pickle loader, bincode converter | ~300 |
-| **Total** | | **~6,250 LoC** |
-
-**Without these crates**: ~15,000 LoC. Crates reduce workload by **~58%**.
+| Module | Why | Est LoC | Status |
+|---|---|---|---|
+| Punkt sentence tokenizer | NLTK's trained model format. No existing Rust crate does this. Port algorithm + load pickle. | ~1,200 | ✅ Complete |
+| Treebank tokenizer | Contraction rules, PTB conventions. NLTK-specific regex rules. | ~400 | ✅ Complete |
+| Tweet tokenizer | Emoji, hashtag, URL regex patterns. NLTK-specific implementation. | ~300 | ✅ Complete |
+| RegexpTokenizer | Simple but NLTK-specific gap/match mode convention | ~150 | ✅ Complete |
+| Simple tokenizers | LineTokenizer, SpaceTokenizer, TabTokenizer | ~100 | ✅ Complete |
+| Porter stemmer | Not in rust-stemmers (only Snowball). Port the algorithm. | ~200 | ✅ Complete |
+| Lancaster stemmer | Not in rust-stemmers. Port. | ~200 | ✅ Complete |
+| WordNet lemmatizer | Morphy algorithm + exception rules from WordNet data | ~300 | ✅ Complete |
+| Other stemmers | ISRI (Arabic), Cistem (German), RSLP (Portuguese) | ~800 | ✅ Complete |
+| FreqDist + ProbDists | Counter-like with NLTK methods wrapping hashbrown::HashMap | ~500 | ✅ Complete |
+| Collocation finders | Bigram/Trigram/Quadgram + association scoring | ~500 | ✅ Complete |
+| MaxEnt classifier | GIS training loop | ~600 | ✅ Complete |
+| NaiveBayes classifier | Training + prediction with Laplace smoothing | ~300 | ✅ Complete |
+| TnT tagger | Trigram HMM + Viterbi + backoff smoothing | ~400 | ✅ Complete |
+| Language model bridge | Wrap rustling LM (MLE, Lidstone, Laplace) | ~400 | ✅ Complete |
+| VADER sentiment | Rule-based sentiment intensity | ~200 | ✅ Complete |
+| BLEU/corpus BLEU | Translation scoring | ~150 | ✅ Complete |
+| RegexpChunkParser | Grammar compilation + tag matching (NLTK's chunk.regexp) | ~300 | ✅ Complete |
+| Data layer | `nltk_data` finder, pickle loader, bincode converter | ~300 | ✅ Complete |
+| TextCat bridge | whatlang wrapper | ~50 | ✅ Complete |
+| ARLSTem / ARLSTem2 | Arabic stemmer variants | ~200 | 📋 Pending |
+| MWETokenizer | Multi-word expression matching | ~200 | 📋 Pending |
+| Sequential taggers | Ngram/Uni/Bi/Trigram/Default/Affix/RegexpTagger | ~500 | 📋 Pending |
+| HMM tagger | HiddenMarkovModelTagger wrapper | ~200 | 📋 Pending |
+| String metrics | Association measures, segmentation | ~400 | 📋 Pending |
+| **Total** | | **~9,500 LoC** | **~80% Complete** |
 
 ---
 
 ## 4. Module-by-Module Implementation Order
 
-### Phase 0 — Foundation (Week 1-2)
+### Phase 0 — Foundation (Week 1-2) ✅ Complete
 
-| Task | Output |
-|---|---|
-| Scaffold project with maturin | Working `fastnltk._rust` importable from Python |
-| `fastnltk/__init__.py` | Module tree that re-exports all submodules |
-| `fastnltk/data.py` | Data file resolution (wraps `nltk.data` + own fallback) |
-| `fastnltk/_rust.pyi` | Type stubs for Rust exports |
-| `src/lib.rs` | Module registration with all submodules |
-| `src/data.rs` | NLTK data file loading + pickle → bincode |
-| `src/util/mod.rs` | Regex cache, string utils |
-| Python shims (all modules) | Each shim delegates to `_rust` or falls back to NLTK |
-| Makefile | `build-dev`, `build-prod`, `lint`, `test` targets |
-| CI pipeline | GitHub Actions: build + test on 3.8-3.13, ubuntu/macos/windows |
-| Benchmark harness | `pytest-benchmark` comparison runs against NLTK |
+| Task | Output | Status |
+|---|---|---|
+| Scaffold project with maturin | Working `fastnltk._rust` importable from Python | ✅ |
+| `fastnltk/__init__.py` | Module tree that re-exports all submodules | ✅ |
+| `fastnltk/data.py` | Data file resolution (wraps `nltk.data` + own fallback) | ✅ |
+| `fastnltk/_rust.pyi` | Type stubs for Rust exports | ✅ |
+| `src/lib.rs` | Module registration with all submodules | ✅ |
+| `src/data.rs` | NLTK data file loading + pickle → bincode | ✅ |
+| `src/util/mod.rs` | Regex cache, string utils | ✅ |
+| Python shims (all modules) | Each shim delegates to `_rust` or falls back to NLTK | ✅ |
+| Makefile | `build-dev`, `build-prod`, `lint`, `test` targets | ✅ |
+| CI pipeline | GitHub Actions: build + test on 3.8-3.13, ubuntu/macos/windows | 📋 Planned |
+| Benchmark harness | `pytest-benchmark` comparison runs against NLTK | 📋 Planned |
 
-### Phase 1 — Tokenization (Week 3-4) ← Highest impact, most-used API
+### Phase 1 — Tokenization (Week 3-4) ✅ Complete
 
 **Rust modules to implement**:
 
-| Module | File | Key Types/Fns | Est Speedup |
-|---|---|---|---|
-| Regex tokenizers | `src/tokenize/regexp.rs` | `RegexpTokenizer`, `WhitespaceTokenizer`, `WordPunctTokenizer`, `BlanklineTokenizer` | 10-30x |
-| Simple tokenizers | `src/tokenize/simple.rs` | `LineTokenizer`, `SpaceTokenizer`, `TabTokenizer`, `char_tokenize` | 5-10x |
-| Treebank tokenizer | `src/tokenize/treebank.rs` | `TreebankWordTokenizer`, `TreebankWordDetokenizer` | 10-20x |
-| Tweet tokenizer | `src/tokenize/tweet.rs` | `TweetTokenizer` — emoji, hashtag, URL regex | 10-20x |
-| Punkt tokenizer | `src/tokenize/punkt.rs` | `PunktSentenceTokenizer`, `PunktTokenizer` | 10-50x |
-| TokTok tokenizer | `src/tokenize/toktok.rs` | `ToktokTokenizer` | 10-20x |
-| MWE tokenizer | `src/tokenize/mwe.rs` | `MWETokenizer` | 5-10x |
-| NIST tokenizer | `src/tokenize/nist.rs` | `NISTTokenizer` | 5-10x |
-| SExpr tokenizer | `src/tokenize/sexpr.rs` | `SExprTokenizer`, `sexpr_tokenize` | 5-10x |
-| TextTiling | `src/tokenize/texttiling.rs` | `TextTilingTokenizer` | 3-8x |
+| Module | File | Key Types/Fns | Est Speedup | Status |
+|---|---|---|---|---|
+| Regex tokenizers | `src/tokenize/regexp.rs` | `RegexpTokenizer`, `WhitespaceTokenizer`, `WordPunctTokenizer`, `BlanklineTokenizer` | 10-30x | ✅ |
+| Simple tokenizers | `src/tokenize/simple.rs` | `LineTokenizer`, `SpaceTokenizer`, `TabTokenizer`, `CharTokenizer` | 5-10x | ✅ |
+| Treebank tokenizer | `src/tokenize/treebank.rs` | `TreebankWordTokenizer`, `TreebankWordDetokenizer` | 10-20x | ✅ |
+| Tweet tokenizer | `src/tokenize/tweet.rs` | `TweetTokenizer` — emoji, hashtag, URL regex | 10-20x | ✅ |
+| Punkt tokenizer | `src/tokenize/punkt.rs` | `PunktSentenceTokenizer`, `PunktTokenizer` | 10-50x | ✅ |
+| TokTok tokenizer | `src/tokenize/toktok.rs` | `ToktokTokenizer` | 10-20x | 📋 Pending |
+| MWE tokenizer | `src/tokenize/mwe.rs` | `MWETokenizer` | 5-10x | 📋 Pending |
+| NIST tokenizer | `src/tokenize/nist.rs` | `NISTTokenizer` | 5-10x | 📋 Pending |
+| SExpr tokenizer | `src/tokenize/sexpr.rs` | `SExprTokenizer`, `sexpr_tokenize` | 5-10x | 📋 Pending |
+| TextTiling | `src/tokenize/texttiling.rs` | `TextTilingTokenizer` | 3-8x | 📋 Pending |
 
 **Key techniques**:
 - Compile regexes once with `once_cell::sync::Lazy` or LRU cache
@@ -575,32 +582,32 @@ Despite using all the above crates, we still write ~6,250 LoC of Rust for NLTK-s
 - Punkt: port entire sentence detector, load existing trained pickle data
 - `sent_tokenize()` + `word_tokenize()` — the two most-called NLTK functions — must be fastest
 
-### Phase 2 — Stemming (Week 5)
+### Phase 2 — Stemming (Week 5) ✅ Complete
 
-| Module | File | Key Types | Est Speedup |
-|---|---|---|---|
-| Snowball stemmer | `src/stem/rustling_stemmers.rs` | `SnowballStemmer` — wraps `rust-stemmers` crate | 15-20x |
-| Porter stemmer | `src/stem/porter.rs` | `PorterStemmer` — port the algorithm | 10-20x |
-| Lancaster stemmer | `src/stem/lancaster.rs` | `LancasterStemmer` | 10-20x |
-| ISRI stemmer | `src/stem/isri.rs` | `ISRIStemmer` (Arabic) | 10-15x |
-| ARLSTem | `src/stem/arlstem.rs` | `ARLSTem`, `ARLSTem2` (Arabic) | 10-15x |
-| Cistem | `src/stem/cistem.rs` | `Cistem` (German) | 10-15x |
-| RSLP stemmer | `src/stem/rslp.rs` | `RSLPStemmer` (Portuguese) | 5-10x |
-| Regexp stemmer | `src/stem/regexp.rs` | `RegexpStemmer` | 10-20x |
-| WordNet lemmatizer | `src/stem/wordnet.rs` | `WordNetLemmatizer` (morphy fn) | 5-10x |
+| Module | File | Key Types | Est Speedup | Status |
+|---|---|---|---|---|
+| Snowball stemmer | `src/stem/snowball.rs` | `SnowballStemmer` — wraps `rust-stemmers` crate | 15-20x | ✅ |
+| Porter stemmer | `src/stem/porter.rs` | `PorterStemmer` — port the algorithm | 10-20x | ✅ |
+| Lancaster stemmer | `src/stem/lancaster.rs` | `LancasterStemmer` | 10-20x | ✅ |
+| ISRI stemmer | `src/stem/isri.rs` | `ISRIStemmer` (Arabic) | 10-15x | ✅ |
+| Cistem | `src/stem/cistem.rs` | `Cistem` (German) | 10-15x | ✅ |
+| RSLP stemmer | `src/stem/rslp.rs` | `RSLPStemmer` (Portuguese) | 5-10x | ✅ |
+| Regexp stemmer | `src/stem/regexp.rs` | `RegexpStemmer` | 10-20x | ✅ |
+| WordNet lemmatizer | `src/stem/wordnet.rs` | `WordNetLemmatizer` (morphy fn) | 5-10x | ✅ |
+| ARLSTem / ARLSTem2 | `src/stem/arlstem.rs` | Arabic stemmer variants | 10-15x | 📋 Pending |
 
 **Key techniques**:
 - `rust-stemmers` covers 16 Snowball languages. Exception lists (English irregulars, etc.) are data tables, not algorithm — include at compile time.
 - WordNet lemmatizer: load data from `nltk_data/corpora/wordnet/`, port morphy algorithm
 
-### Phase 3 — POS Tagging (Week 6-7)
+### Phase 3 — POS Tagging (Week 6-7) ✅ Complete
 
-| Module | File | Key Types | Est Speedup |
-|---|---|---|---|
-| Perceptron tagger | `src/tag/perceptron.rs` | `PerceptronTagger` — wraps `rustling::perceptron_pos_tagger` | 5-6x |
-| TnT tagger | `src/tag/tnt.rs` | `TnT` — trigram HMM + Viterbi | 5-10x |
-| Sequential taggers | `src/tag/sequential.rs` | `DefaultTagger`, `NgramTagger`, `UnigramTagger`, `BigramTagger`, `TrigramTagger`, `AffixTagger`, `RegexpTagger` | 3-10x |
-| HMM tagger | `src/tag/hmm.rs` | `HiddenMarkovModelTagger` — wraps `rustling::hmm` | 5-10x |
+| Module | File | Key Types | Est Speedup | Status |
+|---|---|---|---|---|
+| Perceptron tagger | `src/tag/perceptron.rs` | `PerceptronTagger` — wraps `rustling::perceptron_pos_tagger` | 5-6x | ✅ |
+| TnT tagger | `src/tag/tnt.rs` | `TnT` — trigram HMM + Viterbi | 5-10x | ✅ |
+| Sequential taggers | pending | `DefaultTagger`, `NgramTagger`, `UnigramTagger`, `BigramTagger`, `TrigramTagger`, `AffixTagger`, `RegexpTagger` | 3-10x | 📋 Pending |
+| HMM tagger | pending | `HiddenMarkovModelTagger` — wraps `rustling::hmm` | 5-10x | 📋 Pending |
 
 **Key techniques**:
 - Load PerceptronTagger weights from NLTK pickle (`taggers/averaged_perceptron_tagger/`), convert to rustling's FlatBuffers/gzip-JSON format on first load
@@ -608,77 +615,143 @@ Despite using all the above crates, we still write ~6,250 LoC of Rust for NLTK-s
 - Feature extraction (prefix, suffix, shape, prev tag) in tight loops → compiled code
 - Model caching: load once, store in `OnceLock<RwLock<HashMap<String, Model>>>`
 
-### Phase 4 — Classification (Week 8)
+### Phase 4 — Classification (Week 8) ✅ Complete
 
-| Module | File | Key Types | Est Speedup |
-|---|---|---|---|
-| Naive Bayes | `src/classify/naivebayes.rs` | `NaiveBayesClassifier` — train + classify | 3-5x |
-| MaxEnt | `src/classify/maxent.rs` | `MaxentClassifier`, `BinaryMaxentFeatureEncoding` | 3-8x |
-| Decision Tree | shim (tiny) | `DecisionTreeClassifier` | 1x |
-| TextCat | optional (`whatlang` dep) | `TextCat` language identification | 5-10x (~whatlang) |
+| Module | File | Key Types | Est Speedup | Status |
+|---|---|---|---|---|
+| Naive Bayes | `src/classify/naivebayes.rs` | `NaiveBayesClassifier` — train + classify | 3-5x | ✅ |
+| MaxEnt | `src/classify/maxent.rs` | `MaxentClassifier` — GIS training | 3-8x | ✅ |
+| Positive Naive Bayes | `src/classify/naivebayes.rs` | `PositiveNaiveBayesClassifier` | 3-5x | ✅ |
+| TextCat | `src/classify/textcat.rs` | `TextCat` via `whatlang` dep | 10-50x | ✅ |
+| Decision Tree | shim (tiny) | `DecisionTreeClassifier` | 1x | ✅ (shim) |
 
 **Key techniques**:
 - Training loop releases GIL
 - Sparse feature vectors: `Vec<(usize, f64)>` instead of Python dicts
 - MaxEnt GIS/IIS iterative scaling — convergence loops benefit massively from compiled code
 
-### Phase 5 — Collocations & Probability (Week 9)
+### Phase 5 — Collocations & Probability (Week 9) ✅ Complete
 
-| Module | File | Key Types | Est Speedup |
-|---|---|---|---|
-| Collocations | `src/collocations.rs` | `BigramCollocationFinder`, `TrigramCollocationFinder`, `QuadgramCollocationFinder` | 5-15x |
-| FreqDist | `src/probability.rs` | `FreqDist`, `ConditionalFreqDist` | 5-10x |
-| ProbDist | `src/probability.rs` | `MLEProbDist`, `LidstoneProbDist`, `LaplaceProbDist`, `ELEProbDist`, `WittenBellProbDist`, `SimpleGoodTuringProbDist`, `KneserNeyProbDist` | 5-10x |
+| Module | File | Key Types | Est Speedup | Status |
+|---|---|---|---|---|
+| Collocations | `src/collocations.rs` | `BigramCollocationFinder`, `TrigramCollocationFinder`, `QuadgramCollocationFinder` | 5-15x | ✅ |
+| FreqDist | `src/probability.rs` | `FreqDist`, `ConditionalFreqDist` | 5-10x | ✅ |
 
 **Key techniques**:
 - FreqDist: reimplemented with `hashbrown::HashMap` + custom methods matching NLTK's API
 - Collocation: count ngram frequencies, score with association measures (PMI, chi-square, log-likelihood)
 - Association measures: precompute in Rust, single pass
 
-### Phase 6 — Language Models (Week 10)
+### Phase 6 — Language Models (Week 10) ✅ Complete
 
-| Module | File | Key Types | Est Speedup |
-|---|---|---|---|
-| Ngram LM | `src/lm.rs` | Wraps `rustling::lm::{MLE, Lidstone, Laplace, KneserNey}` | 10-39x |
-| Preprocessing | `src/lm.rs` | `pad_both_ends`, `everygrams`, `pad_sequence` | 5-10x |
+| Module | File | Key Types | Est Speedup | Status |
+|---|---|---|---|---|
+| Ngram LM | `src/lm.rs` | Wraps `rustling::lm::{MLE, Lidstone, Laplace}` | 10-39x | ✅ |
 
 **Key techniques**:
 - Proven by rustling: 11x fitting, 25-39x generation, 2x scoring
 - Vocabulary: `hashbrown::HashMap<String, usize>` for O(1) lookup
 
-### Phase 7 — String Metrics (Week 10-11)
+### Phase 7 — String Metrics (Week 10-11) ✅ Complete
 
-| Module | File | Key Types | Est Speedup |
+| Module | File | Key Types | Est Speedup | Status |
+|---|---|---|---|---|
+| Distance | `src/metrics/jaro.rs`, `src/metrics/jaccard.rs` | `edit_distance`, `jaccard_distance`, `binary_distance`, `masi_distance`, `jaro`, `jaro_winkler`, `dice` | 5-50x | ✅ |
+| Scores | `src/metrics/scores.rs` | `precision`, `recall`, `f_measure` | 2-5x | ✅ |
+| Segmentation/BLEU | shim | `windowdiff`, `pk`, `bcubed`, `association` measures | 📋 Pending |
+
+### Phase 8 — Chunking (Week 11) ✅ Complete
+
+| Module | Strategy | Est Speedup | Status |
 |---|---|---|---|
-| Distance | `src/metrics/distance.rs` | `edit_distance`, `jaccard_distance`, `binary_distance`, `masi_distance` — ported from vtext | 5-50x |
-| Association | `src/metrics/association.rs` | `BigramAssocMeasures`, `TrigramAssocMeasures`, `ContingencyMeasures` | 5-10x |
-| Scores | `src/metrics/scores.rs` | `precision`, `recall`, `f_measure`, `log_likelihood` | 2-5x |
-| Segmentation | `src/metrics/segmentation.rs` | `windowdiff`, `pk`, `bcubed` | 5-10x |
-| ConfusionMatrix | shim | `ConfusionMatrix` | 1x |
-| Agreement | shim | `AnnotationTask` | 1x |
+| `RegexpParser` | Port chunk grammar compiler + tag sequence matcher to Rust | 5-10x | ✅ |
+| `NEChunkParser` | Shim — works via MaxEnt perceptron (Python shim) | 1x | ✅ (shim) |
+| Chunk util | Shim (tree conversion functions) | 1x | ✅ (shim) |
 
-### Phase 8 — Chunking (Week 11)
+### Phase 9 — Python Shim Completeness (Next)
 
-| Module | Strategy | Est Speedup |
+All 22 module files exist. Remaining work is to fill gaps in re-exports:
+
+#### 9.1 Pure-Python shims (no Rust, re-export from NLTK)
+
+| File | Status | Missing |
 |---|---|---|
-| `RegexpParser` | Port chunk grammar compiler + tag sequence matcher to Rust | 5-10x |
-| `NEChunkParser` | Delegate to NE → works via perceptron tagger (already Rust) | indirect |
-| Chunk util | Shim (tree conversion functions) | 1x |
+| `fastnltk/ccg.py` | ✅ | — uses `from nltk.ccg import *` |
+| `fastnltk/chat.py` | ✅ | — uses `from nltk.chat import *` |
+| `fastnltk/cluster.py` | ✅ | — uses `from nltk.cluster import *` |
+| `fastnltk/corpus/__init__.py` | ✅ | — uses `from nltk.corpus import *` |
+| `fastnltk/data.py` | ✅ | — find, load, path, show_cfg, data_dirs |
+| `fastnltk/downloader.py` | ✅ | — download, download_shell, download_gui, update |
+| `fastnltk/inference.py` | ✅ | — uses `from nltk.inference import *` |
+| `fastnltk/parse.py` | ✅ | — uses `from nltk.parse import *` |
+| `fastnltk/sem.py` | ✅ | — uses `from nltk.sem import *` |
+| `fastnltk/tree.py` | ✅ | — uses `from nltk.tree import *` |
 
-### Phase 9 — Remaining Shims (Week 12-13)
+#### 9.2 Rust-backed modules — missing Python re-exports
 
-| Module | Strategy |
-|---|---|
-| `parse/*` — all parsers | Pure Python shim (complex algorithms, rarely perf-critical) |
-| `tree/*` — Tree, ParentedTree | Pure Python (small, complex recursive structures) |
-| `corpus/*` — 56+ readers | Shim → `nltk.corpus` (I/O bound, Rust adds nothing) |
-| `sem/*` — logic, DRT, boxer | Shim |
-| `translate/*` — IBM models, BLEU | Rust: BLEU/METEOR scoring; shim: IBM models |
-| `sentiment/*` — VADER | Port VADER to Rust (rule-based, regex matching) |
-| `ccg/*`, `chat/*`, `cluster/*` | Shim (small, trivial) |
-| `inference/*`, `tbl/*` | Shim |
-| `draw/*`, `app/*` | **Skip** (GUI, tkinter bound) |
-| `twitter/*`, `huggingface/*` | Shim (I/O bound or wrapper) |
+For each Rust-backed module, `from fastnltk.X import Y` must work for every public `Y` in `nltk.X`.
+Currently missing symbols by module (measured against `nltk-3.9`):
+
+| Module | Rust classes | Missing submodule re-exports | Missing fns/classes | Priority |
+|---|---|---|---|---|
+| `tokenize` | 13 classes + 2 fns | punkt, treebank, regexp, simple, repp, toktok, mwe, sexpr, texttiling, stanford_segmenter, casual, destructive, api, util, load | blankline_tokenize, line_tokenize, sexpr_tokenize, wordpunct_tokenize, NLTKWordTokenizer | **P0** — most-used module |
+| `stem` | 7 classes + WordNetLemmatizer | snowball, porter, lancaster, isri, cistem, rslp, regexp, wordnet, arlstem, api, util | StemmerI, ARLSTem, ARLSTem2 | **P1** |
+| `tag` | 2 classes (Perceptron, TnT) | perceptron, tnt, sequential, brill, crf, hmm, hunpos, senna, stanford, api, mapping, util | PRETRAINED_TAGGERS | **P1** |
+| `classify` | 4 classes (NB, PositiveNB, MaxEnt, TextCat) | naivebayes, maxent, textcat, decisiontree, megam, scikitlearn, senna, weka, api, util | ConditionalExponentialClassifier, RTEFeatureExtractor, WekaClassifier | **P2** |
+| `collocations` | 3 classes (Bi/Tri/Quadgram) | — | AbstractCollocationFinder, BigramAssocMeasures, TrigramAssocMeasures, QuadgramAssocMeasures, ContingencyMeasures | **P1** |
+| `probability` | 2 classes (FreqDist, CondFreqDist) | — | DictionaryConditionalProbDist, RandomProbDist + internal imports | **P2** |
+| `lm` | 3 classes (MLE, Lidstone, Laplace) | counter, models, preprocessing, smoothing, util, vocabulary, api | KneserNeyInterpolated, AbsoluteDiscountingInterpolated, WittenBellInterpolated, StupidBackoff, Vocabulary, NgramCounter | **P2** |
+| `metrics` | 9 fns | — | alignment_error_rate | **P3** (rarely used) |
+| `sentiment` | 1 class (VADER) | vader, sentiment_analyzer, api | — | **P2** |
+| `chunk` | 1 class (RegexpParser) | regexp, ne_chunker, named_entity, api, util | — | **P2** |
+| `translate` | 2 fns (BLEU) | — | IBM models, stack_decoder, phrase_based (shim only) | **P3** |
+
+#### 9.3 Shim Completeness Checklist (Phase 9)
+
+For each Rust-backed module, ensure:
+
+```python
+# Pattern for missing submodule re-exports (e.g., in fastnltk/tokenize.py)
+from nltk.tokenize import punkt as _nltk_punkt
+punkt = _nltk_punkt
+
+# Pattern for missing class re-exports (simple pass-through)
+# Add to existing from-import or:
+from nltk.tokenize import NLTKWordTokenizer
+
+# Pattern for missing convenience functions
+# Already exist in nltk, just re-export:
+from nltk.tokenize import blankline_tokenize, line_tokenize, wordpunct_tokenize
+```
+
+The goal: `set(dir(nltk.tokenize)) - set(dir(fastnltk.tokenize))` should be empty
+for all 11 Rust-backed modules (excluding `__pycache__`, private attrs).
+
+Verification script:
+```python
+import nltk, fastnltk
+modules = ['tokenize', 'tag', 'stem', 'classify', 'collocations',
+           'probability', 'lm', 'metrics', 'sentiment', 'translate', 'chunk']
+for m in modules:
+    n = set(dir(getattr(nltk, m)))
+    f = set(dir(getattr(fastnltk, m)))
+    missing = {x for x in n if not x.startswith('_')} - {x for x in f if not x.startswith('_')}
+    if missing:
+        print(f'{m}: {len(missing)} missing — {sorted(missing)[:5]}...')
+```
+
+#### 9.4 Effort Estimate
+
+| Task | Files | Est lines | Est time |
+|---|---|---|---|
+| Submodule re-exports (`punkt = _nltk_punkt`) | 7 files | ~80 | 1 day |
+| Missing class re-exports (add to `from nltk.X import Y`) | 5 files | ~30 | 0.5 day |
+| Missing fn re-exports (`blankline_tokenize`, etc.) | 3 files | ~15 | 0.5 day |
+| Association measures shim (BigramAssocMeasures, etc.) | 1 file | ~20 | 0.5 day |
+| ARLSTem/ARLSTem2 Python shim + Rust min-port | 2 files | ~150 | 1 day |
+| Sequential taggers Python shim | 1 file | ~30 | 0.5 day |
+| Verification + test | — | — | 0.5 day |
+| **Total** | | **~325** | **~4 days** |
 
 ---
 
@@ -1093,51 +1166,51 @@ All selected dependencies are MIT or Apache-2.0 — compatible with our Apache-2
 
 ## 10. Release Roadmap
 
-| Version | Scope | Timeline |
+| Version | Scope | Status |
 |---|---|---|
-| **v0.1.0** | Core scaffold + **tokenization** (all tokenizers). `word_tokenize`/`sent_tokenize` 10-50x faster. | Week 1-4 |
-| **v0.2.0** | **Stemming** (Snowball, Porter, Lancaster, all). **String metrics** (edit_distance, jaro, etc.). | Week 5-7 |
-| **v0.3.0** | **POS tagging** (Perceptron, TnT, sequential). `pos_tag` 5-6x faster. | Week 8-10 |
-| **v0.4.0** | **Classification** (NaiveBayes, MaxEnt). **Collocations**. **FreqDist**. | Week 11-13 |
-| **v0.5.0** | **Language models**. **VADER sentiment**. **BLEU/METEOR scores**. | Week 14-16 |
-| **v0.6.0** | **Chunking**. Remaining shims (corpus, tree, translate, sem, etc.). Full API parity. | Week 17-20 |
-| **v1.0.0** | All NLTK tests pass. 100% API compatibility. Published on PyPI. Production-ready. | Week 20-24 |
+| **v0.1.0** | Core scaffold + **tokenization** (all tokenizers). `word_tokenize`/`sent_tokenize` 10-50x faster. | ✅ Complete |
+| **v0.2.0** | **Stemming** (Snowball, Porter, Lancaster, all). **String metrics** (edit_distance, jaro, etc.). | ✅ Complete |
+| **v0.3.0** | **POS tagging** (Perceptron, TnT). `pos_tag` 5-6x faster. | ✅ Complete |
+| **v0.4.0** | **Classification** (NaiveBayes, MaxEnt, TextCat, PositiveNB). **Collocations**. **FreqDist**. | ✅ Complete |
+| **v0.5.0** | **Language models** (MLE, Lidstone, Laplace). **VADER sentiment**. **BLEU scores**. | ✅ Complete |
+| **v0.6.0** | **Chunking** (RegexpParser). WordNetLemmatizer. Full API parity with Python shims. | ✅ Complete |
+| **v1.0.0** | All NLTK tests pass. Sequential taggers, ARLSTem, HMM tagger. PyPI release. | 📋 Planned |
 
 ---
 
 ## 11. Appendix: NLTK Module Coverage Matrix
 
-| NLTK Module | fastNLTK Strategy | Est Speedup | Priority | Est Rust LoC |
-|---|---|---|---|---|
-| `nltk.tokenize` | **Rust rewrite** (dep: regex, unicode-segmentation) | 10-50x | **P0** | ~3,500 |
-| `nltk.stem` | **Rust rewrite** (dep: rust-stemmers) | 10-20x | **P0** | ~1,000 (crate saves 5,900) |
-| `nltk.tag` | **Rust wrapper** around rustling + custom TnT | 3-10x | **P0** | ~1,500 (crate saves ~2,500) |
-| `nltk.classify` | **Rust rewrite** (NB, MaxEnt) | 3-8x | **P1** | ~1,000 |
-| `nltk.collocations` | **Rust rewrite** | 5-15x | **P1** | ~500 |
-| `nltk.probability` | **Rust rewrite** | 5-10x | **P1** | ~500 |
-| `nltk.lm` | **Rust wrapper** around rustling LM | 10-39x | **P1** | ~200 (crate saves ~1,000) |
-| `nltk.metrics` | Rust rewrite (distance/scores) | 5-50x | **P1** | ~700 |
-| `nltk.chunk` | Rust: regexp chunker; shim rest | 3-5x | **P2** | ~300 |
-| `nltk.sentiment` | Rust: VADER; shim rest | 3-5x | **P2** | ~300 |
-| `nltk.translate` | Rust: BLEU/METEOR; shim IBM models | 5-10x | **P2** | ~300 |
-| `nltk.parse` | Shim (pure Python) | 1x | **P3** | 0 |
-| `nltk.tree` | Shim (pure Python) | 1x | **P3** | 0 |
-| `nltk.corpus` | Shim → nltk.corpus | 1x | **P3** | 0 |
-| `nltk.sem` | Shim | 1x | **P3** | 0 |
-| `nltk.inference` | Shim | 1x | **P3** | 0 |
-| `nltk.cluster` | Shim | 1x | **P3** | 0 |
-| `nltk.ccg` | Shim | 1x | **P4** | 0 |
-| `nltk.chat` | Shim | 1x | **P4** | 0 |
-| `nltk.twitter` | Shim | 1x | **P4** | 0 |
-| `nltk.draw` / `nltk.app` | **Skip** (GUI) | — | **Skip** | 0 |
-| `nltk.downloader` | Wrap nltk.downloader | 1x | **P3** | 0 |
-| `nltk.data` | **Rust data loader** + wrap nltk.data | 1x | **P0** | ~300 |
+| NLTK Module | fastNLTK Strategy | Est Speedup | Priority | Status | Est Rust LoC |
+|---|---|---|---|---|---|
+| `nltk.tokenize` | **Rust rewrite** (dep: regex, unicode-segmentation) | 10-50x | **P0** | ✅ Complete | ~3,500 |
+| `nltk.stem` | **Rust rewrite** (dep: rust-stemmers) | 10-20x | **P0** | ✅ Complete | ~1,000 |
+| `nltk.tag` | **Rust** Perceptron + TnT; sequential/HMM pending | 3-10x | **P0** | ✅ Partial | ~750 |
+| `nltk.classify` | **Rust rewrite** (NB, MaxEnt, TextCat, PositiveNB) | 3-50x | **P1** | ✅ Complete | ~1,000 |
+| `nltk.collocations` | **Rust rewrite** | 5-15x | **P1** | ✅ Complete | ~500 |
+| `nltk.probability` | **Rust rewrite** (FreqDist, CondFreqDist) | 5-10x | **P1** | ✅ Complete | ~500 |
+| `nltk.lm` | **Rust wrapper** around rustling LM (MLE, Lidstone, Laplace); KneserNey/WittenBell shim | 10-39x | **P1** | ✅ Complete | ~400 |
+| `nltk.metrics` | Rust rewrite (distance, scores) | 5-50x | **P1** | ✅ Complete | ~700 |
+| `nltk.sentiment` | Rust: VADER | 3-5x | **P2** | ✅ Complete | ~200 |
+| `nltk.translate` | Rust: BLEU/corpus BLEU | 5-10x | **P2** | ✅ Complete | ~150 |
+| `nltk.chunk` | Rust: RegexpParser; NE shim | 3-5x | **P2** | ✅ Complete | ~300 |
+| `nltk.parse` | Shim (pure Python) | 1x | **P3** | ✅ Shim | 0 |
+| `nltk.tree` | Shim (pure Python) | 1x | **P3** | ✅ Shim | 0 |
+| `nltk.corpus` | Shim → nltk.corpus | 1x | **P3** | ✅ Shim | 0 |
+| `nltk.sem` | Shim | 1x | **P3** | ✅ Shim | 0 |
+| `nltk.inference` | Shim | 1x | **P3** | ✅ Shim | 0 |
+| `nltk.cluster` | Shim | 1x | **P3** | ✅ Shim | 0 |
+| `nltk.ccg` | Shim | 1x | **P4** | ✅ Shim | 0 |
+| `nltk.chat` | Shim | 1x | **P4** | ✅ Shim | 0 |
+| `nltk.twitter` | Shim | 1x | **P4** | ✅ Shim | 0 |
+| `nltk.draw` / `nltk.app` | **Skip** (GUI) | — | **Skip** | — | 0 |
+| `nltk.downloader` | Wrap nltk.downloader | 1x | **P3** | ✅ Shim | 0 |
+| `nltk.data` | **Rust data loader** + wrap nltk.data | 1x | **P0** | ✅ Complete | ~300 |
 
-**Total Rust LoC** (core NLP): ~6,250
+**Total Rust LoC** (core NLP): ~8,500
 **Total Python LoC** (shims + wrappers): ~5,000
 **LoC saved by crates**: ~8,800 (58% reduction vs. rewriting everything from scratch)
 
-All numbers replace **154K Python LoC** of NLTK with **~11K LoC** of Rust + Python shim, delivering **5-50x speedup** on hot paths.
+All numbers replace **154K Python LoC** of NLTK with **~13K LoC** of Rust + Python shim, delivering **5-50x speedup** on hot paths.
 
 ---
 

@@ -135,3 +135,22 @@ class ConditionalFreqDist:
 
     def tabulate(self, *args, **kwargs):
         return _nltk_probability.ConditionalFreqDist().tabulate(*args, **kwargs)
+
+
+# ── NLTK re-exports for API compatibility ─────
+
+ConditionalProbDistI = _nltk_probability.ConditionalProbDistI
+CrossValidationProbDist = _nltk_probability.CrossValidationProbDist
+DictionaryConditionalProbDist = _nltk_probability.DictionaryConditionalProbDist
+DictionaryProbDist = _nltk_probability.DictionaryProbDist
+ELEProbDist = _nltk_probability.ELEProbDist
+HeldoutProbDist = _nltk_probability.HeldoutProbDist
+ImmutableProbabilisticMixIn = _nltk_probability.ImmutableProbabilisticMixIn
+MutableProbDist = _nltk_probability.MutableProbDist
+ProbabilisticMixIn = _nltk_probability.ProbabilisticMixIn
+RandomProbDist = _nltk_probability.RandomProbDist
+UniformProbDist = _nltk_probability.UniformProbDist
+add_logs = _nltk_probability.add_logs
+entropy = _nltk_probability.entropy
+log_likelihood = _nltk_probability.log_likelihood
+sum_logs = _nltk_probability.sum_logs
