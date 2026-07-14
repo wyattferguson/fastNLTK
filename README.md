@@ -225,7 +225,7 @@ fastNLTK is a **drop-in replacement** for NLTK. This means:
 | `classify` | NaiveBayes, PositiveNaiveBayes, MaxEnt (GIS), TextCat (whatlang) | ✅ v0.4 |
 | `collocations` | Bigram, Trigram, Quadgram finders | ✅ v0.4 |
 | `probability` | FreqDist, ConditionalFreqDist | ✅ v0.4 |
-| `lm` | MLE, Lidstone, Laplace, KneserNeyInterpolated (Rust) | ✅ v0.5 |
+| `lm` | MLE, Lidstone, Laplace, KneserNeyInterpolated, WittenBellInterpolated (Rust); StupidBackoff (shim) | ✅ v0.5 |
 | `cluster` | KMeansClusterer (Euclidean distance + iterative refinement) | ✅ v0.6 |
 | `chat` | Chat (compiled regex pattern matching) | ✅ v0.6 |
 | `sentiment` | VADER | ✅ v0.5 |
@@ -243,7 +243,7 @@ fastNLTK is a **drop-in replacement** for NLTK. This means:
 | `ccg` | Pure Python — wraps nltk.ccg |
 | `twitter` | Pure Python — wraps nltk.twitter |
 | `downloader` | Pure Python — wraps nltk.downloader |
-| WittenBellInterpolated, StupidBackoff (LM) | Pure Python — wraps nltk.lm (no Rust smoothing crate) |
+| `StupidBackoff` (LM) | Pure Python shim — wraps nltk.lm (no Rust smoothing crate) |
 | NE chunker, ChunkScore, conll I/O | Pure Python — wraps nltk.chunk |
 | ParentedTree, ImmutableTree, MultiParentedTree, ProbabilisticTree | Pure Python — wraps nltk.tree (complex tree variants) |
 
