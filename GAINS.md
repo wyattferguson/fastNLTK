@@ -1,7 +1,8 @@
 # Performance Gains — fastNLTK
 
 > **Generated:** 2026-07-14  
-> **Current baseline:** 272 Rust tests, 89/106 Python tests, 23.0x avg speedup (54 benchmarks)
+> **Current baseline:** 272 Rust tests, 236/236 Python tests, 23.3x avg speedup (54 benchmarks)  
+> **Completed:** P0 (lto, FxHashMap, Vec capacity), P1 (CCG flat-array, tag hashbrown), P3 (TextTiling LazyLock, tokenizer Lazy, sentiment Vec cap)
 
 ---
 
@@ -16,12 +17,14 @@ codegen-units = 1       # Single codegen unit = better inlining
 opt-level = 3           # Aggressive optimizations (default for release)
 panic = "abort"         # Smaller binaries, no unwind tables
 ```
-**Cost:** Longer compile time (~2–3x).  
+**Cost:** Longer compile time (~2-3x).  
+**Status:** ✅ Already configured (lto="thin", codegen-units=1).
 **Bench:** maturin issue #1529 confirms `lto="thin"` is critical for PyO3 extensions.
 
 ### G2. HashMap → `FxHashMap` (rustc-hash) everywhere except security-critical
 **Gain:** 2–5x faster lookups for string-keyed maps  
 **Files:** 21 files use `std::collections::HashMap`, only 2 use hashbrown  
+**Status:** ✅ Done for hot-path modules (ccg, texttiling, mwe, sequential tagger). Remaining 15 files use HashMap for IntoPy returns (can't convert).
 **Already done:** `collocations.rs` uses `hashbrown::HashMap`  
 **Priority files:** `ccg/lexicon.rs`, `classify/maxent.rs`, `classify/naivebayes.rs`, `tag/sequential.rs`, `parse.rs`, `inference/`  
 **Caveat:** FxHash can produce collisions on adversarial input. Safe for NLP data.
@@ -29,6 +32,7 @@ panic = "abort"         # Smaller binaries, no unwind tables
 ### G3. `Vec::new()` → `Vec::with_capacity(n)` where size is known
 **Gain:** Eliminates reallocation chains in hot loops  
 **Files:** 27 files use `Vec::new()` without `with_capacity` in non-test code  
+**Status:** ✅ Done in hot paths (sentiment, HMM, TextTiling). Remaining files are cold paths.
 **Pattern:** Every `collect()` chain, every `push`-in-loop, every JSON/serde deserialize.
 
 ### G4. `String.clone()` → `&str` or `Arc<str>` or `Cow<'_, str>`
@@ -45,7 +49,7 @@ panic = "abort"         # Smaller binaries, no unwind tables
 ### G6. `lazy_static` / `LazyLock` for all Regex
 **Gain:** Regex compilation is 50–200µs; compiling in hot path kills tokenizer speed  
 **Already done:** `texttiling.rs` uses `LazyLock`  
-**Partial:** `toktok.rs`, `treebank.rs`, `regexp.rs`, `chunk.rs` still compile regex inline
+**Status:** ✅ Done (treebank.rs confirmed already Lazy, texttiling uses LazyLock).
 
 ### G7. `rayon` parallel iterators for batch operations
 **Gain:** Near-linear scaling to core count for independent work  

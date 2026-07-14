@@ -9,6 +9,9 @@
 //! All are pure lookup tables — no training loops, just counting + HashMap reads.
 
 use std::collections::HashMap;
+use std::sync::Arc;
+
+use hashbrown::HashMap as FastMap;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -48,11 +51,8 @@ impl DefaultTagger {
 
 #[pyclass(name = "UnigramTagger", module = "fastnltk._rust")]
 pub struct UnigramTagger {
-    /// word -> most frequent tag
-    word_to_tag: HashMap<String, String>,
-    /// default tag for unknown words
+    word_to_tag: FastMap<String, String>,
     default_tag: Option<String>,
-    /// backoff tagger (as a string name for simplicity)
     backoff: Option<String>,
 }
 
@@ -62,7 +62,7 @@ impl UnigramTagger {
     #[pyo3(signature = (backoff=None))]
     fn new(backoff: Option<&str>) -> Self {
         UnigramTagger {
-            word_to_tag: HashMap::new(),
+            word_to_tag: FastMap::new(),
             default_tag: None,
             backoff: backoff.map(|s| s.to_string()),
         }
@@ -70,8 +70,8 @@ impl UnigramTagger {
 
     /// Train on a list of tagged sentences: [[(word, tag), ...], ...]
     fn train(&mut self, sentences: &Bound<'_, PyList>) -> PyResult<()> {
-        let mut counts: HashMap<String, HashMap<String, u64>> = HashMap::new();
-        let mut tag_counts: HashMap<String, u64> = HashMap::new();
+        let mut counts: FastMap<String, FastMap<String, u64>> = FastMap::new();
+        let mut tag_counts: FastMap<String, u64> = FastMap::new();
 
         for item in sentences.iter() {
             let sent: Vec<(String, String)> = item.extract()?;
