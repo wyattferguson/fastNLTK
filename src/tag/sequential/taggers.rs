@@ -165,7 +165,11 @@ impl BigramTagger {
             }
             total += sent.len() as u64;
         }
-        if total == 0 { 0.0 } else { correct as f64 / total as f64 }
+        if total == 0 {
+            0.0
+        } else {
+            correct as f64 / total as f64
+        }
     }
 }
 
@@ -184,7 +188,8 @@ impl TrigramTagger {
         Self { trigram_map: FastMap::new(), default_tag: backoff.map(SmolStr::new) }
     }
     fn train(&mut self, sentences: &Bound<'_, PyList>) -> PyResult<()> {
-        let mut counts: FastMap<(SmolStr, SmolStr, SmolStr), FastMap<SmolStr, u64>> = FastMap::new();
+        let mut counts: FastMap<(SmolStr, SmolStr, SmolStr), FastMap<SmolStr, u64>> =
+            FastMap::new();
         let mut tag_counts: FastMap<SmolStr, u64> = FastMap::new();
         for item in sentences.iter() {
             let sent: Vec<(String, String)> = item.extract()?;
@@ -248,7 +253,11 @@ impl TrigramTagger {
             }
             total += sent.len() as u64;
         }
-        if total == 0 { 0.0 } else { correct as f64 / total as f64 }
+        if total == 0 {
+            0.0
+        } else {
+            correct as f64 / total as f64
+        }
     }
 }
 

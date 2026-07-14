@@ -1,6 +1,10 @@
 //! `RegexpStemmer` — strip suffix matching a pattern.
+use once_cell::sync::Lazy;
 use pyo3::prelude::*;
 use regex::Regex;
+
+static STEM_RE: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"(?i)(ing|ed|s|ly|ness|ment|tion|able)$").unwrap());
 
 #[pyclass(name = "RegexpStemmer", module = "fastnltk._rust")]
 #[derive(Clone)]
@@ -20,8 +24,7 @@ impl RegexpStemmer {
         if word.len() <= self.min_length {
             return word.to_string();
         }
-        let re = Regex::new(r"(?i)(ing|ed|s|ly|ness|ment|tion|able)$").unwrap();
-        re.replace(word, "").to_string()
+        STEM_RE.replace(word, "").to_string()
     }
 }
 

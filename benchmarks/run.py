@@ -33,19 +33,28 @@ def main():
         description="fastNLTK benchmark harness",
     )
     parser.add_argument(
-        "--save", nargs="?", const="", default=None,
+        "--save",
+        nargs="?",
+        const="",
+        default=None,
         help="Save results to JSON file (default: auto path)",
     )
     parser.add_argument(
-        "--regression", nargs="?", const="", default=None,
+        "--regression",
+        nargs="?",
+        const="",
+        default=None,
         help="Compare results against a baseline JSON file",
     )
     parser.add_argument(
-        "--threshold", type=float, default=0.15,
+        "--threshold",
+        type=float,
+        default=0.15,
         help="Regression threshold (fractional, default 0.15 = 15%%)",
     )
     parser.add_argument(
-        "--ci", action="store_true",
+        "--ci",
+        action="store_true",
         help="CI mode: run, save, check regressions against last baseline",
     )
     args = parser.parse_args()
@@ -94,7 +103,7 @@ def main():
             print_regression_table(regressions)
             return 1
         else:
-            print(f"\n  ✅ All within {args.threshold*100:.0f}% of baseline.")
+            print(f"\n  ✅ All within {args.threshold * 100:.0f}% of baseline.")
 
     # Save in CI mode too (after comparison)
     if args.ci and baseline_path:

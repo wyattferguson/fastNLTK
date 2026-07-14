@@ -86,16 +86,17 @@ impl DefaultReasoner {
     /// Compute all extensions (fixed-point semantics).
     /// Returns list of extensions, where each extension is a list of facts.
     fn extensions(&self) -> Vec<Vec<String>> {
-        let mut results = Vec::new();
         let mut extensions: Vec<HashSet<String>> = vec![HashSet::new()];
+        // Use HashSet for dedup instead of Vec::contains (O(n) → O(1))
+        let mut new_seen: HashSet<Vec<String>> = HashSet::new();
 
         for _ in 0..self.max_extensions {
-            let mut new_extensions: Vec<HashSet<String>> = Vec::new();
+            let mut next_extensions: Vec<HashSet<String>> = Vec::new();
+            new_seen.clear();
 
             for ext in &extensions {
                 let mut added = false;
 
-                // Try to apply each default rule
                 for rule in &self.rules {
                     let prereq_holds =
                         ext.contains(&rule.prerequisite) || rule.prerequisite.is_empty();
@@ -105,26 +106,32 @@ impl DefaultReasoner {
                     if prereq_holds && !cons_already && just_consistent {
                         let mut new_ext = ext.clone();
                         new_ext.insert(rule.consequent.clone());
-                        if !extensions.contains(&new_ext) && !new_extensions.contains(&new_ext) {
-                            new_extensions.push(new_ext);
+                        let mut sorted: Vec<String> = new_ext.iter().cloned().collect();
+                        sorted.sort();
+                        if new_seen.insert(sorted) {
+                            next_extensions.push(new_ext);
                             added = true;
                         }
                     }
                 }
 
-                if !added && !new_extensions.contains(ext) {
-                    // Stable extension — keep it
-                    new_extensions.push(ext.clone());
+                if !added {
+                    let mut sorted: Vec<String> = ext.iter().cloned().collect();
+                    sorted.sort();
+                    if new_seen.insert(sorted) {
+                        next_extensions.push(ext.clone());
+                    }
                 }
             }
 
-            if new_extensions == extensions {
+            if next_extensions == extensions {
                 break;
             }
-            extensions = new_extensions;
+            extensions = next_extensions;
         }
 
         // Convert to sorted string lists
+        let mut results: Vec<Vec<String>> = Vec::new();
         for ext in extensions {
             let mut facts: Vec<String> = ext.into_iter().collect();
             facts.sort();
@@ -219,7 +226,6 @@ mod tests {
             "flies(x)".into(),
             "bird-flies".into(),
         );
-        // Test via __str__
         let s = rule.__str__();
         assert!(s.contains("bird") || s.contains("bird-flies"), "should contain bird: {s}");
         assert!(s.contains("flies"), "should contain flies: {s}");
@@ -243,8 +249,6 @@ mod tests {
         )];
         let reasoner = DefaultReasoner::new(rules, 10);
         let exts = reasoner.extensions();
-        // With no facts, cannot trigger default (empty prerequisite only)
-        // "bird" prerequisite doesn't hold, so default can't fire
         assert!(!exts.is_empty());
     }
 
@@ -260,10 +264,6 @@ mod tests {
         let reasoner = ClosedWorldReasoner::new(vec!["bird(tweety)".into()]);
         let negatives = reasoner.negative_facts();
         assert!(negatives.contains(&"~bird(tweety)".to_string()));
-        // Should NOT generate ~bird(tweety) if bird(tweety) is known... wait
-        // Actually our implementation generates ~X for all known X
-        // since X being known means ~X is false, so ~X is negative
-        // This is a CWA approach — everything not provable is false
         assert!(!negatives.contains(&"~cat(felix)".to_string()));
     }
 
@@ -285,13 +285,11 @@ mod tests {
 
     #[test]
     fn test_empty_prerequisite() {
-        // A rule with empty prerequisite should always fire
         let rules =
             vec![DefaultRule::new(String::new(), "fact".into(), "fact".into(), "always".into())];
         let reasoner = DefaultReasoner::new(rules, 10);
         let exts = reasoner.extensions();
         assert!(!exts.is_empty());
-        // Empty prereq should allow default to fire
         assert!(
             exts.iter().any(|e| e.contains(&"fact".to_string())),
             "should derive 'fact' from empty prereq: {exts:?}"
@@ -309,7 +307,6 @@ mod tests {
     #[test]
     fn test_closed_world_empty_kb() {
         let reasoner = ClosedWorldReasoner::new(vec![]);
-        // Empty KB: everything is false under CWA
         assert!(!reasoner.query("anything"));
         assert!(reasoner.positive_facts().is_empty());
     }

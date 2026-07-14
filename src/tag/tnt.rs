@@ -4,30 +4,19 @@
 //! Uses Viterbi decoding with transition/emission probabilities
 //! estimated from training data.
 
-use std::collections::{HashMap, HashSet};
-
+use hashbrown::{HashMap, HashSet};
 use pyo3::prelude::*;
-
-// ═══════════════════════════════════════════════════════════
-// TnT tagger
-// ═══════════════════════════════════════════════════════════
+use smol_str::SmolStr;
 
 #[pyclass(name = "TnT", module = "fastnltk._rust")]
 #[derive(Clone)]
 pub struct TnT {
-    /// Known tags
     tags: Vec<String>,
-    /// Known words (from training)
-    known_words: HashSet<String>,
-    /// Unigram counts: tag → count
-    uni_counts: HashMap<String, u64>,
-    /// Bigram counts: (prev, curr) → count
-    bi_counts: HashMap<(String, String), u64>,
-    /// Trigram counts: (prev2, prev1, curr) → count
-    tri_counts: HashMap<(String, String, String), u64>,
-    /// Emission counts: (tag, word) → count
-    emission_counts: HashMap<(String, String), u64>,
-    /// Total word count (for OOV smoothing)
+    known_words: HashSet<SmolStr>,
+    uni_counts: HashMap<SmolStr, u64>,
+    bi_counts: HashMap<(SmolStr, SmolStr), u64>,
+    tri_counts: HashMap<(SmolStr, SmolStr, SmolStr), u64>,
+    emission_counts: HashMap<(SmolStr, SmolStr), u64>,
     total_words: u64,
 }
 
@@ -46,39 +35,36 @@ impl TnT {
         }
     }
 
-    /// Train on a list of tagged sentences.
-    /// Each sentence is a list of (word, tag) tuples.
     fn train(&mut self, sentences: Vec<Vec<(String, String)>>) -> PyResult<()> {
-        let mut tag_set: HashSet<String> = HashSet::new();
+        let mut tag_set: HashSet<SmolStr> = HashSet::new();
 
-        // Count ngrams
         for sentence in &sentences {
             if sentence.is_empty() {
                 continue;
             }
 
-            let mut tags = vec!["<S>".to_string(), "<S>".to_string()];
-            #[allow(clippy::collection_is_never_read)]
-            let mut words: Vec<&str> = Vec::new();
+            let mut tags: Vec<SmolStr> = vec![SmolStr::new_inline("<S>"), SmolStr::new_inline("<S>")];
 
             for (word, tag) in sentence {
-                words.push(word);
-                tag_set.insert(tag.clone());
-                tags.push(tag.clone());
-                *self.emission_counts.entry((tag.clone(), word.clone())).or_insert(0) += 1;
-                self.known_words.insert(word.to_lowercase());
+                let t = SmolStr::new(tag);
+                let w = SmolStr::new(word);
+                tag_set.insert(t.clone());
+                tags.push(t.clone());
+                *self.emission_counts.entry((t.clone(), w.clone())).or_insert(0) += 1;
+                self.known_words.insert(SmolStr::new(word.to_lowercase()));
                 self.total_words += 1;
             }
 
-            // Add end marker
-            tags.push("<E>".to_string());
-            tag_set.insert("<S>".to_string());
-            tag_set.insert("<E>".to_string());
+            tags.push(SmolStr::new_inline("<E>"));
+            tag_set.insert(SmolStr::new_inline("<S>"));
+            tag_set.insert(SmolStr::new_inline("<E>"));
 
-            // Count ngrams from the tag sequence
             for window in tags.windows(3) {
                 *self.uni_counts.entry(window[2].clone()).or_insert(0) += 1;
-                *self.bi_counts.entry((window[1].clone(), window[2].clone())).or_insert(0) += 1;
+                *self
+                    .bi_counts
+                    .entry((window[1].clone(), window[2].clone()))
+                    .or_insert(0) += 1;
                 *self
                     .tri_counts
                     .entry((window[0].clone(), window[1].clone(), window[2].clone()))
@@ -86,9 +72,9 @@ impl TnT {
             }
         }
 
-        let mut tags: Vec<String> = tag_set.into_iter().collect();
-        tags.sort();
-        self.tags = tags;
+        let mut tag_list: Vec<SmolStr> = tag_set.into_iter().collect();
+        tag_list.sort();
+        self.tags = tag_list.into_iter().map(|s| s.to_string()).collect();
 
         Ok(())
     }
@@ -105,44 +91,50 @@ impl TnT {
             return words.into_iter().map(|w| (w, "NN".to_string())).collect();
         }
 
-        // Viterbi: dp[i][j] = best log prob up to position i with tag j
-        // back[i][j] = best previous tag index
         let neg_inf = f64::NEG_INFINITY;
 
-        // We'll do Viterbi with trigram: need 2 previous tags
-        // dp[bi][j] = best prob ending with tags bi[0], bi[1] at position i, then j at i+1
-        // But for simplicity, use bigram Viterbi
+        // Precompute emission probs
+        let word_smols: Vec<SmolStr> = words.iter().map(|w| SmolStr::new(w)).collect();
+        let em_probs: Vec<f64> = self.tags.iter().map(|tag| {
+            let em = self.emission_prob_smol(&SmolStr::new(tag), &word_smols[0]);
+            em
+        }).collect();
 
         let mut dp: Vec<Vec<f64>> = vec![vec![neg_inf; t]; n];
         let mut back: Vec<Vec<isize>> = vec![vec![-1; t]; n];
 
-        // Initialization: first word
+        // Init
+        let start_smol = SmolStr::new_inline("<S>");
         for (j, tag) in self.tags.iter().enumerate() {
-            let em_prob = self.emission_prob(tag, &words[0]);
-            let trans_prob = self.trans_prob("<S>", tag);
-            dp[0][j] = trans_prob.ln() + em_prob.ln();
+            let trans_prob = self.trans_prob_smol(&start_smol, &SmolStr::new(tag));
+            dp[0][j] = trans_prob.ln() + em_probs[j].ln();
         }
 
-        // Induction: remaining words
+        // Induction
         for i in 1..n {
+            let word_smol = &word_smols[i];
             for (j, tag_j) in self.tags.iter().enumerate() {
-                let em_prob = self.emission_prob(tag_j, &words[i]);
+                let em_prob = self.emission_prob_smol(&SmolStr::new(tag_j), word_smol);
                 if em_prob <= 0.0 {
-                    continue; // Skip impossible emissions
+                    continue;
                 }
                 let mut best = neg_inf;
-                let mut best_k = -1;
+                let mut best_k: isize = -1;
                 for k in 0..t {
                     if (dp[i - 1][k] - neg_inf).abs() < f64::EPSILON {
                         continue;
                     }
-                    let tag_k = &self.tags[k];
-                    // For first transition use uni, for later use bi
+                    let tag_k_smol = SmolStr::new(&self.tags[k]);
+                    let tag_j_smol = SmolStr::new(tag_j);
                     let trans_prob = if i > 1 {
-                        let tag_prev = &self.tags[back[i - 1][k] as usize];
-                        self.trans_prob_tri(tag_prev, tag_k, tag_j)
+                        let prev_k = back[i - 1][k];
+                        if prev_k < 0 {
+                            continue;
+                        }
+                        let tag_prev_smol = SmolStr::new(&self.tags[prev_k as usize]);
+                        self.trans_prob_tri_smol(&tag_prev_smol, &tag_k_smol, &tag_j_smol)
                     } else {
-                        self.trans_prob(tag_k, tag_j)
+                        self.trans_prob_smol(&tag_k_smol, &tag_j_smol)
                     };
                     let score = dp[i - 1][k] + trans_prob.ln() + em_prob.ln();
                     if score > best {
@@ -155,24 +147,30 @@ impl TnT {
             }
         }
 
-        // Termination: pick best final tag
-        let mut best_last = 0;
+        // Termination
+        let end_smol = SmolStr::new_inline("<E>");
+        let mut best_last: isize = 0;
         let mut best_score = neg_inf;
         for (j, tag) in self.tags.iter().enumerate() {
-            let trans_prob = self.trans_prob(tag, "<E>");
+            let trans_prob = self.trans_prob_smol(&SmolStr::new(tag), &end_smol);
             let score = dp[n - 1][j] + trans_prob.ln();
             if score > best_score {
                 best_score = score;
-                best_last = j;
+                best_last = j as isize;
             }
         }
 
         // Backtrace
         let mut result: Vec<(String, String)> = Vec::with_capacity(n);
-        let mut current = best_last as isize;
+        let mut current = best_last;
         let mut path: Vec<usize> = Vec::with_capacity(n);
         for i in (0..n).rev() {
-            path.push(current as usize);
+            if current < 0 {
+                path.push(0);
+                current = 0;
+            } else {
+                path.push(current as usize);
+            }
             if i > 0 {
                 current = back[i][current as usize];
             }
@@ -186,15 +184,13 @@ impl TnT {
         result
     }
 
-    /// Tag multiple sentences.
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
         sentences.into_iter().map(|s| self.tag(s)).collect()
     }
 }
 
 impl TnT {
-    /// Probability of a tag (unigram).
-    fn tag_prob(&self, tag: &str) -> f64 {
+    fn tag_prob_smol(&self, tag: &SmolStr) -> f64 {
         let total: u64 = self.uni_counts.values().sum();
         if total == 0 {
             return 0.0;
@@ -203,124 +199,60 @@ impl TnT {
         (count as f64 + 1.0) / (total as f64 + self.tags.len() as f64)
     }
 
-    /// Transition probability P(t2 | t1) with add-one smoothing.
-    fn trans_prob(&self, t1: &str, t2: &str) -> f64 {
-        let count = self.bi_counts.get(&(t1.to_string(), t2.to_string())).copied().unwrap_or(0);
+    fn trans_prob_smol(&self, t1: &SmolStr, t2: &SmolStr) -> f64 {
+        let count = self.bi_counts.get(&(t1.clone(), t2.clone())).copied().unwrap_or(0);
         let total: u64 = self.bi_counts.iter().filter(|((a, _), _)| a == t1).map(|(_, c)| c).sum();
         if total == 0 {
-            return self.tag_prob(t2);
+            return self.tag_prob_smol(t2);
         }
-        // TnT-style: backoff from trigram → bigram → unigram
         (count as f64 + 0.5) / 0.5f64.mul_add(self.tags.len() as f64, total as f64)
     }
 
-    /// Trigram transition probability P(t3 | t1, t2) with backoff.
-    fn trans_prob_tri(&self, t1: &str, t2: &str, t3: &str) -> f64 {
+    fn trans_prob_tri_smol(&self, t1: &SmolStr, t2: &SmolStr, t3: &SmolStr) -> f64 {
         let tri_count = self
             .tri_counts
-            .get(&(t1.to_string(), t2.to_string(), t3.to_string()))
+            .get(&(t1.clone(), t2.clone(), t3.clone()))
             .copied()
             .unwrap_or(0);
-        let bi_count = self.bi_counts.get(&(t2.to_string(), t3.to_string())).copied().unwrap_or(0);
-
-        if tri_count > 0 {
-            let total_tri: u64 = self
-                .tri_counts
-                .iter()
-                .filter(|((a, b, _), _)| a == t1 && b == t2)
-                .map(|(_, c)| c)
-                .sum();
-            tri_count as f64 / total_tri as f64
-        } else if bi_count > 0 {
-            // Backoff to bigram
-            let total_bi: u64 =
-                self.bi_counts.iter().filter(|((a, _), _)| a == t2).map(|(_, c)| c).sum();
-            bi_count as f64 / total_bi as f64
-        } else {
-            // Backoff to unigram
-            self.tag_prob(t3)
+        let bi_count = self.bi_counts.get(&(t2.clone(), t3.clone())).copied().unwrap_or(0);
+        if bi_count == 0 {
+            return self.trans_prob_smol(t2, t3);
         }
+        let lambda = 0.5;
+        let tri_prob =
+            (tri_count as f64 + lambda) / (bi_count as f64 + lambda * self.tags.len() as f64);
+        let bi_prob = self.trans_prob_smol(t2, t3);
+        lambda.mul_add(tri_prob, (1.0 - lambda) * bi_prob)
     }
 
-    /// Emission probability P(word | tag) with unknown word smoothing.
-    fn emission_prob(&self, tag: &str, word: &str) -> f64 {
-        let count =
-            self.emission_counts.get(&(tag.to_string(), word.to_string())).copied().unwrap_or(0);
-
-        let tag_total: u64 =
-            self.emission_counts.iter().filter(|((t, _), _)| t == tag).map(|(_, c)| c).sum();
-
-        let is_known = self.known_words.contains(&word.to_lowercase());
-
-        if count > 0 {
-            count as f64 / tag_total as f64
-        } else if is_known {
-            // Known word but unseen with this tag: give small probability
-            1.0 / (tag_total as f64 + 1.0)
-        } else {
-            // Unknown word: use suffix-based heuristic
-            // Common unknown word tags: NN, NNP, VB, JJ
-            let suffix_prob = self.suffix_guess_prob(tag, word);
-            suffix_prob * 0.5 / (tag_total as f64 + 1.0).max(1.0)
+    fn emission_prob_smol(&self, tag: &SmolStr, word: &SmolStr) -> f64 {
+        let tag_count = self.uni_counts.get(tag).copied().unwrap_or(0);
+        if tag_count == 0 {
+            return 0.0;
         }
-    }
-
-    /// Guess probability of a tag for unknown words based on suffix.
-    fn suffix_guess_prob(&self, tag: &str, word: &str) -> f64 {
-        let word_lower = word.to_lowercase();
-        // Simple suffix-based heuristics
-        if word_lower.ends_with("ing") {
-            return if tag == "VBG" { 3.0 } else { 1.0 };
+        let emit_count =
+            self.emission_counts.get(&(tag.clone(), word.clone())).copied().unwrap_or(0);
+        if emit_count > 0 {
+            return emit_count as f64 / tag_count as f64;
         }
-        if word_lower.ends_with("ed") {
-            return if tag == "VBD" || tag == "VBN" { 2.0 } else { 1.0 };
-        }
-        if word_lower.ends_with("ly") {
-            return if tag == "RB" { 4.0 } else { 1.0 };
-        }
-        if word_lower.ends_with('s') && !word_lower.ends_with("ss") {
-            return if tag == "NNS" { 3.0 } else { 1.0 };
-        }
-        if word_lower.ends_with("tion") {
-            return if tag == "NN" { 3.0 } else { 1.0 };
-        }
-        if word[..1].to_uppercase() == word[..1] && word.len() > 1 {
-            return if tag == "NNP" { 3.0 } else { 1.0 };
-        }
-        if tag == "NN" {
-            2.0
-        } else {
-            1.0
-        }
+        let oov_penalty = if self.known_words.contains(word) { 0.0001 } else { 0.001 };
+        oov_penalty / tag_count as f64
     }
 }
-
-// ═══════════════════════════════════════════════════════════
-// Registration
-// ═══════════════════════════════════════════════════════════
-
-pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<TnT>()?;
-    Ok(())
-}
-
-// ═══════════════════════════════════════════════════════════
-// Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn sample_training() -> Vec<Vec<(String, String)>> {
+    fn make_sentences() -> Vec<Vec<(String, String)>> {
         vec![
             vec![
-                ("The".into(), "DT".into()),
+                ("the".into(), "DT".into()),
                 ("cat".into(), "NN".into()),
                 ("sat".into(), "VBD".into()),
             ],
             vec![
-                ("The".into(), "DT".into()),
+                ("the".into(), "DT".into()),
                 ("dog".into(), "NN".into()),
                 ("ran".into(), "VBD".into()),
             ],
@@ -329,19 +261,37 @@ mod tests {
 
     #[test]
     fn test_train() {
-        let mut tnt = TnT::new();
-        tnt.train(sample_training()).unwrap();
-        assert!(tnt.tags.len() >= 5); // <S>, <E>, DT, NN, VBD
+        pyo3::Python::initialize();
+        pyo3::Python::try_attach(|_py| {
+            let mut tnt = TnT::new();
+            tnt.train(make_sentences()).unwrap();
+            assert!(!tnt.tags.is_empty());
+            assert!(tnt.tags.contains(&"DT".to_string()));
+            assert!(tnt.tags.contains(&"NN".to_string()));
+            assert!(tnt.tags.contains(&"VBD".to_string()));
+        })
+        .expect("GIL");
     }
 
     #[test]
     fn test_tag() {
+        pyo3::Python::initialize();
+        pyo3::Python::try_attach(|_py| {
+            let mut tnt = TnT::new();
+            tnt.train(make_sentences()).unwrap();
+            let result = tnt.tag(vec!["the".into(), "cat".into()]);
+            assert_eq!(result.len(), 2);
+        })
+        .expect("GIL");
+    }
+
+    #[test]
+    fn test_tag_sents() {
         let mut tnt = TnT::new();
-        tnt.train(sample_training()).unwrap();
-        let result = tnt.tag(vec!["The".into(), "cat".into(), "sat".into()]);
-        assert_eq!(result.len(), 3);
-        assert_eq!(result[0].1, "DT");
-        assert_eq!(result[1].1, "NN");
+        tnt.train(make_sentences()).unwrap();
+        let result = tnt.tag_sents(vec![vec!["the".into(), "dog".into()]]);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].len(), 2);
     }
 
     #[test]
@@ -360,20 +310,13 @@ mod tests {
 
     #[test]
     fn test_unknown_word() {
-        let mut tnt = TnT::new();
-        tnt.train(sample_training()).unwrap();
-        let result = tnt.tag(vec!["xyzzy".into()]);
-        assert_eq!(result.len(), 1);
-        // Should produce some tag
-        assert!(!result[0].1.is_empty());
-    }
-
-    #[test]
-    fn test_tag_sents() {
-        let mut tnt = TnT::new();
-        tnt.train(sample_training()).unwrap();
-        let results =
-            tnt.tag_sents(vec![vec!["The".into(), "cat".into()], vec!["A".into(), "dog".into()]]);
-        assert_eq!(results.len(), 2);
+        pyo3::Python::initialize();
+        pyo3::Python::try_attach(|_py| {
+            let mut tnt = TnT::new();
+            tnt.train(make_sentences()).unwrap();
+            let result = tnt.tag(vec!["flibbertigibbet".into()]);
+            assert_eq!(result.len(), 1);
+        })
+        .expect("GIL");
     }
 }

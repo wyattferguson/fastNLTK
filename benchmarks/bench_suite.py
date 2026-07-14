@@ -22,6 +22,7 @@ from .harness import (
 def _ensure_data():
     """Download NLTK data if needed."""
     import nltk
+
     for resource in ["punkt", "averaged_perceptron_tagger", "wordnet", "vader_lexicon"]:
         try:
             nltk.data.find(f"tokenizers/{resource}")
@@ -46,8 +47,10 @@ def bench_toktok() -> BenchResult:
         name="ToktokTokenizer.tokenize",
         group="tokenize",
         params={"chars": len(text)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -65,8 +68,10 @@ def bench_mwe() -> BenchResult:
         name="MWETokenizer.tokenize",
         group="tokenize",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -88,8 +93,10 @@ def bench_texttiling() -> BenchResult:
         name="TextTilingTokenizer.tokenize",
         group="tokenize",
         params={"chars": len(text)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=5,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=5,
     )
 
 
@@ -107,8 +114,10 @@ def bench_punkt_sent_tokenize() -> BenchResult:
         name="PunktSentenceTokenizer.tokenize",
         group="tokenize",
         params={"chars": len(text)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=15,
     )
 
 
@@ -123,10 +132,13 @@ def bench_regexp_tokenizer() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tokenize(text), 30)
     f_ms = _median_time(lambda: rust.tokenize(text), 30)
     return BenchResult(
-        name="RegexpTokenizer.tokenize", group="tokenize",
+        name="RegexpTokenizer.tokenize",
+        group="tokenize",
         params={"chars": len(text)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -141,10 +153,13 @@ def bench_treebank_tokenizer() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tokenize(text), 15)
     f_ms = _median_time(lambda: rust.tokenize(text), 15)
     return BenchResult(
-        name="TreebankWordTokenizer.tokenize", group="tokenize",
+        name="TreebankWordTokenizer.tokenize",
+        group="tokenize",
         params={"chars": len(text)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=15,
     )
 
 
@@ -159,10 +174,13 @@ def bench_tweet_tokenizer() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tokenize(text), 15)
     f_ms = _median_time(lambda: rust.tokenize(text), 15)
     return BenchResult(
-        name="TweetTokenizer.tokenize", group="tokenize",
+        name="TweetTokenizer.tokenize",
+        group="tokenize",
         params={"chars": len(text)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=15,
     )
 
 
@@ -177,10 +195,13 @@ def bench_sexpr_tokenizer() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tokenize(text), 30)
     f_ms = _median_time(lambda: rust.tokenize(text), 30)
     return BenchResult(
-        name="SExprTokenizer.tokenize", group="tokenize",
+        name="SExprTokenizer.tokenize",
+        group="tokenize",
         params={"chars": len(text)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -195,10 +216,118 @@ def bench_detokenizer() -> BenchResult:
     n_ms = _median_time(lambda: ntk.detokenize(tokens), 30)
     f_ms = _median_time(lambda: rust.detokenize(tokens), 30)
     return BenchResult(
-        name="TreebankWordDetokenizer.detokenize", group="tokenize",
+        name="TreebankWordDetokenizer.detokenize",
+        group="tokenize",
         params={"tokens": len(tokens)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
+    )
+
+
+def bench_tab_tokenizer() -> BenchResult:
+    import nltk.tokenize
+
+    from fastnltk._rust import TabTokenizer
+
+    text = fixture("medium")
+    ntk = nltk.tokenize.TabTokenizer()
+    rust = TabTokenizer()
+    n_ms = _median_time(lambda: ntk.tokenize(text), 30)
+    f_ms = _median_time(lambda: rust.tokenize(text), 30)
+    return BenchResult(
+        name="TabTokenizer.tokenize",
+        group="tokenize",
+        params={"chars": len(text)},
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
+    )
+
+
+def bench_line_tokenizer() -> BenchResult:
+    import nltk.tokenize
+
+    from fastnltk._rust import LineTokenizer
+
+    text = fixture("medium")
+    ntk = nltk.tokenize.LineTokenizer()
+    rust = LineTokenizer()
+    n_ms = _median_time(lambda: ntk.tokenize(text), 30)
+    f_ms = _median_time(lambda: rust.tokenize(text), 30)
+    return BenchResult(
+        name="LineTokenizer.tokenize",
+        group="tokenize",
+        params={"chars": len(text)},
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
+    )
+
+
+def bench_whitespace_tokenizer() -> BenchResult:
+    import nltk.tokenize
+
+    from fastnltk._rust import WhitespaceTokenizer
+
+    text = fixture("medium")
+    ntk = nltk.tokenize.WhitespaceTokenizer()
+    rust = WhitespaceTokenizer()
+    n_ms = _median_time(lambda: ntk.tokenize(text), 30)
+    f_ms = _median_time(lambda: rust.tokenize(text), 30)
+    return BenchResult(
+        name="WhitespaceTokenizer.tokenize",
+        group="tokenize",
+        params={"chars": len(text)},
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
+    )
+
+
+def bench_wordpunct_tokenizer() -> BenchResult:
+    import nltk.tokenize
+
+    from fastnltk._rust import WordPunctTokenizer
+
+    text = fixture("medium")
+    ntk = nltk.tokenize.WordPunctTokenizer()
+    rust = WordPunctTokenizer()
+    n_ms = _median_time(lambda: ntk.tokenize(text), 30)
+    f_ms = _median_time(lambda: rust.tokenize(text), 30)
+    return BenchResult(
+        name="WordPunctTokenizer.tokenize",
+        group="tokenize",
+        params={"chars": len(text)},
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
+    )
+
+
+def bench_blankline_tokenizer() -> BenchResult:
+    import nltk.tokenize
+
+    from fastnltk._rust import BlanklineTokenizer
+
+    text = fixture("medium")
+    ntk = nltk.tokenize.BlanklineTokenizer()
+    rust = BlanklineTokenizer()
+    n_ms = _median_time(lambda: ntk.tokenize(text), 30)
+    f_ms = _median_time(lambda: rust.tokenize(text), 30)
+    return BenchResult(
+        name="BlanklineTokenizer.tokenize",
+        group="tokenize",
+        params={"chars": len(text)},
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -213,10 +342,13 @@ def bench_space_tokenizer() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tokenize(text), 30)
     f_ms = _median_time(lambda: rust.tokenize(text), 30)
     return BenchResult(
-        name="SpaceTokenizer.tokenize", group="tokenize",
+        name="SpaceTokenizer.tokenize",
+        group="tokenize",
         params={"chars": len(text)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -226,9 +358,11 @@ def bench_logos_tokenizer() -> BenchResult:
     text = fixture("medium")
     f_ms = _median_time(lambda: logos_word_tokenize(text), 30)
     return BenchResult(
-        name="logos_word_tokenize", group="tokenize",
+        name="logos_word_tokenize",
+        group="tokenize",
         params={"chars": len(text)},
-        fast_only_ms=f_ms, iterations=30,
+        fast_only_ms=f_ms,
+        iterations=30,
     )
 
 
@@ -249,8 +383,10 @@ def bench_snowball() -> BenchResult:
         name="SnowballStemmer.stem",
         group="stem",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -268,8 +404,10 @@ def bench_porter() -> BenchResult:
         name="PorterStemmer.stem",
         group="stem",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -287,8 +425,10 @@ def bench_lancaster() -> BenchResult:
         name="LancasterStemmer.stem",
         group="stem",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -306,8 +446,84 @@ def bench_wordnet() -> BenchResult:
         name="WordNetLemmatizer.lemmatize",
         group="stem",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=15,
+    )
+
+
+def bench_arlstem() -> BenchResult:
+    from nltk.stem.arlstem import ARLSTem as NltkARL
+
+    from fastnltk._rust import ARLSTem
+
+    words = ["كتب", "الكتاب", "مكتبة"] * 500
+    ntk = NltkARL()
+    rust = ARLSTem()
+    n_ms = _median_time(lambda: [ntk.stem(w) for w in words], 30)
+    f_ms = _median_time(lambda: [rust.stem(w) for w in words], 30)
+    return BenchResult(
+        name="ARLSTem.stem",
+        group="stem",
+        params={"words": len(words)},
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
+    )
+
+
+def bench_isri_stemmer() -> BenchResult:
+    from nltk.stem.isri import ISRIStemmer as NltkISRI
+
+    from fastnltk._rust import ISRIStemmer
+
+    words = ["كتب", "الكتاب", "مكتبة"] * 500
+    ntk = NltkISRI()
+    rust = ISRIStemmer()
+    n_ms = _median_time(lambda: [ntk.stem(w) for w in words], 30)
+    f_ms = _median_time(lambda: [rust.stem(w) for w in words], 30)
+    return BenchResult(
+        name="ISRIStemmer.stem",
+        group="stem",
+        params={"words": len(words)},
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
+    )
+
+
+def bench_rslp_stemmer() -> BenchResult:
+    from fastnltk._rust import RSLPStemmer
+
+    # NLTK RSLPStemmer requires nltk.download('rslp') data — skip comparison
+    words = ["correndo", "correr", "correu", "corria"] * 500
+    rust = RSLPStemmer()
+    f_ms = _median_time(lambda: [rust.stem(w) for w in words], 50)
+    return BenchResult(
+        name="RSLPStemmer.stem",
+        group="stem",
+        params={"words": len(words)},
+        fast_only_ms=f_ms,
+        iterations=50,
+    )
+
+
+def bench_regexp_stemmer() -> BenchResult:
+    from fastnltk._rust import RegexpStemmer
+
+    # Rust RegexpStemmer uses hardcoded patterns; NLTK version takes custom regex
+    words = ["running", "jumping", "walking", "eating", "happily", "kindness"] * 500
+    rust = RegexpStemmer()
+    f_ms = _median_time(lambda: [rust.stem(w) for w in words], 50)
+    return BenchResult(
+        name="RegexpStemmer.stem",
+        group="stem",
+        params={"words": len(words)},
+        fast_only_ms=f_ms,
+        iterations=50,
     )
 
 
@@ -320,7 +536,7 @@ def bench_perceptron_tagger() -> BenchResult:
     from fastnltk.tag import pos_tag
 
     words = fixture("medium").split()[:3000]
-    sents = [words[i:i+10] for i in range(0, min(len(words), 1000), 10)][:100]
+    sents = [words[i : i + 10] for i in range(0, min(len(words), 1000), 10)][:100]
 
     ntk = nltk.tag.PerceptronTagger()
     _ = [ntk.tag(s) for s in sents[:5]]  # warmup
@@ -330,25 +546,41 @@ def bench_perceptron_tagger() -> BenchResult:
         name="PerceptronTagger.tag",
         group="tag",
         params={"sentences": len(sents)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=5,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=5,
     )
 
 
 def bench_hmm_tag() -> BenchResult:
+    import nltk.tag.hmm
+
     from fastnltk._rust import HiddenMarkovModelTagger
 
-    train = [[("I", "PRP"), ("like", "VBP"), ("dogs", "NNS")],
-             [("She", "PRP"), ("runs", "VBZ"), ("fast", "RB")]]
+    train = [
+        [("I", "PRP"), ("like", "VBP"), ("dogs", "NNS")],
+        [("She", "PRP"), ("runs", "VBZ"), ("fast", "RB")],
+    ]
+    words_1k = ["I", "like", "dogs"] * 333
+
+    # NLTK HMM
+    ntk = nltk.tag.hmm.HiddenMarkovModelTagger.train([[(w, t) for w, t in sent] for sent in train])
+    n_ms = _median_time(lambda: ntk.tag(words_1k), 15)
+
+    # fastNLTK HMM
     hm = HiddenMarkovModelTagger(3, 5, 1e-4, 0.1)
     hm.train(train)
-    words_1k = ["I", "like", "dogs"] * 333
-    f_ms = _median_time(lambda: hm.tag(words_1k), 50)
+    f_ms = _median_time(lambda: hm.tag(words_1k), 15)
+
     return BenchResult(
         name="HiddenMarkovModelTagger.tag",
         group="tag",
         params={"words": len(words_1k)},
-        fast_only_ms=f_ms, iterations=50,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=15,
     )
 
 
@@ -357,8 +589,12 @@ def bench_tnt_tag() -> BenchResult:
 
     from fastnltk._rust import TnT
 
-    train = [[("the", "DT"), ("cat", "NN")], [("the", "DT"), ("dog", "NN")],
-             [("a", "DT"), ("fox", "NN")], [("a", "DT"), ("bear", "NN")]] * 5
+    train = [
+        [("the", "DT"), ("cat", "NN")],
+        [("the", "DT"), ("dog", "NN")],
+        [("a", "DT"), ("fox", "NN")],
+        [("a", "DT"), ("bear", "NN")],
+    ] * 5
     # NLTK TnT
     ntk = nltk.tag.TnT()
     ntk.train(train)
@@ -372,8 +608,10 @@ def bench_tnt_tag() -> BenchResult:
         name="TnT.tag",
         group="tag",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=15,
     )
 
 
@@ -388,10 +626,13 @@ def bench_default_tagger() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tag(words), 30)
     f_ms = _median_time(lambda: rust.tag(words), 30)
     return BenchResult(
-        name="DefaultTagger.tag", group="tag",
+        name="DefaultTagger.tag",
+        group="tag",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -400,6 +641,7 @@ def bench_default_tagger() -> BenchResult:
 
 def _train_data_words(py):
     from pyo3 import Python
+
     train = [
         [("the", "DT"), ("cat", "NN")],
         [("the", "DT"), ("dog", "NN")],
@@ -413,8 +655,7 @@ def bench_unigram_tagger() -> BenchResult:
 
     from fastnltk._rust import UnigramTagger
 
-    train = [[("the", "DT"), ("cat", "NN")],
-             [("the", "DT"), ("dog", "NN")]]
+    train = [[("the", "DT"), ("cat", "NN")], [("the", "DT"), ("dog", "NN")]]
     words = ["the", "cat", "dog", "fox", "run"] * 2000
 
     ntk = nltk.tag.UnigramTagger(train)
@@ -424,10 +665,13 @@ def bench_unigram_tagger() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tag(words), 30)
     f_ms = _median_time(lambda: rust.tag(words), 30)
     return BenchResult(
-        name="UnigramTagger.tag", group="tag",
+        name="UnigramTagger.tag",
+        group="tag",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -436,8 +680,7 @@ def bench_bigram_tagger() -> BenchResult:
 
     from fastnltk._rust import BigramTagger
 
-    train = [[("the", "DT"), ("cat", "NN")],
-             [("the", "DT"), ("dog", "NN")]]
+    train = [[("the", "DT"), ("cat", "NN")], [("the", "DT"), ("dog", "NN")]]
     words = ["the", "cat", "the", "dog"] * 2500
 
     ntk = nltk.tag.BigramTagger(train)
@@ -447,10 +690,13 @@ def bench_bigram_tagger() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tag(words), 30)
     f_ms = _median_time(lambda: rust.tag(words), 30)
     return BenchResult(
-        name="BigramTagger.tag", group="tag",
+        name="BigramTagger.tag",
+        group="tag",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -459,8 +705,10 @@ def bench_trigram_tagger() -> BenchResult:
 
     from fastnltk._rust import TrigramTagger
 
-    train = [[("the", "DT"), ("cat", "NN"), ("runs", "VBZ")],
-             [("the", "DT"), ("dog", "NN"), ("sleeps", "VBZ")]]
+    train = [
+        [("the", "DT"), ("cat", "NN"), ("runs", "VBZ")],
+        [("the", "DT"), ("dog", "NN"), ("sleeps", "VBZ")],
+    ]
     words = ["the", "cat", "runs", "the", "dog", "sleeps"] * 1700
 
     ntk = nltk.tag.TrigramTagger(train)
@@ -470,10 +718,13 @@ def bench_trigram_tagger() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tag(words), 30)
     f_ms = _median_time(lambda: rust.tag(words), 30)
     return BenchResult(
-        name="TrigramTagger.tag", group="tag",
+        name="TrigramTagger.tag",
+        group="tag",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -491,10 +742,13 @@ def bench_regexp_tagger() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tag(words), 30)
     f_ms = _median_time(lambda: rust.tag(words), 30)
     return BenchResult(
-        name="RegexpTagger.tag", group="tag",
+        name="RegexpTagger.tag",
+        group="tag",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -513,10 +767,13 @@ def bench_affix_tagger() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tag(words), 30)
     f_ms = _median_time(lambda: rust.tag(words), 30)
     return BenchResult(
-        name="AffixTagger.tag", group="tag",
+        name="AffixTagger.tag",
+        group="tag",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -548,8 +805,10 @@ def bench_naivebayes_train() -> BenchResult:
         name="NaiveBayesClassifier.train",
         group="classify",
         params={"instances": len(train_data_list)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=10,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=10,
     )
 
 
@@ -575,8 +834,10 @@ def bench_naivebayes_classify() -> BenchResult:
         name="NaiveBayesClassifier.classify",
         group="classify",
         params={"features": len(test_feats)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=100,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=100,
     )
 
 
@@ -595,10 +856,13 @@ def bench_maxent_train() -> BenchResult:
     rust = MaxentClassifier()
     f_ms = _median_time(lambda: rust.train(train_data, 10, 0.0), 3)
     return BenchResult(
-        name="MaxentClassifier.train", group="classify",
+        name="MaxentClassifier.train",
+        group="classify",
         params={"instances": len(train_data)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=3,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=3,
     )
 
 
@@ -614,9 +878,11 @@ def bench_textcat() -> BenchResult:
     rust = TextCat()
     f_ms = _median_time(lambda: [rust.guess_language(t) for t in texts], 50)
     return BenchResult(
-        name="TextCat.guess_language", group="classify",
+        name="TextCat.guess_language",
+        group="classify",
         params={"texts": len(texts)},
-        fast_only_ms=f_ms, iterations=50,
+        fast_only_ms=f_ms,
+        iterations=50,
     )
 
 
@@ -646,8 +912,10 @@ def bench_freqdist() -> BenchResult:
         name="FreqDist.update",
         group="probability",
         params={"samples": len(samples)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=15,
     )
 
 
@@ -672,10 +940,13 @@ def bench_conditional_freqdist() -> BenchResult:
     n_ms = _median_time(run_nltk, 15)
     f_ms = _median_time(run_fast, 15)
     return BenchResult(
-        name="ConditionalFreqDist.inc", group="probability",
+        name="ConditionalFreqDist.inc",
+        group="probability",
         params={"samples": len(samples)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=15,
     )
 
 
@@ -703,8 +974,10 @@ def bench_bigram_collocations() -> BenchResult:
         name="BigramCollocationFinder.from_words",
         group="collocations",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=15,
     )
 
 
@@ -729,8 +1002,38 @@ def bench_trigram_collocations() -> BenchResult:
         name="TrigramCollocationFinder.from_words",
         group="collocations",
         params={"words": len(words)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=5,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=5,
+    )
+
+
+def bench_quadgram_collocations() -> BenchResult:
+    import nltk.collocations as nltk_coll
+
+    from fastnltk._rust import QuadgramCollocationFinder
+
+    words = (fixture("medium").split() * 2)[:20000]
+
+    def run_nltk():
+        finder = nltk_coll.QuadgramCollocationFinder.from_words(words)
+        finder.nbest(nltk_coll.QuadgramAssocMeasures().raw_freq, 5)
+
+    def run_fast():
+        finder = QuadgramCollocationFinder.from_words(words, 4)
+        finder.nbest("raw_freq", 5)
+
+    n_ms = _median_time(run_nltk, 5)
+    f_ms = _median_time(run_fast, 5)
+    return BenchResult(
+        name="QuadgramCollocationFinder.from_words",
+        group="collocations",
+        params={"words": len(words)},
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=5,
     )
 
 
@@ -751,8 +1054,10 @@ def bench_sentiment() -> BenchResult:
         name="SentimentIntensityAnalyzer.polarity_scores",
         group="sentiment",
         params={"chars": len(text)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=50,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=50,
     )
 
 
@@ -769,10 +1074,13 @@ def bench_windowdiff() -> BenchResult:
     n_ms = _median_time(lambda: nwd(s1, s2, 3, "1", False), 100)
     f_ms = _median_time(lambda: fwd(s1, s2, 3, "1"), 100)
     return BenchResult(
-        name="windowdiff", group="metrics",
+        name="windowdiff",
+        group="metrics",
         params={"chars": len(s1)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=100,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=100,
     )
 
 
@@ -786,10 +1094,13 @@ def bench_pk() -> BenchResult:
     n_ms = _median_time(lambda: npk(s1, s2, 3, "1"), 100)
     f_ms = _median_time(lambda: fpk(s1, s2, 3, "1"), 100)
     return BenchResult(
-        name="pk", group="metrics",
+        name="pk",
+        group="metrics",
         params={"chars": len(s1)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=100,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=100,
     )
 
 
@@ -804,27 +1115,34 @@ def bench_edit_distance() -> BenchResult:
     n_ms = _median_time(lambda: nltk_ed(a, b), 100)
     f_ms = _median_time(lambda: edit_distance(a, b), 100)
     return BenchResult(
-        name="edit_distance", group="metrics",
+        name="edit_distance",
+        group="metrics",
         params={"chars": len(a)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=100,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=100,
     )
 
 
 def bench_bigram_assoc_measures() -> BenchResult:
     from fastnltk._rust import BigramAssocMeasures
 
-    # Typical collocation counts: (count, n_total, n_ii, n_ix, n_xi)
     args = (10.0, 1000.0, 8.0, 20.0, 30.0)
     f_ms = _median_time(
-        lambda: [BigramAssocMeasures.pmi(*args), BigramAssocMeasures.chi_sq(*args),
-                 BigramAssocMeasures.likelihood_ratio(*args)],
+        lambda: [
+            BigramAssocMeasures.pmi(*args),
+            BigramAssocMeasures.chi_sq(*args),
+            BigramAssocMeasures.likelihood_ratio(*args),
+        ],
         500,
     )
     return BenchResult(
-        name="BigramAssocMeasures", group="metrics",
-        params={"calls": 4},
-        fast_only_ms=f_ms, iterations=500,
+        name="BigramAssocMeasures",
+        group="metrics",
+        params={"calls": 3},
+        fast_only_ms=f_ms,
+        iterations=500,
     )
 
 
@@ -834,53 +1152,169 @@ def bench_bigram_assoc_measures() -> BenchResult:
 def bench_mle_fit() -> BenchResult:
     from fastnltk.lm import MLE
 
-    sentences = [["the", "cat", "sat"], ["the", "dog", "ran"],
-                 ["a", "cat", "sleeps"], ["the", "mouse", "runs"]] * 250
-
-    def run_fast():
-        m = MLE(2)
-        m.fit(sentences)
-
-    f_ms = _median_time(run_fast, 15)
+    sentences = [
+        ["the", "cat", "sat"],
+        ["the", "dog", "ran"],
+        ["a", "cat", "sleeps"],
+        ["the", "mouse", "runs"],
+    ] * 250
+    m = MLE(2)
+    m.fit(sentences)
+    words = ["cat", "dog", "mouse", "rat"] * 250
+    f_ms = _median_time(lambda: [m.score(w, ["the"]) for w in words], 30)
     return BenchResult(
-        name="MLE.fit", group="lm",
-        params={"sentences": len(sentences)},
-        fast_only_ms=f_ms, iterations=15,
+        name="MLE.score",
+        group="lm",
+        params={"queries": len(words)},
+        fast_only_ms=f_ms,
+        iterations=30,
+    )
+
+
+def bench_lidstone() -> BenchResult:
+    from fastnltk._rust import Lidstone
+
+    sentences = [
+        ["the", "cat", "sat"],
+        ["the", "dog", "ran"],
+        ["a", "cat", "sleeps"],
+        ["the", "mouse", "runs"],
+    ] * 250
+    m = Lidstone(2, 0.2)
+    m.fit([list(s) for s in sentences])
+    words = ["cat", "dog", "mouse", "rat"] * 250
+    f_ms = _median_time(lambda: [m.score(w, ["the"]) for w in words], 30)
+    return BenchResult(
+        name="Lidstone.score",
+        group="lm",
+        params={"queries": len(words)},
+        fast_only_ms=f_ms,
+        iterations=30,
+    )
+
+
+def bench_laplace_lm() -> BenchResult:
+    from fastnltk._rust import Laplace
+
+    sentences = [
+        ["the", "cat", "sat"],
+        ["the", "dog", "ran"],
+        ["a", "cat", "sleeps"],
+        ["the", "mouse", "runs"],
+    ] * 250
+    m = Laplace(2)
+    m.fit([list(s) for s in sentences])
+    words = ["cat", "dog", "mouse", "rat"] * 250
+    f_ms = _median_time(lambda: [m.score(w, ["the"]) for w in words], 30)
+    return BenchResult(
+        name="Laplace.score",
+        group="lm",
+        params={"queries": len(words)},
+        fast_only_ms=f_ms,
+        iterations=30,
+    )
+
+
+def bench_stupid_backoff() -> BenchResult:
+    from fastnltk._rust import StupidBackoff
+
+    sentences = [
+        ["the", "cat", "sat"],
+        ["the", "dog", "ran"],
+        ["a", "cat", "sleeps"],
+        ["the", "mouse", "runs"],
+    ] * 250
+    m = StupidBackoff(2, 0.4)
+    m.fit([list(s) for s in sentences])
+    words = ["cat", "dog", "mouse", "rat"] * 250
+    f_ms = _median_time(lambda: [m.score(w, ["the"]) for w in words], 30)
+    return BenchResult(
+        name="StupidBackoff.score",
+        group="lm",
+        params={"queries": len(words)},
+        fast_only_ms=f_ms,
+        iterations=30,
     )
 
 
 def bench_kneser_ney() -> BenchResult:
     from fastnltk.lm import KneserNeyInterpolated
 
-    # Pre-fit model outside timing loop — only measure scoring
+    sentences = [
+        ["the", "cat", "sat"],
+        ["the", "dog", "ran"],
+        ["a", "cat", "sleeps"],
+        ["the", "mouse", "runs"],
+    ] * 250
     m = KneserNeyInterpolated(2, 0.75)
-    m.fit([["the", "cat"], ["the", "dog"], ["a", "cat"], ["the", "mouse"]])
-
-    words_1k = ["cat", "dog", "mouse", "rat"] * 250
-    f_ms = _median_time(lambda: [m.score(w, ["the"]) for w in words_1k], 100)
+    m.fit([list(s) for s in sentences])
+    words = ["cat", "dog", "mouse", "rat"] * 250
+    f_ms = _median_time(lambda: [m.score(w, ["the"]) for w in words], 30)
     return BenchResult(
         name="KneserNeyInterpolated.score",
         group="lm",
-        params={"queries": len(words_1k)},
-        fast_only_ms=f_ms, iterations=100,
+        params={"queries": len(words)},
+        fast_only_ms=f_ms,
+        iterations=30,
     )
 
 
 def bench_witten_bell() -> BenchResult:
     from fastnltk.lm import WittenBellInterpolated
 
-    # Pre-fit model outside timing loop
+    sentences = [
+        ["the", "cat", "sat"],
+        ["the", "dog", "ran"],
+        ["a", "cat", "sleeps"],
+        ["the", "mouse", "runs"],
+    ] * 250
     m = WittenBellInterpolated(2)
-    m.fit([["the", "cat", "sat"], ["the", "dog", "ran"],
-           ["a", "cat", "sleeps"], ["the", "mouse", "runs"]] * 250)
-
-    words_1k = ["cat", "dog", "mouse", "rat"] * 250
-    f_ms = _median_time(lambda: [m.score(w, ["the"]) for w in words_1k], 50)
+    m.fit([list(s) for s in sentences])
+    words = ["cat", "dog", "mouse", "rat"] * 250
+    f_ms = _median_time(lambda: [m.score(w, ["the"]) for w in words], 30)
     return BenchResult(
         name="WittenBellInterpolated.score",
         group="lm",
-        params={"queries": len(words_1k)},
-        fast_only_ms=f_ms, iterations=50,
+        params={"queries": len(words)},
+        fast_only_ms=f_ms,
+        iterations=30,
+    )
+
+
+# ── Probability Distributions ──────────────────────────────
+
+
+def bench_laplace_probdist() -> BenchResult:
+    from fastnltk._rust import LaplaceProbDist, FreqDist
+
+    fd = FreqDist()
+    samples = ["a", "b", "c", "a", "b", "a"] * 500
+    fd.update(samples)
+    dist = LaplaceProbDist(fd)
+    f_ms = _median_time(lambda: [dist.prob(w) for w in ["a", "b", "c", "d"]], 500)
+    return BenchResult(
+        name="LaplaceProbDist.prob",
+        group="probability",
+        params={"bins": 3},
+        fast_only_ms=f_ms,
+        iterations=500,
+    )
+
+
+def bench_mle_probdist() -> BenchResult:
+    from fastnltk._rust import MLEProbDist, FreqDist
+
+    fd = FreqDist()
+    samples = ["a", "b", "c", "a", "b", "a"] * 500
+    fd.update(samples)
+    dist = MLEProbDist(fd)
+    f_ms = _median_time(lambda: [dist.prob(w) for w in ["a", "b", "c", "d"]], 500)
+    return BenchResult(
+        name="MLEProbDist.prob",
+        group="probability",
+        params={"bins": 3},
+        fast_only_ms=f_ms,
+        iterations=500,
     )
 
 
@@ -909,10 +1343,13 @@ def bench_ccg_parse() -> BenchResult:
     n_ms = _median_time(run_nltk, 30)
     f_ms = _median_time(run_fast, 30)
     return BenchResult(
-        name="CCG from_string", group="ccg",
+        name="CCG from_string",
+        group="ccg",
         params={"parses": len(cats)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -928,9 +1365,17 @@ def bench_chunk_parse() -> BenchResult:
     ntk = nltk_chunk.RegexpParser(grammar)
     rust = RegexpParser(grammar)
 
-    tokens = [("The", "DT"), ("quick", "JJ"), ("brown", "JJ"),
-              ("fox", "NN"), ("jumps", "VBZ"), ("over", "IN"),
-              ("the", "DT"), ("lazy", "JJ"), ("dog", "NN")] * 200
+    tokens = [
+        ("The", "DT"),
+        ("quick", "JJ"),
+        ("brown", "JJ"),
+        ("fox", "NN"),
+        ("jumps", "VBZ"),
+        ("over", "IN"),
+        ("the", "DT"),
+        ("lazy", "JJ"),
+        ("dog", "NN"),
+    ] * 200
 
     n_ms = _median_time(lambda: ntk.parse(tokens), 30)
     f_ms = _median_time(lambda: rust.parse(tokens), 30)
@@ -938,8 +1383,10 @@ def bench_chunk_parse() -> BenchResult:
         name="RegexpParser.parse",
         group="chunk",
         params={"tokens": len(tokens)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -971,8 +1418,10 @@ def bench_kmeans() -> BenchResult:
         name="KMeansClusterer.cluster",
         group="cluster",
         params={"vectors": len(vectors)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=15,
     )
 
 
@@ -1025,8 +1474,34 @@ V -> sees""")
         name="EarleyChartParser.parse",
         group="parse",
         params={"sentences": len(sentences)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=15,
+    )
+
+
+def bench_cfg() -> BenchResult:
+    import nltk
+
+    from fastnltk._rust import CFG
+
+    grammar_str = """S -> NP VP
+NP -> Det N | N
+VP -> V NP | V
+Det -> 'the' | 'a'
+N -> 'cat' | 'dog' | 'fox'
+V -> 'chases' | 'sees'"""
+    n_ms = _median_time(lambda: nltk.CFG.fromstring(grammar_str), 100)
+    f_ms = _median_time(lambda: CFG.from_string(grammar_str), 100)
+    return BenchResult(
+        name="CFG.from_string",
+        group="parse",
+        params={"rules": 9},
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=100,
     )
 
 
@@ -1053,8 +1528,10 @@ def bench_bleu() -> BenchResult:
         name="bleu",
         group="translate",
         params={"tokens": len(candidate)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=100,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=100,
     )
 
 
@@ -1086,8 +1563,10 @@ def bench_chat_respond() -> BenchResult:
         name="Chat.respond",
         group="chat",
         params={},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=100,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=100,
     )
 
 
@@ -1119,8 +1598,10 @@ def bench_tree_from_string() -> BenchResult:
         name="Tree.from_string",
         group="tree",
         params={"trees": len(trees)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -1154,8 +1635,10 @@ def bench_sem_expr() -> BenchResult:
         name="Expression.fromstring",
         group="sem",
         params={"formulas": len(formulas)},
-        nltk_ms=n_ms, fast_ms=f_ms,
-        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+        nltk_ms=n_ms,
+        fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0,
+        iterations=30,
     )
 
 
@@ -1168,9 +1651,11 @@ def bench_tableau() -> BenchResult:
     tp = TableauProver(200)
     f_ms = _median_time(lambda: tp.prove("P | ~P", None), 50)
     return BenchResult(
-        name="TableauProver.prove", group="inference",
+        name="TableauProver.prove",
+        group="inference",
         params={"formula": "P | ~P"},
-        fast_only_ms=f_ms, iterations=50,
+        fast_only_ms=f_ms,
+        iterations=50,
     )
 
 
@@ -1180,9 +1665,11 @@ def bench_resolution() -> BenchResult:
     rp = ResolutionProver(1000)
     f_ms = _median_time(lambda: rp.prove("P | ~P", None), 50)
     return BenchResult(
-        name="ResolutionProver.prove", group="inference",
+        name="ResolutionProver.prove",
+        group="inference",
         params={"formula": "P | ~P"},
-        fast_only_ms=f_ms, iterations=50,
+        fast_only_ms=f_ms,
+        iterations=50,
     )
 
 
@@ -1194,13 +1681,13 @@ def bench_discourse() -> BenchResult:
     dt.add_drs("([y],[cat(y)])")
     val = json.dumps({"dog": [["fido"]], "cat": [["felix"]]})
     dom = json.dumps(["fido", "felix"])
-    f_ms = _median_time(
-        lambda: dt.answer_question("([x],[dog(x)])", val, dom), 50
-    )
+    f_ms = _median_time(lambda: dt.answer_question("([x],[dog(x)])", val, dom), 50)
     return BenchResult(
-        name="DiscourseThread.answer_question", group="inference",
+        name="DiscourseThread.answer_question",
+        group="inference",
         params={},
-        fast_only_ms=f_ms, iterations=50,
+        fast_only_ms=f_ms,
+        iterations=50,
     )
 
 
@@ -1211,16 +1698,18 @@ def bench_nonmonotonic() -> BenchResult:
     r = DefaultReasoner(rules, 10)
     f_ms = _median_time(lambda: r.extensions(), 50)
     return BenchResult(
-        name="DefaultReasoner.extensions", group="inference",
+        name="DefaultReasoner.extensions",
+        group="inference",
         params={"rules": 10},
-        fast_only_ms=f_ms, iterations=50,
+        fast_only_ms=f_ms,
+        iterations=50,
     )
 
 
 # ── Registry ──────────────────────────────────────────────
 
 ALL_BENCHMARKS: list[tuple[str, str, callable]] = [
-    # tokenize (11)
+    # tokenize (16)
     ("tokenize", "ToktokTokenizer", bench_toktok),
     ("tokenize", "MWETokenizer", bench_mwe),
     ("tokenize", "RegexpTokenizer", bench_regexp_tokenizer),
@@ -1231,12 +1720,21 @@ ALL_BENCHMARKS: list[tuple[str, str, callable]] = [
     ("tokenize", "SExprTokenizer", bench_sexpr_tokenizer),
     ("tokenize", "PunktSentenceTokenizer", bench_punkt_sent_tokenize),
     ("tokenize", "TreebankWordDetokenizer", bench_detokenizer),
+    ("tokenize", "TabTokenizer", bench_tab_tokenizer),
+    ("tokenize", "LineTokenizer", bench_line_tokenizer),
+    ("tokenize", "WhitespaceTokenizer", bench_whitespace_tokenizer),
+    ("tokenize", "WordPunctTokenizer", bench_wordpunct_tokenizer),
+    ("tokenize", "BlanklineTokenizer", bench_blankline_tokenizer),
     ("tokenize", "logos_word_tokenize", bench_logos_tokenizer),
-    # stem (4)
+    # stem (8)
     ("stem", "SnowballStemmer", bench_snowball),
     ("stem", "PorterStemmer", bench_porter),
     ("stem", "LancasterStemmer", bench_lancaster),
     ("stem", "WordNetLemmatizer", bench_wordnet),
+    ("stem", "ARLSTem", bench_arlstem),
+    ("stem", "ISRIStemmer", bench_isri_stemmer),
+    ("stem", "RSLPStemmer", bench_rslp_stemmer),
+    ("stem", "RegexpStemmer", bench_regexp_stemmer),
     # tag (9)
     ("tag", "PerceptronTagger", bench_perceptron_tagger),
     ("tag", "HMM tagger", bench_hmm_tag),
@@ -1252,12 +1750,15 @@ ALL_BENCHMARKS: list[tuple[str, str, callable]] = [
     ("classify", "NaiveBayesClassifier.classify", bench_naivebayes_classify),
     ("classify", "MaxentClassifier.train", bench_maxent_train),
     ("classify", "TextCat.guess_language", bench_textcat),
-    # probability (2)
+    # probability (4)
     ("probability", "FreqDist", bench_freqdist),
     ("probability", "ConditionalFreqDist", bench_conditional_freqdist),
-    # collocations (2)
+    ("probability", "LaplaceProbDist", bench_laplace_probdist),
+    ("probability", "MLEProbDist", bench_mle_probdist),
+    # collocations (3)
     ("collocations", "BigramCollocationFinder", bench_bigram_collocations),
     ("collocations", "TrigramCollocationFinder", bench_trigram_collocations),
+    ("collocations", "QuadgramCollocationFinder", bench_quadgram_collocations),
     # sentiment (1)
     ("sentiment", "SentimentIntensityAnalyzer", bench_sentiment),
     # metrics (4)
@@ -1265,8 +1766,11 @@ ALL_BENCHMARKS: list[tuple[str, str, callable]] = [
     ("metrics", "pk", bench_pk),
     ("metrics", "edit_distance", bench_edit_distance),
     ("metrics", "BigramAssocMeasures", bench_bigram_assoc_measures),
-    # lm (3)
-    ("lm", "MLE.fit", bench_mle_fit),
+    # lm (6)
+    ("lm", "MLE.score", bench_mle_fit),
+    ("lm", "Lidstone", bench_lidstone),
+    ("lm", "Laplace", bench_laplace_lm),
+    ("lm", "StupidBackoff", bench_stupid_backoff),
     ("lm", "KneserNey", bench_kneser_ney),
     ("lm", "WittenBell", bench_witten_bell),
     # ccg (1)
@@ -1275,8 +1779,9 @@ ALL_BENCHMARKS: list[tuple[str, str, callable]] = [
     ("chunk", "RegexpParser", bench_chunk_parse),
     # cluster (1)
     ("cluster", "KMeansClusterer", bench_kmeans),
-    # parse (1)
+    # parse (2)
     ("parse", "EarleyChartParser", bench_earley),
+    ("parse", "CFG", bench_cfg),
     # translate (1)
     ("translate", "bleu", bench_bleu),
     # chat (1)

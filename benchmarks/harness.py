@@ -57,6 +57,7 @@ def fixture(key: str) -> str:
 @dataclass
 class BenchResult:
     """Single benchmark measurement."""
+
     name: str
     group: str
     params: dict[str, Any] = field(default_factory=dict)
@@ -71,6 +72,7 @@ class BenchResult:
 @dataclass
 class BenchSuite:
     """Collection of benchmark results."""
+
     timestamp: str = ""
     git_hash: str = ""
     results: list[BenchResult] = field(default_factory=list)
@@ -94,6 +96,7 @@ def _median_time(fn: Callable, iterations: int = 30, warmup: int = 3) -> float:
 def _git_hash() -> str:
     try:
         import subprocess
+
         return subprocess.check_output(
             ["git", "-C", PROJECT, "describe", "--always", "--dirty"],
             encoding="utf-8",
@@ -154,11 +157,15 @@ def save_results(results: list[BenchResult], path: str = "") -> str:
     """Save results to JSON. Returns path written."""
     # Detect whether release or debug build
     import subprocess
+
     build_type = "release"
     try:
         r = subprocess.run(
             ["cargo", "metadata", "--format-version", "1"],
-            capture_output=True, text=True, cwd=PROJECT, timeout=5
+            capture_output=True,
+            text=True,
+            cwd=PROJECT,
+            timeout=5,
         )
         if r.returncode == 0:
             meta = json.loads(r.stdout)
@@ -228,5 +235,7 @@ def print_regression_table(regressions: list[tuple[BenchResult, BenchResult, flo
     for cur, base, change in regressions:
         cur_t = cur.fast_only_ms or cur.fast_ms
         base_t = base.fast_only_ms or base.fast_ms
-        print(f"  {cur.name:<45} {base_t:>10.4f} {cur_t:>10.4f} {'+' if change>0 else ''}{change*100:>7.1f}%")
+        print(
+            f"  {cur.name:<45} {base_t:>10.4f} {cur_t:>10.4f} {'+' if change > 0 else ''}{change * 100:>7.1f}%"
+        )
     print()

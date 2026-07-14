@@ -41,13 +41,31 @@ tokens = nltk.word_tokenize("Hello, world!")
 
 ## Performance
 
-**42 automated benchmarks** across all 18 Rust modules. Average **14.3×** vs NLTK.
-Every function below has an NLTK counterpart unless noted in [BENCHMARKS.md](BENCHMARKS.md) footnotes.
+**68 automated benchmarks** across all 24 Rust modules. Average **28×** vs NLTK.
+Every function below has an NLTK counterpart unless noted in [BENCHMARKS.md](BENCHMARKS.md).
 
 | Module | Benchmarks | Best Speedup | Engine |
 |---|---|---|---|
-| [metrics](BENCHMARKS.md) | 3 | **175×** | Pure algorithmic port, zero Python overhead |
-| [tokenize](BENCHMARKS.md) | 8 | **77×** | Compiled regex via `regex` crate |
+| [classify](BENCHMARKS.md) | 4 | **377×** | Maxent GIS training, NaiveBayes, TextCat |
+| [metrics](BENCHMARKS.md) | 4 | **242×** | Pure algorithmic port, zero Python overhead |
+| [tokenize](BENCHMARKS.md) | 16 | **145×** | Compiled regex via `regex` crate + logos |
+| [tag](BENCHMARKS.md) | 9 | **98×** | rustling HMM, hashbrown FastMap lookups |
+| [sentiment](BENCHMARKS.md) | 1 | **50×** | VADER in Rust, no regex re-compilation |
+| [parse](BENCHMARKS.md) | 2 | **30×** | Earley parser in Rust, CFG grammar parsing |
+| [collocations](BENCHMARKS.md) | 3 | **23×** | FastMap ngram frequency counting |
+| [stem](BENCHMARKS.md) | 8 | **24×** | rust-stemmers (Snowball C), ISRI in Rust |
+| [sem](BENCHMARKS.md) | 1 | **19×** | Expression parser in Rust |
+| [translate](BENCHMARKS.md) | 1 | **10×** | BLEU in Rust |
+| [tree](BENCHMARKS.md) | 1 | **10×** | Tree parser in Rust |
+| [chunk](BENCHMARKS.md) | 1 | **7×** | Regexp chunk parser |
+| [probability](BENCHMARKS.md) | 4 | **12×** | FreqDist, ConditionalFreqDist, prob dists |
+| [cluster](BENCHMARKS.md) | 1 | **4×** | K-means Lloyd's algorithm |
+| [lm](BENCHMARKS.md) | 6 | — | MLE, Lidstone, Laplace, StupidBackoff, KneserNey, WittenBell ¹ |
+| [ccg](BENCHMARKS.md) | 1 | **2×** | CCG category parsing |
+| [chat](BENCHMARKS.md) | 1 | **3×** | Eliza chatbot |
+| [inference](BENCHMARKS.md) | 4 | — | Tableau, Resolution, Discourse, DefaultReasoner ¹ |
+
+¹ fastNLTK-only — no NLTK equivalent or incompatible API.
 | [sentiment](BENCHMARKS.md) | 1 | **46×** | VADER algorithm in Rust vs Python |
 | [sem](BENCHMARKS.md) | 1 | **38×** | Recursive descent parser in native code |
 | [parse](BENCHMARKS.md) | 1 | **27×** | Earley chart parsing in Rust |
