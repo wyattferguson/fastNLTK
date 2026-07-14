@@ -104,6 +104,7 @@ fn is_atomic(expr: &Expression) -> bool {
 // ═══════════════════════════════════════════════════════════
 
 impl Expression {
+    #[must_use]
     pub fn free_variables(&self) -> Vec<String> {
         let mut free = Vec::new();
         let mut bound: HashSet<String> = HashSet::new();

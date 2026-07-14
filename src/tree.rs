@@ -56,6 +56,7 @@ impl Tree {
         self.label.clone()
     }
 
+    #[must_use]
     fn leaves(&self) -> Vec<String> {
         let mut result = Vec::new();
         self.collect_leaves(&mut result);
@@ -118,6 +119,7 @@ impl Tree {
             .collect()
     }
 
+    #[must_use]
     fn productions(&self) -> Vec<String> {
         let mut prods = Vec::new();
         self.collect_productions(&mut prods);

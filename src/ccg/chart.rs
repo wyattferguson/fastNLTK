@@ -12,6 +12,12 @@ use pyo3::prelude::*;
 use crate::ccg::combinator::{self, Combinator};
 use crate::ccg::lexicon::CCGLexicon;
 use crate::ccg::{Category, CategoryKind};
+use smallvec::{smallvec, SmallVec};
+
+/// Max edges per chart cell before heap allocation (typically 1-5 edges per cell).
+const CHART_CELL_INLINE: usize = 8;
+
+type EdgeList = SmallVec<[CCGEdge; CHART_CELL_INLINE]>;
 
 /// A chart cell entry: a category over a span [start, end).
 #[derive(Clone, Debug)]
@@ -79,13 +85,12 @@ impl CCGChartParser {
             )));
         }
 
-        // Flat 3D chart: chart[span][start] → Vec<CCGEdge>
+        // Flat 3D chart: chart[span][start] → EdgeList
         // Span 0 is unused; spans go 1..=n.
-        // span s has (n - s + 1) possible start positions.
-        let mut chart: Vec<Vec<Vec<CCGEdge>>> = (0..=n)
+        let mut chart: Vec<Vec<EdgeList>> = (0..=n)
             .map(|s| {
                 let count = if s == 0 { 0 } else { n - s + 1 };
-                (0..count).map(|_| Vec::new()).collect()
+                (0..count).map(|_| EdgeList::new()).collect()
             })
             .collect();
 
@@ -113,7 +118,7 @@ impl CCGChartParser {
         for span in 2..=n {
             for start in 0..=(n - span) {
                 let end = start + span;
-                let mut new_edges: Vec<CCGEdge> = Vec::new();
+                let mut new_edges = EdgeList::new();
 
                 for split in (start + 1)..end {
                     let left_span = split - start;

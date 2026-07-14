@@ -4,6 +4,7 @@
 //! Rule-based sentiment intensity analyzer using a lexicon
 //! of valence scores and heuristics (boosters, negators, etc.).
 
+use phf::phf_map;
 use std::collections::HashMap;
 
 use pyo3::prelude::*;
@@ -12,53 +13,50 @@ use unicode_segmentation::UnicodeSegmentation;
 // ═══════════════════════════════════════════════════════════
 // VADER Lexicon (built-in subset of common English words)
 // ═══════════════════════════════════════════════════════════
+static DEFAULT_LEXICON: phf::Map<&'static str, f64> = phf_map! {
+    "love" => 3.2,
+    "wonderful" => 2.8,
+    "amazing" => 2.7,
+    "great" => 2.5,
+    "good" => 1.9,
+    "happy" => 2.7,
+    "beautiful" => 2.4,
+    "excellent" => 3.0,
+    "fantastic" => 2.9,
+    "nice" => 1.8,
+    "awesome" => 2.5,
+    "perfect" => 2.8,
+    "best" => 2.5,
+    "better" => 1.5,
+    "glad" => 1.8,
+    "enjoy" => 2.0,
+    "like" => 1.5,
+    "pleased" => 1.8,
+    "impressed" => 2.0,
+    "thank" => 1.5,
+    "thanks" => 1.5,
+    "bad" => -2.5,
+    "terrible" => -3.2,
+    "awful" => -3.0,
+    "hate" => -3.0,
+    "horrible" => -3.2,
+    "worst" => -3.0,
+    "ugly" => -2.5,
+    "sad" => -2.0,
+    "angry" => -2.5,
+    "boring" => -1.8,
+    "stupid" => -2.5,
+    "disgusting" => -3.0,
+    "pain" => -2.5,
+    "hurt" => -2.0,
+    "miss" => -1.5,
+    "cry" => -2.0,
+    "sorry" => -1.5,
+    "problem" => -2.0,
+};
 
-fn default_lexicon() -> HashMap<&'static str, f64> {
-    let mut lex = HashMap::new();
-    // Positive
-    lex.insert("love", 3.2);
-    lex.insert("wonderful", 2.8);
-    lex.insert("amazing", 2.7);
-    lex.insert("great", 2.5);
-    lex.insert("good", 1.9);
-    lex.insert("happy", 2.7);
-    lex.insert("beautiful", 2.4);
-    lex.insert("excellent", 3.0);
-    lex.insert("fantastic", 2.9);
-    lex.insert("nice", 1.8);
-    lex.insert("awesome", 2.5);
-    lex.insert("perfect", 2.8);
-    lex.insert("best", 2.5);
-    lex.insert("better", 1.5);
-    lex.insert("glad", 1.8);
-    lex.insert("enjoy", 2.0);
-    lex.insert("like", 1.5);
-    lex.insert("pleased", 1.8);
-    lex.insert("impressed", 2.0);
-    lex.insert("thank", 1.5);
-    lex.insert("thanks", 1.5);
-    // Negative
-    lex.insert("bad", -2.5);
-    lex.insert("terrible", -3.2);
-    lex.insert("awful", -3.0);
-    lex.insert("hate", -3.0);
-    lex.insert("horrible", -3.2);
-    lex.insert("worst", -3.0);
-    lex.insert("ugly", -2.5);
-    lex.insert("sad", -2.0);
-    lex.insert("angry", -2.5);
-    lex.insert("boring", -1.8);
-    lex.insert("stupid", -2.5);
-    lex.insert("ugly", -2.5);
-    lex.insert("disgusting", -3.0);
-    lex.insert("terrible", -3.2);
-    lex.insert("pain", -2.5);
-    lex.insert("hurt", -2.0);
-    lex.insert("miss", -1.5);
-    lex.insert("cry", -2.0);
-    lex.insert("sorry", -1.5);
-    lex.insert("problem", -2.0);
-    lex
+fn default_lexicon() -> HashMap<String, f64> {
+    DEFAULT_LEXICON.entries().map(|(k, v)| ((*k).to_string(), *v)).collect()
 }
 
 static BOOSTERS: &[&str] = &[
