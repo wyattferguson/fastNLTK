@@ -9,9 +9,15 @@ DiscourseThread, DefaultReasoner, ClosedWorldReasoner.
 
 # Re-export NLTK names for API compatibility
 from nltk.inference import (  # noqa: F401
+    DiscourseTester,
     Mace,
-    Prover,
+    MaceCommand,
+    ParallelProverBuilder,
+    ParallelProverBuilderCommand,
     Prover9,
-    ProverCommand,
-    get_prover,
+    Prover9Command,
+    ResolutionProver,
+    ResolutionProverCommand,
+    TableauProver,
+    TableauProverCommand,
 )

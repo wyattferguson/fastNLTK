@@ -23,12 +23,12 @@ class TestEditDistance:
             ("", ""),
         ]
         for s1, s2 in cases:
-            expected = nltk.metrics.distance.edit_distance(s1, s2)
+            expected = nltk.edit_distance(s1, s2)
             result = edit_distance(s1, s2)
             assert result == expected, f"edit_distance({s1!r}, {s2!r})"
 
     def test_matches_nltk_transpositions(self):
-        expected = nltk.metrics.distance.edit_distance("abcd", "acbd", transpositions=True)
+        expected = nltk.edit_distance("abcd", "acbd", transpositions=True)
         result = edit_distance("abcd", "acbd", transpositions=True)
         assert result == expected
 

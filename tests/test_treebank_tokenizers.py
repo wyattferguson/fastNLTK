@@ -94,8 +94,9 @@ class TestTweetTokenizer:
 class TestRegexpTokenizer:
     def test_matches_nltk_default(self):
         text = "Hello world."
-        expected = nltk.tokenize.RegexpTokenizer().tokenize(text)
-        result = RegexpTokenizer().tokenize(text)
+        pattern = r"\w+|[^\w\s]+"
+        expected = nltk.tokenize.RegexpTokenizer(pattern).tokenize(text)
+        result = RegexpTokenizer(pattern).tokenize(text)
         assert result == expected
 
     def test_matches_nltk_gaps(self):

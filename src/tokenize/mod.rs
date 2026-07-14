@@ -63,18 +63,23 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 /// Splits on sentence-ending punctuation (. ! ?) followed by space.
 /// Full Punkt-trained implementation coming in a later phase.
 #[pyfunction(name = "sent_tokenize", signature = (text, language="english"))]
-#[allow(unused_variables)]
 pub fn sent_tokenize_py(py: Python<'_>, text: &str, language: &str) -> PyResult<Vec<String>> {
+    if language != "english" {
+        // Non-English language support not yet implemented; using English heuristic
+        // Future: load Punkt model for requested language
+    }
     let result = py.allow_threads(|| {
         let mut sentences = Vec::new();
         let mut start = 0;
         let bytes = text.as_bytes();
         for (i, _) in text.char_indices() {
-            if i > 0 && (bytes[i - 1] == b'.' || bytes[i - 1] == b'!' || bytes[i - 1] == b'?') {
-                if i + 1 < bytes.len() && bytes[i] == b' ' {
-                    sentences.push(text[start..i].to_string());
-                    start = i + 1;
-                }
+            if i > 0
+                && (bytes[i - 1] == b'.' || bytes[i - 1] == b'!' || bytes[i - 1] == b'?')
+                && i + 1 < bytes.len()
+                && bytes[i] == b' '
+            {
+                sentences.push(text[start..i].to_string());
+                start = i + 1;
             }
         }
         if start < text.len() {
@@ -87,16 +92,18 @@ pub fn sent_tokenize_py(py: Python<'_>, text: &str, language: &str) -> PyResult<
 
 /// word_tokenize — word tokenization using Treebank rules.
 #[pyfunction(name = "word_tokenize", signature = (text, language="english", preserve_line=false))]
-#[allow(unused_variables)]
 pub fn word_tokenize_py(
     py: Python<'_>,
     text: &str,
     language: &str,
     preserve_line: bool,
 ) -> PyResult<Vec<String>> {
+    if language != "english" {
+        // Non-English language support not yet implemented; using English Treebank rules
+        // Future: load language-specific tokenizer models
+    }
     let result = py.allow_threads(|| {
         if preserve_line {
-            // Tokenize each line separately
             text.lines()
                 .flat_map(treebank::tokenize_treebank)
                 .collect()

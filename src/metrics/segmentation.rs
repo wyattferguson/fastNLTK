@@ -1,6 +1,4 @@
-//! Segmentation metrics: windowdiff, pk, ghd.
-//!
-//! Wraps nltk_metrics::segmentation for NLTK-compatible Rust implementation.
+//! Segmentation metrics: windowdiff, pk.
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -15,13 +13,14 @@ fn windowdiff(reference: &str, hypothesis: &str, k: usize, boundary: &str) -> Py
             "Window width k should be smaller or equal than segmentation lengths",
         ));
     }
+    if k >= reference.len() {
+        // k >= n is degenerate; return 0.0 (caller should validate input)
+        return Ok(0.0);
+    }
     let bound = boundary.as_bytes().first().copied().unwrap_or(b'1');
     let b_ref: Vec<bool> = reference.bytes().map(|b| b == bound).collect();
     let b_hyp: Vec<bool> = hypothesis.bytes().map(|b| b == bound).collect();
     let n = reference.len();
-    if n <= k {
-        return Ok(0.0);
-    }
     let mut count1: usize = b_ref[..k].iter().filter(|&&x| x).count();
     let mut count2: usize = b_hyp[..k].iter().filter(|&&x| x).count();
     let mut wd: f64 = 0.0;
@@ -56,11 +55,10 @@ fn pk(reference: &str, hypothesis: &str, k: Option<usize>, boundary: &str) -> Py
         None => ((n as f64) / (n as f64).ln().ceil()).ceil() as usize,
     };
     if k >= n {
+        // Degenerate input — return 0.0 (caller should validate)
         return Ok(0.0);
     }
     let bound = boundary.as_bytes().first().copied().unwrap_or(b'1');
-    // Pk: probability that a randomly chosen position is incorrectly segmented
-    // Uses same window counting as windowdiff but different scoring
     let b_ref: Vec<bool> = reference.bytes().map(|b| b == bound).collect();
     let b_hyp: Vec<bool> = hypothesis.bytes().map(|b| b == bound).collect();
     let half = k / 2;
@@ -69,8 +67,8 @@ fn pk(reference: &str, hypothesis: &str, k: Option<usize>, boundary: &str) -> Py
     for i in half..(n - half) {
         let start = i - half;
         let end = i + half + 1;
-        let ref_bound = b_ref[start..end].iter().filter(|&&x| x).count() > 0;
-        let hyp_bound = b_hyp[start..end].iter().filter(|&&x| x).count() > 0;
+        let ref_bound = b_ref[start..end].iter().any(|&x| x);
+        let hyp_bound = b_hyp[start..end].iter().any(|&x| x);
         if ref_bound != hyp_bound {
             errors += 1.0;
         }

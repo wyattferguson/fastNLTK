@@ -12,9 +12,12 @@
 //! NLTK equivalent: nltk.tokenize.texttiling.TextTilingTokenizer
 
 use std::collections::{HashMap, HashSet};
+use std::sync::LazyLock;
 
 use pyo3::prelude::*;
 use regex::Regex;
+
+static WORD_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[A-Za-z]+").unwrap());
 
 #[pyclass(name = "TextTilingTokenizer", module = "fastnltk._rust")]
 pub struct TextTilingTokenizer {
@@ -66,8 +69,8 @@ impl TextTilingTokenizer {
 }
 
 fn tokenize_words(text: &str) -> Vec<String> {
-    let re = Regex::new(r"[A-Za-z]+").unwrap();
-    re.find_iter(text)
+    WORD_RE
+        .find_iter(text)
         .map(|m| m.as_str().to_lowercase())
         .collect()
 }
@@ -215,14 +218,13 @@ fn build_segments_from_bounds(
     }
 
     let word_count = words.len();
-    let _ps_count = pseudo_sents.len();
+    let ps_count = pseudo_sents.len();
     let mut segments = Vec::new();
     let mut start = 0;
 
-    for i in 0..boundaries.len().min(_ps_count) {
-        if boundaries[i] == 1 {
-            // Map pseudo-sentence boundary to approximate word position
-            let word_pos = (i * word_count / _ps_count.max(1)).min(word_count);
+    for (i, &boundary) in boundaries.iter().enumerate().take(ps_count) {
+        if boundary == 1 {
+            let word_pos = (i * word_count / ps_count.max(1)).min(word_count);
             if word_pos > start {
                 segments.push(words[start..word_pos].join(" "));
                 start = word_pos;

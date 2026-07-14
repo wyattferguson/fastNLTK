@@ -17,6 +17,7 @@ from .harness import (
 
 def bench_toktok() -> BenchResult:
     import nltk.tokenize
+
     from fastnltk._rust import ToktokTokenizer
 
     text = fixture("medium")
@@ -35,6 +36,7 @@ def bench_toktok() -> BenchResult:
 
 def bench_mwe() -> BenchResult:
     from nltk.tokenize import MWETokenizer as NltkMWE
+
     from fastnltk._rust import MWETokenizer as FastMWE
 
     words = fixture("medium").split()[:18000]
@@ -70,6 +72,7 @@ def bench_texttiling() -> BenchResult:
 
 def bench_windowdiff() -> BenchResult:
     from nltk.metrics.segmentation import windowdiff as nwd
+
     from fastnltk._rust import windowdiff as fwd
 
     s1 = "000100000010" * 1000
@@ -86,6 +89,7 @@ def bench_windowdiff() -> BenchResult:
 
 def bench_pk() -> BenchResult:
     from nltk.metrics.segmentation import pk as npk
+
     from fastnltk._rust import pk as fpk
 
     s1 = "000100000010" * 1000
@@ -145,6 +149,7 @@ def bench_kneser_ney() -> BenchResult:
 
 def bench_ccg_parse() -> BenchResult:
     from nltk.ccg.api import FunctionalCategory as NltkCat
+
     from fastnltk._rust import from_string as FastCat
 
     bs = chr(92)
@@ -217,7 +222,7 @@ def bench_discourse() -> BenchResult:
 
 
 def bench_nonmonotonic() -> BenchResult:
-    from fastnltk._rust import DefaultRule, DefaultReasoner
+    from fastnltk._rust import DefaultReasoner, DefaultRule
 
     rules = [DefaultRule("", f"fact{i}", f"fact{i}", "") for i in range(10)]
     r = DefaultReasoner(rules, 10)
@@ -256,7 +261,6 @@ def run_all() -> list[BenchResult]:
         try:
             r = fn()
             results.append(r)
-            sp = r.speedup if r.speedup else r.fast_only_ms
             if r.speedup:
                 print(f"{r.speedup:.1f}x")
             else:

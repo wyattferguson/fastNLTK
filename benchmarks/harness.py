@@ -15,8 +15,8 @@ import os
 import statistics
 import sys
 import time
-from dataclasses import dataclass, field, asdict
-from typing import Any, Callable, Optional
+from dataclasses import asdict, dataclass, field
+from typing import Any, Callable
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(HERE)

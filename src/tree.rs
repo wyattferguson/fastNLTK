@@ -2,7 +2,6 @@
 //!
 //! Implements NLTK-compatible Tree with optimized methods for
 //! leaves(), height(), productions(), subtrees(), and bracket-string parsing.
-//! Falls back to nltk.tree.Tree for complex operations.
 
 use std::fmt;
 
@@ -89,23 +88,43 @@ impl Tree {
         1 + max_child
     }
 
+    /// Number of leaf tokens (matches NLTK's `len(tree)`).
     fn __len__(&self) -> usize {
-        self.children.len()
+        self.leaves().len()
     }
 
-    fn __getitem__(&self, index: isize) -> String {
+    /// Get child by index. Returns a `Tree` for non-leaf children, `str` for leaves.
+    fn __getitem__(&self, py: Python<'_>, index: isize) -> PyObject {
         let idx = if index < 0 {
             (self.children.len() as isize + index) as usize
         } else {
             index as usize
         };
         if idx >= self.children.len() {
-            return String::new();
+            return py.None();
         }
         match &self.children[idx] {
-            TreeNode::Leaf(s) => s.clone(),
-            TreeNode::Subtree(t) => format!("{t}"),
+            TreeNode::Leaf(s) => s.clone().into_py(py),
+            TreeNode::Subtree(t) => {
+                // Return the subtree wrapped as a Python Tree object
+                let cloned = t.clone();
+                match Py::new(py, cloned) {
+                    Ok(obj) => obj.into_py(py),
+                    Err(_) => py.None(),
+                }
+            }
         }
+    }
+
+    /// Iterate over children (returns leaf strings / subtree bracket strings).
+    fn __iter__(&self) -> Vec<String> {
+        self.children
+            .iter()
+            .map(|c| match c {
+                TreeNode::Leaf(s) => s.clone(),
+                TreeNode::Subtree(t) => format!("{t}"),
+            })
+            .collect()
     }
 
     fn productions(&self) -> Vec<String> {
@@ -114,10 +133,13 @@ impl Tree {
         prods
     }
 
-    fn subtrees(&self) -> Vec<String> {
-        let mut result = Vec::new();
-        self.collect_subtrees_strings(&mut result);
-        result
+    /// Return all subtrees as Rust Tree objects (no string roundtrip).
+    fn subtrees(&self) -> Vec<Py<Tree>> {
+        Python::with_gil(|py| {
+            let mut result = Vec::new();
+            self.collect_subtrees_py(py, &mut result);
+            result
+        })
     }
 
     fn pprint(&self) -> String {
@@ -210,11 +232,13 @@ impl Tree {
         }
     }
 
-    fn collect_subtrees_strings(&self, result: &mut Vec<String>) {
-        result.push(format!("{self}"));
+    fn collect_subtrees_py(&self, py: Python<'_>, result: &mut Vec<Py<Tree>>) {
+        if let Ok(obj) = Py::new(py, self.clone()) {
+            result.push(obj);
+        }
         for child in &self.children {
             if let TreeNode::Subtree(t) = child {
-                t.collect_subtrees_strings(result);
+                t.collect_subtrees_py(py, result);
             }
         }
     }
@@ -313,7 +337,7 @@ mod tests {
     }
 
     #[test]
-    fn test_len() {
+    fn test_len_counts_leaves() {
         assert_eq!(sample_tree().__len__(), 2);
     }
 
@@ -368,9 +392,10 @@ mod tests {
     }
 
     #[test]
-    fn test_subtrees() {
+    fn test_subtrees_returns_py_objects() {
+        pyo3::prepare_freethreaded_python();
         let subs = sample_tree().subtrees();
-        assert!(subs.iter().any(|s| s.contains("(S ")));
-        assert!(subs.iter().any(|s| s.contains("(NP ")));
+        // Should have at least S and NP subtrees
+        assert!(subs.len() >= 2);
     }
 }

@@ -4,7 +4,7 @@
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use std::collections::HashSet;
+
 
 use crate::inference::{Formula, Literal, ProverResult};
 
@@ -112,7 +112,7 @@ fn resolve_clause(c1: &Clause, c2: &Clause) -> Option<Clause> {
                     .chain(c2.literals.iter().filter(|l| *l != l2))
                     .cloned()
                     .collect();
-                new_lits.sort_by(|a, b| format!("{a:?}").cmp(&format!("{b:?}")));
+                new_lits.sort();
                 new_lits.dedup();
                 new_lits = factor_clause(new_lits);
                 return Some(Clause { literals: new_lits });
@@ -130,16 +130,10 @@ fn comp(l1: &Literal, l2: &Literal) -> bool {
     }
 }
 
-fn factor_clause(lits: Vec<Literal>) -> Vec<Literal> {
-    let mut seen = HashSet::new();
-    let mut res = Vec::new();
-    for lit in lits {
-        let key = format!("{lit:?}");
-        if seen.insert(key) {
-            res.push(lit);
-        }
-    }
-    res
+fn factor_clause(mut lits: Vec<Literal>) -> Vec<Literal> {
+    lits.sort();
+    lits.dedup();
+    lits
 }
 
 fn subsumes_clause(a: &Clause, b: &Clause) -> bool {

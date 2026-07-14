@@ -55,10 +55,10 @@ class TestRegexpStemmer:
     def test_matches_nltk_default(self):
         words = ["running", "flies"]
         for w in words:
-            assert RegexpStemmer().stem(w) == nltk.stem.RegexpStemmer().stem(w)
+            assert RegexpStemmer().stem(w) == nltk.stem.RegexpStemmer("ing$|ed$|s$").stem(w)
 
     def test_matches_nltk_min_length(self):
         r = RegexpStemmer(min_length=5)
-        n = nltk.stem.RegexpStemmer(min_length=5)
+        n = nltk.stem.RegexpStemmer("ing$|ed$|s$", min_length=5)
         for w in ["running", "a"]:
             assert r.stem(w) == n.stem(w)

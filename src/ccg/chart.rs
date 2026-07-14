@@ -6,8 +6,8 @@
 //!   2. For each span size 2..n, try all split points and apply combinators
 //!   3. Collect parses that span the entire input with category S
 //!
-//! Supports forward/backward application (FA, BA) and composition (FC, BC).
-//! Unknown words receive default NP and N categories for robustness.
+//! Supports forward/backward application (FA, BA), composition (FC, BC),
+//! crossed composition (FX, BX). Unknown words receive default NP/N categories.
 //!
 //! NLTK equivalent: nltk.ccg.chart.CCGChartParser
 
@@ -20,26 +20,17 @@ use crate::ccg::lexicon::CCGLexicon;
 use crate::ccg::{Category, CategoryKind};
 
 /// A chart cell entry: a category over a span [start, end).
-///
-/// Tracks the category, its input span, and optional children
-/// for derivation tree reconstruction.
 #[derive(Clone, Debug)]
-#[allow(dead_code)]
 struct CCGEdge {
     cat: Category,
     start: usize,
     end: usize,
-    /// Left child for derivation tree (None for lexical edges).
     left_child: Option<Box<CCGEdge>>,
-    /// Right child for derivation tree (None for lexical edges).
     right_child: Option<Box<CCGEdge>>,
-    /// Rule name ("lex", "FA", "BA", "FC", "BC").
-    #[allow(dead_code)]
     rule: String,
 }
 
 impl CCGEdge {
-    /// Create a lexical edge for a word at position `pos`.
     fn new_lexical(cat: Category, pos: usize) -> Self {
         CCGEdge {
             cat,
@@ -51,7 +42,6 @@ impl CCGEdge {
         }
     }
 
-    /// Create a combined edge from two sub-edges using a combinator rule.
     fn combined(cat: Category, left: CCGEdge, right: CCGEdge, rule: &str) -> Self {
         CCGEdge {
             cat,
@@ -94,15 +84,13 @@ impl CCGChartParser {
             )));
         }
 
-        // Build chart: [span_size][start] -> Vec<CCGEdge>
-        // We use span_size=1..=n, start=0..(n-span_size)
         let mut chart: HashMap<(usize, usize), Vec<CCGEdge>> = HashMap::new();
 
         // Initialize with lexical categories (span=1)
         for (i, word) in words.iter().enumerate() {
             let cats = self.lexicon.lookup_cats(word);
             if cats.is_empty() {
-                // Unknown word — try to give it NP and N as default
+                // Unknown word — assign NP and N categories
                 if let Some(np) = crate::ccg::parse_category("NP") {
                     chart
                         .entry((1, i))
@@ -133,32 +121,29 @@ impl CCGChartParser {
                 let end = start + span;
                 let mut new_edges: Vec<CCGEdge> = Vec::new();
 
-                // Try all split points
                 for split in (start + 1)..end {
                     let left_edges = chart.get(&(split - start, start));
                     let right_edges = chart.get(&(end - split, split));
 
-                    if let Some(lefts) = left_edges {
-                        if let Some(rights) = right_edges {
-                            for l in lefts {
-                                for r in rights {
-                                    for comb in &combinators {
-                                        let kind_l = l.cat.kind();
-                                        let kind_r = r.cat.kind();
-                                        if let Some(result_kind) = apply_combinator_with_composition(
-                                            kind_l, kind_r, comb, span,
-                                        ) {
-                                            let result_str = format_kind(&result_kind);
-                                            if let Some(result_cat) =
-                                                crate::ccg::parse_category(&result_str)
-                                            {
-                                                new_edges.push(CCGEdge::combined(
-                                                    result_cat,
-                                                    l.clone(),
-                                                    r.clone(),
-                                                    combinator::combinator_name(comb),
-                                                ));
-                                            }
+                    if let (Some(lefts), Some(rights)) = (left_edges, right_edges) {
+                        for l in lefts {
+                            for r in rights {
+                                for comb in &combinators {
+                                    let kind_l = l.cat.kind();
+                                    let kind_r = r.cat.kind();
+                                    if let Some(result_kind) = apply_with_variants(
+                                        kind_l, kind_r, comb,
+                                    ) {
+                                        let result_str = format_kind(&result_kind);
+                                        if let Some(result_cat) =
+                                            crate::ccg::parse_category(&result_str)
+                                        {
+                                            new_edges.push(CCGEdge::combined(
+                                                result_cat,
+                                                l.clone(),
+                                                r.clone(),
+                                                combinator::combinator_name(comb),
+                                            ));
                                         }
                                     }
                                 }
@@ -179,10 +164,7 @@ impl CCGChartParser {
             .map(|edges| {
                 edges
                     .iter()
-                    .filter(|e| {
-                        let s = e.cat.to_string();
-                        s == "S"
-                    })
+                    .filter(|e| e.cat.to_string() == "S")
                     .enumerate()
                     .map(|(i, e)| format!("Parse {}: {} (rule: {})", i + 1, e.cat, e.rule))
                     .collect()
@@ -190,7 +172,6 @@ impl CCGChartParser {
             .unwrap_or_default();
 
         if results.is_empty() {
-            // Try to find any complete spanning parse
             let any_results: Vec<String> = chart
                 .get(&(n, 0))
                 .map(|edges| {
@@ -213,75 +194,89 @@ impl CCGChartParser {
     }
 }
 
-/// Apply a combinator, also checking forward/backward composition variants.
-fn apply_combinator_with_composition(
+/// Try standard application + composition + crossed composition variants.
+fn apply_with_variants(
     left: &CategoryKind,
     right: &CategoryKind,
     comb: &Combinator,
-    _span: usize,
 ) -> Option<CategoryKind> {
-    // Try standard application first
+    // Try standard application
     if let Some(result) = combinator::apply_combinator(left, right, comb) {
         return Some(result);
     }
 
-    match comb_name(comb) {
+    let name = combinator::combinator_name(comb);
+    match name {
         "FC" => {
             // Forward composition: A/B + B/C -> A/C
-            if let CategoryKind::Functional {
-                result: lr,
-                argument: la,
-                is_forward: true,
-            } = left
+            if let (
+                CategoryKind::Functional { result: lr, argument: la, is_forward: true },
+                CategoryKind::Functional { result: rr, argument: ra, is_forward: true },
+            ) = (left, right)
             {
-                if let CategoryKind::Functional {
-                    result: rr,
-                    argument: ra,
-                    is_forward: true,
-                } = right
-                {
-                    if **la == **rr {
-                        return Some(CategoryKind::Functional {
-                            result: lr.clone(),
-                            argument: ra.clone(),
-                            is_forward: true,
-                        });
-                    }
+                if **la == **rr {
+                    return Some(CategoryKind::Functional {
+                        result: lr.clone(),
+                        argument: ra.clone(),
+                        is_forward: true,
+                    });
                 }
             }
             None
         }
         "BC" => {
-            // Backward composition: B\C + A\B -> A\C
-            if let CategoryKind::Functional {
-                result: _,
-                argument: la,
-                is_forward: false,
-            } = right
+            // Backward composition: B\\C + A\\B -> A\\C
+            if let (
+                CategoryKind::Functional { result: rr, argument: ra, is_forward: false },
+                CategoryKind::Functional { result: _, argument: la, is_forward: false },
+            ) = (left, right)
             {
-                if let CategoryKind::Functional {
-                    result: rr,
-                    argument: ra,
-                    is_forward: false,
-                } = left
-                {
-                    if **la == **rr {
-                        return Some(CategoryKind::Functional {
-                            result: ra.clone(),
-                            argument: la.clone(),
-                            is_forward: false,
-                        });
-                    }
+                if **la == **rr {
+                    return Some(CategoryKind::Functional {
+                        result: ra.clone(),
+                        argument: la.clone(),
+                        is_forward: false,
+                    });
+                }
+            }
+            None
+        }
+        "FX" => {
+            // Forward crossed composition: A/B + C\\B -> A\\C
+            if let (
+                CategoryKind::Functional { result: lr, argument: la, is_forward: true },
+                CategoryKind::Functional { result: _, argument: ra, is_forward: false },
+            ) = (left, right)
+            {
+                if **la == **ra {
+                    return Some(CategoryKind::Functional {
+                        result: lr.clone(),
+                        argument: ra.clone(),
+                        is_forward: true,
+                    });
+                }
+            }
+            None
+        }
+        "BX" => {
+            // Backward crossed composition: B/C + A\\B -> A/C
+            if let (
+                CategoryKind::Functional { result: rr, argument: _, is_forward: true },
+                CategoryKind::Functional { result: _, argument: la, is_forward: false },
+            ) = (left, right)
+            {
+                if **la == **rr {
+                    return Some(CategoryKind::Functional {
+                        result: rr.clone(),
+                        argument: la.clone(),
+                        is_forward: false,
+                    });
                 }
             }
             None
         }
         _ => None,
     }
-}
-
-fn comb_name(comb: &Combinator) -> &'static str {
-    combinator::combinator_name(comb)
 }
 
 fn format_kind(k: &CategoryKind) -> String {
@@ -352,7 +347,6 @@ mod tests {
             .map(|s| s.to_string())
             .collect();
         let results = parser.parse(words).unwrap();
-        // "the cat" should result in NP (not S)
         assert!(results.iter().any(|r| r.contains("NP")), "Should have NP");
     }
 
@@ -411,7 +405,6 @@ mod tests {
 
     #[test]
     fn test_no_parse_possible() {
-        // NP and N categories only -> cannot form S
         let lex = CCGLexicon::new(Some(vec![
             ("the".into(), "NP/N".into()),
             ("cat".into(), "N".into()),
@@ -423,7 +416,6 @@ mod tests {
             .map(|s| s.to_string())
             .collect();
         let results = parser.parse(words).unwrap();
-        // Should get NP derivation, not an S parse
         assert!(
             results.iter().any(|r| r.contains("NP")),
             "Should find NP: {:?}",

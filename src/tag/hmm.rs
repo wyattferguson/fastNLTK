@@ -50,15 +50,15 @@ impl HiddenMarkovModelTagger {
         )
         .map_err(map_err)?;
 
-        // Extract observation sequences (words) and labels (tags)
-        let observations: Vec<Vec<String>> = sentences
+        // Extract observation sequences (words) and labels (tags) in one pass
+        let (observations, labels): (Vec<Vec<String>>, Vec<Vec<String>>) = sentences
             .iter()
-            .map(|s| s.iter().map(|(w, _)| w.clone()).collect())
-            .collect();
-        let labels: Vec<Vec<String>> = sentences
-            .iter()
-            .map(|s| s.iter().map(|(_, t)| t.clone()).collect())
-            .collect();
+            .map(|s| {
+                let (obs, lbls): (Vec<_>, Vec<_>) =
+                    s.iter().map(|(w, t)| (w.clone(), t.clone())).unzip();
+                (obs, lbls)
+            })
+            .unzip();
 
         // Build vocabulary then train supervised
         model.build_vocab(&observations);

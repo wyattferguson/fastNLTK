@@ -10,6 +10,7 @@ Usage:
 """
 
 import importlib
+import warnings
 
 from fastnltk.chunk import ne_chunk, ne_chunk_sents
 from fastnltk.data import find, load
@@ -43,5 +44,5 @@ for _mod_name in _modules:
     try:
         mod = importlib.import_module(f"fastnltk.{_mod_name}")
         globals()[_mod_name] = mod
-    except ImportError:
-        pass
+    except ImportError as e:
+        warnings.warn(f"fastnltk.{_mod_name} not available: {e}")

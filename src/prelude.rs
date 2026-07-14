@@ -1,3 +1,5 @@
-//! Common imports used across fastNLTK modules.
+//! Common re-exports for fastNLTK modules.
 //!
-//! Currently minimal — imports are added per-module as needed.
+//! Currently minimal — most modules import directly from `crate`.
+
+// Future: re-export commonly used types here.

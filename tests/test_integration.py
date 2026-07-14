@@ -5,8 +5,6 @@ from Python, including CCG, Discourse, and Nonmonotonic modules.
 """
 
 import json
-import os
-import sys
 import unittest
 
 
@@ -14,9 +12,8 @@ class TestCCGIntegration(unittest.TestCase):
     """Test CCG classes from Python."""
 
     def setUp(self):
-        from fastnltk._rust import CCGLexicon, CCGChartParser
-
         bs = chr(92)
+        from fastnltk._rust import CCGChartParser, CCGLexicon
         self.lex = CCGLexicon(
             [
                 ("the", "NP/N"),
@@ -147,7 +144,7 @@ class TestNonmonotonicIntegration(unittest.TestCase):
     """Test DefaultReasoner and ClosedWorldReasoner from Python."""
 
     def setUp(self):
-        from fastnltk._rust import DefaultRule, DefaultReasoner, ClosedWorldReasoner
+        from fastnltk._rust import ClosedWorldReasoner, DefaultReasoner, DefaultRule
 
         self.DefaultRule = DefaultRule
         self.DefaultReasoner = DefaultReasoner

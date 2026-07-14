@@ -25,12 +25,13 @@ __all__ = [
 
 class Tree:
     """Rust-accelerated Tree data structure matching NLTK's Tree API."""
+
     def __init__(self, label, children=None):
         self._impl = _RustTree(label, children or [])
 
     @classmethod
     def from_string(cls, string):
-        return cls.__new__(cls)._from_impl(_RustTree.from_string(string))
+        return cls._from_impl(_RustTree.from_string(string))
 
     @classmethod
     def _from_impl(cls, impl):
@@ -54,7 +55,12 @@ class Tree:
         return self._impl.productions()
 
     def subtrees(self, filter_fn=None):
-        return [Tree._from_impl(_RustTree.from_string(s)) for s in self._impl.subtrees()]
+        results = []
+        for sub in self._impl.subtrees():
+            tree = Tree._from_impl(sub)
+            if filter_fn is None or filter_fn(tree):
+                results.append(tree)
+        return results
 
     def pprint(self):
         return self._impl.pprint()
@@ -69,10 +75,24 @@ class Tree:
         return self._impl.__len__()
 
     def __getitem__(self, index):
-        return self._impl.__getitem__(index)
+        val = self._impl.__getitem__(index)
+        if val is None:
+            raise IndexError(index)
+        # If it's a string, return directly. Otherwise it's a Py Tree (subtree).
+        if isinstance(val, str):
+            return val
+        return Tree._from_impl(val)
 
     def __iter__(self):
-        return iter(self._impl)
+        yield from self._impl.__iter__()
+
+    def __eq__(self, other):
+        if isinstance(other, Tree):
+            return str(self) == str(other)
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(str(self))
 
 
 ParentedTree = _nltk_tree.ParentedTree

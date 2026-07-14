@@ -17,15 +17,15 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from benchmarks.harness import (
-    save_results,
-    load_results,
-    print_table,
-    print_regression_table,
-    check_regression,
-    RESULTS_DIR,
-)
 from benchmarks.bench_suite import run_all
+from benchmarks.harness import (
+    RESULTS_DIR,
+    check_regression,
+    load_results,
+    print_regression_table,
+    print_table,
+    save_results,
+)
 
 
 def main():

@@ -136,6 +136,23 @@ pub(crate) enum Literal {
     Neg(String, Vec<String>),
 }
 
+impl Ord for Literal {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        match (self, other) {
+            (Literal::Pos(p1, a1), Literal::Pos(p2, a2))
+            | (Literal::Neg(p1, a1), Literal::Neg(p2, a2)) => p1.cmp(p2).then_with(|| a1.cmp(a2)),
+            (Literal::Pos(..), Literal::Neg(..)) => std::cmp::Ordering::Less,
+            (Literal::Neg(..), Literal::Pos(..)) => std::cmp::Ordering::Greater,
+        }
+    }
+}
+
+impl PartialOrd for Literal {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 fn push_and_clauses(f: Formula, clauses: &mut Vec<Vec<Literal>>) {
     match f {
         Formula::And(children) => {
