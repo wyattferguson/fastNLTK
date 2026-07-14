@@ -28,7 +28,6 @@ from nltk.tag import (
     RegexpTagger,
     SequentialBackoffTagger,
     TaggerI,
-    TnT,
     TrigramTagger,
     UnigramTagger,
     map_tag,
@@ -37,6 +36,7 @@ from nltk.tag import (
 _rust_available = False
 try:
     from fastnltk._rust import PerceptronTagger as _RustPerceptronTagger
+    from fastnltk._rust import TnT as _RustTnT
     _rust_available = True
 except ImportError:
     warnings.warn(
@@ -145,6 +145,24 @@ class PerceptronTagger:
 
     def tag(self, tokens):
         return self._impl.tag(tokens)
+
+    def tag_sents(self, sentences):
+        return self._impl.tag_sents(sentences)
+
+
+class TnT:
+    """TnT trigram HMM tagger — Rust-accelerated."""
+    def __init__(self):
+        if _rust_available:
+            self._impl = _RustTnT()
+        else:
+            self._impl = _nltk_tag.TnT()
+
+    def train(self, sentences):
+        self._impl.train(sentences)
+
+    def tag(self, words):
+        return self._impl.tag(words)
 
     def tag_sents(self, sentences):
         return self._impl.tag_sents(sentences)
