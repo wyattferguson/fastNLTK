@@ -55,9 +55,7 @@ impl Category {
     }
 
     pub fn primitive(label: &str) -> Self {
-        Category {
-            inner: CategoryKind::Primitive(label.to_string()),
-        }
+        Category { inner: CategoryKind::Primitive(label.to_string()) }
     }
 }
 
@@ -65,11 +63,7 @@ impl fmt::Display for Category {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner {
             CategoryKind::Primitive(label) => write!(f, "{label}"),
-            CategoryKind::Functional {
-                result,
-                argument,
-                is_forward,
-            } => {
+            CategoryKind::Functional { result, argument, is_forward } => {
                 let result_s = fmt_kind(result);
                 let arg_s = fmt_kind(argument);
                 if *is_forward {
@@ -85,11 +79,7 @@ impl fmt::Display for Category {
 fn fmt_kind(k: &CategoryKind) -> String {
     match k {
         CategoryKind::Primitive(l) => l.clone(),
-        CategoryKind::Functional {
-            result,
-            argument,
-            is_forward,
-        } => {
+        CategoryKind::Functional { result, argument, is_forward } => {
             let rs = fmt_kind(result);
             let as_ = fmt_kind(argument);
             if *is_forward {
@@ -188,10 +178,8 @@ fn parse_inner(s: &str) -> Option<(CategoryKind, usize)> {
         }
         None => {
             // Primitive category
-            let label: String = s
-                .chars()
-                .take_while(|c| c.is_alphabetic() || c.is_ascii_punctuation())
-                .collect();
+            let label: String =
+                s.chars().take_while(|c| c.is_alphabetic() || c.is_ascii_punctuation()).collect();
             if label.is_empty() {
                 None
             } else {

@@ -32,11 +32,7 @@ impl PerceptronTagger {
     #[new]
     fn new() -> PyResult<Self> {
         // Start with empty model — will need load() or fit() to be useful
-        Ok(Self {
-            weights: HashMap::new(),
-            tagdict: HashMap::new(),
-            classes: Vec::new(),
-        })
+        Ok(Self { weights: HashMap::new(), tagdict: HashMap::new(), classes: Vec::new() })
     }
 
     /// Load weights from Python dicts (from NLTK pickle).
@@ -184,15 +180,18 @@ impl PerceptronTagger {
 
         // Suffix features (last 1-3 chars)
         if !word.is_empty() {
-            let suff1: String = word.chars().rev().take(1).collect::<String>().chars().rev().collect();
+            let suff1: String =
+                word.chars().rev().take(1).collect::<String>().chars().rev().collect();
             feats.push(format!("i suffix {suff1}"));
         }
         if word.chars().count() >= 2 {
-            let suff2: String = word.chars().rev().take(2).collect::<String>().chars().rev().collect();
+            let suff2: String =
+                word.chars().rev().take(2).collect::<String>().chars().rev().collect();
             feats.push(format!("i suff2 {suff2}"));
         }
         if word.chars().count() >= 3 {
-            let suff3: String = word.chars().rev().take(3).collect::<String>().chars().rev().collect();
+            let suff3: String =
+                word.chars().rev().take(3).collect::<String>().chars().rev().collect();
             feats.push(format!("i suff3 {suff3}"));
         }
 

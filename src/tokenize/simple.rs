@@ -149,9 +149,7 @@ impl CharTokenizer {
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
-        text.char_indices()
-            .map(|(i, ch)| (i, i + ch.len_utf8()))
-            .collect()
+        text.char_indices().map(|(i, ch)| (i, i + ch.len_utf8())).collect()
     }
 }
 
@@ -233,10 +231,7 @@ mod tests {
     #[test]
     fn test_line_span_tokenize() {
         let tok = LineTokenizer::new();
-        assert_eq!(
-            tok.span_tokenize("ab\ncd\nef"),
-            vec![(0, 2), (3, 5), (6, 8)]
-        );
+        assert_eq!(tok.span_tokenize("ab\ncd\nef"), vec![(0, 2), (3, 5), (6, 8)]);
     }
 
     // ── CharTokenizer tests ──────────────────────────────

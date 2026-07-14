@@ -34,12 +34,7 @@ impl CollocationData {
             *ngram_fd.entry(key).or_insert(0) += 1;
         }
 
-        CollocationData {
-            word_fd,
-            ngram_fd,
-            n,
-            min_freq: 1,
-        }
+        CollocationData { word_fd, ngram_fd, n, min_freq: 1 }
     }
 
     fn apply_freq_filter(&mut self, min_freq: u64) {
@@ -52,8 +47,7 @@ impl CollocationData {
     where
         F: Fn(&str) -> bool,
     {
-        self.ngram_fd
-            .retain(|ngram, _| !ngram.iter().any(|w| filter_fn(w)));
+        self.ngram_fd.retain(|ngram, _| !ngram.iter().any(|w| filter_fn(w)));
     }
 
     fn score_ngrams(&self, score_fn: &str) -> Vec<(Vec<String>, f64)> {
@@ -157,17 +151,13 @@ pub struct BigramCollocationFinder {
 impl BigramCollocationFinder {
     #[new]
     fn new(_word_fd: &Bound<'_, PyDict>, _ngram_fd: &Bound<'_, PyDict>) -> PyResult<Self> {
-        Err(PyValueError::new_err(
-            "Use BigramCollocationFinder.from_words(words)",
-        ))
+        Err(PyValueError::new_err("Use BigramCollocationFinder.from_words(words)"))
     }
 
     #[staticmethod]
     #[pyo3(signature = (words, window_size=2))]
     fn from_words(words: Vec<String>, window_size: usize) -> Self {
-        BigramCollocationFinder {
-            data: CollocationData::from_words(&words, window_size),
-        }
+        BigramCollocationFinder { data: CollocationData::from_words(&words, window_size) }
     }
 
     fn score_ngrams(&self, score_fn: &str) -> Vec<(Vec<String>, f64)> {
@@ -198,17 +188,13 @@ pub struct TrigramCollocationFinder {
 impl TrigramCollocationFinder {
     #[new]
     fn new(_word_fd: &Bound<'_, PyDict>, _ngram_fd: &Bound<'_, PyDict>) -> PyResult<Self> {
-        Err(PyValueError::new_err(
-            "Use TrigramCollocationFinder.from_words(words)",
-        ))
+        Err(PyValueError::new_err("Use TrigramCollocationFinder.from_words(words)"))
     }
 
     #[staticmethod]
     #[pyo3(signature = (words, window_size=3))]
     fn from_words(words: Vec<String>, window_size: usize) -> Self {
-        TrigramCollocationFinder {
-            data: CollocationData::from_words(&words, window_size),
-        }
+        TrigramCollocationFinder { data: CollocationData::from_words(&words, window_size) }
     }
 
     fn score_ngrams(&self, score_fn: &str) -> Vec<(Vec<String>, f64)> {
@@ -239,17 +225,13 @@ pub struct QuadgramCollocationFinder {
 impl QuadgramCollocationFinder {
     #[new]
     fn new(_word_fd: &Bound<'_, PyDict>, _ngram_fd: &Bound<'_, PyDict>) -> PyResult<Self> {
-        Err(PyValueError::new_err(
-            "Use QuadgramCollocationFinder.from_words(words)",
-        ))
+        Err(PyValueError::new_err("Use QuadgramCollocationFinder.from_words(words)"))
     }
 
     #[staticmethod]
     #[pyo3(signature = (words, window_size=4))]
     fn from_words(words: Vec<String>, window_size: usize) -> Self {
-        QuadgramCollocationFinder {
-            data: CollocationData::from_words(&words, window_size),
-        }
+        QuadgramCollocationFinder { data: CollocationData::from_words(&words, window_size) }
     }
 
     fn score_ngrams(&self, score_fn: &str) -> Vec<(Vec<String>, f64)> {

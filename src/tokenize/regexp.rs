@@ -29,21 +29,14 @@ impl RegexpTokenizer {
     #[pyo3(signature = (pattern="\\w+", gaps=false, flags=0))]
     fn new(pattern: &str, gaps: bool, flags: u32) -> Self {
         let pattern = pattern.to_string();
-        Self {
-            pattern,
-            gaps,
-            flags,
-        }
+        Self { pattern, gaps, flags }
     }
 
     fn tokenize(&self, text: &str) -> PyResult<Vec<String>> {
         let re = regex_cache::get_or_compile(&self.pattern, self.flags)
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(if self.gaps {
-            re.split(text)
-                .filter(|s| !s.is_empty())
-                .map(String::from)
-                .collect()
+            re.split(text).filter(|s| !s.is_empty()).map(String::from).collect()
         } else {
             re.find_iter(text).map(|m| m.as_str().to_string()).collect()
         })
@@ -129,17 +122,11 @@ impl WordPunctTokenizer {
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        self.re
-            .find_iter(text)
-            .map(|m| m.as_str().to_string())
-            .collect()
+        self.re.find_iter(text).map(|m| m.as_str().to_string()).collect()
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
-        self.re
-            .find_iter(text)
-            .map(|m| (m.start(), m.end()))
-            .collect()
+        self.re.find_iter(text).map(|m| (m.start(), m.end())).collect()
     }
 }
 

@@ -22,67 +22,35 @@ pub(crate) struct Combinator {
 
 /// Standard CCG combinators.
 pub(crate) fn forward_application() -> Combinator {
-    Combinator {
-        name: "FA",
-        dir: Direction::Forward,
-        is_type_raise: false,
-    }
+    Combinator { name: "FA", dir: Direction::Forward, is_type_raise: false }
 }
 
 pub(crate) fn backward_application() -> Combinator {
-    Combinator {
-        name: "BA",
-        dir: Direction::Backward,
-        is_type_raise: false,
-    }
+    Combinator { name: "BA", dir: Direction::Backward, is_type_raise: false }
 }
 
 pub(crate) fn forward_composition() -> Combinator {
-    Combinator {
-        name: "FC",
-        dir: Direction::Forward,
-        is_type_raise: false,
-    }
+    Combinator { name: "FC", dir: Direction::Forward, is_type_raise: false }
 }
 
 pub(crate) fn backward_composition() -> Combinator {
-    Combinator {
-        name: "BC",
-        dir: Direction::Backward,
-        is_type_raise: false,
-    }
+    Combinator { name: "BC", dir: Direction::Backward, is_type_raise: false }
 }
 
 pub(crate) fn forward_type_raising() -> Combinator {
-    Combinator {
-        name: "FT",
-        dir: Direction::Forward,
-        is_type_raise: true,
-    }
+    Combinator { name: "FT", dir: Direction::Forward, is_type_raise: true }
 }
 
 pub(crate) fn backward_type_raising() -> Combinator {
-    Combinator {
-        name: "BT",
-        dir: Direction::Backward,
-        is_type_raise: true,
-    }
+    Combinator { name: "BT", dir: Direction::Backward, is_type_raise: true }
 }
 
 pub(crate) fn forward_crossed_composition() -> Combinator {
-    Combinator {
-        name: "FX",
-        dir: Direction::Forward,
-        is_type_raise: false,
-    }
+    Combinator { name: "FX", dir: Direction::Forward, is_type_raise: false }
 }
 
 pub(crate) fn backward_crossed_composition() -> Combinator {
-    Combinator {
-        name: "BX",
-        dir: Direction::Backward,
-        is_type_raise: false,
-    }
+    Combinator { name: "BX", dir: Direction::Backward, is_type_raise: false }
 }
 
 /// Try to combine two categories using a combinator.
@@ -96,38 +64,26 @@ pub(crate) fn apply_combinator(
         return None; // type-raising handled per-category in chart
     }
     match comb.dir {
-        Direction::Forward => {
-            match left {
-                CategoryKind::Functional {
-                    result,
-                    argument,
-                    is_forward,
-                } if *is_forward => {
-                    if **argument == *right {
-                        Some(*result.clone())
-                    } else {
-                        None
-                    }
+        Direction::Forward => match left {
+            CategoryKind::Functional { result, argument, is_forward } if *is_forward => {
+                if **argument == *right {
+                    Some(*result.clone())
+                } else {
+                    None
                 }
-                _ => None,
             }
-        }
-        Direction::Backward => {
-            match right {
-                CategoryKind::Functional {
-                    result,
-                    argument,
-                    is_forward,
-                } if !*is_forward => {
-                    if **argument == *left {
-                        Some(*result.clone())
-                    } else {
-                        None
-                    }
+            _ => None,
+        },
+        Direction::Backward => match right {
+            CategoryKind::Functional { result, argument, is_forward } if !*is_forward => {
+                if **argument == *left {
+                    Some(*result.clone())
+                } else {
+                    None
                 }
-                _ => None,
             }
-        }
+            _ => None,
+        },
     }
 }
 

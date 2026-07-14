@@ -53,22 +53,14 @@ impl CFG {
                 }
             }
             let idx = prods.len();
-            prods.push(Production {
-                lhs: lhs.clone(),
-                rhs: rhs.clone(),
-            });
+            prods.push(Production { lhs: lhs.clone(), rhs: rhs.clone() });
             lhs_index.entry(lhs.clone()).or_default().push(idx);
         }
 
         let mut nonterminals: Vec<String> = nonterm_set.into_keys().collect();
         nonterminals.sort();
 
-        Ok(CFG {
-            start_symbol: start.to_string(),
-            productions: prods,
-            lhs_index,
-            nonterminals,
-        })
+        Ok(CFG { start_symbol: start.to_string(), productions: prods, lhs_index, nonterminals })
     }
 
     /// Parse a grammar string in NLTK format (one production per line).
@@ -126,10 +118,7 @@ impl CFG {
     }
 
     fn productions(&self) -> Vec<(String, Vec<String>)> {
-        self.productions
-            .iter()
-            .map(|p| (p.lhs.clone(), p.rhs.clone()))
-            .collect()
+        self.productions.iter().map(|p| (p.lhs.clone(), p.rhs.clone())).collect()
     }
 
     fn nonterminals(&self) -> Vec<String> {
@@ -148,9 +137,7 @@ impl CFG {
                 .rhs
                 .iter()
                 .map(|s| {
-                    if s.chars()
-                        .all(|c| c.is_lowercase() || c.is_ascii_punctuation())
-                    {
+                    if s.chars().all(|c| c.is_lowercase() || c.is_ascii_punctuation()) {
                         format!("'{}'", s)
                     } else {
                         s.clone()

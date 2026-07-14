@@ -6,9 +6,9 @@
 //!
 //! NLTK equivalent: nltk.ccg.lexicon
 
+use hashbrown::HashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use hashbrown::HashMap;
 use smol_str::SmolStr;
 
 use crate::ccg::{parse_category, Category};

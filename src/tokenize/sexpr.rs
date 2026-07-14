@@ -22,9 +22,7 @@ impl SExprTokenizer {
     #[pyo3(signature = (parens="()", strict=true))]
     fn new(parens: &str, strict: bool) -> PyResult<Self> {
         if parens.len() != 2 {
-            return Err(PyValueError::new_err(
-                "parens must contain exactly two characters",
-            ));
+            return Err(PyValueError::new_err("parens must contain exactly two characters"));
         }
         let chars: Vec<char> = parens.chars().collect();
         Ok(SExprTokenizer {
@@ -73,9 +71,7 @@ impl SExprTokenizer {
         }
 
         if self.strict && depth > 0 {
-            return Err(PyValueError::new_err(format!(
-                "Un-matched open paren at char {pos}"
-            )));
+            return Err(PyValueError::new_err(format!("Un-matched open paren at char {pos}")));
         }
 
         if pos < text.len() {

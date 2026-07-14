@@ -14,9 +14,7 @@ use std::fmt;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-use crate::sem::{
-    model_evaluate, Assignment, Expression, Individual, Valuation,
-};
+use crate::sem::{model_evaluate, Assignment, Expression, Individual, Valuation};
 
 // ═══════════════════════════════════════════════════════════
 // DRS types
@@ -202,10 +200,7 @@ impl DRS {
                         i += 1;
                     }
                     let (rhs, new_i) = Self::parse_drs(input, i)?;
-                    conditions.push(DRSCondition::Implication(
-                        Box::new(nested_drs),
-                        Box::new(rhs),
-                    ));
+                    conditions.push(DRSCondition::Implication(Box::new(nested_drs), Box::new(rhs)));
                     i = new_i;
                 } else if input[new_i..].trim_start().starts_with('|') {
                     // Disjunction
@@ -218,10 +213,7 @@ impl DRS {
                         i += 1;
                     }
                     let (rhs, new_i) = Self::parse_drs(input, i)?;
-                    conditions.push(DRSCondition::Disjunction(
-                        Box::new(nested_drs),
-                        Box::new(rhs),
-                    ));
+                    conditions.push(DRSCondition::Disjunction(Box::new(nested_drs), Box::new(rhs)));
                     i = new_i;
                 } else {
                     conditions.push(DRSCondition::DRS(Box::new(nested_drs)));
@@ -299,13 +291,7 @@ impl DRS {
         }
         i += 1;
 
-        Ok((
-            DRS {
-                universe,
-                conditions,
-            },
-            i,
-        ))
+        Ok((DRS { universe, conditions }, i))
     }
 
     /// Convert DRS to a first-order logic formula.

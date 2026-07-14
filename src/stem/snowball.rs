@@ -119,11 +119,7 @@ mod tests {
     #[test]
     fn test_snowball_stem_many() {
         let stemmer = SnowballStemmer::new("english").unwrap();
-        let words = vec![
-            "running".to_string(),
-            "cats".to_string(),
-            "better".to_string(),
-        ];
+        let words = vec!["running".to_string(), "cats".to_string(), "better".to_string()];
         let result = stemmer.stem_many(words);
         assert_eq!(result, vec!["run", "cat", "better"]);
     }

@@ -64,10 +64,7 @@ impl TnT {
                 words.push(word);
                 tag_set.insert(tag.clone());
                 tags.push(tag.clone());
-                *self
-                    .emission_counts
-                    .entry((tag.clone(), word.clone()))
-                    .or_insert(0) += 1;
+                *self.emission_counts.entry((tag.clone(), word.clone())).or_insert(0) += 1;
                 self.known_words.insert(word.to_lowercase());
                 self.total_words += 1;
             }
@@ -80,10 +77,7 @@ impl TnT {
             // Count ngrams from the tag sequence
             for window in tags.windows(3) {
                 *self.uni_counts.entry(window[2].clone()).or_insert(0) += 1;
-                *self
-                    .bi_counts
-                    .entry((window[1].clone(), window[2].clone()))
-                    .or_insert(0) += 1;
+                *self.bi_counts.entry((window[1].clone(), window[2].clone())).or_insert(0) += 1;
                 *self
                     .tri_counts
                     .entry((window[0].clone(), window[1].clone(), window[2].clone()))
@@ -213,17 +207,8 @@ impl TnT {
 
     /// Transition probability P(t2 | t1) with add-one smoothing.
     fn trans_prob(&self, t1: &str, t2: &str) -> f64 {
-        let count = self
-            .bi_counts
-            .get(&(t1.to_string(), t2.to_string()))
-            .copied()
-            .unwrap_or(0);
-        let total: u64 = self
-            .bi_counts
-            .iter()
-            .filter(|((a, _), _)| a == t1)
-            .map(|(_, c)| c)
-            .sum();
+        let count = self.bi_counts.get(&(t1.to_string(), t2.to_string())).copied().unwrap_or(0);
+        let total: u64 = self.bi_counts.iter().filter(|((a, _), _)| a == t1).map(|(_, c)| c).sum();
         if total == 0 {
             return self.tag_prob(t2);
         }
@@ -238,11 +223,7 @@ impl TnT {
             .get(&(t1.to_string(), t2.to_string(), t3.to_string()))
             .copied()
             .unwrap_or(0);
-        let bi_count = self
-            .bi_counts
-            .get(&(t2.to_string(), t3.to_string()))
-            .copied()
-            .unwrap_or(0);
+        let bi_count = self.bi_counts.get(&(t2.to_string(), t3.to_string())).copied().unwrap_or(0);
 
         if tri_count > 0 {
             let total_tri: u64 = self
@@ -254,12 +235,8 @@ impl TnT {
             tri_count as f64 / total_tri as f64
         } else if bi_count > 0 {
             // Backoff to bigram
-            let total_bi: u64 = self
-                .bi_counts
-                .iter()
-                .filter(|((a, _), _)| a == t2)
-                .map(|(_, c)| c)
-                .sum();
+            let total_bi: u64 =
+                self.bi_counts.iter().filter(|((a, _), _)| a == t2).map(|(_, c)| c).sum();
             bi_count as f64 / total_bi as f64
         } else {
             // Backoff to unigram
@@ -269,18 +246,11 @@ impl TnT {
 
     /// Emission probability P(word | tag) with unknown word smoothing.
     fn emission_prob(&self, tag: &str, word: &str) -> f64 {
-        let count = self
-            .emission_counts
-            .get(&(tag.to_string(), word.to_string()))
-            .copied()
-            .unwrap_or(0);
+        let count =
+            self.emission_counts.get(&(tag.to_string(), word.to_string())).copied().unwrap_or(0);
 
-        let tag_total: u64 = self
-            .emission_counts
-            .iter()
-            .filter(|((t, _), _)| t == tag)
-            .map(|(_, c)| c)
-            .sum();
+        let tag_total: u64 =
+            self.emission_counts.iter().filter(|((t, _), _)| t == tag).map(|(_, c)| c).sum();
 
         let is_known = self.known_words.contains(&word.to_lowercase());
 
@@ -305,11 +275,7 @@ impl TnT {
             return if tag == "VBG" { 3.0 } else { 1.0 };
         }
         if word_lower.ends_with("ed") {
-            return if tag == "VBD" || tag == "VBN" {
-                2.0
-            } else {
-                1.0
-            };
+            return if tag == "VBD" || tag == "VBN" { 2.0 } else { 1.0 };
         }
         if word_lower.ends_with("ly") {
             return if tag == "RB" { 4.0 } else { 1.0 };
@@ -408,10 +374,8 @@ mod tests {
     fn test_tag_sents() {
         let mut tnt = TnT::new();
         tnt.train(sample_training()).unwrap();
-        let results = tnt.tag_sents(vec![
-            vec!["The".into(), "cat".into()],
-            vec!["A".into(), "dog".into()],
-        ]);
+        let results =
+            tnt.tag_sents(vec![vec!["The".into(), "cat".into()], vec!["A".into(), "dog".into()]]);
         assert_eq!(results.len(), 2);
     }
 }

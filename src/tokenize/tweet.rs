@@ -45,11 +45,7 @@ impl TweetTokenizer {
     #[new]
     #[pyo3(signature = (preserve_case=true, reduce_len=false, strip_handles=false))]
     fn new(preserve_case: bool, reduce_len: bool, strip_handles: bool) -> Self {
-        Self {
-            preserve_case,
-            reduce_len,
-            strip_handles,
-        }
+        Self { preserve_case, reduce_len, strip_handles }
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
@@ -65,18 +61,10 @@ impl TweetTokenizer {
             }
 
             // Handle case
-            let token = if self.preserve_case {
-                token
-            } else {
-                token.to_lowercase()
-            };
+            let token = if self.preserve_case { token } else { token.to_lowercase() };
 
             // Handle repeated characters
-            let token = if self.reduce_len {
-                reduce_repeated(&token)
-            } else {
-                token
-            };
+            let token = if self.reduce_len { reduce_repeated(&token) } else { token };
 
             tokens.push(token);
         }

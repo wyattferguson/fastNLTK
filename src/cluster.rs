@@ -115,9 +115,7 @@ impl KMeansClusterer {
     /// Classify a single vector.
     fn classify(&self, vector: Vec<f64>) -> PyResult<usize> {
         if !self.fitted {
-            return Err(pyo3::exceptions::PyValueError::new_err(
-                "KMeansClusterer not fitted yet",
-            ));
+            return Err(pyo3::exceptions::PyValueError::new_err("KMeansClusterer not fitted yet"));
         }
         let mut best_dist = f64::MAX;
         let mut best_cluster = 0;
@@ -182,12 +180,7 @@ mod tests {
     fn test_kmeans_two_clusters() {
         let mut clusterer = KMeansClusterer::new(2, 50);
         // Two clearly separated clusters
-        let vectors = vec![
-            vec![0.0, 0.0],
-            vec![0.1, 0.1],
-            vec![10.0, 10.0],
-            vec![10.1, 10.1],
-        ];
+        let vectors = vec![vec![0.0, 0.0], vec![0.1, 0.1], vec![10.0, 10.0], vec![10.1, 10.1]];
         let labels = clusterer.cluster(vectors).unwrap();
         assert_eq!(labels.len(), 4);
         // Points 0,1 should be in same cluster; points 2,3 in the other

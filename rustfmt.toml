@@ -1,0 +1,8 @@
+# rustfmt.toml — Consistent formatting (modeled after tokio, serde, clap)
+# Stable features only — no nightly required
+edition = "2021"
+max_width = 100
+tab_spaces = 4
+use_small_heuristics = "Max"
+newline_style = "Auto"
+# imports_granularity, group_imports, format_strings require nightly

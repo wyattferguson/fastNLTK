@@ -13,8 +13,8 @@
 //!
 //! NLTK equivalents: nltk.inference.nonmonotonic
 
-use pyo3::prelude::*;
 use hashbrown::HashSet;
+use pyo3::prelude::*;
 use std::fmt;
 
 /// A default rule: (prerequisite : justification / consequent)
@@ -42,12 +42,7 @@ impl DefaultRule {
         consequent: String,
         name: String,
     ) -> Self {
-        DefaultRule {
-            prerequisite,
-            justification,
-            consequent,
-            name,
-        }
+        DefaultRule { prerequisite, justification, consequent, name }
     }
 
     fn __str__(&self) -> String {
@@ -85,20 +80,14 @@ impl DefaultReasoner {
     #[new]
     #[pyo3(signature = (rules, max_extensions=10))]
     pub fn new(rules: Vec<DefaultRule>, max_extensions: usize) -> Self {
-        DefaultReasoner {
-            rules,
-            max_extensions,
-        }
+        DefaultReasoner { rules, max_extensions }
     }
 
     /// Compute all extensions (fixed-point semantics).
     /// Returns list of extensions, where each extension is a list of facts.
     fn extensions(&self) -> Vec<Vec<String>> {
         let mut results = Vec::new();
-        let mut extensions: Vec<HashSet<String>> = Vec::new();
-
-        // Start with empty extension
-        extensions.push(HashSet::new());
+        let mut extensions: Vec<HashSet<String>> = vec![HashSet::new()];
 
         for _ in 0..self.max_extensions {
             let mut new_extensions: Vec<HashSet<String>> = Vec::new();
@@ -199,11 +188,7 @@ impl ClosedWorldReasoner {
     /// Get all negative facts (derived by closed-world).
     fn negative_facts(&self) -> Vec<String> {
         let known: HashSet<String> = self.facts.iter().cloned().collect();
-        self.facts
-            .iter()
-            .map(|f| format!("~{}", f))
-            .filter(|n| !known.contains(n))
-            .collect()
+        self.facts.iter().map(|f| format!("~{}", f)).filter(|n| !known.contains(n)).collect()
     }
 }
 
@@ -220,12 +205,8 @@ mod tests {
 
     #[test]
     fn test_default_rule_creation() {
-        let rule = DefaultRule::new(
-            "bird(x)".into(),
-            "flies(x)".into(),
-            "flies(x)".into(),
-            "".into(),
-        );
+        let rule =
+            DefaultRule::new("bird(x)".into(), "flies(x)".into(), "flies(x)".into(), "".into());
         assert_eq!(rule.prerequisite, "bird(x)");
         assert_eq!(rule.consequent, "flies(x)");
     }
@@ -240,10 +221,7 @@ mod tests {
         );
         // Test via __str__
         let s = rule.__str__();
-        assert!(
-            s.contains("bird") || s.contains("bird-flies"),
-            "should contain bird: {s}"
-        );
+        assert!(s.contains("bird") || s.contains("bird-flies"), "should contain bird: {s}");
         assert!(s.contains("flies"), "should contain flies: {s}");
     }
 
@@ -308,12 +286,8 @@ mod tests {
     #[test]
     fn test_empty_prerequisite() {
         // A rule with empty prerequisite should always fire
-        let rules = vec![DefaultRule::new(
-            "".into(),
-            "fact".into(),
-            "fact".into(),
-            "always".into(),
-        )];
+        let rules =
+            vec![DefaultRule::new("".into(), "fact".into(), "fact".into(), "always".into())];
         let reasoner = DefaultReasoner::new(rules, 10);
         let exts = reasoner.extensions();
         assert!(!exts.is_empty());

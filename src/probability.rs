@@ -40,10 +40,7 @@ impl FreqDist {
     #[new]
     #[pyo3(signature = (samples=None))]
     fn new(samples: Option<Vec<String>>) -> Self {
-        let mut fd = FreqDist {
-            counts: HashMap::new(),
-            total: 0,
-        };
+        let mut fd = FreqDist { counts: HashMap::new(), total: 0 };
         if let Some(s) = samples {
             fd.update(s);
         }
@@ -73,10 +70,7 @@ impl FreqDist {
 
     /// Return the sample with the greatest frequency.
     fn max(&self) -> Option<String> {
-        self.counts
-            .iter()
-            .max_by_key(|(_, &count)| count)
-            .map(|(sample, _)| sample.clone())
+        self.counts.iter().max_by_key(|(_, &count)| count).map(|(sample, _)| sample.clone())
     }
 
     /// Return samples that occur only once (hapax legomena).
@@ -170,11 +164,7 @@ impl FreqDist {
     fn __repr__(&self) -> String {
         let items = self.most_common(Some(10));
         let _item_strs: Vec<String> = items.iter().map(|(k, v)| format!("{k}: {v}")).collect();
-        format!(
-            "<FreqDist with {} samples and {} outcomes>",
-            self.N(),
-            self.B()
-        )
+        format!("<FreqDist with {} samples and {} outcomes>", self.N(), self.B())
     }
 
     /// Increment count for a single sample.
@@ -187,10 +177,7 @@ impl FreqDist {
     /// Return count for sample (Python dict-style get).
     #[pyo3(signature = (sample, default=None))]
     fn get(&self, sample: &str, default: Option<u64>) -> u64 {
-        self.counts
-            .get(sample)
-            .copied()
-            .unwrap_or(default.unwrap_or(0))
+        self.counts.get(sample).copied().unwrap_or(default.unwrap_or(0))
     }
 
     /// Subtract another FreqDist (only keep positive counts).
@@ -226,9 +213,7 @@ pub struct ConditionalFreqDist {
 impl ConditionalFreqDist {
     #[new]
     fn new() -> Self {
-        ConditionalFreqDist {
-            conditions: HashMap::new(),
-        }
+        ConditionalFreqDist { conditions: HashMap::new() }
     }
 
     /// Get the FreqDist for a condition.
@@ -265,17 +250,11 @@ impl ConditionalFreqDist {
     /// Tabulate the conditional frequency distribution.
     /// (Python-side uses nltk for display, but we provide data)
     fn conditions_and_samples(&self) -> Vec<(String, Vec<(String, u64)>)> {
-        self.conditions
-            .iter()
-            .map(|(cond, fd)| (cond.clone(), fd.most_common(None)))
-            .collect()
+        self.conditions.iter().map(|(cond, fd)| (cond.clone(), fd.most_common(None))).collect()
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "<ConditionalFreqDist with {} conditions>",
-            self.conditions.len()
-        )
+        format!("<ConditionalFreqDist with {} conditions>", self.conditions.len())
     }
 }
 
@@ -334,11 +313,7 @@ impl LaplaceProbDist {
 
     fn prob(&self, sample: &str) -> f64 {
         let n = self.freqdist.get_total();
-        let b = if self.bins > 0 {
-            self.bins
-        } else {
-            self.freqdist.num_samples()
-        };
+        let b = if self.bins > 0 { self.bins } else { self.freqdist.num_samples() };
         if n == 0 {
             return 1.0 / b.max(1) as f64;
         }

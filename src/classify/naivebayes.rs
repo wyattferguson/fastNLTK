@@ -103,11 +103,8 @@ impl NaiveBayesClassifier {
             labels.sort();
 
             let features: Vec<String> = {
-                let set: std::collections::HashSet<String> = feature_value_counts
-                    .values()
-                    .flat_map(|m| m.keys())
-                    .cloned()
-                    .collect();
+                let set: std::collections::HashSet<String> =
+                    feature_value_counts.values().flat_map(|m| m.keys()).cloned().collect();
                 let mut v: Vec<String> = set.into_iter().collect();
                 v.sort();
                 v
@@ -183,12 +180,8 @@ impl NaiveBayesClassifier {
 
         let exp_scores: Vec<f64> = scores.values().map(|v| (v - max_logprob).exp()).collect();
         let sum: f64 = exp_scores.iter().sum();
-        let result: HashMap<String, f64> = self
-            .labels
-            .iter()
-            .zip(exp_scores.iter())
-            .map(|(l, s)| (l.clone(), s / sum))
-            .collect();
+        let result: HashMap<String, f64> =
+            self.labels.iter().zip(exp_scores.iter()).map(|(l, s)| (l.clone(), s / sum)).collect();
         Ok(result)
     }
 
@@ -291,11 +284,8 @@ mod tests {
         // We can't easily test `train` without Python objects,
         // but we can test the classify_internal method directly
         nb.labels = vec!["pos".to_string(), "neg".to_string()];
-        nb.features = vec![
-            "word=great".to_string(),
-            "word=terrible".to_string(),
-            "word=ok".to_string(),
-        ];
+        nb.features =
+            vec!["word=great".to_string(), "word=terrible".to_string(), "word=ok".to_string()];
 
         // P(pos) = 0.6, P(neg) = 0.4
         nb.label_logprobs.insert("pos".to_string(), 0.6f64.ln());

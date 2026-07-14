@@ -5,7 +5,6 @@
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-
 use crate::inference::{Formula, Literal, ProverResult};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -94,10 +93,7 @@ impl ResolutionProver {
             }
         }
 
-        Ok(ProverResult {
-            success: false,
-            proof: "Resolution exhausted".into(),
-        })
+        Ok(ProverResult { success: false, proof: "Resolution exhausted".into() })
     }
 }
 
@@ -146,16 +142,10 @@ fn parse_fol(s: &str) -> Option<Formula> {
         return None;
     }
     if let Some(pos) = find_conn(s, "&") {
-        return Some(Formula::And(vec![
-            parse_fol(&s[..pos])?,
-            parse_fol(&s[pos + 1..])?,
-        ]));
+        return Some(Formula::And(vec![parse_fol(&s[..pos])?, parse_fol(&s[pos + 1..])?]));
     }
     if let Some(pos) = find_conn(s, "|") {
-        return Some(Formula::Or(vec![
-            parse_fol(&s[..pos])?,
-            parse_fol(&s[pos + 1..])?,
-        ]));
+        return Some(Formula::Or(vec![parse_fol(&s[..pos])?, parse_fol(&s[pos + 1..])?]));
     }
     if let Some(pos) = find_conn(s, "->") {
         return Some(Formula::Imp(
@@ -247,12 +237,8 @@ mod tests {
 
     #[test]
     fn test_resolve_empty() {
-        let c1 = Clause {
-            literals: vec![Literal::Pos("P".into(), vec![])],
-        };
-        let c2 = Clause {
-            literals: vec![Literal::Neg("P".into(), vec![])],
-        };
+        let c1 = Clause { literals: vec![Literal::Pos("P".into(), vec![])] };
+        let c2 = Clause { literals: vec![Literal::Neg("P".into(), vec![])] };
         let r = resolve_clause(&c1, &c2);
         assert!(r.is_some());
         assert!(r.unwrap().is_empty());

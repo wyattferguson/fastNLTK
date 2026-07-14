@@ -30,15 +30,8 @@ impl Tree {
     #[new]
     #[pyo3(signature = (label, children=None))]
     fn new(label: &str, children: Option<Vec<String>>) -> Self {
-        let tree_children = children
-            .unwrap_or_default()
-            .into_iter()
-            .map(TreeNode::Leaf)
-            .collect();
-        Tree {
-            label: label.to_string(),
-            children: tree_children,
-        }
+        let tree_children = children.unwrap_or_default().into_iter().map(TreeNode::Leaf).collect();
+        Tree { label: label.to_string(), children: tree_children }
     }
 
     /// Create from NLTK bracket string: "(S (NP The) (VP runs))"
@@ -48,9 +41,7 @@ impl Tree {
         if !s.starts_with('(') {
             return Err(PyValueError::new_err("Tree string must start with '('"));
         }
-        Self::parse_brackets(s, 0)
-            .map(|(tree, _)| tree)
-            .map_err(PyValueError::new_err)
+        Self::parse_brackets(s, 0).map(|(tree, _)| tree).map_err(PyValueError::new_err)
     }
 
     fn __str__(&self) -> String {
@@ -270,13 +261,7 @@ impl Tree {
             }
 
             if chars[i] == ')' {
-                return Ok((
-                    Tree {
-                        label: label.trim().to_string(),
-                        children,
-                    },
-                    i + 1,
-                ));
+                return Ok((Tree { label: label.trim().to_string(), children }, i + 1));
             } else if chars[i] == '(' {
                 let (subtree, new_pos) = Self::parse_brackets(s, i)?;
                 children.push(TreeNode::Subtree(subtree));

@@ -26,13 +26,7 @@ impl HiddenMarkovModelTagger {
     #[new]
     #[pyo3(signature = (n_states=10, n_iter=10, tolerance=1e-4, gamma=0.1))]
     fn new(n_states: usize, n_iter: usize, tolerance: f64, gamma: f64) -> Self {
-        HiddenMarkovModelTagger {
-            inner: None,
-            n_states,
-            n_iter,
-            tolerance,
-            gamma,
-        }
+        HiddenMarkovModelTagger { inner: None, n_states, n_iter, tolerance, gamma }
     }
 
     fn train(&mut self, sentences: Vec<Vec<(String, String)>>) -> PyResult<()> {
@@ -68,10 +62,8 @@ impl HiddenMarkovModelTagger {
     }
 
     fn tag(&self, tokens: Vec<String>) -> PyResult<Vec<(String, String)>> {
-        let model = self
-            .inner
-            .as_ref()
-            .ok_or_else(|| PyValueError::new_err("Model not trained"))?;
+        let model =
+            self.inner.as_ref().ok_or_else(|| PyValueError::new_err("Model not trained"))?;
         let result = model.predict(vec![tokens.clone()]).map_err(map_err)?;
         if result.is_empty() || result[0].is_empty() {
             return Err(PyValueError::new_err("No output from HMM predict"));
@@ -82,10 +74,7 @@ impl HiddenMarkovModelTagger {
             .enumerate()
             .map(|(i, w)| {
                 let state = if i < result[0].len() { result[0][i] } else { 0 };
-                let tag = labels
-                    .get(state)
-                    .cloned()
-                    .unwrap_or_else(|| format!("TAG_{state}"));
+                let tag = labels.get(state).cloned().unwrap_or_else(|| format!("TAG_{state}"));
                 (w, tag)
             })
             .collect();

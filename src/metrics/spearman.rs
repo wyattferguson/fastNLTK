@@ -26,11 +26,7 @@ fn spearman(x: Vec<f64>, y: Vec<f64>) -> f64 {
     }
 
     // Spearman's rho = 1 - (6 * sum(d^2)) / (n * (n^2 - 1))
-    let d_sq: f64 = rank_x
-        .iter()
-        .zip(&rank_y)
-        .map(|(a, b)| (a - b).powi(2))
-        .sum();
+    let d_sq: f64 = rank_x.iter().zip(&rank_y).map(|(a, b)| (a - b).powi(2)).sum();
     1.0 - (6.0 * d_sq) / (n as f64 * ((n * n - 1) as f64))
 }
 

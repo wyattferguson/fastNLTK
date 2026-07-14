@@ -38,11 +38,7 @@ fn bleu_score(candidate: Vec<String>, reference: Vec<String>, max_n: usize) -> f
     }
 
     // Brevity penalty
-    let bp = if cand_len < ref_len {
-        (1.0 - ref_len as f64 / cand_len as f64).exp()
-    } else {
-        1.0
-    };
+    let bp = if cand_len < ref_len { (1.0 - ref_len as f64 / cand_len as f64).exp() } else { 1.0 };
 
     // Geometric mean of ngram precisions
     let mut log_avg = 0.0;

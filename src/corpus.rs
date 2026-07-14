@@ -53,10 +53,7 @@ impl PlaintextCorpusReader {
             }
         };
 
-        Ok(PlaintextCorpusReader {
-            root: root_path.to_path_buf(),
-            fileids: resolved,
-        })
+        Ok(PlaintextCorpusReader { root: root_path.to_path_buf(), fileids: resolved })
     }
 
     /// Return the list of file IDs in this corpus.

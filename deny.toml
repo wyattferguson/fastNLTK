@@ -1,0 +1,40 @@
+# deny.toml — License + advisory compliance for fastNLTK
+# Check with: cargo deny check
+
+[licenses]
+# fastNLTK is Apache-2.0. Allow compatible licenses.
+allow = [
+    "Apache-2.0",
+    "MIT",
+    "Apache-2.0 WITH LLVM-exception",
+    "ISC",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+    "BSL-1.0",
+]
+# Deny copyleft licenses (GPL, AGPL, LGPL, MPL)
+copyleft = "deny"
+# Allow these specific crates with non-standard licenses
+exceptions = [
+    { name = "ring", allow = ["ISC", "MIT", "OpenSSL"] },
+]
+
+[bans]
+# Prevent accidental dependency duplication
+multiple-versions = "warn"
+# Deny specific crates (add known-bad ones here)
+deny = []
+# Highlight crates that should only be used once
+highlight = "all"
+
+[advisories]
+# Check RustSec advisory database
+db-url = "https://github.com/rustsec/advisory-db"
+db-path = "~/.cargo/advisory-db"
+# Treat unmaintained crates as warnings
+unmaintained = "warn"
+# Ignore specific advisories if needed
+ignore = []

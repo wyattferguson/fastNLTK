@@ -104,9 +104,7 @@ pub fn word_tokenize_py(
     }
     let result = py.allow_threads(|| {
         if preserve_line {
-            text.lines()
-                .flat_map(treebank::tokenize_treebank)
-                .collect()
+            text.lines().flat_map(treebank::tokenize_treebank).collect()
         } else {
             treebank::tokenize_treebank(text)
         }

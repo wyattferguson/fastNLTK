@@ -66,10 +66,7 @@ impl WordNetData {
             }
         }
 
-        Ok(WordNetData {
-            exceptions,
-            known_words,
-        })
+        Ok(WordNetData { exceptions, known_words })
     }
 
     fn exists(&self, word: &str) -> bool {
@@ -77,10 +74,7 @@ impl WordNetData {
     }
 
     fn lookup_exception(&self, word: &str, pos: &str) -> Option<&str> {
-        self.exceptions
-            .get(pos)
-            .and_then(|m| m.get(&word.to_lowercase()))
-            .map(|s| s.as_str())
+        self.exceptions.get(pos).and_then(|m| m.get(&word.to_lowercase())).map(|s| s.as_str())
     }
 }
 
@@ -183,21 +177,13 @@ impl WordNetLemmatizer {
 impl WordNetLemmatizer {
     fn load_wordnet_data() -> Option<WordNetData> {
         let search_paths = [
-            std::env::var("NLTK_DATA")
+            std::env::var("NLTK_DATA").ok().map(|p| Path::new(&p).join("corpora").join("wordnet")),
+            std::env::var("HOME")
                 .ok()
-                .map(|p| Path::new(&p).join("corpora").join("wordnet")),
-            std::env::var("HOME").ok().map(|p| {
-                Path::new(&p)
-                    .join("nltk_data")
-                    .join("corpora")
-                    .join("wordnet")
-            }),
-            std::env::var("USERPROFILE").ok().map(|p| {
-                Path::new(&p)
-                    .join("nltk_data")
-                    .join("corpora")
-                    .join("wordnet")
-            }),
+                .map(|p| Path::new(&p).join("nltk_data").join("corpora").join("wordnet")),
+            std::env::var("USERPROFILE")
+                .ok()
+                .map(|p| Path::new(&p).join("nltk_data").join("corpora").join("wordnet")),
         ];
 
         for path_opt in &search_paths {
@@ -246,10 +232,7 @@ mod tests {
         known_words.insert("city".to_string());
         known_words.insert("have".to_string());
 
-        WordNetData {
-            exceptions,
-            known_words,
-        }
+        WordNetData { exceptions, known_words }
     }
 
     #[test]

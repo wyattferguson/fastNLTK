@@ -96,10 +96,7 @@ impl fmt::Display for Expression {
 }
 
 fn is_atomic(expr: &Expression) -> bool {
-    matches!(
-        expr,
-        Expression::Constant(_, _) | Expression::Variable(_, _)
-    )
+    matches!(expr, Expression::Constant(_, _) | Expression::Variable(_, _))
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -212,10 +209,7 @@ impl Expression {
                     } else {
                         Expression::All
                     };
-                    quant(
-                        Box::new(new_binder),
-                        Box::new(new_body.substitute(var, replacement)),
-                    )
+                    quant(Box::new(new_binder), Box::new(new_body.substitute(var, replacement)))
                 } else {
                     let quant = if matches!(self, Expression::Exists(_, _)) {
                         Expression::Exists
@@ -341,10 +335,7 @@ struct Tokenizer {
 
 impl Tokenizer {
     fn new(input: &str) -> Self {
-        Tokenizer {
-            chars: input.chars().collect(),
-            pos: 0,
-        }
+        Tokenizer { chars: input.chars().collect(), pos: 0 }
     }
 
     fn peek(&self) -> Option<char> {
@@ -461,10 +452,7 @@ impl Tokenizer {
                     _ => Ok(Token::Ident(name)),
                 }
             }
-            _ => Err(format!(
-                "Unexpected character '{c}' at position {}",
-                self.pos
-            )),
+            _ => Err(format!("Unexpected character '{c}' at position {}", self.pos)),
         }
     }
 }
@@ -728,10 +716,7 @@ pub fn parse_expression(input: &str) -> Result<Expression, String> {
     let mut parser = Parser::new(input)?;
     let expr = parser.parse()?;
     if parser.current != Token::End {
-        return Err(format!(
-            "Unexpected tokens after expression: {:?}",
-            parser.current
-        ));
+        return Err(format!("Unexpected tokens after expression: {:?}", parser.current));
     }
     Ok(expr)
 }

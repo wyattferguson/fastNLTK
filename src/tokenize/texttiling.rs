@@ -11,8 +11,8 @@
 //!
 //! NLTK equivalent: nltk.tokenize.texttiling.TextTilingTokenizer
 
-use std::collections::HashSet;
 use hashbrown::HashMap;
+use std::collections::HashSet;
 use std::sync::LazyLock;
 
 use pyo3::prelude::*;
@@ -70,10 +70,7 @@ impl TextTilingTokenizer {
 }
 
 fn tokenize_words(text: &str) -> Vec<String> {
-    WORD_RE
-        .find_iter(text)
-        .map(|m| m.as_str().to_lowercase())
-        .collect()
+    WORD_RE.find_iter(text).map(|m| m.as_str().to_lowercase()).collect()
 }
 
 fn build_pseudo_sentences(words: &[String], w: usize) -> Vec<Vec<String>> {
@@ -187,11 +184,7 @@ fn find_boundaries(depths: &[f64], _scores: &[f64], demo_mode: bool) -> Vec<u8> 
     }
 
     let max_depth = depths.iter().cloned().fold(0.0_f64, f64::max);
-    let threshold = if demo_mode {
-        max_depth * 0.3
-    } else {
-        max_depth * 0.5
-    };
+    let threshold = if demo_mode { max_depth * 0.3 } else { max_depth * 0.5 };
 
     let mut boundaries = vec![0u8; n];
     for i in 1..n - 1 {

@@ -31,9 +31,7 @@ pub struct DefaultTagger {
 impl DefaultTagger {
     #[new]
     fn new(tag: &str) -> Self {
-        DefaultTagger {
-            tag: tag.to_string(),
-        }
+        DefaultTagger { tag: tag.to_string() }
     }
 
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
@@ -97,10 +95,7 @@ impl UnigramTagger {
         }
 
         // Default tag is the overall most frequent tag
-        self.default_tag = tag_counts
-            .iter()
-            .max_by_key(|(_, c)| **c)
-            .map(|(t, _)| t.clone());
+        self.default_tag = tag_counts.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone());
 
         Ok(())
     }
@@ -202,10 +197,7 @@ impl BigramTagger {
             self.bigram_map.insert(key.clone(), best);
         }
 
-        self.default_tag = tag_counts
-            .iter()
-            .max_by_key(|(_, c)| **c)
-            .map(|(t, _)| t.clone());
+        self.default_tag = tag_counts.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone());
 
         Ok(())
     }
@@ -287,10 +279,7 @@ impl TrigramTagger {
             self.trigram_map.insert(key.clone(), best);
         }
 
-        self.default_tag = tag_counts
-            .iter()
-            .max_by_key(|(_, c)| **c)
-            .map(|(t, _)| t.clone());
+        self.default_tag = tag_counts.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone());
 
         Ok(())
     }
@@ -394,10 +383,7 @@ impl AffixTagger {
             }
         }
 
-        self.default_tag = tag_counts
-            .iter()
-            .max_by_key(|(_, c)| **c)
-            .map(|(t, _)| t.clone());
+        self.default_tag = tag_counts.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone());
 
         Ok(())
     }
@@ -417,16 +403,9 @@ impl AffixTagger {
                 } else {
                     w.clone()
                 };
-                let map = if self.use_suffix {
-                    &self.suffix_map
-                } else {
-                    &self.prefix_map
-                };
-                let tag = map
-                    .get(&affix)
-                    .or(self.default_tag.as_ref())
-                    .cloned()
-                    .unwrap_or_default();
+                let map = if self.use_suffix { &self.suffix_map } else { &self.prefix_map };
+                let tag =
+                    map.get(&affix).or(self.default_tag.as_ref()).cloned().unwrap_or_default();
                 (w, tag)
             })
             .collect()
@@ -456,10 +435,7 @@ impl RegexpTagger {
                 .map_err(|e| PyValueError::new_err(format!("Invalid regex: {e}")))?;
             rules.push((re, tag.clone()));
         }
-        Ok(RegexpTagger {
-            rules,
-            default_tag: None,
-        })
+        Ok(RegexpTagger { rules, default_tag: None })
     }
 
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {

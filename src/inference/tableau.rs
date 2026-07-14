@@ -37,30 +37,18 @@ impl TableauProver {
         if let Some(assumptions) = assumptions {
             for a in assumptions {
                 if let Some(f) = parse_fol(&a) {
-                    branch.push(SignedFormula {
-                        formula: f,
-                        sign: true,
-                    });
+                    branch.push(SignedFormula { formula: f, sign: true });
                 }
             }
         }
-        branch.push(SignedFormula {
-            formula: goal.negate_nnf(),
-            sign: true,
-        });
+        branch.push(SignedFormula { formula: goal.negate_nnf(), sign: true });
 
         let branches = &mut vec![branch];
         let found = self.search(branches, 0);
         if found {
-            Ok(ProverResult {
-                success: true,
-                proof: "Tableau proof found".into(),
-            })
+            Ok(ProverResult { success: true, proof: "Tableau proof found".into() })
         } else {
-            Ok(ProverResult {
-                success: false,
-                proof: "Tableau exhausted".into(),
-            })
+            Ok(ProverResult { success: false, proof: "Tableau exhausted".into() })
         }
     }
 }
@@ -97,10 +85,7 @@ impl TableauProver {
             match f {
                 Formula::And(children) => {
                     for child in children {
-                        base.push(SignedFormula {
-                            formula: child,
-                            sign: sf.sign,
-                        });
+                        base.push(SignedFormula { formula: child, sign: sf.sign });
                     }
                     branches.insert(0, base);
                     self.search(branches, depth + 1)
@@ -108,10 +93,7 @@ impl TableauProver {
                 Formula::Or(children) => {
                     for child in children {
                         let mut new_branch = base.clone();
-                        new_branch.push(SignedFormula {
-                            formula: child,
-                            sign: sf.sign,
-                        });
+                        new_branch.push(SignedFormula { formula: child, sign: sf.sign });
                         branches.insert(0, new_branch);
                     }
                     self.search(branches, depth + 1)
@@ -121,10 +103,7 @@ impl TableauProver {
                     let not_l = Formula::Not(l);
                     for child in [not_l, *r] {
                         let mut new_branch = base.clone();
-                        new_branch.push(SignedFormula {
-                            formula: child,
-                            sign: sf.sign,
-                        });
+                        new_branch.push(SignedFormula { formula: child, sign: sf.sign });
                         branches.insert(0, new_branch);
                     }
                     self.search(branches, depth + 1)
@@ -132,24 +111,15 @@ impl TableauProver {
                 Formula::Forall(v, body) => {
                     let fresh = format!("_c{depth}");
                     let inst = sub_var(&body, &v, &fresh);
-                    base.push(SignedFormula {
-                        formula: inst,
-                        sign: sf.sign,
-                    });
-                    base.push(SignedFormula {
-                        formula: Formula::Forall(v, body),
-                        sign: sf.sign,
-                    });
+                    base.push(SignedFormula { formula: inst, sign: sf.sign });
+                    base.push(SignedFormula { formula: Formula::Forall(v, body), sign: sf.sign });
                     branches.insert(0, base);
                     self.search(branches, depth + 1)
                 }
                 Formula::Exists(v, body) => {
                     let fresh = format!("_sk{depth}");
                     let inst = sub_var(&body, &v, &fresh);
-                    base.push(SignedFormula {
-                        formula: inst,
-                        sign: sf.sign,
-                    });
+                    base.push(SignedFormula { formula: inst, sign: sf.sign });
                     branches.insert(0, base);
                     self.search(branches, depth + 1)
                 }
@@ -208,10 +178,8 @@ fn contradict(a: &Formula, b: &Formula) -> bool {
 fn sub_var(f: &Formula, var: &str, repl: &str) -> Formula {
     match f {
         Formula::Atom(p, args) => {
-            let new_args: Vec<String> = args
-                .iter()
-                .map(|a| if a == var { repl.into() } else { a.clone() })
-                .collect();
+            let new_args: Vec<String> =
+                args.iter().map(|a| if a == var { repl.into() } else { a.clone() }).collect();
             Formula::Atom(p.clone(), new_args)
         }
         Formula::Not(inner) => Formula::Not(Box::new(sub_var(inner, var, repl))),
@@ -241,16 +209,10 @@ fn parse_fol(s: &str) -> Option<Formula> {
         return None;
     }
     if let Some(pos) = find_conn(s, "&") {
-        return Some(Formula::And(vec![
-            parse_fol(&s[..pos])?,
-            parse_fol(&s[pos + 1..])?,
-        ]));
+        return Some(Formula::And(vec![parse_fol(&s[..pos])?, parse_fol(&s[pos + 1..])?]));
     }
     if let Some(pos) = find_conn(s, "|") {
-        return Some(Formula::Or(vec![
-            parse_fol(&s[..pos])?,
-            parse_fol(&s[pos + 1..])?,
-        ]));
+        return Some(Formula::Or(vec![parse_fol(&s[..pos])?, parse_fol(&s[pos + 1..])?]));
     }
     if let Some(pos) = find_conn(s, "->") {
         return Some(Formula::Imp(

@@ -26,9 +26,9 @@ impl ISRIStemmer {
                 break;
             }
         }
-        for suf in [
-            "huma", "km", "kn", "hm", "hn", "na", "ny", "at", "an", "yn", "wn", "h", "t", "k", "n",
-        ] {
+        for suf in
+            ["huma", "km", "kn", "hm", "hn", "na", "ny", "at", "an", "yn", "wn", "h", "t", "k", "n"]
+        {
             if s.ends_with(suf) && s.len() > suf.len() + 2 {
                 s = s[..s.len() - suf.len()].to_string();
                 break;

@@ -30,10 +30,7 @@ pub struct DiscourseThread {
 impl DiscourseThread {
     #[new]
     fn new() -> Self {
-        DiscourseThread {
-            drss: Vec::new(),
-            all_referents: Vec::new(),
-        }
+        DiscourseThread { drss: Vec::new(), all_referents: Vec::new() }
     }
 
     /// Add a DRS from bracket notation.
@@ -81,10 +78,7 @@ impl DiscourseThread {
             }
         }
 
-        let merged = DRS {
-            universe,
-            conditions,
-        };
+        let merged = DRS { universe, conditions };
         format!("{merged}")
     }
 
@@ -121,10 +115,7 @@ impl DiscourseThread {
         let mut conditions = discourse.conditions.clone();
         conditions.extend(q.conditions.clone());
 
-        let combined = DRS {
-            universe: combined_universe,
-            conditions,
-        };
+        let combined = DRS { universe: combined_universe, conditions };
 
         let valuation: Valuation = serde_json::from_str(valuation_json)
             .map_err(|e| PyValueError::new_err(format!("Invalid valuation JSON: {e}")))?;
@@ -157,10 +148,7 @@ impl DiscourseThread {
             }
         }
 
-        DRS {
-            universe,
-            conditions,
-        }
+        DRS { universe, conditions }
     }
 }
 
@@ -219,9 +207,7 @@ mod tests {
         let val_json = serde_json::to_string(&valuation).unwrap();
         let dom_json = serde_json::to_string(&domain).unwrap();
 
-        let answer = thread
-            .answer_question("([x],[dog(x)])", &val_json, &dom_json)
-            .unwrap();
+        let answer = thread.answer_question("([x],[dog(x)])", &val_json, &dom_json).unwrap();
         assert_eq!(answer, "true");
     }
 
@@ -235,9 +221,7 @@ mod tests {
         let val_json = serde_json::to_string(&valuation).unwrap();
         let dom_json = serde_json::to_string(&domain).unwrap();
 
-        let answer = thread
-            .answer_question("([x],[dog(x)])", &val_json, &dom_json)
-            .unwrap();
+        let answer = thread.answer_question("([x],[dog(x)])", &val_json, &dom_json).unwrap();
         assert_eq!(answer, "false");
     }
 
@@ -279,9 +263,6 @@ mod tests {
         let fol = thread.to_fol();
         // FOL should contain both dog and negation
         assert!(fol.contains("dog"), "should contain dog: {fol}");
-        assert!(
-            fol.contains("exists") || fol.contains("all"),
-            "should have quantifier: {fol}"
-        );
+        assert!(fol.contains("exists") || fol.contains("all"), "should have quantifier: {fol}");
     }
 }

@@ -76,18 +76,9 @@ mod tests {
 
     fn sample_chat() -> Chat {
         Chat::new(vec![
-            (
-                r"hello|hi|hey".to_string(),
-                vec!["Hello!".to_string(), "Hi there!".to_string()],
-            ),
-            (
-                r"how are you".to_string(),
-                vec!["I'm doing well!".to_string()],
-            ),
-            (
-                r"bye|goodbye".to_string(),
-                vec!["Goodbye!".to_string(), "See you!".to_string()],
-            ),
+            (r"hello|hi|hey".to_string(), vec!["Hello!".to_string(), "Hi there!".to_string()]),
+            (r"how are you".to_string(), vec!["I'm doing well!".to_string()]),
+            (r"bye|goodbye".to_string(), vec!["Goodbye!".to_string(), "See you!".to_string()]),
         ])
         .unwrap()
     }

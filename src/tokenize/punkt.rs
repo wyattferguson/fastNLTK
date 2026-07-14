@@ -4,8 +4,8 @@
 //! The model parameters (abbreviations, collocations, orthographic context)
 //! are loaded via Python pickle and passed to Rust for inference.
 
-use std::collections::HashSet;
 use hashbrown::HashMap;
+use std::collections::HashSet;
 
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyFrozenSet, PySet};
@@ -46,8 +46,7 @@ impl PunktParams {
     /// Check if a word pair is a known collocation.
     #[allow(dead_code)]
     fn is_collocation(&self, w1: &str, w2: &str) -> bool {
-        self.collocations
-            .contains(&(w1.to_lowercase(), w2.to_lowercase()))
+        self.collocations.contains(&(w1.to_lowercase(), w2.to_lowercase()))
     }
 
     /// Check if a word is a known sentence starter.
@@ -137,10 +136,7 @@ impl PunktSentenceTokenizer {
     /// Return sentences from text.
     fn sentences_from_text(&self, text: &str) -> Vec<String> {
         let spans = self.punkt_spans(text);
-        spans
-            .into_iter()
-            .map(|(s, e)| text[s..e].to_string())
-            .collect()
+        spans.into_iter().map(|(s, e)| text[s..e].to_string()).collect()
     }
 }
 
@@ -375,20 +371,9 @@ mod tests {
         let p = test_params();
         tok.params = Some(p);
         let sentences = tok.sentences_from_text("Dr. Smith went home. He ate dinner.");
-        assert_eq!(
-            sentences.len(),
-            2,
-            "Should have 2 sentences: {:?}",
-            sentences
-        );
-        assert!(
-            sentences[0].contains("Dr."),
-            "First sentence should contain Dr."
-        );
-        assert!(
-            !sentences[0].contains("He ate"),
-            "First sentence should not contain 'He ate'"
-        );
+        assert_eq!(sentences.len(), 2, "Should have 2 sentences: {:?}", sentences);
+        assert!(sentences[0].contains("Dr."), "First sentence should contain Dr.");
+        assert!(!sentences[0].contains("He ate"), "First sentence should not contain 'He ate'");
     }
 
     #[test]

@@ -48,9 +48,7 @@ impl MLE {
     /// Return the log probability of a word given a context.
     #[pyo3(signature = (word, context=None))]
     fn logscore(&self, word: String, context: Option<Vec<String>>) -> f64 {
-        self.inner
-            .logscore(word, context)
-            .unwrap_or(f64::NEG_INFINITY)
+        self.inner.logscore(word, context).unwrap_or(f64::NEG_INFINITY)
     }
 
     /// Generate words from the language model.
@@ -61,9 +59,7 @@ impl MLE {
         text_seed: Option<Vec<String>>,
         random_seed: Option<u64>,
     ) -> Vec<String> {
-        self.inner
-            .generate(num_words, text_seed, random_seed)
-            .unwrap_or_default()
+        self.inner.generate(num_words, text_seed, random_seed).unwrap_or_default()
     }
 
     /// The ngram order of this model.
@@ -113,9 +109,7 @@ impl Lidstone {
 
     #[pyo3(signature = (word, context=None))]
     fn logscore(&self, word: String, context: Option<Vec<String>>) -> f64 {
-        self.inner
-            .logscore(word, context)
-            .unwrap_or(f64::NEG_INFINITY)
+        self.inner.logscore(word, context).unwrap_or(f64::NEG_INFINITY)
     }
 
     #[pyo3(signature = (num_words, text_seed=None, random_seed=None))]
@@ -125,9 +119,7 @@ impl Lidstone {
         text_seed: Option<Vec<String>>,
         random_seed: Option<u64>,
     ) -> Vec<String> {
-        self.inner
-            .generate(num_words, text_seed, random_seed)
-            .unwrap_or_default()
+        self.inner.generate(num_words, text_seed, random_seed).unwrap_or_default()
     }
 
     fn order(&self) -> usize {
@@ -174,9 +166,7 @@ impl Laplace {
 
     #[pyo3(signature = (word, context=None))]
     fn logscore(&self, word: String, context: Option<Vec<String>>) -> f64 {
-        self.inner
-            .logscore(word, context)
-            .unwrap_or(f64::NEG_INFINITY)
+        self.inner.logscore(word, context).unwrap_or(f64::NEG_INFINITY)
     }
 
     #[pyo3(signature = (num_words, text_seed=None, random_seed=None))]
@@ -186,9 +176,7 @@ impl Laplace {
         text_seed: Option<Vec<String>>,
         random_seed: Option<u64>,
     ) -> Vec<String> {
-        self.inner
-            .generate(num_words, text_seed, random_seed)
-            .unwrap_or_default()
+        self.inner.generate(num_words, text_seed, random_seed).unwrap_or_default()
     }
 
     fn order(&self) -> usize {

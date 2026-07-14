@@ -40,14 +40,8 @@ impl ToktokTokenizer {
 fn build_subs() -> Vec<(Regex, String)> {
     vec![
         sub("\u{00a0}", " "),
-        sub(
-            r"([،;؛¿!\x22\]\)}»›\u{201d}؟¡%\u{066a}°±©®।॥\u{2026}])",
-            " $1 ",
-        ),
-        sub(
-            r"([({\[\u2018\u201c\u201e\u201a\u2019\xab\u2039\u300c\u300e])",
-            " $1 ",
-        ),
+        sub(r"([،;؛¿!\x22\]\)}»›\u{201d}؟¡%\u{066a}°±©®।॥\u{2026}])", " $1 "),
+        sub(r"([({\[\u2018\u201c\u201e\u201a\u2019\xab\u2039\u300c\u300e])", " $1 "),
         sub(r"[\u{2013}\u{2014}]", " $0 "),
         sub(r"& ", "&amp; "),
         sub("\t", " &#9; "),
@@ -89,10 +83,7 @@ mod tests {
     #[test]
     fn test_basic() {
         let r = tok().tokenize("Is 9.5 or 525,600 my favorite number?", false);
-        assert_eq!(
-            r,
-            vec!["Is", "9.5", "or", "525,600", "my", "favorite", "number", "?"]
-        );
+        assert_eq!(r, vec!["Is", "9.5", "or", "525,600", "my", "favorite", "number", "?"]);
     }
 
     #[test]
