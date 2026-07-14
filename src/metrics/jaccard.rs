@@ -1,7 +1,7 @@
 //! Jaccard, binary, and related distance metrics.
 
 use pyo3::prelude::*;
-use std::collections::HashSet;
+use hashbrown::HashSet;
 
 #[pyfunction(signature = (s1, s2))]
 fn jaccard_distance(s1: Vec<String>, s2: Vec<String>) -> f64 {

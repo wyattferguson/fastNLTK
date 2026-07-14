@@ -12,7 +12,7 @@
 //! NLTK equivalent: nltk.tokenize.texttiling.TextTilingTokenizer
 
 use hashbrown::HashMap;
-use std::collections::HashSet;
+use hashbrown::HashSet;
 use std::sync::LazyLock;
 
 use pyo3::prelude::*;

@@ -5,7 +5,7 @@
 //! are loaded via Python pickle and passed to Rust for inference.
 
 use hashbrown::HashMap;
-use std::collections::HashSet;
+use hashbrown::HashSet;
 
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyFrozenSet, PySet};
