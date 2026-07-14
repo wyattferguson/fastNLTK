@@ -170,26 +170,30 @@ impl PerceptronTagger {
 
         // Prefix features (first 1-3 chars)
         if !word.is_empty() {
-            let ch = &word[..1];
-            feats.push(format!("i pref1 {ch}"));
+            let pref1: String = word.chars().take(1).collect();
+            feats.push(format!("i pref1 {pref1}"));
         }
-        if word.len() >= 2 {
-            feats.push(format!("i pref2 {}", &word[..2]));
+        if word.chars().count() >= 2 {
+            let pref2: String = word.chars().take(2).collect();
+            feats.push(format!("i pref2 {pref2}"));
         }
-        if word.len() >= 3 {
-            feats.push(format!("i pref3 {}", &word[..3]));
+        if word.chars().count() >= 3 {
+            let pref3: String = word.chars().take(3).collect();
+            feats.push(format!("i pref3 {pref3}"));
         }
 
         // Suffix features (last 1-3 chars)
         if !word.is_empty() {
-            let ch = &word[word.len() - 1..];
-            feats.push(format!("i suffix {ch}"));
+            let suff1: String = word.chars().rev().take(1).collect::<String>().chars().rev().collect();
+            feats.push(format!("i suffix {suff1}"));
         }
-        if word.len() >= 2 {
-            feats.push(format!("i suff2 {}", &word[word.len() - 2..]));
+        if word.chars().count() >= 2 {
+            let suff2: String = word.chars().rev().take(2).collect::<String>().chars().rev().collect();
+            feats.push(format!("i suff2 {suff2}"));
         }
-        if word.len() >= 3 {
-            feats.push(format!("i suff3 {}", &word[word.len() - 3..]));
+        if word.chars().count() >= 3 {
+            let suff3: String = word.chars().rev().take(3).collect::<String>().chars().rev().collect();
+            feats.push(format!("i suff3 {suff3}"));
         }
 
         // Previous word features
