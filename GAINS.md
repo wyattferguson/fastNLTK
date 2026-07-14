@@ -1,336 +1,262 @@
-# Performance Gains — fastNLTK
+# Performance Optimization Plan — fastNLTK
 
-> **Generated:** 2026-07-14  
-> **Completed:** All P0 items, all P1 items, P2 (punkt, nonmono), P3 (LazyLock, Vec cap, chunk cache)  
-> **Deferred:** sem.rs Rc (deep refactor), rayon batch, cluster SIMD, string interning
+> **Baseline:** v0.2.0 — 272 Rust tests, 236/236 Python tests, 23.3x avg speedup  
+> **Allocation audit:** 719 alloc sites (244 clone, 337 to_string, 137 format!, 110 Box::new)  
+> **Status:** Port complete. Optimization phase begins.
 
 ---
 
-## Global Optimizations (apply to all modules)
+## Tier 1: Architecture (high effort, 2-5x gain)
 
-### G1. `Cargo.toml` — Release profile hardening
-**Gain:** 10–30% across all benchmarks
+### A1. Custom allocator — mimalloc
+**Gain:** 10-20% across all benchmarks (allocation-heavy workloads see more)  
+**Effort:** Trivial (1 line in lib.rs)
+
+```rust
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+```
+
+Add `mimalloc = "0.1"` to Cargo.toml. Microsoft's mimalloc outperforms system allocator for small, frequent allocations (tags, tokens, edges). Zero code changes required.  
+**Why:** 719 allocation sites. Every `format!()`, `clone()`, `to_string()` goes through the allocator. mimalloc's free-list sharding reduces contention.
+
+---
+
+### A2. `smol_str` — small-string optimization for tokens/tags
+**Gain:** 30-60% fewer heap allocs in tokenizer/tagger hot paths  
+**Effort:** Medium (replace `String` with `SmolStr` in structs)
+
+Tags like `"NN"`, `"VBZ"`, `"DT"` are 2-3 bytes. Tokens average 5-8 chars. `smol_str::SmolStr` stores ≤22 bytes inline on the stack, zero heap allocation.
+
+**Files to change (7):**
+- `tag/sequential.rs` — `word_to_tag: HashMap<SmolStr, SmolStr>` (48 clones eliminated)
+- `tag/perceptron.rs` — feature strings (21 to_strings eliminated)
+- `tokenize/mwe.rs` — TrieNode children keys
+- `parse.rs` — `Production { lhs: SmolStr, rhs: Vec<SmolStr> }` (22 clones eliminated)
+- `ccg/lexicon.rs` — `entries: HashMap<SmolStr, Vec<Category>>`
+- `chunk.rs` — tag patterns, IOB tags
+- `tokenize/punkt.rs` — abbrev_types, collocations
+
+**Caveat:** `SmolStr` is immutable — if you need mutable strings, use `compact_str::CompactString` (aggressive re-inlining) instead.
+
+---
+
+### A3. `bumpalo` arena — eliminate 110 `Box::new()` calls
+**Gain:** 2-4x on CCG parse, DRS operations, inference proofs  
+**Effort:** Medium (arena parameter threading)
+
+Every `Box::new(Expression)` and `Box<CCGEdge>` is a malloc. `bumpalo::Bump` allocates all objects in a contiguous slab, freed together.
+
+**Files:**
+- `ccg/chart.rs` — build CCEdge tree in arena, not Box
+- `drt.rs` — `DRSCondition` variants use `&'bump DRS` instead of `Box<DRS>`
+- `inference/mod.rs` — `Formula` uses arena refs
+- `sem.rs` — `Expression` uses arena refs
+
+```rust
+// Before: Box<Expression> per node
+// After: &'arena Expression — arena-backed reference
+let expr: &Expression = bump.alloc(Expression::And(l, r));
+```
+
+**Caveat:** Requires lifetime threading through all recursive functions. Largest refactor by scope.
+
+---
+
+### A4. `Logos` DFA lexer — replace regex tokenization
+**Gain:** 2-4x on treebank/toktok/tweet tokenizers  
+**Effort:** High (reimplement tokenizer logic as Logos derive)
+
+Regex-based tokenizers compile regex → search text → collect matches. A DFA-based lexer compiles to a jump table at build time, executing in O(n) with no backtracking.
+
+```rust
+#[derive(Logos)]
+enum TreebankToken {
+    #[regex(r"[A-Za-z]+")]
+    Word,
+    #[token("n't")]
+    Contraction,
+    #[regex(r"[.,!?;:]")]
+    Punct,
+    // ... etc
+}
+```
+
+**Files affected:**
+- `tokenize/treebank.rs` — multiple regex passes → single Logos pass
+- `tokenize/toktok.rs` — regex-based replacements → Logos lexer
+- `tokenize/tweet.rs` — URL/mention/hashtag detection via Logos
+- `chunk.rs` — tag pattern regex → compile to Logos at construction
+
+**Caveat:** Requires `logos = "0.15"` dep. Logos only handles known patterns; user-supplied regex in `RegexpTokenizer` stays as-is.
+
+---
+
+## Tier 2: Algorithmic (medium effort, 1.3-3x gain)
+
+### B1. Binary search on sorted `Vec` for small maps
+**Gain:** 2-5x faster lookup for < 15 entries (no hashing overhead)  
+**Effort:** Low (replace HashMap with sorted Vec + binary_search)
+
+Many HashMaps have < 15 entries (chunk rules, CCG combinators, tag patterns). Hashing a 3-char string costs more than linear scan or binary search.
+
+```rust
+// Before: HashMap<String, Vec<usize>> 
+// After:  Vec<(String, Vec<usize>)> sorted, use binary_search_by_key
+let idx = map.binary_search_by_key(&key, |(k,_)| k).ok();
+```
+
+**Candidates (12 files):**
+- `ccg/combinator.rs` — 6 combinators → use array + linear scan
+- `chunk.rs` — grammar rules (typically 1-5)
+- `classify/maxent.rs` — label_counts (10-50 labels)
+- `probability.rs` — ConditionalFreqDist conditions
+- `tag/perceptron.rs` — feature index
+
+---
+
+### B2. `SmallVec<[T; 8]>` for fixed-capacity collections
+**Gain:** Eliminates 74 `Vec::new()` heap allocations  
+**Effort:** Low (replace `Vec` with `SmallVec` in known-small collections)
+
+CCG chart edges per cell: 1-5 typically. Parse productions per LHS: 1-10. Chunk rules per grammar: 1-5. Using `SmallVec<[T; 8]>` stores up to 8 elements inline.
+
+```rust
+use smallvec::{SmallVec, smallvec};
+// Before: Vec<CCGEdge>  // heap allocates for first element
+// After:  SmallVec<[CCGEdge; 8]>  // inline for ≤8, heap only beyond
+```
+
+**Candidates:** ccg/chart.rs, parse.rs, chunk.rs, tokenize/regexp.rs, classify/*.rs
+
+---
+
+### B3. `Cow<'_, str>` in PyO3 FFI methods
+**Gain:** 20-40% fewer string allocations in Python FFI hot paths  
+**Effort:** Medium (change method signatures to accept `Cow<str>` or `&str`)
+
+PyO3 can give you `Cow<'_, str>` from Python strings via `PyStringMethods::to_cow()`. This avoids copying when the Python string is ASCII (zero-copy) and only allocates for non-ASCII.
+
+```rust
+// Before: fn tag(&self, tokens: Vec<String>)
+// After:  fn tag<'a>(&self, py: Python<'a>, tokens: &Bound<'a, PyList>)
+//         -> use py.allow_threads + to_cow for zero-copy
+```
+
+**Files:** `tag/sequential.rs` (21 String params), `tag/tnt.rs` (8), `tag/hmm.rs` (4)
+
+---
+
+### B4. Pre-compute `String` return values (memoization)
+**Gain:** 30-50% on `__str__`, `__repr__`, `Display` hot paths  
+**Effort:** Low (add cached String field to struct, update on mutation)
+
+Many structs call `format!()` or `to_string()` on every `__str__()` call. Cache the result.
+
+```rust
+struct Tree {
+    label: String,
+    children: Vec<TreeNode>,
+    #[pyo3(skip)] cached_str: OnceCell<String>,
+}
+```
+
+**Candidates (6 files):** `tree.rs` (9 format!), `parse.rs` (5 format!), `ccg/mod.rs`, `drt.rs` (13 format!), `sem.rs` (35 format!)
+
+---
+
+## Tier 3: Rust-specific micro-optimizations (low effort, 1.1-1.5x gain)
+
+### C1. `#[inline]` on hot one-liners
+**Effort:** Trivial
+
+```rust
+#[inline]
+fn euclidean_sq(a: &[f64], b: &[f64]) -> f64 { ... }
+#[inline]
+fn is_atomic(expr: &Expression) -> bool { ... }
+#[inline]
+fn format_kind(k: &CategoryKind) -> String { ... }
+```
+
+---
+
+### C2. `Vec::with_capacity` on every known-size collection
+**Effort:** Trivial (search-replace pattern)  
+**Remaining:** ~60 sites still use `Vec::new()` where size is statically known
+
+---
+
+### C3. `#![forbid(unsafe_code)]` — for production confidence
+**Effort:** Trivial (add to lib.rs)
+
+No `unsafe` anywhere. This is a lint guarantee, not a perf gain. But it prevents accidentally introducing unsound code.
+
+---
+
+### C4. Eliminate `format!(...)` for string concatenation in Display
+**Effort:** Low (use `write!` macro or `push_str`)
+
+`format!("{} {}", a, b)` allocates a new String. `write!(f, "{} {}", a, b)` writes directly to formatter.
+
+**Sites:** 137 format!() calls. 35 in sem.rs, 17 in perceptron.rs, 13 in drt.rs.
+
+---
+
+### C5. LTO profile tuning
+**Effort:** Trivial
+
 ```toml
 [profile.release]
-lto = "thin"           # Link-time optimization for PyO3 (significant gains)
-codegen-units = 1       # Single codegen unit = better inlining
-opt-level = 3           # Aggressive optimizations (default for release)
-panic = "abort"         # Smaller binaries, no unwind tables
+lto = "fat"        # was "thin" — fat LTO enables cross-crate inlining
+codegen-units = 1
+opt-level = 3
+panic = "abort"    # smaller binaries, no unwind tables (Python wraps panics)
 ```
-**Cost:** Longer compile time (~2-3x).  
-**Status:** ✅ Already configured (lto="thin", codegen-units=1).
-**Bench:** maturin issue #1529 confirms `lto="thin"` is critical for PyO3 extensions.
-
-### G2. HashMap → `FxHashMap` (rustc-hash) everywhere except security-critical
-**Gain:** 2–5x faster lookups for string-keyed maps  
-**Files:** 21 files use `std::collections::HashMap`, only 2 use hashbrown  
-**Status:** ✅ Done for hot-path modules (ccg, texttiling, mwe, sequential tagger). Remaining 15 files use HashMap for IntoPy returns (can't convert).
-**Already done:** `collocations.rs` uses `hashbrown::HashMap`  
-**Priority files:** `ccg/lexicon.rs`, `classify/maxent.rs`, `classify/naivebayes.rs`, `tag/sequential.rs`, `parse.rs`, `inference/`  
-**Caveat:** FxHash can produce collisions on adversarial input. Safe for NLP data.
-
-### G3. `Vec::new()` → `Vec::with_capacity(n)` where size is known
-**Gain:** Eliminates reallocation chains in hot loops  
-**Files:** 27 files use `Vec::new()` without `with_capacity` in non-test code  
-**Status:** ✅ Done in hot paths (sentiment, HMM, TextTiling). Remaining files are cold paths.
-**Pattern:** Every `collect()` chain, every `push`-in-loop, every JSON/serde deserialize.
-
-### G4. `String.clone()` → `&str` or `Arc<str>` or `Cow<'_, str>`
-**Gain:** Up to 94% allocation reduction (real-world Rust services)  
-**Files:** 234 `.clone()` calls across 57 files  
-**Worst offenders:** `tag/sequential.rs` (48 clones), `sem.rs` (28), `parse.rs` (22), `ccg/chart.rs` (12), `inference/discourse.rs` (12)  
-**Technique:** Use `Into<String>` or `AsRef<str>` in internal APIs, only clone at FFI boundary.
-
-### G5. `format!()` → `write!()` / `fmt::Write` / string builder
-**Gain:** Avoids intermediate `String` allocation per `format!` call  
-**Files:** 132 `format!()` calls across 57 files  
-**Worst offenders:** `sem.rs` (35 formats), `tag/perceptron.rs` (17), `drt.rs` (13)
-
-### G6. `lazy_static` / `LazyLock` for all Regex
-**Gain:** Regex compilation is 50–200µs; compiling in hot path kills tokenizer speed  
-**Already done:** `texttiling.rs` uses `LazyLock`  
-**Status:** ✅ Done (treebank.rs confirmed already Lazy, texttiling uses LazyLock).
-
-### G7. `rayon` parallel iterators for batch operations
-**Gain:** Near-linear scaling to core count for independent work  
-**Candidates:** `word_tokenize`, `tag_sents`, `stem` on word lists, `sent_tokenize` on paragraph lists  
-**Files:** `tokenize/mod.rs`, `tag/mod.rs`, `stem/*.rs`, `parse.rs`
-
-### G8. String interning with `lasso` or `string_cache`
-**Gain:** Tags ("NN", "VBZ", "DT") and frequent words ("the", "a") cloned thousands of times  
-**Technique:** Intern all tag strings and frequent words → compare via `usize` IDs instead of `String`  
-**Candidates:** `tag/sequential.rs`, `tag/perceptron.rs`, `chunk.rs`, `classify/`
-
-### G9. Small-string optimization with `compact_str` or `smol_str`
-**Gain:** 24 bytes inline stack storage → zero heap allocation for short strings  
-**Candidates:** Tags (≤5 chars), word tokens (avg 5–8 chars English), category names
 
 ---
 
-## Per-Module Optimizations
+### C6. SIMD byte classification for tokenizer character checks
+**Effort:** Medium (use `memchr` or `memspan` crate)
 
-### `src/sem.rs` (1041 LoC, 28 clones, 35 formats, 19 unwraps)
-**Current:** `Box<Expression>` enum tree with lots of cloning in substitution/display/free_vars.
+The tokok/treebank tokenizers iterate byte-by-byte checking character classes. `memspan` uses runtime-detected SIMD (AVX-512, AVX2, SSE4.2) to skip/classify bytes in chunks.
 
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| S1 | Replace `Box<Expression>` with `Rc<Expression>` | Eliminates deep clones in substitution, NNF conversion, free_vars collection | Medium |
-| S2 | `Display` use `fmt::Write` instead of format! chaining | 35 fewer allocations per `to_string()` | Low |
-| S3 | Intern variable/constant names via `lasso` | `Variable("x")` and `Constant("john")` cloned repeatedly | Medium |
-| S4 | `free_variables` return `Vec<&str>` instead of `Vec<String>` | Avoids cloning every variable name | Low |
-| S5 | Cache parsed `Expression` with `LruCache<String, Rc<Expression>>` | Parser is slow; most inputs repeat | Low |
-
-**Estimated gain:** 2–4x on `from_string`, 3–5x on `substitute`/`simplify`.
+```rust
+// Replace: for (i, ch) in text.char_indices() { if ch == '.' || ... }
+// With:    memspan::find_any(text.as_bytes(), b".!?")
+```
 
 ---
 
-### `src/tag/sequential.rs` (527 LoC, 48 clones) — CLONE HOTSPOT
-**Current:** Ngram taggers clone entire training corpora into HashMap during `.train()`.
+## Implementation Priority Matrix
 
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| T1 | Training: use `&[(String, String)]` slices instead of cloning each sentence | Cuts 48 clones during train; major allocation reduction | Medium |
-| T2 | `HashMap<String, HashMap<String, u64>>` → `FxHashMap<&str, FxHashMap<&str, u64>>` | Faster hash + string interning | Medium |
-| T3 | Backoff tagger chains: `Arc<TaggerI>` instead of `Box<dyn TaggerI>` | Shared ownership, cheap clone | Low |
-
-**Estimated gain:** 30–50% faster `.train()`, 10–20% faster `.tag()`.
-
----
-
-### `src/lm.rs` (514 LoC, 6 clones, 10 unwraps)
-**Current:** Mostly delegates to `rustling`. Lightweight wrapper.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| L1 | `generate()` pre-allocate output `Vec` with `with_capacity` | One fewer reallocation per call | Low |
-| L2 | `score()` avoid `unwrap_or(0.0)` → proper error types | No perf gain; correctness | Low |
-
-**Estimated gain:** Negligible (wrapper is thin). Main perf is in `rustling`.
-
----
-
-### `src/drt.rs` (486 LoC, 5 clones, 13 formats)
-**Current:** DRS with `Box<DRS>` recursion, JSON serde for Python interop.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| D1 | `Rc<DRS>` instead of `Box<DRS>` | Sharing in merge/resolve, less cloning | Medium |
-| D2 | `serde_json` → manual `to_string` for DRS | `serde_json::to_string` is expensive; custom serializer faster | Low |
-| D3 | Intern predicate strings (dog, cat, bone, runs, etc.) | Repeated predicates in discourse | Low |
-
-**Estimated gain:** 2–3x on `merge()`, 1.5x on `answer_question()`.
-
----
-
-### `src/parse.rs` (453 LoC, 22 clones)
-**Current:** CFG + Earley chart parser. Clones productions and nonterminal strings heavily.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| P1 | Intern nonterminal symbols as `usize` IDs | `HashMap<String, Vec<usize>>` → `HashMap<usize, Vec<usize>>` | Medium |
-| P2 | Earley chart: use `ArrayVec` for small spans | Avoid heap alloc for 1–3 state entries | Low |
-| P3 | `from_string` pre-allocate `productions` with known line count | Fewer reallocations | Low |
-
-**Estimated gain:** 1.5–2x on parse.
-
----
-
-### `src/ccg/chart.rs` (439 LoC, 12 clones, 10 unwraps)
-**Current:** CKY chart as `HashMap<(usize, usize), Vec<CCGEdge>>`.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| C1 | Replace `HashMap<(usize, usize), Vec<CCGEdge>>` with `Vec<Vec<Vec<CCGEdge>>>` (flat 3D array) | Hash + tuple key overhead eliminated; O(1) index-based access | Medium |
-| C2 | `CCGEdge.cat` clone → shared `Rc<Category>` | Each edge clones Category during combination | Low |
-| C3 | Pre-allocate chart capacity: `n * n` cells max | Avoids HashMap growth during parse | Low |
-
-**Estimated gain:** 30–50% faster parse for medium sentences.
-
----
-
-### `src/ccg/combinator.rs` (186 LoC)
-**Current:** Returns `Option<CategoryKind>` with `*result.clone()`.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| CB1 | Return `&CategoryKind` instead of `CategoryKind` | Avoids clone in apply; caller decides to clone or not | Low |
-
-**Estimated gain:** Fewer allocations per combination attempt.
-
----
-
-### `src/classify/maxent.rs` (359 LoC) + `naivebayes.rs` (351 LoC)
-**Current:** GIS training loop, frequent HashMap lookups for feature weights.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| CL1 | `HashMap<String, u64>` → `FxHashMap<&str, u64>` or interned keys | 2–5x faster lookups in training loop | Medium |
-| CL2 | GIS iteration: pre-compute feature indices as `Vec<usize>` | Avoids string-based lookup per feature per iteration | Medium |
-| CL3 | `prob_classify`: pre-allocate scores HashMap with `with_capacity(labels.len())` | Fewer reallocations | Low |
-
-**Estimated gain:** 1.5–2x faster `.train()`, 20% faster `.classify()`.
-
----
-
-### `src/tree.rs` (402 LoC, 8 clones, 9 formats)
-**Current:** Already partially optimized. Remaining issues:
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| TR1 | `parse_brackets` use `&str` slices instead of `String` for labels/words | Avoid clone of every label | Medium |
-| TR2 | `collect_productions` use `Vec<&str>` intermediate | Avoid String join allocation | Low |
-
-**Estimated gain:** 1.2–1.5x on `from_string`.
-
----
-
-### `src/tokenize/punkt.rs` (407 LoC) — BIGGEST TOKENIZER
-**Current:** Punkt sentence tokenizer with annotation/orthography cache.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| PT1 | `HashMap<String, OrthoContext>` → `FxHashMap<InternedStr, OrthoContext>` | Faster lookup for every word during training/predict | Medium |
-| PT2 | Candidate boundary: use slices instead of String for context windows | Less allocation during boundary detection | Low |
-| PT3 | Parallel training: `rayon` over training sentences | Multi-core speedup for `.train()` | Low |
-
-**Estimated gain:** 1.3–2x on `sent_tokenize`.
-
----
-
-### `src/tokenize/treebank.rs` (220 LoC)
-**Current:** Regex-based Treebank tokenizer. Multiple regex passes.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| TK1 | Compile all regexes as `LazyLock` statics (currently recompiled per invocation) | Eliminates ~50µs regex compile per call | Low |
-| TK2 | Combine regex passes into single pass where possible | Fewer iterations over text | Medium |
-
-**Estimated gain:** 1.5–2x for small inputs, 1.1x for large (compile cost amortized).
-
----
-
-### `src/tokenize/regexp.rs` (227 LoC)
-**Current:** Wraps user-provided regex. Can't optimize user patterns but can optimize wrapper.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| RX1 | Parse regex once at construction, not per `.tokenize()` | User's regex cloned into wrapper | Low |
-
-**Estimated gain:** Minor (Python user provides regex; overhead is in regex engine, not wrapper).
-
----
-
-### `src/inference/tableau.rs` (361 LoC) + `resolution.rs` (261 LoC)
-**Current:** Theorem provers with formula cloning. Resolution prover already partially optimized.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| I1 | Arena allocation (`bumpalo`) for temporary Formula/Clause objects during proof search | Eliminates `Box`/`Vec` alloc overhead in search loop | Medium |
-| I2 | Literal dedup: use `BTreeSet<Literal>` instead of manual sort+dedup | Ord already implemented, cleaner API | Low |
-| I3 | `nonmonotonic.rs`: use `bit-set` for extension enumeration | Avoids cloning rule sets for each extension | Medium |
-
-**Estimated gain:** 2–5x on `DefaultReasoner.extensions()` (currently 55ms for 10 rules).
-
----
-
-### `src/chunk.rs` (304 LoC, 7 formats, 11 unwraps)
-**Current:** Regexp chunk parser with IOB tagging.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| CH1 | Compile tag regexes at construction, not per sentence | `compile_tag_pattern` called every sentence | Low |
-| CH2 | Use `Vec<(String, String)>` pre-allocation | Known number of tokens per sentence | Low |
-
-**Estimated gain:** 1.5–2x on `parse()`.
-
----
-
-### `src/cluster.rs` (238 LoC, 5 clones, 6 unwraps)
-**Current:** K-means with Euclidean distance.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| KU1 | Use `nalgebra` or `ndarray` for vector math | SIMD-accelerated distance computations | Medium |
-| KU2 | `classify()` pre-compute `norm_sq` for each centroid | Avoids recomputing in each classification | Low |
-
-**Estimated gain:** 2–3x for large dimensional clusters.
-
----
-
-### `src/sentiment.rs` (225 LoC)
-**Current:** VADER sentiment analyzer with built-in lexicon.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| SN1 | Build lexicon as `FxHashMap<&'static str, f64>` instead of `HashMap<String, f64>` | Avoid String → lookup cost for every word | Low |
-
-**Estimated gain:** 1.5x on `polarity_scores()`.
-
----
-
-### `src/collocations.rs` (276 LoC)
-**Current:** Already uses `hashbrown::HashMap`. Good.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| CO1 | Pre-allocate ngram_fd with estimated capacity (vocab size ^ n) | Fewer reallocations during construction | Low |
-| CO2 | Use `rayon` for scoring multiple measures in parallel | Multi-core score computation | Low |
-
-**Estimated gain:** 20% on `.score_ngrams()`.
-
----
-
-### `src/probability.rs` (489 LoC) — CLONE HOTSPOT
-**Current:** FreqDist, ConditionalFreqDist. 11 clones.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| PR1 | `update()` incrementally instead of replacing HashMap | Fewer allocs when adding to existing distribution | Low |
-| PR2 | `FreqDist` use `FxHashMap` with compound keys | Faster lookup | Low |
-
-**Estimated gain:** 20% on `update()`.
-
----
-
-### `src/metrics/` (493 LoC total, 7 files)
-**Current:** Already fast (104x windowdiff, 50x edit_distance). Near optimal.
-
-| # | Technique | Gain | Effort |
-|---|---|---|---|
-| M1 | `jaro.rs`: eliminate temporary Vec in `find_matching_chars` | Single-pass matching | Low |
-
-**Estimated gain:** Negligible (already sub-millisecond).
-
----
-
-## Priority Matrix
-
-| Priority | Module | Technique | Est. Gain | Effort | File |
+| # | Optimization | Tier | Est. Gain | Effort | Benchmark Impact |
 |---|---|---|---|---|---|
-| 🔴 P0 | Global | `lto="thin"` + `codegen-units=1` | **15–30%** | Trivial | Cargo.toml |
-| 🔴 P0 | All HashMap | `std::HashMap` → `FxHashMap` | **2–5x** lookup | Low | 19 files |
-| 🔴 P0 | All `Vec::new()` | → `Vec::with_capacity(n)` | **Cut reallocs** | Low | 27 files |
-| 🟠 P1 | `tag/sequential.rs` | Training: pass by ref, not clone | **30–50%** train | Medium | tag/sequential.rs |
-| 🟠 P1 | `sem.rs` | `Rc<Expression>` + intern vars | **2–4x** | Medium | sem.rs |
-| 🟠 P1 | `ccg/chart.rs` | Flat 3D array chart | **30–50%** parse | Medium | ccg/chart.rs |
-| 🟠 P1 | `parse.rs` | Intern nonterminals | **1.5–2x** | Medium | parse.rs |
-| 🟡 P2 | `inference/nonmonotonic.rs` | Arena + bit-set extensions | **2–5x** | Medium | inference/ |
-| 🟡 P2 | `classify/` | FxHashMap + pre-index features | **1.5–2x** train | Medium | classify/ |
-| 🟡 P2 | `drt.rs` | `Rc<DRS>` + custom serializer | **2–3x** | Medium | drt.rs |
-| 🟡 P2 | `tokenize/punkt.rs` | FxHashMap for OrthoContext | **1.3–2x** | Medium | tokenize/punkt.rs |
-| 🟢 P3 | All `format!()` | → `write!()` / fmt::Write | **Fewer allocs** | Low | 132 sites |
-| 🟢 P3 | `tokenize/treebank.rs` | LazyLock regex | **1.5–2x** small | Low | tokenize/treebank.rs |
-| 🟢 P3 | `cluster.rs` | SIMD distance with ndarray | **2–3x** | High | cluster.rs |
-| 🟢 P3 | `rayon` parallel batch ops | `par_iter` for tokenize/tag | **2–8x** batch | Low | tokenize/, tag/ |
-| 🟢 P3 | String interning | `lasso` for tags + frequent words | **Memory 50%↓** | High | tag/, chunk/, tokenize/ |
+| C1 | `#[inline]` hot functions | C | 1.05x | 5 min | All modules |
+| C2 | `Vec::with_capacity` sweep | C | 1.05x | 10 min | All modules |
+| C4 | `format!` cleanup in Display | C | 1.1x | 30 min | sem, drt, perceptron |
+| C5 | LTO=fat, panic=abort | C | 1.1x | 5 min | All modules |
+| A1 | mimalloc allocator | A | 1.15x | 5 min | All modules |
+| B2 | SmallVec for fixed collections | B | 1.2x | 1 hr | ccg, parse, chunk |
+| B1 | Binary search on sorted Vec | B | 1.3x | 2 hr | classify, probability |
+| A2 | smol_str for tokens/tags | A | 1.5x | 3 hr | tag, tokenize, parse |
+| B3 | `Cow<str>` in PyO3 FFI | B | 1.3x | 2 hr | tag (21 String params) |
+| B4 | Cached Display strings | B | 1.2x | 1 hr | tree, parse, ccg, drt |
+| A3 | bumpalo arena | A | 2.0x | 5 hr | ccg, drt, inference, sem |
+| A4 | Logos DFA lexer | A | 2.5x | 8 hr | treebank, toktok, tweet |
+| C6 | SIMD byte classification | C | 1.3x | 3 hr | toktok, treebank |
+| C3 | forbid(unsafe_code) | C | safety | 2 min | lib.rs |
 
 ---
 
-## Implementation Order (recommended)
+## Execution Order (recommended)
 
-**Week 1:** P0 items — Cargo.toml, FxHashMap, Vec::with_capacity  
-**Week 2:** P1 items — tag clone reduction, sem Rc, CCG flat chart, parse intern  
-**Week 3:** P2 items — inference arena, classify FxHashMap, DRT Rc, Punkt  
-**Week 4:** P3 items — format! cleanup, lazy regex, rayon, string interning  
+**Hour 1:** C1 + C2 + C3 + C5 + A1 — immediate wins, no refactor  
+**Hour 2:** C4 + B2 — format cleanup + SmallVec  
+**Hours 3-4:** B1 + B4 — sorted Vec maps + Display cache  
+**Hours 5-7:** A2 — smol_str rollout (touches 7 files)  
+**Hours 8-9:** B3 — Cow<str> PyO3 FFI  
+**Days 3-4:** A3 — bumpalo arena (largest refactor)  
+**Days 5-7:** A4 + C6 — Logos DFA + SIMD  
 
-**Projected cumulative speedup:** 2–5x on microbenchmarks, 1.5–3x on real-world workloads.
+**Projected cumulative speedup:** 3-5x on microbenchmarks (especially tokenizers and taggers).
