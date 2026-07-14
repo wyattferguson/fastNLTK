@@ -8,6 +8,7 @@ pub mod cistem;
 pub mod rslp;
 pub mod regexp;
 pub mod wordnet;
+pub mod arlstem;
 
 use pyo3::prelude::*;
 
@@ -20,5 +21,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<rslp::RSLPStemmer>()?;
     m.add_class::<regexp::RegexpStemmer>()?;
     m.add_class::<wordnet::WordNetLemmatizer>()?;
+    m.add_class::<arlstem::ARLSTem>()?;
+    m.add_class::<arlstem::ARLSTem2>()?;
     Ok(())
 }

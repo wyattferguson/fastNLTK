@@ -7,6 +7,12 @@ import nltk.stem as _nltk_stem
 _rust_available = False
 try:
     from fastnltk._rust import (
+        ARLSTem as _RustARLSTem,
+    )
+    from fastnltk._rust import (
+        ARLSTem2 as _RustARLSTem2,
+    )
+    from fastnltk._rust import (
         Cistem as _RustCistem,
     )
     from fastnltk._rust import (
@@ -39,6 +45,7 @@ except ImportError:
 __all__ = [
     "SnowballStemmer", "PorterStemmer", "LancasterStemmer", "RegexpStemmer",
     "ISRIStemmer", "Cistem", "RSLPStemmer", "WordNetLemmatizer",
+    "ARLSTem", "ARLSTem2",
 ]
 
 
@@ -136,12 +143,32 @@ class WordNetLemmatizer:
         return self._impl.lemmatize(word, pos)
 
 
-# ── NLTK re-exports for API compatibility ─────
+class ARLSTem:
+    """Arabic stemmer — Rust-accelerated."""
+    def __init__(self):
+        if _rust_available:
+            self._impl = _RustARLSTem()
+        else:
+            self._impl = _nltk_stem.ARLSTem()
+
+    def stem(self, word):
+        return self._impl.stem(word)
+
+
+class ARLSTem2:
+    """Arabic stemmer v2 — Rust-accelerated."""
+    def __init__(self):
+        if _rust_available:
+            self._impl = _RustARLSTem2()
+        else:
+            self._impl = _nltk_stem.ARLSTem2()
+
+    def stem(self, word):
+        return self._impl.stem(word)
+
 
 # ── NLTK re-exports for API compatibility ─────
 
-ARLSTem = _nltk_stem.ARLSTem
-ARLSTem2 = _nltk_stem.ARLSTem2
 StemmerI = _nltk_stem.StemmerI
 
 api = _nltk_stem.api
