@@ -95,6 +95,7 @@ impl fmt::Display for Expression {
     }
 }
 
+#[inline]
 fn is_atomic(expr: &Expression) -> bool {
     matches!(expr, Expression::Constant(_, _) | Expression::Variable(_, _))
 }

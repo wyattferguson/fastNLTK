@@ -77,7 +77,8 @@ impl CFG {
                 continue;
             }
             // Format: LHS -> RHS1 RHS2 | RHS3 RHS4
-            let arrow_pos = line.find("->").ok_or_else(|| FastNltkError::GrammarParse(line.to_string()))?;
+            let arrow_pos =
+                line.find("->").ok_or_else(|| FastNltkError::GrammarParse(line.to_string()))?;
 
             let lhs = line[..arrow_pos].trim();
             let rhs_part = line[arrow_pos + 2..].trim();

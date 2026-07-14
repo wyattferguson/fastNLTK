@@ -264,6 +264,7 @@ fn apply_with_variants(
     }
 }
 
+#[inline]
 fn format_kind(k: &CategoryKind) -> String {
     match k {
         CategoryKind::Primitive(l) => l.clone(),
