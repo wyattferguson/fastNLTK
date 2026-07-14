@@ -35,3 +35,4 @@ venv/
 Thumbs.db
 nul
 NOTES.md
+logs/

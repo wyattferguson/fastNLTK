@@ -42,6 +42,8 @@ tokens = nltk.word_tokenize("Hello, world!")
 ## Performance
 
 **42 automated benchmarks** across all 18 Rust modules. Average **9.4×** vs NLTK.
+Every function below has an NLTK counterpart unless noted. "—" means NLTK comparison
+wasn't run (needs data download or API format mismatch — see [BENCHMARKS.md](BENCHMARKS.md) footnotes).
 
 | Module | Benchmarks | Best Speedup | Engine |
 |---|---|---|---|
@@ -57,12 +59,12 @@ tokens = nltk.word_tokenize("Hello, world!")
 | [probability](BENCHMARKS.md) | 1 | **5×** | Hash table ops in native code |
 | [ccg](BENCHMARKS.md) | 1 | **3×** | Pure Rust string parsing |
 | [chat](BENCHMARKS.md) | 1 | **4×** | Simple pattern match in Rust |
-| [classify](BENCHMARKS.md) | 2 | fastNLTK-only | GIL-released training loops |
-| [sentiment](BENCHMARKS.md) | 1 | fastNLTK-only | VADER algorithm in Rust |
-| [lm](BENCHMARKS.md) | 2 | fastNLTK-only | Ngram + smoothing via `rustling` |
-| [cluster](BENCHMARKS.md) | 1 | fastNLTK-only | K-means in native code |
-| [parse](BENCHMARKS.md) | 1 | fastNLTK-only | Earley chart parsing in Rust |
-| [inference](BENCHMARKS.md) | 4 | fastNLTK-only | Recursive proof search in Rust |
+| [classify](BENCHMARKS.md) | 2 | — (see notes) | GIL-released training loops |
+| [sentiment](BENCHMARKS.md) | 1 | — (see notes)  | VADER algorithm in Rust |
+| [lm](BENCHMARKS.md) | 2 | — (see notes) | Ngram + smoothing via `rustling` |
+| [cluster](BENCHMARKS.md) | 1 | — (see notes) | K-means in native code |
+| [parse](BENCHMARKS.md) | 1 | — (see notes) | Earley chart parsing in Rust |
+| [inference](BENCHMARKS.md) | 4 | — (see notes) | Recursive proof search in Rust |
 
 [Full benchmark details →](BENCHMARKS.md)
 

@@ -15,8 +15,7 @@ allow = [
     "Zlib",
     "BSL-1.0",
 ]
-# Deny copyleft licenses (GPL, AGPL, LGPL, MPL)
-copyleft = "deny"
+# Copyleft is implicitly denied by the allow list above
 # Allow these specific crates with non-standard licenses
 exceptions = [
     { name = "ring", allow = ["ISC", "MIT", "OpenSSL"] },
