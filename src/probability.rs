@@ -22,6 +22,19 @@ pub struct FreqDist {
     total: u64,
 }
 
+// Non-pymethods interface for Rust-to-Rust usage
+impl FreqDist {
+    pub fn get_count(&self, sample: &str) -> u64 {
+        self.counts.get(sample).copied().unwrap_or(0)
+    }
+    pub fn get_total(&self) -> u64 {
+        self.total
+    }
+    pub fn num_samples(&self) -> usize {
+        self.counts.len()
+    }
+}
+
 #[pymethods]
 impl FreqDist {
     #[new]
@@ -268,10 +281,83 @@ impl ConditionalFreqDist {
     }
 }
 
+// ═══════════════════════════════════════════════════════════
+// ProbDist types
+// ═══════════════════════════════════════════════════════════
+
+#[pyclass(name = "MLEProbDist", module = "fastnltk._rust")]
+pub struct MLEProbDist {
+    freqdist: FreqDist,
+    bins: usize,
+}
+
+#[pymethods]
+impl MLEProbDist {
+    #[new]
+    #[pyo3(signature = (freqdist, bins=0))]
+    fn new(freqdist: FreqDist, bins: usize) -> Self {
+        MLEProbDist { freqdist, bins }
+    }
+
+    fn prob(&self, sample: &str) -> f64 {
+        let n = self.freqdist.get_total();
+        if n == 0 { return 0.0; }
+        self.freqdist.get_count(sample) as f64 / n as f64
+    }
+
+    fn max(&self) -> Option<String> {
+        self.freqdist.max()
+    }
+
+    fn freqdist(&self) -> FreqDist {
+        self.freqdist.clone()
+    }
+
+    fn samples(&self) -> Vec<String> {
+        self.freqdist.samples()
+    }
+}
+
+#[pyclass(name = "LaplaceProbDist", module = "fastnltk._rust")]
+pub struct LaplaceProbDist {
+    freqdist: FreqDist,
+    bins: usize,
+}
+
+#[pymethods]
+impl LaplaceProbDist {
+    #[new]
+    #[pyo3(signature = (freqdist, bins=0))]
+    fn new(freqdist: FreqDist, bins: usize) -> Self {
+        LaplaceProbDist { freqdist, bins }
+    }
+
+    fn prob(&self, sample: &str) -> f64 {
+        let n = self.freqdist.get_total();
+        let b = if self.bins > 0 { self.bins } else { self.freqdist.num_samples() };
+        if n == 0 { return 1.0 / b.max(1) as f64; }
+        (self.freqdist.get_count(sample) + 1) as f64 / (n as f64 + b.max(1) as f64)
+    }
+
+    fn max(&self) -> Option<String> {
+        self.freqdist.max()
+    }
+
+    fn freqdist(&self) -> FreqDist {
+        self.freqdist.clone()
+    }
+
+    fn samples(&self) -> Vec<String> {
+        self.freqdist.samples()
+    }
+}
+
 /// Register the module with Python.
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<FreqDist>()?;
     m.add_class::<ConditionalFreqDist>()?;
+    m.add_class::<MLEProbDist>()?;
+    m.add_class::<LaplaceProbDist>()?;
     Ok(())
 }
 
