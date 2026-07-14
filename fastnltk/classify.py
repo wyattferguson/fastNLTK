@@ -9,13 +9,17 @@ from nltk.classify import (
     ClassifierI,
     DecisionTreeClassifier,
     MaxentClassifier,
-    TextCat,
 )
 from nltk.classify.util import accuracy, apply_features, log_likelihood
 
 _rust_available = False
 try:
-    from fastnltk._rust import NaiveBayesClassifier as _RustNaiveBayesClassifier
+    from fastnltk._rust import (
+        NaiveBayesClassifier as _RustNaiveBayesClassifier,
+    )
+    from fastnltk._rust import (
+        TextCat as _RustTextCat,
+    )
     _rust_available = True
 except ImportError:
     warnings.warn(
@@ -32,6 +36,25 @@ __all__ = [
     "apply_features",
     "log_likelihood",
 ]
+
+
+class TextCat:
+    """Language detection — Rust-accelerated via whatlang."""
+    def __init__(self):
+        if _rust_available:
+            self._impl = _RustTextCat()
+        else:
+            self._impl = _nltk_classify.TextCat()
+
+    def guess_language(self, text):
+        return self._impl.guess_language(text)
+
+    def guess_language_scores(self, text):
+        return self._impl.guess_language_scores(text)
+
+    @staticmethod
+    def supported_languages():
+        return _RustTextCat.supported_languages() if _rust_available else ["unknown"]
 
 
 class NaiveBayesClassifier:

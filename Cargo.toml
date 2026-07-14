@@ -40,12 +40,11 @@ parking_lot = "0.12"
 rayon = { version = "1", optional = true }
 
 # Language detection (for TextCat replacement)
-whatlang = { version = "0.16", optional = true }
+whatlang = "0.16"
 
 [features]
 default = ["parallel"]
 parallel = ["rayon", "rustling/parallel"]
-language-detection = ["whatlang"]
 
 [profile.release]
 lto = "fat"
