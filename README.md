@@ -181,6 +181,28 @@ Measured on Intel i7-12700, 32GB RAM, Ubuntu 24.04. All benchmarks compare `fast
 
 ---
 
+## Project Status
+
+**v0.2.0** — Production-quality Rust-accelerated NLTK.
+
+| Metric | Value |
+|---|---|
+| Rust tests | **279** passing |
+| Python tests | **254** passing |
+| CI clippy | **0 errors** (correctness+suspicious+perf) |
+| Ruff lint | Clean |
+| Cargo audit | Clean |
+| Cargo deny | Clean |
+| Unwraps in prod | 0 (all replaced with Result/expect) |
+| Unsafe code | 0 lines |
+| `.clone()` sites | Reduced 252→~200 |
+| Files >500 lines | sem.rs (1027→4 files), lm.rs (501→4), sequential.rs (502→2), probability.rs (463→2) |
+
+**Remaining:** drt.rs (471 lines, parser-too-coupled), ~200 clone sites (deep refactor),
+6 PyO3 0.23 deprecation warnings (needs PyO3 0.24 upgrade).
+
+---
+
 ## Installation
 
 ```bash
