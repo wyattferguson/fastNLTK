@@ -228,35 +228,331 @@ The tokok/treebank tokenizers iterate byte-by-byte checking character classes. `
 
 ---
 
+## Tier 4: Code Quality — Professional Rust Standards
+
+Inspired by production crates (tokio, serde, ripgrep, clap, rayon, regex, pyo3 itself).
+Every public library should follow these. Some are mechanical, some are design-level.
+
+---
+
+### Q1. Structured error types with `thiserror` → replace 64 raw `PyErr` sites
+**Effort:** Medium  
+**Pattern from:** `pyo3`, `serde`, `regex`
+
+Currently every error is `PyValueError::new_err(format!(...))` — no structure, no
+programmatic handling for callers, no consistent messages.
+
+```rust
+// Before (64 identical patterns):
+PyValueError::new_err(format!("Expected '->' in grammar line: {line}"))
+
+// After (1 error type, reused everywhere):
+#[derive(Debug, thiserror::Error)]
+pub enum FastNltkError {
+    #[error("invalid grammar: expected '->' in line '{0}'")]
+    GrammarParse(String),
+    #[error("empty input")]
+    EmptyInput,
+    #[error("input too long ({0} words, max {1})")]
+    InputTooLong(usize, usize),
+    #[error("model not trained")]
+    NotTrained,
+    #[error("invalid category: {0}")]
+    InvalidCategory(String),
+    #[error("no parse found")]
+    NoParse,
+}
+
+impl From<FastNltkError> for PyErr {
+    fn from(e: FastNltkError) -> PyErr {
+        PyValueError::new_err(e.to_string())
+    }
+}
+```
+
+**Crates to study:** `thiserror` (used by 40,000+ crates), `miette` (fancy diagnostics)
+
+---
+
+### Q2. Clippy `pedantic` + `nursery` lint enablement
+**Effort:** Trivial (add to Cargo.toml)  
+**Pattern from:** `ripgrep`, `clap`, `serde`
+
+```toml
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+# Allow specific pedantic lints that don't apply
+missing_errors_doc = "allow"
+module_name_repetitions = "allow"
+```
+
+Fixes ~80 warnings, surfaces real issues (needless borrows, implicit hashers, missing safeties).
+
+---
+
+### Q3. `#![warn(missing_docs)]` — enforce doc coverage
+**Effort:** Low  
+**Pattern from:** `tokio`, `regex`, `rayon`
+
+Every `pub` item must have a doc comment. Currently ~40 undocumented pub items.
+Prevents API surface decay as the codebase grows.
+
+```rust
+// lib.rs
+#![warn(missing_docs)]
+#![warn(rustdoc::missing_crate_level_docs)]
+```
+
+---
+
+### Q4. Newtype wrappers for domain concepts
+**Effort:** Medium  
+**Pattern from:** `serde` (Value, Number), `regex` (Regex, Captures)
+
+Currently raw `String` and `Vec<String>` are used everywhere. Strong typing
+prevents bugs and enables future optimization:
+
+```rust
+// Before: word_or_tag: String
+// After:
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct Tag(String);
+impl Tag { pub fn as_str(&self) -> &str { &self.0 } }
+
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct Word(String);
+
+// Compiler prevents: fn score(word: Tag, context: &[Word]) — caught at compile time
+```
+
+Not required for v0.2 (API compatibility concern with Python FFI), but should plan for v0.3.
+
+---
+
+### Q5. `const`-ify all static data
+**Effort:** Low  
+**Pattern from:** `regex`, `serde_json`
+
+Many static arrays should be `const` for compile-time evaluation:
+
+```rust
+// Before: static BOOSTERS: &[&str] = &[...];
+// After:  const BOOSTERS: &[&str] = &[...];
+// Before: let mut lex = HashMap::new(); lex.insert("love", 3.2); ...
+// After:  use phf::phf_map; static LEXICON: phf::Map<&str, f64> = phf_map! { ... };
+```
+
+`phf` crate creates compile-time perfect hash maps — zero runtime init cost,
+zero allocation, O(1) lookup for static data like VADER lexicon.
+
+---
+
+### Q6. `unsafe` audit: zero `unsafe` today, lock it in
+**Effort:** Trivial  
+**Pattern from:** `ripgrep`, `cargo`
+
+```rust
+// lib.rs — top of file
+#![forbid(unsafe_code)]
+```
+
+Currently 0 unsafe blocks anywhere. `forbid` makes this a compiler-enforced
+invariant. Critical for a library that processes untrusted text input.
+
+---
+
+### Q7. Test organization: unit tests inline, integration tests in `tests/`
+**Effort:** Low  
+**Pattern from:** `tokio`, `serde`
+
+Current: ~20 Rust test modules scattered across files. Good pattern already.
+Improvements:
+- Add `doc = "include_str!(...)"` for README examples that are tested
+- Add property-based tests with `proptest` for tokenizer invariants
+- Add fuzz targets for `from_string` parsers (CCG, DRS, Tree, Formula)
+
+```rust
+// Example: property-based test for tokenizer
+proptest! {
+    #[test]
+    fn tokenizer_never_panics(s in "\\PC*") {
+        let _ = word_tokenize(&s);  // must not panic on any input
+    }
+}
+```
+
+---
+
+### Q8. `#[must_use]` on pure functions
+**Effort:** Low  
+**Pattern from:** `std`, `serde`, `itertools`
+
+Functions that compute a value without side effects should be annotated:
+
+```rust
+#[must_use]
+pub fn free_variables(&self) -> Vec<String> { ... }
+
+#[must_use]
+pub fn productions(&self) -> Vec<String> { ... }
+```
+
+Prevents callers from accidentally discarding computed results.
+
+---
+
+### Q9. Eliminate clone-in-loop patterns
+**Effort:** Medium  
+**Pattern from:** `rustc` performance guidelines
+
+Identified sites cloning in hot loops:
+
+| File | Pattern | Fix |
+|---|---|---|
+| `ccg/chart.rs:106` | `cat.clone()` per word in lex init | Store `Arc<Category>` |
+| `ccg/chart.rs:140-141` | `l.clone(), r.clone()` per combinator match | Borrow from chart, clone only on success |
+| `chat.rs:41,53` | `responses[idx].clone()` per call | Return `&str` or `Arc<str>` |
+| `classify/maxent.rs:98-100` | `name.clone()`, `label.clone()` per feature | Use `Cow<str>` or entry API better |
+| `classify/naivebayes.rs:88,91` | Same pattern | Same fix |
+
+---
+
+### Q10. Consistent module structure: `mod.rs` → module-name file
+**Effort:** Low  
+**Pattern from:** Rust 2018+ convention, `clap`, `regex`
+
+Currently some modules use `mod.rs` style (tokenize, stem, metrics, classify,
+tag, ccg, inference) while others use top-level files. Rust 2018 edition prefers
+non-`mod.rs` style:
+
+```
+src/tokenize/mod.rs      → src/tokenize.rs
+src/tokenize/treebank.rs → src/tokenize/treebank.rs  (child stays)
+```
+
+Not urgent but follows modern Rust convention.
+
+---
+
+### Q11. `cargo doc` — ensure docs build without warnings
+**Effort:** Low  
+**Pattern from:** All top-tier crates
+
+```bash
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items
+```
+
+Currently would fail on ~40 undocumented public items. Fix by adding docs or
+making internal items `pub(crate)`.
+
+---
+
+### Q12. CI-ready: `cargo clippy -- -D warnings`
+**Effort:** Low  
+**Pattern from:** `tokio`, `serde` CI pipelines
+
+Treat all clippy warnings as errors in CI. Currently 66 warnings pass silently.
+Fixing them all makes the build self-documenting about code quality.
+
+---
+
+### Q13. `Cargo.toml` metadata completeness
+**Effort:** Trivial  
+**Pattern from:** `cargo` publish requirements
+
+```toml
+[package]
+name = "fastnltk"
+version = "0.2.0"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/..."
+documentation = "https://docs.rs/fastnltk"
+readme = "README.md"
+keywords = ["nlp", "nltk", "tokenization", "tagging", "stemming"]  # MISSING
+categories = ["text-processing", "science"]                           # MISSING
+```
+
+---
+
+### Q14. Fuzz testing for parsers
+**Effort:** Medium (add `cargo-fuzz` target)  
+**Pattern from:** `regex`, `serde_json`, `url`
+
+Every `from_string` parser (CCG, DRS, Tree, CFG, Formula) should have a fuzz
+target that asserts it never panics on arbitrary input.
+
+```rust
+// fuzz/fuzz_targets/ccg_parse.rs
+fuzz_target!(|data: &[u8]| {
+    if let Ok(s) = std::str::from_utf8(data) {
+        let _ = fastnltk::ccg::parse_category(s);
+    }
+});
+```
+
+---
+
+### Q15. `rkyv` zero-copy deserialization for model loading
+**Effort:** Medium  
+**Pattern from:** `rkyv` crate (used in gamedev, databases)
+
+Currently Punkt/Perceptron models are loaded via Python pickle → bincode.
+`rkyv` supports zero-copy deserialization — the on-disk bytes ARE the in-memory
+representation. No allocation during model load.
+
+```rust
+// bincode: deserialize(allocates) → HashMap<String, ...>
+// rkyv:    access_bytes(zero-copy) → &ArchivedHashMap<String, ...>
+```
+
+---
+
 ## Implementation Priority Matrix
 
-| # | Optimization | Tier | Est. Gain | Effort | Benchmark Impact |
-|---|---|---|---|---|---|
-| C1 | `#[inline]` hot functions | C | 1.05x | 5 min | All modules |
-| C2 | `Vec::with_capacity` sweep | C | 1.05x | 10 min | All modules |
-| C4 | `format!` cleanup in Display | C | 1.1x | 30 min | sem, drt, perceptron |
-| C5 | LTO=fat, panic=abort | C | 1.1x | 5 min | All modules |
-| A1 | mimalloc allocator | A | 1.15x | 5 min | All modules |
-| B2 | SmallVec for fixed collections | B | 1.2x | 1 hr | ccg, parse, chunk |
-| B1 | Binary search on sorted Vec | B | 1.3x | 2 hr | classify, probability |
-| A2 | smol_str for tokens/tags | A | 1.5x | 3 hr | tag, tokenize, parse |
-| B3 | `Cow<str>` in PyO3 FFI | B | 1.3x | 2 hr | tag (21 String params) |
-| B4 | Cached Display strings | B | 1.2x | 1 hr | tree, parse, ccg, drt |
-| A3 | bumpalo arena | A | 2.0x | 5 hr | ccg, drt, inference, sem |
-| A4 | Logos DFA lexer | A | 2.5x | 8 hr | treebank, toktok, tweet |
-| C6 | SIMD byte classification | C | 1.3x | 3 hr | toktok, treebank |
-| C3 | forbid(unsafe_code) | C | safety | 2 min | lib.rs |
+| # | Optimization | Tier | Est. Gain | Effort |
+|---|---|---|---|---|
+| C1 | `#[inline]` hot functions | C | 1.05x | 5 min |
+| C2 | `Vec::with_capacity` sweep | C | 1.05x | 10 min |
+| C5 | LTO=fat, panic=abort | C | 1.1x | 5 min |
+| Q2 | Clippy pedantic+nursery | Q | quality | 5 min |
+| Q3 | `#![warn(missing_docs)]` | Q | docs | 5 min |
+| Q6 | `#![forbid(unsafe_code)]` | Q | safety | 2 min |
+| Q11 | `cargo doc` warning-free | Q | docs | 15 min |
+| Q12 | CI clippy deny-warnings | Q | quality | 10 min |
+| Q13 | Cargo.toml metadata | Q | publish | 5 min |
+| Q5 | `const`/`phf` static data | Q | init time | 1 hr |
+| Q8 | `#[must_use]` pure fns | Q | safety | 30 min |
+| A1 | mimalloc allocator | A | 1.15x | 5 min |
+| C4 | `format!` cleanup in Display | C | 1.1x | 30 min |
+| B2 | SmallVec for fixed collections | B | 1.2x | 1 hr |
+| Q9 | Eliminate clone-in-loop | Q | 1.2x | 2 hr |
+| Q1 | `thiserror` error types | Q | quality | 3 hr |
+| B1 | Binary search on sorted Vec | B | 1.3x | 2 hr |
+| A2 | smol_str for tokens/tags | A | 1.5x | 3 hr |
+| B3 | `Cow<str>` in PyO3 FFI | B | 1.3x | 2 hr |
+| B4 | Cached Display strings | B | 1.2x | 1 hr |
+| A3 | bumpalo arena | A | 2.0x | 5 hr |
+| Q4 | Newtype wrappers | Q | quality | 4 hr |
+| Q10 | mod.rs → file convention | Q | style | 1 hr |
+| A4 | Logos DFA lexer | A | 2.5x | 8 hr |
+| C6 | SIMD byte classification | C | 1.3x | 3 hr |
+| Q14 | Fuzz targets | Q | safety | 3 hr |
+| Q15 | rkyv zero-copy models | Q | load time | 4 hr |
+| Q7 | Property-based tests | Q | safety | 3 hr |
 
 ---
 
 ## Execution Order (recommended)
 
-**Hour 1:** C1 + C2 + C3 + C5 + A1 — immediate wins, no refactor  
-**Hour 2:** C4 + B2 — format cleanup + SmallVec  
-**Hours 3-4:** B1 + B4 — sorted Vec maps + Display cache  
-**Hours 5-7:** A2 — smol_str rollout (touches 7 files)  
-**Hours 8-9:** B3 — Cow<str> PyO3 FFI  
-**Days 3-4:** A3 — bumpalo arena (largest refactor)  
-**Days 5-7:** A4 + C6 — Logos DFA + SIMD  
+**Day 1 (immediate):** Q2+Q3+Q6+Q11+Q12+Q13+C1+C2+C5+A1 — quality baseline + 20% perf
+**Day 2:** C4+Q5+Q8+Q9+B2 — format cleanup, const data, clone elimination
+**Day 3-4:** Q1+A2+B1+B3 — error types, smol_str, sorted Vec, Cow FFI
+**Day 5:** B4+Q10 — Display cache, module convention
+**Day 6-8:** A3+Q4 — arena allocator + newtype wrappers
+**Day 9-12:** A4+C6 — Logos DFA + SIMD (tokenizer rewrite)
+**Day 13-15:** Q7+Q14+Q15 — property tests, fuzz, rkyv models
 
-**Projected cumulative speedup:** 3-5x on microbenchmarks (especially tokenizers and taggers).
+**Projected cumulative speedup:** 3-5x on microbenchmarks.
+**Code quality target:** zero clippy warnings, 100% doc coverage, zero unwrap in production paths.
