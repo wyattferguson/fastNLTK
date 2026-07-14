@@ -9,6 +9,7 @@ mod prelude;
 pub mod chunk;
 pub mod chat;
 pub mod classify;
+pub mod cluster;
 pub mod collocations;
 pub mod corpus;
 pub mod data;
@@ -62,6 +63,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // ── Chat ──────────────────────────────────────────
     chat::register_module(m)?;
+
+    // ── Clustering ────────────────────────────────────
+    cluster::register_module(m)?;
 
     // ── Corpus ─────────────────────────────────────────
     corpus::register_module(m)?;
