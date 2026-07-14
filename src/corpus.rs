@@ -65,6 +65,7 @@ impl PlaintextCorpusReader {
     }
 
     /// Read the raw contents of a file.
+    #[pyo3(signature = (fileids=None))]
     fn raw(&self, fileids: Option<Vec<String>>) -> PyResult<Vec<String>> {
         let ids = fileids.unwrap_or_else(|| self.fileids.clone());
         let mut contents = Vec::with_capacity(ids.len());
@@ -78,6 +79,7 @@ impl PlaintextCorpusReader {
     }
 
     /// Read words (tokenized using word_tokenize).
+    #[pyo3(signature = (fileids=None))]
     fn words(&self, fileids: Option<Vec<String>>) -> PyResult<Vec<String>> {
         let contents = self.raw(fileids)?;
         let mut all_words = Vec::new();
@@ -92,6 +94,7 @@ impl PlaintextCorpusReader {
     }
 
     /// Read sentences (tokenized using sent_tokenize).
+    #[pyo3(signature = (fileids=None))]
     fn sents(&self, fileids: Option<Vec<String>>) -> PyResult<Vec<Vec<String>>> {
         let contents = self.raw(fileids)?;
         let mut all_sents = Vec::new();
@@ -110,11 +113,13 @@ impl PlaintextCorpusReader {
     }
 
     /// Read the number of words in the corpus.
+    #[pyo3(signature = (fileids=None))]
     fn word_count(&self, fileids: Option<Vec<String>>) -> PyResult<usize> {
         self.words(fileids).map(|w| w.len())
     }
 
     /// Read the number of sentences.
+    #[pyo3(signature = (fileids=None))]
     fn sent_count(&self, fileids: Option<Vec<String>>) -> PyResult<usize> {
         self.sents(fileids).map(|s| s.len())
     }

@@ -51,7 +51,7 @@ impl Tree {
         }
         Self::parse_brackets(s, 0)
             .map(|(tree, _)| tree)
-            .map_err(|e| PyValueError::new_err(e))
+            .map_err(PyValueError::new_err)
     }
 
     fn __str__(&self) -> String {

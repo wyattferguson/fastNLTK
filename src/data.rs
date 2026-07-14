@@ -73,7 +73,7 @@ pub fn find_resource_dir(name: &str) -> Result<PathBuf, String> {
 
 /// Resolve nltk_data to a bincode cache path.
 pub fn bincode_cache_path(resource_name: &str) -> PathBuf {
-    let sanitized = resource_name.replace('/', "_").replace('.', "_");
+    let sanitized = resource_name.replace(['/', '.'], "_");
     let mut cache = std::env::temp_dir();
     cache.push("fastnltk_cache");
     cache.push(format!("{}.bin", sanitized));

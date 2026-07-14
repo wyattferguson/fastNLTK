@@ -38,7 +38,7 @@ impl DiscourseThread {
 
     /// Add a DRS from bracket notation.
     fn add_drs(&mut self, drs_string: &str) -> PyResult<()> {
-        let drs = DRS::from_string(drs_string).map_err(|e| PyValueError::new_err(e))?;
+        let drs = DRS::from_string(drs_string).map_err(PyValueError::new_err)?;
         // Track new referents
         for ref_ in &drs.universe {
             if !self.all_referents.contains(ref_) {
@@ -103,7 +103,7 @@ impl DiscourseThread {
         valuation_json: &str,
         domain_json: &str,
     ) -> PyResult<String> {
-        let q = DRS::from_string(question_drs).map_err(|e| PyValueError::new_err(e))?;
+        let q = DRS::from_string(question_drs).map_err(PyValueError::new_err)?;
 
         // Merge discourse into single DRS
         let discourse = self.merge_drs();

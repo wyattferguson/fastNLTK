@@ -119,7 +119,7 @@ impl TableauProver {
                 Formula::Imp(l, r) => {
                     // P -> Q becomes ~P | Q
                     let not_l = Formula::Not(l);
-                    for child in vec![not_l, *r] {
+                    for child in [not_l, *r] {
                         let mut new_branch = base.clone();
                         new_branch.push(SignedFormula {
                             formula: child,

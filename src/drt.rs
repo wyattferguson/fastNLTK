@@ -379,14 +379,14 @@ fn cond_to_fol(cond: &DRSCondition) -> Expression {
 #[pyfunction]
 #[pyo3(signature = (drs_string))]
 fn parse_drs(drs_string: &str) -> PyResult<String> {
-    let drs = DRS::from_string(drs_string).map_err(|e| PyValueError::new_err(e))?;
+    let drs = DRS::from_string(drs_string).map_err(PyValueError::new_err)?;
     Ok(format!("{drs}"))
 }
 
 #[pyfunction]
 #[pyo3(signature = (drs_string))]
 fn drs_to_fol(drs_string: &str) -> PyResult<String> {
-    let drs = DRS::from_string(drs_string).map_err(|e| PyValueError::new_err(e))?;
+    let drs = DRS::from_string(drs_string).map_err(PyValueError::new_err)?;
     let fol = drs.to_fol();
     Ok(format!("{fol}"))
 }

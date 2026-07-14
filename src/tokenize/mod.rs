@@ -98,7 +98,7 @@ pub fn word_tokenize_py(
         if preserve_line {
             // Tokenize each line separately
             text.lines()
-                .flat_map(|line| treebank::tokenize_treebank(line))
+                .flat_map(treebank::tokenize_treebank)
                 .collect()
         } else {
             treebank::tokenize_treebank(text)

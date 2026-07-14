@@ -743,14 +743,14 @@ pub fn parse_expression(input: &str) -> Result<Expression, String> {
 #[pyfunction]
 #[pyo3(signature = (formula))]
 fn fromstring(formula: &str) -> PyResult<String> {
-    let expr = parse_expression(formula).map_err(|e| PyValueError::new_err(e))?;
+    let expr = parse_expression(formula).map_err(PyValueError::new_err)?;
     Ok(format!("{}", expr))
 }
 
 #[pyfunction]
 #[pyo3(signature = (formula))]
 fn simplify(formula: &str) -> PyResult<String> {
-    let expr = parse_expression(formula).map_err(|e| PyValueError::new_err(e))?;
+    let expr = parse_expression(formula).map_err(PyValueError::new_err)?;
     Ok(format!("{}", expr.simplify()))
 }
 
@@ -768,7 +768,7 @@ fn evaluate_formula(
     domain_json: &str,
     assignment_json: &str,
 ) -> PyResult<bool> {
-    let expr = parse_expression(formula).map_err(|e| PyValueError::new_err(e))?;
+    let expr = parse_expression(formula).map_err(PyValueError::new_err)?;
     // Parse JSON inputs
     let valuation: Valuation = serde_json::from_str(valuation_json)
         .map_err(|e| PyValueError::new_err(format!("Invalid valuation JSON: {e}")))?;
@@ -780,7 +780,7 @@ fn evaluate_formula(
         serde_json::from_str(assignment_json)
             .map_err(|e| PyValueError::new_err(format!("Invalid assignment JSON: {e}")))?
     };
-    model_evaluate(&expr, &valuation, &domain, &assignment).map_err(|e| PyValueError::new_err(e))
+    model_evaluate(&expr, &valuation, &domain, &assignment).map_err(PyValueError::new_err)
 }
 
 /// Core Rust evaluation function (no JSON).
