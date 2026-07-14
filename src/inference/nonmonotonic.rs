@@ -14,7 +14,7 @@
 //! NLTK equivalents: nltk.inference.nonmonotonic
 
 use pyo3::prelude::*;
-use std::collections::HashSet;
+use hashbrown::HashSet;
 use std::fmt;
 
 /// A default rule: (prerequisite : justification / consequent)

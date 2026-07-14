@@ -6,7 +6,7 @@
 //!
 //! Matching NLTK's nltk.parse.EarleyChartParser and nltk.CFG.
 
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;

@@ -1,7 +1,8 @@
 # Benchmarks
 
 > **Last updated:** 2026-07-14 (release build, Intel i7-12700, 32GB RAM)  
-> **v0.2.0:** hashbrown HashMaps, CCG flat-array chart, LazyLock regex, Vec with_capacity, 25% faster TextTiling, 6% faster pk
+> **v0.2.0:** hashbrown HashMaps (ccg, texttiling, mwe, parse, punkt, nonmono, taggers), CCG flat-array chart, LazyLock regex,
+> Vec::with_capacity, 25% faster TextTiling, 6% faster pk, 23.3x avg
 >
 > Times are **median** of 30+ iterations. "—" means fastNLTK-only (no NLTK comparison).
 >

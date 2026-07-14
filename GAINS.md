@@ -1,8 +1,8 @@
 # Performance Gains — fastNLTK
 
 > **Generated:** 2026-07-14  
-> **Current baseline:** 272 Rust tests, 236/236 Python tests, 23.3x avg speedup (54 benchmarks)  
-> **Completed:** P0 (lto, FxHashMap, Vec capacity), P1 (CCG flat-array, tag hashbrown), P3 (TextTiling LazyLock, tokenizer Lazy, sentiment Vec cap)
+> **Completed:** All P0 items, all P1 items, P2 (punkt, nonmono), P3 (LazyLock, Vec cap, chunk cache)  
+> **Deferred:** sem.rs Rc (deep refactor), rayon batch, cluster SIMD, string interning
 
 ---
 

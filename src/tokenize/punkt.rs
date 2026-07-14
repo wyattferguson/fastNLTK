@@ -4,7 +4,8 @@
 //! The model parameters (abbreviations, collocations, orthographic context)
 //! are loaded via Python pickle and passed to Rust for inference.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
+use hashbrown::HashMap;
 
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyFrozenSet, PySet};
