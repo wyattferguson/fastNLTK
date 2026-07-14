@@ -57,9 +57,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: EmbarkStudios/cargo-deny-action@v1
+      - uses: EmbarkStudios/cargo-deny-action@v2
         with:
-          arguments: --all-features check licenses advisories
+          command: check
+          arguments: --all-features
 
   hack:
     runs-on: ubuntu-latest
@@ -79,9 +80,16 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - name: Setup virtualenv
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          echo "VIRTUAL_ENV=$PWD/.venv" >> $GITHUB_ENV
       - name: Build release
         run: |
           pip install maturin
           maturin develop --release
       - name: Run benchmarks (regression threshold 25%)
         run: python -m benchmarks.run --ci --threshold 0.25
+        env:
+          VIRTUAL_ENV: ${{ env.VIRTUAL_ENV }}

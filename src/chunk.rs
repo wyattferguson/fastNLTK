@@ -146,7 +146,12 @@ impl RegexpParser {
         }
 
         // Return (word, iob_tag) pairs
-        tokens.iter().map(|(w, _)| w.as_str()).zip(iob).map(|(w, i)| (w.to_string(), i.to_string())).collect()
+        tokens
+            .iter()
+            .map(|(w, _)| w.as_str())
+            .zip(iob)
+            .map(|(w, i)| (w.to_string(), i.to_string()))
+            .collect()
     }
 }
 

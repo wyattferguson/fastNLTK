@@ -64,12 +64,8 @@ impl Formula {
             Self::False => Self::True,
             Self::Atom(p, args) => Self::Not(Box::new(Self::Atom(p, args))),
             Self::Not(inner) => inner.nnf(),
-            Self::And(children) => {
-                Self::Or(children.into_iter().map(Self::negate_nnf).collect())
-            }
-            Self::Or(children) => {
-                Self::And(children.into_iter().map(Self::negate_nnf).collect())
-            }
+            Self::And(children) => Self::Or(children.into_iter().map(Self::negate_nnf).collect()),
+            Self::Or(children) => Self::And(children.into_iter().map(Self::negate_nnf).collect()),
             Self::Imp(l, r) => Self::And(vec![l.nnf(), r.negate_nnf()]),
             Self::Iff(l, r) => Self::Or(vec![
                 Self::And(vec![l.clone().nnf(), r.clone().nnf()]),
@@ -118,9 +114,7 @@ impl Formula {
                 let flat: Vec<Self> = distributed.into_iter().flatten().collect();
                 Self::Or(flat)
             }
-            Self::And(children) => {
-                Self::And(children.into_iter().map(Self::distribute).collect())
-            }
+            Self::And(children) => Self::And(children.into_iter().map(Self::distribute).collect()),
             Self::Imp(l, r) => Self::Or(vec![l.negate_nnf(), r.distribute()]).distribute(),
             Self::Iff(l, r) => Self::Or(vec![
                 Self::And(vec![l.clone().nnf(), r.clone().nnf()]),

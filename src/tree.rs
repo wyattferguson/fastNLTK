@@ -86,7 +86,7 @@ impl Tree {
     }
 
     /// Get child by index. Returns a `Tree` for non-leaf children, `str` for leaves.
-#[allow(deprecated)]
+    #[allow(deprecated)]
     fn __getitem__(&self, py: Python<'_>, index: isize) -> PyObject {
         let idx = if index < 0 {
             (self.children.len() as isize + index) as usize

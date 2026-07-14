@@ -88,7 +88,7 @@ fn normalize(token: &str) -> String {
     for c in token.chars() {
         match c {
             // Remove Arabic diacritics (Tashkeel)
-            '\u{064B}'..='\u{0652}' | '\u{0670}' => {},
+            '\u{064B}'..='\u{0652}' | '\u{0670}' => {}
             // Replace hamzated Alif with plain Alif
             '\u{0622}' | '\u{0623}' | '\u{0625}' => result.push('\u{0627}'), // Alif
             // Replace Alif Maqsura with Yaa
