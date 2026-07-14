@@ -265,7 +265,7 @@ impl TrigramTagger {
                     .and_modify(|c| *c += 1)
                     .or_insert(1);
                 *tag_counts.entry(tag.clone()).or_insert(0) += 1;
-                prev2 = prev1.clone();
+                prev2.clone_from(&prev1);
                 prev1 = tag.clone();
             }
         }
@@ -297,7 +297,7 @@ impl TrigramTagger {
                 .cloned()
                 .unwrap_or_default();
             result.push((word, tag.clone()));
-            prev2 = prev1.clone();
+            prev2.clone_from(&prev1);
             prev1 = tag;
         }
         result

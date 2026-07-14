@@ -167,7 +167,6 @@ impl SentimentIntensityAnalyzer {
 
             // Check capitalization emphasis (ALL CAPS)
             let original_word = text.unicode_words().nth(i).unwrap_or("");
-            #[allow(unused_mut)]
             if original_word.chars().all(|c| c.is_uppercase()) && valence.abs() > 1.0 {
                 valence *= 1.5;
             }

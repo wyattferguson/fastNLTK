@@ -42,7 +42,7 @@ impl CollocationData {
         self.ngram_fd.retain(|_, &mut count| count >= min_freq);
     }
 
-    #[allow(dead_code)]
+    /// Remove ngrams that pass the word filter.
     fn apply_word_filter<F>(&mut self, filter_fn: F)
     where
         F: Fn(&str) -> bool,

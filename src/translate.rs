@@ -56,7 +56,7 @@ fn bleu_score(candidate: Vec<String>, reference: Vec<String>, max_n: usize) -> f
         return 0.0;
     }
 
-    let avg = (log_avg / valid_n as f64).exp();
+    let avg = (log_avg / f64::from(valid_n)).exp();
     bp * avg
 }
 
@@ -106,7 +106,7 @@ fn corpus_bleu(candidates: Vec<Vec<String>>, references: Vec<Vec<String>>, max_n
     if valid_n == 0 {
         return 0.0;
     }
-    bp * (log_avg / valid_n as f64).exp()
+    bp * (log_avg / f64::from(valid_n)).exp()
 }
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {

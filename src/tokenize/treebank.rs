@@ -121,20 +121,15 @@ impl TreebankWordDetokenizer {
     fn detokenize(&self, tokens: Vec<String>) -> String {
         let mut result = String::new();
         for (i, token) in tokens.iter().enumerate() {
-            if i == 0 {
-                result.push_str(token);
-            } else if matches!(
+            if i > 0 && !matches!(
                 token.as_str(),
                 "." | "," | "!" | "?" | ":" | ";" | ")" | "]" | "}" | "%" | "''" | "'" | "n't"
-            ) || token.starts_with('\'')
+            ) && !token.starts_with('\'')
+            && !matches!(token.as_str(), "(" | "[" | "{" | "``")
             {
-                result.push_str(token);
-            } else if matches!(token.as_str(), "(" | "[" | "{" | "``") {
-                result.push_str(token);
-            } else {
                 result.push(' ');
-                result.push_str(token);
             }
+            result.push_str(token);
         }
         result
     }

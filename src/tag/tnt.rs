@@ -213,7 +213,7 @@ impl TnT {
             return self.tag_prob(t2);
         }
         // TnT-style: backoff from trigram → bigram → unigram
-        (count as f64 + 0.5) / (total as f64 + 0.5 * self.tags.len() as f64)
+        (count as f64 + 0.5) / 0.5f64.mul_add(self.tags.len() as f64, total as f64)
     }
 
     /// Trigram transition probability P(t3 | t1, t2) with backoff.

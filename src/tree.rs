@@ -211,7 +211,7 @@ impl Tree {
             .children
             .iter()
             .map(|c| match c {
-                TreeNode::Leaf(s) => format!("'{}'", s),
+                TreeNode::Leaf(s) => format!("'{s}'"),
                 TreeNode::Subtree(t) => t.label.clone(),
             })
             .collect();

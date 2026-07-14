@@ -18,10 +18,10 @@ type FeatureVector = Vec<(String, f64)>;
 
 /// Extract feature vector from a Python dict of {feature_name: value}.
 /// Values are converted to 1.0 for truthy, 0.0 for falsy (binary encoding).
-fn extract_features(features_dict: &Bound<'_, PyDict>) -> FeatureVector {
+fn extract_features(features_dict: &Bound<'_, PyDict>) -> PyResult<FeatureVector> {
     let mut features = FeatureVector::new();
     for (key, value) in features_dict.iter() {
-        let k: String = key.extract().unwrap_or_default();
+        let k: String = key.extract()?;
         let v = if value.is_truthy().unwrap_or(false) {
             1.0
         } else if let Ok(f) = value.extract::<f64>() {
@@ -33,7 +33,7 @@ fn extract_features(features_dict: &Bound<'_, PyDict>) -> FeatureVector {
             features.push((k, v));
         }
     }
-    features
+    Ok(features)
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -93,7 +93,7 @@ impl MaxentClassifier {
                 .extract()
                 .map_err(|_| PyValueError::new_err("Expected string label as second element"))?;
 
-            let feats = extract_features(&features_dict);
+            let feats = extract_features(&features_dict)?;
             for (name, _) in &feats {
                 *feature_set.entry(name.clone()).or_insert(0) += 1;
             }
@@ -249,7 +249,7 @@ impl MaxentClassifier {
 
     /// Classify a single feature dict.
     fn classify(&self, features_dict: &Bound<'_, PyDict>) -> PyResult<String> {
-        let features = extract_features(&features_dict);
+        let features = extract_features(&features_dict)?;
         let scores = self.compute_scores(&features);
         let max_idx = scores
             .iter()
@@ -262,7 +262,7 @@ impl MaxentClassifier {
 
     /// Return probability distribution over labels.
     fn prob_classify(&self, features_dict: &Bound<'_, PyDict>) -> PyResult<HashMap<String, f64>> {
-        let features = extract_features(&features_dict);
+        let features = extract_features(&features_dict)?;
         let scores = self.compute_scores(&features);
         let max_score = scores.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
         let mut exp_sum = 0.0;

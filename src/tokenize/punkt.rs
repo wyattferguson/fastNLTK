@@ -22,9 +22,6 @@ pub struct PunktParams {
     collocations: HashSet<(String, String)>,
     /// Words that commonly start sentences
     sent_starters: HashSet<String>,
-    /// Orthographic context: word → (count_upper, count_lower, count_period, ...)
-    #[allow(dead_code)]
-    ortho_context: HashMap<String, (u32, u32, u32)>,
 }
 
 impl PunktParams {
@@ -33,7 +30,6 @@ impl PunktParams {
             abbrev_types: HashSet::new(),
             collocations: HashSet::new(),
             sent_starters: HashSet::new(),
-            ortho_context: HashMap::new(),
         }
     }
 
@@ -44,7 +40,6 @@ impl PunktParams {
     }
 
     /// Check if a word pair is a known collocation.
-    #[allow(dead_code)]
     fn is_collocation(&self, w1: &str, w2: &str) -> bool {
         self.collocations.contains(&(w1.to_lowercase(), w2.to_lowercase()))
     }
@@ -68,8 +63,9 @@ pub struct PunktSentenceTokenizer {
 impl PunktSentenceTokenizer {
     #[new]
     #[pyo3(signature = (train_text=None, language="english"))]
-    #[allow(unused_variables)]
     fn new(train_text: Option<String>, language: &str) -> Self {
+        let _ = train_text;
+        let _ = language;
         PunktSentenceTokenizer { params: None }
     }
 
@@ -159,7 +155,7 @@ impl PunktSentenceTokenizer {
                         || bytes[i] == b'"'
                         || bytes[i] == b'\''
                     {
-                        let end = if bytes[i] == b' ' { i } else { i };
+                        let end = i;
                         spans.push((start, end));
                         start = end;
                     }
@@ -371,7 +367,7 @@ mod tests {
         let p = test_params();
         tok.params = Some(p);
         let sentences = tok.sentences_from_text("Dr. Smith went home. He ate dinner.");
-        assert_eq!(sentences.len(), 2, "Should have 2 sentences: {:?}", sentences);
+        assert_eq!(sentences.len(), 2, "Should have 2 sentences: {sentences:?}");
         assert!(sentences[0].contains("Dr."), "First sentence should contain Dr.");
         assert!(!sentences[0].contains("He ate"), "First sentence should not contain 'He ate'");
     }

@@ -126,8 +126,8 @@ fn compute_block_similarity(pseudo_sents: &[Vec<String>], k: usize) -> Vec<f64> 
             let lf = left_freq.get(w).copied().unwrap_or(0.0);
             let rf = right_freq.get(w).copied().unwrap_or(0.0);
             // Use log-frequency weighting
-            let lw = if lf > 0.0 { 1.0 + lf.log(2.0) } else { 0.0 };
-            let rw = if rf > 0.0 { 1.0 + rf.log(2.0) } else { 0.0 };
+            let lw = if lf > 0.0 { 1.0 + lf.log2() } else { 0.0 };
+            let rw = if rf > 0.0 { 1.0 + rf.log2() } else { 0.0 };
             dot += lw * rw;
             left_mag += lw * lw;
             right_mag += rw * rw;

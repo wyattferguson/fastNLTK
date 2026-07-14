@@ -5,7 +5,7 @@ use regex::Regex;
 pub struct ToktokTokenizer;
 
 fn mk_re(p: &str) -> Regex {
-    Regex::new(p).unwrap_or_else(|_| panic!("bad regex: {p}"))
+    Regex::new(p).unwrap_or_else(|e| panic!("bad regex '{p}': {e}"))
 }
 
 fn sub(p: &str, r: &str) -> (Regex, String) {

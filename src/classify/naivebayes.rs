@@ -72,8 +72,8 @@ impl NaiveBayesClassifier {
 
             let mut feats = Vec::new();
             for (feat_key, feat_value) in features_dict.iter() {
-                let k: String = feat_key.extract().unwrap_or_default();
-                let v: String = feat_value.extract().unwrap_or_default();
+                let k: String = feat_key.extract()?;
+                let v: String = feat_value.extract()?;
                 feats.push((k, v));
             }
             raw_data.push((label, feats));
@@ -143,7 +143,7 @@ impl NaiveBayesClassifier {
 
     /// Classify a feature dictionary.
     fn classify(&self, features_dict: &Bound<'_, PyDict>) -> PyResult<String> {
-        let features = self.extract_feature_vector(features_dict);
+        let features = self.extract_feature_vector(features_dict)?;
         let best = self.classify_internal(&features);
         Ok(best)
     }
@@ -155,7 +155,7 @@ impl NaiveBayesClassifier {
 
     /// Return probabilities for each label.
     fn prob_classify(&self, features_dict: &Bound<'_, PyDict>) -> PyResult<HashMap<String, f64>> {
-        let features = self.extract_feature_vector(features_dict);
+        let features = self.extract_feature_vector(features_dict)?;
         let mut scores = HashMap::new();
 
         for label in &self.labels {
@@ -226,14 +226,14 @@ impl NaiveBayesClassifier {
 // ═══════════════════════════════════════════════════════════
 
 impl NaiveBayesClassifier {
-    fn extract_feature_vector(&self, features_dict: &Bound<'_, PyDict>) -> Vec<String> {
+    fn extract_feature_vector(&self, features_dict: &Bound<'_, PyDict>) -> PyResult<Vec<String>> {
         let mut features = Vec::new();
         for (key, value) in features_dict.iter() {
-            let k: String = key.extract().unwrap_or_default();
-            let v: String = value.extract().unwrap_or_default();
+            let k: String = key.extract()?;
+            let v: String = value.extract()?;
             features.push(format!("{k}={v}"));
         }
-        features
+        Ok(features)
     }
 
     fn classify_internal(&self, features: &[String]) -> String {
