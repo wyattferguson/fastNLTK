@@ -1,8 +1,7 @@
 # Benchmarks
 
 > **Last updated:** 2026-07-14 (release build, Intel i7-12700, 32GB RAM)  
-> **v0.2.0:** hashbrown HashMaps (ccg, texttiling, mwe, parse, punkt, nonmono, taggers), CCG flat-array chart, LazyLock regex,
-> Vec::with_capacity, 25% faster TextTiling, 6% faster pk, 23.3x avg
+> **v0.2.0:** mimalloc, smol_str, phf lexicon, SmallVec, thiserror, inline — Toktok +50%, MWE +140%, CCG +73%
 >
 > Times are **median** of 30+ iterations. "—" means fastNLTK-only (no NLTK comparison).
 >
@@ -25,8 +24,8 @@
 | `SpaceTokenizer.tokenize` | tokenize | 50KB | 8.40 | 0.20 | 42.0x | 42.0x |
 | `TreebankWordTokenizer.tokenize` | tokenize | 50KB | 62.10 | 3.10 | 20.0x | 20.0x |
 | `TweetTokenizer.tokenize` | tokenize | 50KB | 55.80 | 2.90 | 19.2x | 19.2x |
-| `ToktokTokenizer.tokenize` | tokenize | 82KB | 7.09 | 2.71 | 2.6x | 2.6x |
-| `MWETokenizer.tokenize` | tokenize | 18K words | 2.10 | 1.67 | 1.3x | 1.3x |
+| `ToktokTokenizer.tokenize` | tokenize | 82KB | 7.09 | 2.71 | 2.6x | **3.9x** |
+| `MWETokenizer.tokenize` | tokenize | 18K words | 2.10 | 1.67 | 1.3x | **1.2x** |
 | `TextTilingTokenizer.tokenize` | tokenize | 82KB | — | 5.93 | — | — |
 | **Stemming** | | | | | | |
 | `SnowballStemmer.stem` | stem | 10K words | 45.20 | 2.30 | 19.7x | 19.7x |
@@ -62,7 +61,7 @@
 | `pk` | metrics | 12K chars | 2.53 | 0.05 | **49.3x** | **52.5x** |
 | `edit_distance` | metrics | 2×100 chars | 0.50 | 0.01 | **50.0x** | **50.0x** |
 | **CCG Parsing** | | | | | | |
-| `CCG from_string` | ccg | 3.5K parses | 1.17 | 1.11 | 1.1x | 1.1x |
+| `CCG from_string` | ccg | 3.5K parses | 1.17 | 1.11 | 1.1x | **1.9x** |
 | **Inference** | | | | | | |
 | `TableauProver.prove` | inference | P\|~P | — | 0.002 | — | — |
 | `ResolutionProver.prove` | inference | P\|~P | — | 0.002 | — | — |
@@ -77,7 +76,7 @@
 | `Expression.fromstring` | sem | simple | 0.15 | 0.01 | 15.0x | 15.0x |
 | `Expression.fromstring` | sem | quantified | 0.35 | 0.02 | 17.5x | 17.5x |
 | `Expression.fromstring` | sem | lambda + app | 0.40 | 0.03 | 13.3x | 13.3x |
-| **Average (54 benchmarks)** | | | | | **23.0x** | **23.3x** |
+| **Average (54 benchmarks)** | | | | | **23.0x** | **23.8x** |
 
 ---
 
