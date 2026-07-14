@@ -1,8 +1,13 @@
+use once_cell::sync::Lazy;
 use pyo3::prelude::*;
 use regex::Regex;
+use smol_str::SmolStr;
+use std::borrow::Cow;
 
 #[pyclass(name = "ToktokTokenizer", module = "fastnltk._rust")]
 pub struct ToktokTokenizer;
+
+static TOKTOK_SUBS: Lazy<Vec<(Regex, String)>> = Lazy::new(build_subs);
 
 fn mk_re(p: &str) -> Regex {
     Regex::new(p).unwrap_or_else(|e| panic!("bad regex '{p}': {e}"))
@@ -21,10 +26,18 @@ impl ToktokTokenizer {
 
     #[pyo3(signature = (text, return_str=false))]
     fn tokenize(&self, text: &str, return_str: bool) -> Vec<String> {
-        let mut s = text.to_string();
-        let subs = build_subs();
-        for (re, replacement) in &subs {
-            s = re.replace_all(&s, replacement.as_str()).to_string();
+        let subs = &*TOKTOK_SUBS;
+        let mut s: Cow<str> = Cow::Borrowed(text);
+        for (re, replacement) in subs {
+            if let Cow::Borrowed(inner) = s {
+                if re.is_match(inner) {
+                    s = Cow::Owned(re.replace_all(inner, replacement.as_str()).into_owned());
+                }
+            } else if let Cow::Owned(ref inner) = s {
+                if re.is_match(inner) {
+                    s = Cow::Owned(re.replace_all(inner, replacement.as_str()).into_owned());
+                }
+            }
         }
         let t = s.trim().to_string();
         if return_str {
@@ -33,7 +46,12 @@ impl ToktokTokenizer {
         if t.is_empty() {
             return Vec::new();
         }
-        t.split_whitespace().map(String::from).collect()
+        let parts: Vec<&str> = t.split_whitespace().collect();
+        let mut out = Vec::with_capacity(parts.len());
+        for p in parts {
+            out.push(SmolStr::new(p).to_string());
+        }
+        out
     }
 }
 

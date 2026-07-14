@@ -4,6 +4,7 @@
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use regex::Regex;
+use smol_str::SmolStr;
 
 use crate::util::regex_cache;
 
@@ -36,9 +37,9 @@ impl RegexpTokenizer {
         let re = regex_cache::get_or_compile(&self.pattern, self.flags)
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(if self.gaps {
-            re.split(text).filter(|s| !s.is_empty()).map(String::from).collect()
+            re.split(text).filter(|s| !s.is_empty()).map(|s| SmolStr::new(s).to_string()).collect()
         } else {
-            re.find_iter(text).map(|m| m.as_str().to_string()).collect()
+            re.find_iter(text).map(|m| SmolStr::new(m.as_str()).to_string()).collect()
         })
     }
 

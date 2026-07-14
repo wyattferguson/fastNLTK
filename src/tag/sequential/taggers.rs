@@ -3,8 +3,6 @@
 //! Implements `UnigramTagger`, `BigramTagger`, `TrigramTagger`,
 //! `AffixTagger`, and `RegexpTagger` with SmolStr-optimized lookups.
 
-use std::collections::HashMap;
-
 use hashbrown::HashMap as FastMap;
 use smol_str::SmolStr;
 
@@ -95,8 +93,8 @@ impl UnigramTagger {
 // BigramTagger
 #[pyclass(name = "BigramTagger", module = "fastnltk._rust")]
 pub struct BigramTagger {
-    bigram_map: HashMap<(String, String), String>,
-    default_tag: Option<String>,
+    bigram_map: FastMap<(SmolStr, SmolStr), SmolStr>,
+    default_tag: Option<SmolStr>,
 }
 
 #[pymethods]
@@ -104,27 +102,24 @@ impl BigramTagger {
     #[new]
     #[pyo3(signature = (backoff=None))]
     fn new(backoff: Option<&str>) -> Self {
-        Self {
-            bigram_map: HashMap::new(),
-            default_tag: backoff.map(std::string::ToString::to_string),
-        }
+        Self { bigram_map: FastMap::new(), default_tag: backoff.map(SmolStr::new) }
     }
     fn train(&mut self, sentences: &Bound<'_, PyList>) -> PyResult<()> {
-        let mut counts: HashMap<(String, String), HashMap<String, u64>> = HashMap::new();
-        let mut tag_counts: HashMap<String, u64> = HashMap::new();
+        let mut counts: FastMap<(SmolStr, SmolStr), FastMap<SmolStr, u64>> = FastMap::new();
+        let mut tag_counts: FastMap<SmolStr, u64> = FastMap::new();
         for item in sentences.iter() {
             let sent: Vec<(String, String)> = item.extract()?;
-            let mut prev = "START".to_string();
+            let mut prev = SmolStr::new_inline("START");
             for (word, tag) in &sent {
-                let key = (prev.clone(), word.clone());
+                let key = (prev.clone(), SmolStr::new(word));
                 counts
                     .entry(key)
                     .or_default()
-                    .entry(tag.clone())
+                    .entry(SmolStr::new(tag))
                     .and_modify(|c| *c += 1)
                     .or_insert(1);
-                *tag_counts.entry(tag.clone()).or_insert(0) += 1;
-                prev.clone_from(tag);
+                *tag_counts.entry(SmolStr::new(tag)).or_insert(0) += 1;
+                prev = SmolStr::new(tag);
             }
         }
         for (key, tag_count) in &counts {
@@ -139,21 +134,18 @@ impl BigramTagger {
         Ok(())
     }
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
-        let mut prev = "START".to_string();
-        tokens
-            .into_iter()
-            .map(|w| {
-                let key = (prev.clone(), w.clone());
-                let tag = self
-                    .bigram_map
-                    .get(&key)
-                    .or(self.default_tag.as_ref())
-                    .cloned()
-                    .unwrap_or_default();
-                prev.clone_from(&tag);
-                (w, tag)
-            })
-            .collect()
+        let n = tokens.len();
+        let mut out = Vec::with_capacity(n);
+        let mut prev = SmolStr::new_inline("START");
+        let default = self.default_tag.as_ref().map(|t| t.as_str()).unwrap_or("");
+        for w in tokens {
+            let w_smol = SmolStr::new(&w);
+            let key = (prev, w_smol);
+            let tag = self.bigram_map.get(&key).map(|s| s.as_str()).unwrap_or(default);
+            out.push((w, tag.to_string()));
+            prev = SmolStr::new(tag);
+        }
+        out
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
         sentences.into_iter().map(|s| self.tag(s)).collect()
@@ -173,18 +165,15 @@ impl BigramTagger {
             }
             total += sent.len() as u64;
         }
-        if total == 0 {
-            return 0.0;
-        }
-        correct as f64 / total as f64
+        if total == 0 { 0.0 } else { correct as f64 / total as f64 }
     }
 }
 
 // TrigramTagger
 #[pyclass(name = "TrigramTagger", module = "fastnltk._rust")]
 pub struct TrigramTagger {
-    trigram_map: HashMap<(String, String, String), String>,
-    default_tag: Option<String>,
+    trigram_map: FastMap<(SmolStr, SmolStr, SmolStr), SmolStr>,
+    default_tag: Option<SmolStr>,
 }
 
 #[pymethods]
@@ -192,29 +181,26 @@ impl TrigramTagger {
     #[new]
     #[pyo3(signature = (backoff=None))]
     fn new(backoff: Option<&str>) -> Self {
-        Self {
-            trigram_map: HashMap::new(),
-            default_tag: backoff.map(std::string::ToString::to_string),
-        }
+        Self { trigram_map: FastMap::new(), default_tag: backoff.map(SmolStr::new) }
     }
     fn train(&mut self, sentences: &Bound<'_, PyList>) -> PyResult<()> {
-        let mut counts: HashMap<(String, String, String), HashMap<String, u64>> = HashMap::new();
-        let mut tag_counts: HashMap<String, u64> = HashMap::new();
+        let mut counts: FastMap<(SmolStr, SmolStr, SmolStr), FastMap<SmolStr, u64>> = FastMap::new();
+        let mut tag_counts: FastMap<SmolStr, u64> = FastMap::new();
         for item in sentences.iter() {
             let sent: Vec<(String, String)> = item.extract()?;
-            let mut prev2 = "START".to_string();
-            let mut prev1 = "START".to_string();
+            let mut prev2 = SmolStr::new_inline("START");
+            let mut prev1 = SmolStr::new_inline("START");
             for (word, tag) in &sent {
-                let key = (prev2.clone(), prev1.clone(), word.clone());
+                let key = (prev2.clone(), prev1.clone(), SmolStr::new(word));
                 counts
                     .entry(key)
                     .or_default()
-                    .entry(tag.clone())
+                    .entry(SmolStr::new(tag))
                     .and_modify(|c| *c += 1)
                     .or_insert(1);
-                *tag_counts.entry(tag.clone()).or_insert(0) += 1;
-                prev2.clone_from(&prev1);
-                prev1.clone_from(tag);
+                *tag_counts.entry(SmolStr::new(tag)).or_insert(0) += 1;
+                prev2 = prev1;
+                prev1 = SmolStr::new(tag);
             }
         }
         for (key, tag_count) in &counts {
@@ -229,23 +215,20 @@ impl TrigramTagger {
         Ok(())
     }
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
-        let mut prev2 = "START".to_string();
-        let mut prev1 = "START".to_string();
-        tokens
-            .into_iter()
-            .map(|w| {
-                let key = (prev2.clone(), prev1.clone(), w.clone());
-                let tag = self
-                    .trigram_map
-                    .get(&key)
-                    .or(self.default_tag.as_ref())
-                    .cloned()
-                    .unwrap_or_default();
-                prev2.clone_from(&prev1);
-                prev1.clone_from(&tag);
-                (w, tag)
-            })
-            .collect()
+        let n = tokens.len();
+        let mut out = Vec::with_capacity(n);
+        let mut prev2 = SmolStr::new_inline("START");
+        let mut prev1 = SmolStr::new_inline("START");
+        let default = self.default_tag.as_ref().map(|t| t.as_str()).unwrap_or("");
+        for w in tokens {
+            let w_smol = SmolStr::new(&w);
+            let key = (prev2, prev1.clone(), w_smol);
+            let tag = self.trigram_map.get(&key).map(|s| s.as_str()).unwrap_or(default);
+            out.push((w, tag.to_string()));
+            prev2 = prev1;
+            prev1 = SmolStr::new(tag);
+        }
+        out
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
         sentences.into_iter().map(|s| self.tag(s)).collect()
@@ -265,10 +248,7 @@ impl TrigramTagger {
             }
             total += sent.len() as u64;
         }
-        if total == 0 {
-            return 0.0;
-        }
-        correct as f64 / total as f64
+        if total == 0 { 0.0 } else { correct as f64 / total as f64 }
     }
 }
 
@@ -309,21 +289,21 @@ impl AffixTagger {
         Ok(())
     }
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
-        tokens
-            .into_iter()
-            .map(|w| {
-                let affix = if self.use_suffix {
-                    let n = w.len().min(3);
-                    SmolStr::new(&w[w.len() - n..])
-                } else {
-                    SmolStr::new(&w[..w.len().min(3)])
-                };
-                let map = if self.use_suffix { &self.suffix_map } else { &self.prefix_map };
-                let tag =
-                    map.get(&affix).or(self.default_tag.as_ref()).cloned().unwrap_or_default();
-                (w, tag.to_string())
-            })
-            .collect()
+        let n = tokens.len();
+        let mut out = Vec::with_capacity(n);
+        let default: SmolStr = self.default_tag.clone().unwrap_or_default();
+        for w in tokens {
+            let affix = if self.use_suffix {
+                let cut = w.len().min(3);
+                SmolStr::new(&w[w.len() - cut..])
+            } else {
+                SmolStr::new(&w[..w.len().min(3)])
+            };
+            let map = if self.use_suffix { &self.suffix_map } else { &self.prefix_map };
+            let tag = map.get(&affix).cloned().unwrap_or_else(|| default.clone());
+            out.push((w, tag.to_string()));
+        }
+        out
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
         sentences.into_iter().map(|s| self.tag(s)).collect()

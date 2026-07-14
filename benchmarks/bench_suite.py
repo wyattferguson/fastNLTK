@@ -93,6 +93,25 @@ def bench_texttiling() -> BenchResult:
     )
 
 
+def bench_punkt_sent_tokenize() -> BenchResult:
+    from nltk.tokenize.punkt import PunktSentenceTokenizer as NltkPunkt
+
+    from fastnltk._rust import PunktSentenceTokenizer
+
+    text = fixture("medium")
+    ntk = NltkPunkt()
+    rust = PunktSentenceTokenizer()
+    n_ms = _median_time(lambda: ntk.tokenize(text), 15)
+    f_ms = _median_time(lambda: rust.tokenize(text), 15)
+    return BenchResult(
+        name="PunktSentenceTokenizer.tokenize",
+        group="tokenize",
+        params={"chars": len(text)},
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+    )
+
+
 def bench_regexp_tokenizer() -> BenchResult:
     import nltk.tokenize
 
@@ -144,6 +163,42 @@ def bench_tweet_tokenizer() -> BenchResult:
         params={"chars": len(text)},
         nltk_ms=n_ms, fast_ms=f_ms,
         speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+    )
+
+
+def bench_sexpr_tokenizer() -> BenchResult:
+    import nltk.tokenize
+
+    from fastnltk._rust import SExprTokenizer
+
+    text = "(a (b c)) (d (e f)) " * 200
+    ntk = nltk.tokenize.SExprTokenizer()
+    rust = SExprTokenizer("()", True)
+    n_ms = _median_time(lambda: ntk.tokenize(text), 30)
+    f_ms = _median_time(lambda: rust.tokenize(text), 30)
+    return BenchResult(
+        name="SExprTokenizer.tokenize", group="tokenize",
+        params={"chars": len(text)},
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
+    )
+
+
+def bench_detokenizer() -> BenchResult:
+    import nltk.tokenize
+
+    from fastnltk._rust import TreebankWordDetokenizer
+
+    tokens = fixture("medium").split()[:5000]
+    ntk = nltk.tokenize.TreebankWordDetokenizer()
+    rust = TreebankWordDetokenizer()
+    n_ms = _median_time(lambda: ntk.detokenize(tokens), 30)
+    f_ms = _median_time(lambda: rust.detokenize(tokens), 30)
+    return BenchResult(
+        name="TreebankWordDetokenizer.detokenize", group="tokenize",
+        params={"tokens": len(tokens)},
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=30,
     )
 
 
@@ -294,6 +349,31 @@ def bench_hmm_tag() -> BenchResult:
         group="tag",
         params={"words": len(words_1k)},
         fast_only_ms=f_ms, iterations=50,
+    )
+
+
+def bench_tnt_tag() -> BenchResult:
+    import nltk.tag
+
+    from fastnltk._rust import TnT
+
+    train = [[("the", "DT"), ("cat", "NN")], [("the", "DT"), ("dog", "NN")],
+             [("a", "DT"), ("fox", "NN")], [("a", "DT"), ("bear", "NN")]] * 5
+    # NLTK TnT
+    ntk = nltk.tag.TnT()
+    ntk.train(train)
+    words = ["the", "cat", "a", "dog", "the", "fox"] * 166
+    n_ms = _median_time(lambda: ntk.tag(words), 15)
+    # fastNLTK TnT
+    rust = TnT()
+    rust.train(train)
+    f_ms = _median_time(lambda: rust.tag(words), 15)
+    return BenchResult(
+        name="TnT.tag",
+        group="tag",
+        params={"words": len(words)},
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
     )
 
 
@@ -500,6 +580,46 @@ def bench_naivebayes_classify() -> BenchResult:
     )
 
 
+def bench_maxent_train() -> BenchResult:
+    from nltk.classify import MaxentClassifier as NltkMaxent
+
+    from fastnltk._rust import MaxentClassifier
+
+    train_data = []
+    for i in range(200):
+        label = "pos" if i % 2 == 0 else "neg"
+        feats = {f"feat_{j}": str((i + j) % 3) for j in range(5)}
+        train_data.append((feats, label))
+
+    n_ms = _median_time(lambda: NltkMaxent.train(train_data, max_iter=10, trace=0), 3)
+    rust = MaxentClassifier()
+    f_ms = _median_time(lambda: rust.train(train_data, 10, 0.0), 3)
+    return BenchResult(
+        name="MaxentClassifier.train", group="classify",
+        params={"instances": len(train_data)},
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=3,
+    )
+
+
+def bench_textcat() -> BenchResult:
+    from fastnltk._rust import TextCat
+
+    texts = [
+        "the quick brown fox jumps over the lazy dog",
+        "der schnelle braune Fuchs springt uber den faulen Hund",
+        "le rapide renard brun saute par-dessus le chien paresseux",
+        "el rapido zorro marron salta sobre el perro perezoso",
+    ] * 25
+    rust = TextCat()
+    f_ms = _median_time(lambda: [rust.guess_language(t) for t in texts], 50)
+    return BenchResult(
+        name="TextCat.guess_language", group="classify",
+        params={"texts": len(texts)},
+        fast_only_ms=f_ms, iterations=50,
+    )
+
+
 # ── Probability ───────────────────────────────────────────
 
 
@@ -525,6 +645,34 @@ def bench_freqdist() -> BenchResult:
     return BenchResult(
         name="FreqDist.update",
         group="probability",
+        params={"samples": len(samples)},
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+    )
+
+
+def bench_conditional_freqdist() -> BenchResult:
+    import nltk.probability as nltk_prob
+
+    from fastnltk._rust import ConditionalFreqDist
+
+    samples = fixture("medium").split()[:20000]
+    conditions = [s[0] if s else "_" for s in samples]
+
+    def run_nltk():
+        cfd = nltk_prob.ConditionalFreqDist()
+        for cond, samp in zip(conditions, samples):
+            cfd[cond][samp] += 1
+
+    def run_fast():
+        cfd = ConditionalFreqDist()
+        for cond, samp in zip(conditions, samples):
+            cfd.inc(cond, samp)
+
+    n_ms = _median_time(run_nltk, 15)
+    f_ms = _median_time(run_fast, 15)
+    return BenchResult(
+        name="ConditionalFreqDist.inc", group="probability",
         params={"samples": len(samples)},
         nltk_ms=n_ms, fast_ms=f_ms,
         speedup=n_ms / f_ms if f_ms else 0, iterations=15,
@@ -557,6 +705,32 @@ def bench_bigram_collocations() -> BenchResult:
         params={"words": len(words)},
         nltk_ms=n_ms, fast_ms=f_ms,
         speedup=n_ms / f_ms if f_ms else 0, iterations=15,
+    )
+
+
+def bench_trigram_collocations() -> BenchResult:
+    import nltk.collocations as nltk_coll
+
+    from fastnltk._rust import TrigramCollocationFinder
+
+    words = (fixture("medium").split() * 2)[:20000]
+
+    def run_nltk():
+        finder = nltk_coll.TrigramCollocationFinder.from_words(words)
+        finder.nbest(nltk_coll.TrigramAssocMeasures().raw_freq, 5)
+
+    def run_fast():
+        finder = TrigramCollocationFinder.from_words(words, 3)
+        finder.nbest("raw_freq", 5)
+
+    n_ms = _median_time(run_nltk, 5)
+    f_ms = _median_time(run_fast, 5)
+    return BenchResult(
+        name="TrigramCollocationFinder.from_words",
+        group="collocations",
+        params={"words": len(words)},
+        nltk_ms=n_ms, fast_ms=f_ms,
+        speedup=n_ms / f_ms if f_ms else 0, iterations=5,
     )
 
 
@@ -637,6 +811,23 @@ def bench_edit_distance() -> BenchResult:
     )
 
 
+def bench_bigram_assoc_measures() -> BenchResult:
+    from fastnltk._rust import BigramAssocMeasures
+
+    # Typical collocation counts: (count, n_total, n_ii, n_ix, n_xi)
+    args = (10.0, 1000.0, 8.0, 20.0, 30.0)
+    f_ms = _median_time(
+        lambda: [BigramAssocMeasures.pmi(*args), BigramAssocMeasures.chi_sq(*args),
+                 BigramAssocMeasures.likelihood_ratio(*args)],
+        500,
+    )
+    return BenchResult(
+        name="BigramAssocMeasures", group="metrics",
+        params={"calls": 4},
+        fast_only_ms=f_ms, iterations=500,
+    )
+
+
 # ── LM ─────────────────────────────────────────────────────
 
 
@@ -661,17 +852,35 @@ def bench_mle_fit() -> BenchResult:
 def bench_kneser_ney() -> BenchResult:
     from fastnltk.lm import KneserNeyInterpolated
 
-    def run():
-        m = KneserNeyInterpolated(2, 0.75)
-        m.fit([["the", "cat"], ["the", "dog"], ["a", "cat"], ["the", "mouse"]])
-        return [m.score(w, ["the"]) for w in ["cat", "dog", "mouse", "rat"]]
+    # Pre-fit model outside timing loop — only measure scoring
+    m = KneserNeyInterpolated(2, 0.75)
+    m.fit([["the", "cat"], ["the", "dog"], ["a", "cat"], ["the", "mouse"]])
 
-    f_ms = _median_time(run, 100)
+    words_1k = ["cat", "dog", "mouse", "rat"] * 250
+    f_ms = _median_time(lambda: [m.score(w, ["the"]) for w in words_1k], 100)
     return BenchResult(
         name="KneserNeyInterpolated.score",
         group="lm",
-        params={"queries": 4},
+        params={"queries": len(words_1k)},
         fast_only_ms=f_ms, iterations=100,
+    )
+
+
+def bench_witten_bell() -> BenchResult:
+    from fastnltk.lm import WittenBellInterpolated
+
+    # Pre-fit model outside timing loop
+    m = WittenBellInterpolated(2)
+    m.fit([["the", "cat", "sat"], ["the", "dog", "ran"],
+           ["a", "cat", "sleeps"], ["the", "mouse", "runs"]] * 250)
+
+    words_1k = ["cat", "dog", "mouse", "rat"] * 250
+    f_ms = _median_time(lambda: [m.score(w, ["the"]) for w in words_1k], 50)
+    return BenchResult(
+        name="WittenBellInterpolated.score",
+        group="lm",
+        params={"queries": len(words_1k)},
+        fast_only_ms=f_ms, iterations=50,
     )
 
 
@@ -1011,7 +1220,7 @@ def bench_nonmonotonic() -> BenchResult:
 # ── Registry ──────────────────────────────────────────────
 
 ALL_BENCHMARKS: list[tuple[str, str, callable]] = [
-    # tokenize (8)
+    # tokenize (11)
     ("tokenize", "ToktokTokenizer", bench_toktok),
     ("tokenize", "MWETokenizer", bench_mwe),
     ("tokenize", "RegexpTokenizer", bench_regexp_tokenizer),
@@ -1019,37 +1228,47 @@ ALL_BENCHMARKS: list[tuple[str, str, callable]] = [
     ("tokenize", "TreebankWordTokenizer", bench_treebank_tokenizer),
     ("tokenize", "TweetTokenizer", bench_tweet_tokenizer),
     ("tokenize", "TextTilingTokenizer", bench_texttiling),
+    ("tokenize", "SExprTokenizer", bench_sexpr_tokenizer),
+    ("tokenize", "PunktSentenceTokenizer", bench_punkt_sent_tokenize),
+    ("tokenize", "TreebankWordDetokenizer", bench_detokenizer),
     ("tokenize", "logos_word_tokenize", bench_logos_tokenizer),
     # stem (4)
     ("stem", "SnowballStemmer", bench_snowball),
     ("stem", "PorterStemmer", bench_porter),
     ("stem", "LancasterStemmer", bench_lancaster),
     ("stem", "WordNetLemmatizer", bench_wordnet),
-    # tag (8)
+    # tag (9)
     ("tag", "PerceptronTagger", bench_perceptron_tagger),
     ("tag", "HMM tagger", bench_hmm_tag),
+    ("tag", "TnT", bench_tnt_tag),
     ("tag", "DefaultTagger", bench_default_tagger),
     ("tag", "UnigramTagger", bench_unigram_tagger),
     ("tag", "BigramTagger", bench_bigram_tagger),
     ("tag", "TrigramTagger", bench_trigram_tagger),
     ("tag", "RegexpTagger", bench_regexp_tagger),
     ("tag", "AffixTagger", bench_affix_tagger),
-    # classify (2)
+    # classify (4)
     ("classify", "NaiveBayesClassifier.train", bench_naivebayes_train),
     ("classify", "NaiveBayesClassifier.classify", bench_naivebayes_classify),
-    # probability (1)
+    ("classify", "MaxentClassifier.train", bench_maxent_train),
+    ("classify", "TextCat.guess_language", bench_textcat),
+    # probability (2)
     ("probability", "FreqDist", bench_freqdist),
-    # collocations (1)
+    ("probability", "ConditionalFreqDist", bench_conditional_freqdist),
+    # collocations (2)
     ("collocations", "BigramCollocationFinder", bench_bigram_collocations),
+    ("collocations", "TrigramCollocationFinder", bench_trigram_collocations),
     # sentiment (1)
     ("sentiment", "SentimentIntensityAnalyzer", bench_sentiment),
-    # metrics (3)
+    # metrics (4)
     ("metrics", "windowdiff", bench_windowdiff),
     ("metrics", "pk", bench_pk),
     ("metrics", "edit_distance", bench_edit_distance),
-    # lm (2)
+    ("metrics", "BigramAssocMeasures", bench_bigram_assoc_measures),
+    # lm (3)
     ("lm", "MLE.fit", bench_mle_fit),
     ("lm", "KneserNey", bench_kneser_ney),
+    ("lm", "WittenBell", bench_witten_bell),
     # ccg (1)
     ("ccg", "CCG from_string", bench_ccg_parse),
     # chunk (1)

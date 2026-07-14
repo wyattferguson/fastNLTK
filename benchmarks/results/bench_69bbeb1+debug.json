@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-07-14T21:29:30Z",
-  "git_hash": "60145ef-dirty+debug",
+  "timestamp": "2026-07-14T21:58:21Z",
+  "git_hash": "69bbeb1+debug",
   "results": [
     {
       "name": "ToktokTokenizer.tokenize",
@@ -8,9 +8,9 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 8.454150054603815,
-      "fast_ms": 2.1504000178538263,
-      "speedup": 3.931431354358595,
+      "nltk_ms": 8.339649997651577,
+      "fast_ms": 2.1491500083357096,
+      "speedup": 3.8804410884793277,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -21,9 +21,9 @@
       "params": {
         "words": 13600
       },
-      "nltk_ms": 1.0020500048995018,
-      "fast_ms": 0.893249933142215,
-      "speedup": 1.1218024963904079,
+      "nltk_ms": 1.0199000826105475,
+      "fast_ms": 0.8993499795906246,
+      "speedup": 1.13404136960652,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -34,9 +34,9 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 2.216300053987652,
-      "fast_ms": 1.1487500160001218,
-      "speedup": 1.9293144923772667,
+      "nltk_ms": 1.9626999273896217,
+      "fast_ms": 1.1420000810176134,
+      "speedup": 1.718651303107351,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -47,9 +47,9 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 0.25924999499693513,
-      "fast_ms": 0.4723499878309667,
-      "speedup": 0.5488514907926901,
+      "nltk_ms": 0.25415001437067986,
+      "fast_ms": 0.47069997526705265,
+      "speedup": 0.5399405730295339,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -60,9 +60,9 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 21.25670004170388,
-      "fast_ms": 1.622399897314608,
-      "speedup": 13.10201022379742,
+      "nltk_ms": 21.20630000717938,
+      "fast_ms": 1.630999962799251,
+      "speedup": 13.002023599548986,
       "fast_only_ms": 0.0,
       "iterations": 15,
       "version": ""
@@ -73,24 +73,11 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 90.49440000671893,
-      "fast_ms": 5.474099889397621,
-      "speedup": 16.531375355789695,
+      "nltk_ms": 52.78500006534159,
+      "fast_ms": 2.70990002900362,
+      "speedup": 19.47857836096989,
       "fast_only_ms": 0.0,
       "iterations": 15,
-      "version": ""
-    },
-    {
-      "name": "TextTilingTokenizer.tokenize",
-      "group": "tokenize",
-      "params": {
-        "chars": 1500
-      },
-      "nltk_ms": 3.714999998919666,
-      "fast_ms": 0.10979990474879742,
-      "speedup": 33.83427342144716,
-      "fast_only_ms": 0.0,
-      "iterations": 5,
       "version": ""
     },
     {
@@ -102,7 +89,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 0.7956000044941902,
+      "fast_only_ms": 0.4688499611802399,
       "iterations": 30,
       "version": ""
     },
@@ -112,9 +99,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 32.60964999208227,
-      "fast_ms": 2.506099990569055,
-      "speedup": 13.012110496308514,
+      "nltk_ms": 56.56194995390251,
+      "fast_ms": 4.2950999340973794,
+      "speedup": 13.168948527803947,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -125,9 +112,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 136.69855002081022,
-      "fast_ms": 18.894499982707202,
-      "speedup": 7.234832895600345,
+      "nltk_ms": 102.17990004457533,
+      "fast_ms": 12.874200008809566,
+      "speedup": 7.936796070797067,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -138,9 +125,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 80.81249997485429,
-      "fast_ms": 4.18485002592206,
-      "speedup": 19.310727857457362,
+      "nltk_ms": 50.793000031262636,
+      "fast_ms": 2.3480000090785325,
+      "speedup": 21.63245308129119,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -151,9 +138,9 @@
       "params": {
         "words": 5000
       },
-      "nltk_ms": 20.411400008015335,
-      "fast_ms": 1.2792999623343349,
-      "speedup": 15.955132188678185,
+      "nltk_ms": 20.9851999534294,
+      "fast_ms": 0.9619999909773469,
+      "speedup": 21.81413737032307,
       "fast_only_ms": 0.0,
       "iterations": 15,
       "version": ""
@@ -164,9 +151,9 @@
       "params": {
         "sentences": 100
       },
-      "nltk_ms": 63.4499000152573,
-      "fast_ms": 22.478000028058887,
-      "speedup": 2.8227555803921134,
+      "nltk_ms": 60.91030000243336,
+      "fast_ms": 17.167000100016594,
+      "speedup": 3.5481038997823786,
       "fast_only_ms": 0.0,
       "iterations": 5,
       "version": ""
@@ -180,7 +167,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 0.3513999981805682,
+      "fast_only_ms": 0.2760500065051019,
       "iterations": 50,
       "version": ""
     },
@@ -190,9 +177,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 4.1464000241830945,
-      "fast_ms": 3.5715500125661492,
-      "speedup": 1.1609525303003996,
+      "nltk_ms": 2.840599976480007,
+      "fast_ms": 2.241549955215305,
+      "speedup": 1.2672481243930886,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -203,9 +190,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 4.911549971438944,
-      "fast_ms": 4.184500023256987,
-      "speedup": 1.1737483436828997,
+      "nltk_ms": 3.7831999943591654,
+      "fast_ms": 2.4202500353567302,
+      "speedup": 1.5631442781082512,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -216,9 +203,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 8.323149988427758,
-      "fast_ms": 3.5826999810524285,
-      "speedup": 2.3231501472202005,
+      "nltk_ms": 7.979950052686036,
+      "fast_ms": 4.425699997227639,
+      "speedup": 1.8030933090098429,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -229,9 +216,9 @@
       "params": {
         "words": 10200
       },
-      "nltk_ms": 8.454399998299778,
-      "fast_ms": 5.009350017644465,
-      "speedup": 1.687723949917812,
+      "nltk_ms": 7.74364999961108,
+      "fast_ms": 3.5357000306248665,
+      "speedup": 2.1901320622616676,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -242,9 +229,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 31.182749953586608,
-      "fast_ms": 4.144800011999905,
-      "speedup": 7.523342468468252,
+      "nltk_ms": 29.385700006969273,
+      "fast_ms": 2.6521499967202544,
+      "speedup": 11.0799540159149,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -255,9 +242,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 7.456500025000423,
-      "fast_ms": 4.222500021569431,
-      "speedup": 1.7658969773619966,
+      "nltk_ms": 6.557949993293732,
+      "fast_ms": 3.4678999218158424,
+      "speedup": 1.8910436117371852,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -268,9 +255,9 @@
       "params": {
         "instances": 2000
       },
-      "nltk_ms": 18.836300005204976,
-      "fast_ms": 6.522799958474934,
-      "speedup": 2.887762943079586,
+      "nltk_ms": 16.660200082696974,
+      "fast_ms": 4.809150006622076,
+      "speedup": 3.4642712453877103,
       "fast_only_ms": 0.0,
       "iterations": 10,
       "version": ""
@@ -281,9 +268,9 @@
       "params": {
         "features": 5
       },
-      "nltk_ms": 0.019799917936325073,
-      "fast_ms": 0.002100015990436077,
-      "speedup": 9.42846055768058,
+      "nltk_ms": 0.014499993994832039,
+      "fast_ms": 0.003400025889277458,
+      "speedup": 4.264671642813121,
       "fast_only_ms": 0.0,
       "iterations": 100,
       "version": ""
@@ -294,9 +281,9 @@
       "params": {
         "samples": 68000
       },
-      "nltk_ms": 41.51539993472397,
-      "fast_ms": 7.438199943862855,
-      "speedup": 5.581377248265246,
+      "nltk_ms": 41.05080000590533,
+      "fast_ms": 5.415799911133945,
+      "speedup": 7.579822127754758,
       "fast_only_ms": 0.0,
       "iterations": 15,
       "version": ""
@@ -307,9 +294,9 @@
       "params": {
         "words": 50000
       },
-      "nltk_ms": 84.49010003823787,
-      "fast_ms": 13.39520001783967,
-      "speedup": 6.307490737407005,
+      "nltk_ms": 112.65699996147305,
+      "fast_ms": 11.713900021277368,
+      "speedup": 9.617377624603296,
       "fast_only_ms": 0.0,
       "iterations": 15,
       "version": ""
@@ -320,9 +307,9 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 57.16634995769709,
-      "fast_ms": 1.4437499921768904,
-      "speedup": 39.59574044499318,
+      "nltk_ms": 56.15910002961755,
+      "fast_ms": 0.9612499852664769,
+      "speedup": 58.42299182355688,
       "fast_only_ms": 0.0,
       "iterations": 50,
       "version": ""
@@ -333,9 +320,9 @@
       "params": {
         "chars": 12000
       },
-      "nltk_ms": 7.434049970470369,
-      "fast_ms": 0.06440002471208572,
-      "speedup": 115.435514251833,
+      "nltk_ms": 5.27149997651577,
+      "fast_ms": 0.044899992644786835,
+      "speedup": 117.40536392109685,
       "fast_only_ms": 0.0,
       "iterations": 100,
       "version": ""
@@ -346,9 +333,9 @@
       "params": {
         "chars": 12000
       },
-      "nltk_ms": 6.720249948557466,
-      "fast_ms": 0.14109996845945716,
-      "speedup": 47.62757938169507,
+      "nltk_ms": 4.858199972659349,
+      "fast_ms": 0.08279999019578099,
+      "speedup": 58.67391966076459,
       "fast_only_ms": 0.0,
       "iterations": 100,
       "version": ""
@@ -359,9 +346,9 @@
       "params": {
         "chars": 100
       },
-      "nltk_ms": 7.659199996851385,
-      "fast_ms": 0.048600020818412304,
-      "speedup": 157.59664024566976,
+      "nltk_ms": 6.04865001514554,
+      "fast_ms": 0.0350000336766243,
+      "speedup": 172.8184055772864,
       "fast_only_ms": 0.0,
       "iterations": 100,
       "version": ""
@@ -375,7 +362,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 1.3862999621778727,
+      "fast_only_ms": 0.9815000230446458,
       "iterations": 15,
       "version": ""
     },
@@ -388,7 +375,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 0.007700000423938036,
+      "fast_only_ms": 0.005399924702942371,
       "iterations": 100,
       "version": ""
     },
@@ -398,9 +385,9 @@
       "params": {
         "parses": 3500
       },
-      "nltk_ms": 2.317550010047853,
-      "fast_ms": 1.3384000048972666,
-      "speedup": 1.7315824877225283,
+      "nltk_ms": 2.2800000151619315,
+      "fast_ms": 1.1146500473842025,
+      "speedup": 2.0454850565094453,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -411,24 +398,11 @@
       "params": {
         "tokens": 1800
       },
-      "nltk_ms": 5.613450019154698,
-      "fast_ms": 0.6061000167392194,
-      "speedup": 9.261590272435086,
+      "nltk_ms": 3.326049947645515,
+      "fast_ms": 0.49174996092915535,
+      "speedup": 6.763701498544068,
       "fast_only_ms": 0.0,
       "iterations": 30,
-      "version": ""
-    },
-    {
-      "name": "KMeansClusterer.cluster",
-      "group": "cluster",
-      "params": {
-        "vectors": 500
-      },
-      "nltk_ms": 8.277799934148788,
-      "fast_ms": 1.0263000149279833,
-      "speedup": 8.065672623740195,
-      "fast_only_ms": 0.0,
-      "iterations": 15,
       "version": ""
     },
     {
@@ -437,9 +411,9 @@
       "params": {
         "sentences": 30
       },
-      "nltk_ms": 28.101749951019883,
-      "fast_ms": 1.0274999076500535,
-      "speedup": 27.349637446965875,
+      "nltk_ms": 20.708099997136742,
+      "fast_ms": 0.8233999833464622,
+      "speedup": 25.149502569789814,
       "fast_only_ms": 0.0,
       "iterations": 15,
       "version": ""
@@ -450,9 +424,9 @@
       "params": {
         "tokens": 6
       },
-      "nltk_ms": 0.1382000045850873,
-      "fast_ms": 0.010699965059757233,
-      "speedup": 12.915930455218035,
+      "nltk_ms": 0.08359999628737569,
+      "fast_ms": 0.008899951353669167,
+      "speedup": 9.393309352517985,
       "fast_only_ms": 0.0,
       "iterations": 100,
       "version": ""
@@ -461,9 +435,9 @@
       "name": "Chat.respond",
       "group": "chat",
       "params": {},
-      "nltk_ms": 0.001800013706088066,
-      "fast_ms": 0.000500003807246685,
-      "speedup": 3.6,
+      "nltk_ms": 0.001400010660290718,
+      "fast_ms": 0.000400003045797348,
+      "speedup": 3.5,
       "fast_only_ms": 0.0,
       "iterations": 100,
       "version": ""
@@ -474,9 +448,9 @@
       "params": {
         "trees": 300
       },
-      "nltk_ms": 12.583250005263835,
-      "fast_ms": 1.0436500306241214,
-      "speedup": 12.05696319266989,
+      "nltk_ms": 11.378499970305711,
+      "fast_ms": 0.8848000434227288,
+      "speedup": 12.859967689750025,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -487,9 +461,9 @@
       "params": {
         "formulas": 500
       },
-      "nltk_ms": 63.47834999905899,
-      "fast_ms": 1.4636499690823257,
-      "speedup": 43.369898090359975,
+      "nltk_ms": 53.353200026322156,
+      "fast_ms": 1.4009499573148787,
+      "speedup": 38.08358731712388,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -503,7 +477,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 0.001700012944638729,
+      "fast_only_ms": 0.003049965016543865,
       "iterations": 50,
       "version": ""
     },
@@ -516,7 +490,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 0.0019999570213258266,
+      "fast_only_ms": 0.0030500232242047787,
       "iterations": 50,
       "version": ""
     },
@@ -527,7 +501,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 0.004849978722631931,
+      "fast_only_ms": 0.007400056347250938,
       "iterations": 50,
       "version": ""
     },
@@ -540,7 +514,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 75.25604998227209,
+      "fast_only_ms": 64.71294997027144,
       "iterations": 50,
       "version": ""
     }

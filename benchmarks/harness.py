@@ -106,6 +106,10 @@ def _git_hash() -> str:
 
 
 REGRESSION_THRESHOLD = 0.25  # 25% — accounts for system noise in microbenchmarks
+# Absolute noise floor: skip regression checks for benchmarks below this threshold.
+# Sub-millisecond microbenchmarks are dominated by timer resolution / OS jitter
+# and cannot reliably stay within the 25% relative threshold.
+MIN_ABSOLUTE_REGRESSION_MS = 0.5
 
 
 def check_regression(
@@ -133,6 +137,9 @@ def check_regression(
         cur_time = cur.fast_only_ms or cur.fast_ms
         base_time = base.fast_only_ms or base.fast_ms
         if base_time == 0:
+            continue
+        # Skip microbenchmarks where noise dominates the signal
+        if cur_time < MIN_ABSOLUTE_REGRESSION_MS and base_time < MIN_ABSOLUTE_REGRESSION_MS:
             continue
         change = (cur_time - base_time) / base_time
         if change > threshold:

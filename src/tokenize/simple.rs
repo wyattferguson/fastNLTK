@@ -50,7 +50,12 @@ impl SpaceTokenizer {
 
 /// Core `SpaceTokenizer` logic: split on ' ', filter empty.
 fn tokenize_space(text: &str) -> Vec<String> {
-    text.split(' ').map(String::from).collect()
+    let n = text.split(' ').count();
+    let mut tokens = Vec::with_capacity(n);
+    for s in text.split(' ') {
+        tokens.push(s.to_string());
+    }
+    tokens
 }
 
 // ═══════════════════════════════════════════════════════════

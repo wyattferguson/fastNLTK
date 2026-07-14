@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-07-14T21:00:39Z",
-  "git_hash": "93f3758-dirty+debug",
+  "timestamp": "2026-07-14T22:33:33Z",
+  "git_hash": "69bbeb1-dirty+debug",
   "results": [
     {
       "name": "ToktokTokenizer.tokenize",
@@ -8,9 +8,9 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 16.21415000408888,
-      "fast_ms": 4.527999961283058,
-      "speedup": 3.580863547422475,
+      "nltk_ms": 8.65700002759695,
+      "fast_ms": 1.7994000227190554,
+      "speedup": 4.811048081746406,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -21,9 +21,9 @@
       "params": {
         "words": 13600
       },
-      "nltk_ms": 1.7328500398434699,
-      "fast_ms": 1.4816499897278845,
-      "speedup": 1.1695407497432777,
+      "nltk_ms": 0.9847000474110246,
+      "fast_ms": 0.9000499849207699,
+      "speedup": 1.0940504015426502,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -34,9 +34,9 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 3.798349993303418,
-      "fast_ms": 2.6824999367818236,
-      "speedup": 1.4159739358131251,
+      "nltk_ms": 2.208949998021126,
+      "fast_ms": 1.3938499614596367,
+      "speedup": 1.5847831969718735,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -47,9 +47,9 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 0.7384999771602452,
-      "fast_ms": 0.8533000363968313,
-      "speedup": 0.8654634309857245,
+      "nltk_ms": 0.2513999934308231,
+      "fast_ms": 0.5833000177517533,
+      "speedup": 0.4309960325388099,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -60,9 +60,9 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 43.33870008122176,
-      "fast_ms": 2.7139000594615936,
-      "speedup": 15.969158455237904,
+      "nltk_ms": 24.408699944615364,
+      "fast_ms": 2.3545000003650784,
+      "speedup": 10.366829450342179,
       "fast_only_ms": 0.0,
       "iterations": 15,
       "version": ""
@@ -73,9 +73,9 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 100.61429999768734,
-      "fast_ms": 7.096100016497076,
-      "speedup": 14.17881649973624,
+      "nltk_ms": 50.22780003491789,
+      "fast_ms": 2.3221001029014587,
+      "speedup": 21.630333667423884,
       "fast_only_ms": 0.0,
       "iterations": 15,
       "version": ""
@@ -86,11 +86,50 @@
       "params": {
         "chars": 1500
       },
-      "nltk_ms": 6.153099937364459,
-      "fast_ms": 0.08020002860575914,
-      "speedup": 76.72191699096983,
+      "nltk_ms": 1.7110999906435609,
+      "fast_ms": 0.024799956008791924,
+      "speedup": 68.996089752617,
       "fast_only_ms": 0.0,
       "iterations": 5,
+      "version": ""
+    },
+    {
+      "name": "SExprTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 4000
+      },
+      "nltk_ms": 0.4455000162124634,
+      "fast_ms": 0.015600002370774746,
+      "speedup": 28.55768900696253,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "PunktSentenceTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 81600
+      },
+      "nltk_ms": 12.316100066527724,
+      "fast_ms": 0.11889997404068708,
+      "speedup": 103.58370694272149,
+      "fast_only_ms": 0.0,
+      "iterations": 15,
+      "version": ""
+    },
+    {
+      "name": "TreebankWordDetokenizer.detokenize",
+      "group": "tokenize",
+      "params": {
+        "tokens": 5000
+      },
+      "nltk_ms": 7.00435001635924,
+      "fast_ms": 0.16554998001083732,
+      "speedup": 42.30957935422715,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
       "version": ""
     },
     {
@@ -102,7 +141,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 1.1970999767072499,
+      "fast_only_ms": 0.3965500509366393,
       "iterations": 30,
       "version": ""
     },
@@ -112,9 +151,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 78.94045003922656,
-      "fast_ms": 4.164499987382442,
-      "speedup": 18.955564960595392,
+      "nltk_ms": 30.001149978488684,
+      "fast_ms": 2.4697500048205256,
+      "speedup": 12.14744404086714,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -125,9 +164,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 144.72784992540255,
-      "fast_ms": 17.411500040907413,
-      "speedup": 8.31219881029044,
+      "nltk_ms": 66.82714994531125,
+      "fast_ms": 9.494199941400439,
+      "speedup": 7.038734212232519,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -138,9 +177,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 72.70594994770363,
-      "fast_ms": 3.325450059492141,
-      "speedup": 21.863491752093008,
+      "nltk_ms": 79.718750086613,
+      "fast_ms": 7.845900079701096,
+      "speedup": 10.160561475013079,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -151,9 +190,9 @@
       "params": {
         "words": 5000
       },
-      "nltk_ms": 9.929199935868382,
-      "fast_ms": 0.5777999758720398,
-      "speedup": 17.184493510721975,
+      "nltk_ms": 41.977499960921705,
+      "fast_ms": 2.327699912711978,
+      "speedup": 18.03389678011122,
       "fast_only_ms": 0.0,
       "iterations": 15,
       "version": ""
@@ -164,9 +203,9 @@
       "params": {
         "sentences": 100
       },
-      "nltk_ms": 35.30490002594888,
-      "fast_ms": 10.015100007876754,
-      "speedup": 3.525166997651747,
+      "nltk_ms": 129.3326000450179,
+      "fast_ms": 22.1572999143973,
+      "speedup": 5.837019878084539,
       "fast_only_ms": 0.0,
       "iterations": 5,
       "version": ""
@@ -180,8 +219,21 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 0.5904499557800591,
+      "fast_only_ms": 0.35324995405972004,
       "iterations": 50,
+      "version": ""
+    },
+    {
+      "name": "TnT.tag",
+      "group": "tag",
+      "params": {
+        "words": 996
+      },
+      "nltk_ms": 2.936700009740889,
+      "fast_ms": 5.309200030751526,
+      "speedup": 0.5531341808052378,
+      "fast_only_ms": 0.0,
+      "iterations": 15,
       "version": ""
     },
     {
@@ -190,9 +242,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 2.910599985625595,
-      "fast_ms": 2.4215999874286354,
-      "speedup": 1.2019326068448661,
+      "nltk_ms": 3.8341499748639762,
+      "fast_ms": 3.1851499807089567,
+      "speedup": 1.2037580641683203,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -203,9 +255,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 3.869100008159876,
-      "fast_ms": 2.3725000210106373,
-      "speedup": 1.6308113693974666,
+      "nltk_ms": 5.365949997212738,
+      "fast_ms": 3.6824499838985503,
+      "speedup": 1.4571684668292204,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -216,9 +268,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 6.678150035440922,
-      "fast_ms": 2.915700024459511,
-      "speedup": 2.2904105290045615,
+      "nltk_ms": 8.2601000322029,
+      "fast_ms": 3.54410003637895,
+      "speedup": 2.330662212526694,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -229,9 +281,9 @@
       "params": {
         "words": 10200
       },
-      "nltk_ms": 6.997650023549795,
-      "fast_ms": 3.3796000061556697,
-      "speedup": 2.0705556902604267,
+      "nltk_ms": 8.589199976995587,
+      "fast_ms": 4.718499956652522,
+      "speedup": 1.8203242674371205,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -242,9 +294,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 25.475600035861135,
-      "fast_ms": 2.5068000541068614,
-      "speedup": 10.162597529118749,
+      "nltk_ms": 30.270749994087964,
+      "fast_ms": 4.211599996779114,
+      "speedup": 7.187470324161361,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -255,9 +307,9 @@
       "params": {
         "words": 10000
       },
-      "nltk_ms": 5.611950007732958,
-      "fast_ms": 2.794350031763315,
-      "speedup": 2.0083203406667187,
+      "nltk_ms": 7.022999983746558,
+      "fast_ms": 3.601200005505234,
+      "speedup": 1.9501832647479571,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -268,9 +320,9 @@
       "params": {
         "instances": 2000
       },
-      "nltk_ms": 17.10210007149726,
-      "fast_ms": 4.90645004902035,
-      "speedup": 3.485636234065394,
+      "nltk_ms": 21.27600007224828,
+      "fast_ms": 6.510800041723996,
+      "speedup": 3.267801182021035,
       "fast_only_ms": 0.0,
       "iterations": 10,
       "version": ""
@@ -281,11 +333,37 @@
       "params": {
         "features": 5
       },
-      "nltk_ms": 0.01409999094903469,
-      "fast_ms": 0.001700012944638729,
-      "speedup": 8.294049167979182,
+      "nltk_ms": 0.02220005262643099,
+      "fast_ms": 0.003100023604929447,
+      "speedup": 7.161252769536971,
       "fast_only_ms": 0.0,
       "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "MaxentClassifier.train",
+      "group": "classify",
+      "params": {
+        "instances": 200
+      },
+      "nltk_ms": 119.27999998442829,
+      "fast_ms": 0.26560004334896803,
+      "speedup": 449.09631218586827,
+      "fast_only_ms": 0.0,
+      "iterations": 3,
+      "version": ""
+    },
+    {
+      "name": "TextCat.guess_language",
+      "group": "classify",
+      "params": {
+        "texts": 100
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 12.86500005517155,
+      "iterations": 50,
       "version": ""
     },
     {
@@ -294,9 +372,22 @@
       "params": {
         "samples": 68000
       },
-      "nltk_ms": 33.926400006748736,
-      "fast_ms": 5.3434999426826835,
-      "speedup": 6.349097103146242,
+      "nltk_ms": 36.545900045894086,
+      "fast_ms": 7.8384000808000565,
+      "speedup": 4.66241830847755,
+      "fast_only_ms": 0.0,
+      "iterations": 15,
+      "version": ""
+    },
+    {
+      "name": "ConditionalFreqDist.inc",
+      "group": "probability",
+      "params": {
+        "samples": 13600
+      },
+      "nltk_ms": 8.53839993942529,
+      "fast_ms": 4.399899975396693,
+      "speedup": 1.940589555937683,
       "fast_only_ms": 0.0,
       "iterations": 15,
       "version": ""
@@ -307,11 +398,24 @@
       "params": {
         "words": 50000
       },
-      "nltk_ms": 85.14630002900958,
-      "fast_ms": 9.064000099897385,
-      "speedup": 9.393898840532177,
+      "nltk_ms": 79.3050000211224,
+      "fast_ms": 13.245799927972257,
+      "speedup": 5.9871808763808545,
       "fast_only_ms": 0.0,
       "iterations": 15,
+      "version": ""
+    },
+    {
+      "name": "TrigramCollocationFinder.from_words",
+      "group": "collocations",
+      "params": {
+        "words": 20000
+      },
+      "nltk_ms": 63.514400040730834,
+      "fast_ms": 2.200599992647767,
+      "speedup": 28.862310393953134,
+      "fast_only_ms": 0.0,
+      "iterations": 5,
       "version": ""
     },
     {
@@ -320,9 +424,9 @@
       "params": {
         "chars": 81600
       },
-      "nltk_ms": 44.339100015349686,
-      "fast_ms": 0.9665999677963555,
-      "speedup": 45.87119955780001,
+      "nltk_ms": 26.060550066176802,
+      "fast_ms": 0.6068499642424285,
+      "speedup": 42.943975614647904,
       "fast_only_ms": 0.0,
       "iterations": 50,
       "version": ""
@@ -333,9 +437,9 @@
       "params": {
         "chars": 12000
       },
-      "nltk_ms": 5.1160999573767185,
-      "fast_ms": 0.04490005085244775,
-      "speedup": 113.94419071349029,
+      "nltk_ms": 3.1439500162377954,
+      "fast_ms": 0.02659996971487999,
+      "speedup": 118.19374420110988,
       "fast_only_ms": 0.0,
       "iterations": 100,
       "version": ""
@@ -346,9 +450,9 @@
       "params": {
         "chars": 12000
       },
-      "nltk_ms": 4.749749961774796,
-      "fast_ms": 0.0848500058054924,
-      "speedup": 55.978192537346196,
+      "nltk_ms": 2.8366500046104193,
+      "fast_ms": 0.05449994932860136,
+      "speedup": 52.04867233008154,
       "fast_only_ms": 0.0,
       "iterations": 100,
       "version": ""
@@ -359,11 +463,24 @@
       "params": {
         "chars": 100
       },
-      "nltk_ms": 6.145449995528907,
-      "fast_ms": 0.035100034438073635,
-      "speedup": 175.08387367457473,
+      "nltk_ms": 3.5353999701328576,
+      "fast_ms": 0.02319994382560253,
+      "speedup": 152.38829872645343,
       "fast_only_ms": 0.0,
       "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "BigramAssocMeasures",
+      "group": "metrics",
+      "params": {
+        "calls": 4
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.000400003045797348,
+      "iterations": 500,
       "version": ""
     },
     {
@@ -375,7 +492,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 1.3667000457644463,
+      "fast_only_ms": 0.5639999872073531,
       "iterations": 15,
       "version": ""
     },
@@ -383,13 +500,26 @@
       "name": "KneserNeyInterpolated.score",
       "group": "lm",
       "params": {
-        "queries": 4
+        "queries": 1000
       },
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 0.005499925464391708,
+      "fast_only_ms": 0.25305006420239806,
       "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "WittenBellInterpolated.score",
+      "group": "lm",
+      "params": {
+        "queries": 1000
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.2522999420762062,
+      "iterations": 50,
       "version": ""
     },
     {
@@ -398,9 +528,9 @@
       "params": {
         "parses": 3500
       },
-      "nltk_ms": 2.161950047593564,
-      "fast_ms": 1.1333500151522458,
-      "speedup": 1.9075749050950899,
+      "nltk_ms": 1.341350027360022,
+      "fast_ms": 0.681250006891787,
+      "speedup": 1.9689541486831696,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -411,9 +541,9 @@
       "params": {
         "tokens": 1800
       },
-      "nltk_ms": 3.386199998203665,
-      "fast_ms": 0.7689000340178609,
-      "speedup": 4.403953502914017,
+      "nltk_ms": 1.9579500076361,
+      "fast_ms": 0.2838000073097646,
+      "speedup": 6.899048475002394,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -424,9 +554,9 @@
       "params": {
         "vectors": 500
       },
-      "nltk_ms": 3.9218999445438385,
-      "fast_ms": 0.9107999503612518,
-      "speedup": 4.305994903697886,
+      "nltk_ms": 2.244099974632263,
+      "fast_ms": 0.512199942022562,
+      "speedup": 4.381296815010987,
       "fast_only_ms": 0.0,
       "iterations": 15,
       "version": ""
@@ -437,9 +567,9 @@
       "params": {
         "sentences": 30
       },
-      "nltk_ms": 22.40920002805069,
-      "fast_ms": 0.8254999993368983,
-      "speedup": 27.146214471291813,
+      "nltk_ms": 11.251449992414564,
+      "fast_ms": 0.4790000384673476,
+      "speedup": 23.4894553002871,
       "fast_only_ms": 0.0,
       "iterations": 15,
       "version": ""
@@ -450,9 +580,9 @@
       "params": {
         "tokens": 6
       },
-      "nltk_ms": 0.08405005792155862,
-      "fast_ms": 0.00870006624609232,
-      "speedup": 9.66085263538196,
+      "nltk_ms": 0.05000003147870302,
+      "fast_ms": 0.005200039595365524,
+      "speedup": 9.615317453210352,
       "fast_only_ms": 0.0,
       "iterations": 100,
       "version": ""
@@ -461,9 +591,9 @@
       "name": "Chat.respond",
       "group": "chat",
       "params": {},
-      "nltk_ms": 0.001400010660290718,
-      "fast_ms": 0.000400003045797348,
-      "speedup": 3.5,
+      "nltk_ms": 0.000800006091594696,
+      "fast_ms": 0.000300002284348011,
+      "speedup": 2.6666666666666665,
       "fast_only_ms": 0.0,
       "iterations": 100,
       "version": ""
@@ -474,9 +604,9 @@
       "params": {
         "trees": 300
       },
-      "nltk_ms": 8.844700059853494,
-      "fast_ms": 0.8159499266184866,
-      "speedup": 10.839758386287603,
+      "nltk_ms": 5.08339999942109,
+      "fast_ms": 0.5214999546296895,
+      "speedup": 9.747651853643493,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -487,9 +617,9 @@
       "params": {
         "formulas": 500
       },
-      "nltk_ms": 53.75595000805333,
-      "fast_ms": 1.401500019710511,
-      "speedup": 38.35601088265199,
+      "nltk_ms": 26.078250026330352,
+      "fast_ms": 1.0261000134050846,
+      "speedup": 25.414920266680827,
       "fast_only_ms": 0.0,
       "iterations": 30,
       "version": ""
@@ -503,7 +633,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 0.001300009898841381,
+      "fast_only_ms": 0.00100000761449337,
       "iterations": 50,
       "version": ""
     },
@@ -516,7 +646,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 0.001400010660290718,
+      "fast_only_ms": 0.001100008375942707,
       "iterations": 50,
       "version": ""
     },
@@ -527,7 +657,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 0.003800028935074806,
+      "fast_only_ms": 0.0028500217013061047,
       "iterations": 50,
       "version": ""
     },
@@ -540,7 +670,7 @@
       "nltk_ms": 0.0,
       "fast_ms": 0.0,
       "speedup": 0.0,
-      "fast_only_ms": 58.70160000631586,
+      "fast_only_ms": 45.550750044640154,
       "iterations": 50,
       "version": ""
     }

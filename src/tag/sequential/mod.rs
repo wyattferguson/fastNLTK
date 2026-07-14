@@ -24,7 +24,13 @@ impl DefaultTagger {
         Self { tag: tag.to_string() }
     }
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
-        tokens.into_iter().map(|w| (w, self.tag.clone())).collect()
+        let n = tokens.len();
+        let mut out = Vec::with_capacity(n);
+        let tag = self.tag.clone();
+        for w in tokens {
+            out.push((w, tag.clone()));
+        }
+        out
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
         sentences.into_iter().map(|s| self.tag(s)).collect()
