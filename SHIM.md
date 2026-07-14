@@ -315,30 +315,30 @@ No new shim files needed. Update existing shims to import from `_rust` when modu
 | Python shim + tests | `fastnltk/ccg.py` + `tests/` | 100 | 4 hr | ✅ Partial — Python re-exports via `from nltk.ccg import *` |
 | **Subtotal** | | **~1,150** | **~3 days** | **✅ Core** |
 
-### Phase E — Inference module (5 days)
+### Phase E — Inference module (5 days) ✅
 
-| Task | Files | Est LoC | Est Time |
-|---|---|---|---|
-| Tableau prover | `src/inference/tableau.rs` | 500 | 2 days |
-| Resolution prover | `src/inference/resolution.rs` | 500 | 2 days |
-| API + ProverCommand | `src/inference/mod.rs` | 400 | 4 hr |
-| Discourse thread + DRT bridge | `src/inference/discourse.rs` | 400 | 4 hr |
-| Nonmonotonic reasoning | `src/inference/nonmonotonic.rs` | 400 | 4 hr |
-| Python shim + tests | `fastnltk/inference.py` + `tests/` | 100 | 4 hr |
-| **Subtotal** | | **~2,300** | **~5 days** |
+| Task | Files | Est LoC | Est Time | Status |
+|---|---|---|---|---|
+| Tableau prover | `src/inference/tableau.rs` | 500 | 2 days | ✅ |
+| Resolution prover | `src/inference/resolution.rs` | 500 | 2 days | ✅ |
+| API + ProverCommand | `src/inference/mod.rs` | 400 | 4 hr | ✅ |
+| Discourse thread + DRT bridge | `src/inference/discourse.rs` | 400 | 4 hr | ⬜ Future |
+| Nonmonotonic reasoning | `src/inference/nonmonotonic.rs` | 400 | 4 hr | ⬜ Future |
+| Python shim + tests | `fastnltk/inference.py` + `tests/` | 100 | 4 hr | ✅ |
+| **Subtotal** | | **~2,300** | **~5 days** | **✅ Core** |
 
-### Phase F — Python shim wiring (0.5 day)
+### Phase F — Python shim wiring (0.5 day) ✅
 
-| Task | Files | Est LoC | Est Time |
-|---|---|---|---|
-| Update tokenize.py imports | `fastnltk/tokenize.py` | 15 | 15 min |
-| Update tag.py imports | `fastnltk/tag.py` | 5 | 5 min |
-| Update metrics.py imports | `fastnltk/metrics.py` | 20 | 20 min |
-| Update lm.py imports | `fastnltk/lm.py` | 5 | 5 min |
-| Create fastnltk/ccg.py with Rust imports | `fastnltk/ccg.py` | 20 | 15 min |
-| Create fastnltk/inference.py with Rust imports | `fastnltk/inference.py` | 20 | 15 min |
-| Remove rust_available fallback checks | (every Rust-backed shim) | 50 | 15 min |
-| **Subtotal** | | **~135** | **~0.5 day** |
+| Task | Files | Est LoC | Est Time | Status |
+|---|---|---|---|---|
+| Update tokenize.py imports | `fastnltk/tokenize.py` | 15 | 15 min | ✅ |
+| Update tag.py imports | `fastnltk/tag.py` | 5 | 5 min | ✅ |
+| Update metrics.py imports | `fastnltk/metrics.py` | 20 | 20 min | ✅ |
+| Update lm.py imports | `fastnltk/lm.py` | 5 | 5 min | ✅ |
+| Create fastnltk/ccg.py with Rust imports | `fastnltk/ccg.py` | 20 | 15 min | ✅ |
+| Create fastnltk/inference.py with Rust imports | `fastnltk/inference.py` | 20 | 15 min | ✅ |
+| Remove rust_available fallback checks | (every Rust-backed shim) | 50 | 15 min | ⬜ Partial |
+| **Subtotal** | | **~135** | **~0.5 day** | **✅** |
 
 ---
 
