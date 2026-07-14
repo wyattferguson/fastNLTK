@@ -16,8 +16,8 @@ pub struct MLEProbDist {
 #[pymethods]
 impl MLEProbDist {
     #[new]
-    #[pyo3(signature = (freqdist, bins=None))]
-    fn new(freqdist: FreqDist, bins: Option<usize>) -> Self { MLEProbDist { freqdist } }
+    #[pyo3(signature = (freqdist, _bins=None))]
+    fn new(freqdist: FreqDist, _bins: Option<usize>) -> Self { MLEProbDist { freqdist } }
     fn prob(&self, sample: &str) -> f64 {
         let n = self.freqdist.get_total();
         if n == 0 { return 0.0; }
