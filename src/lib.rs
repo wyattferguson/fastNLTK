@@ -17,6 +17,7 @@ pub mod lm;
 pub mod metrics;
 pub mod parse;
 pub mod probability;
+pub mod sem;
 pub mod sentiment;
 pub mod stem;
 pub mod tag;
@@ -75,6 +76,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // ── Parsing ────────────────────────────────────────
     parse::register_module(m)?;
+
+    // ── Semantics ──────────────────────────────────────
+    sem::register_module(m)?;
 
     Ok(())
 }
