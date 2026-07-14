@@ -2,8 +2,8 @@
 //!
 //! NLTK equivalent: nltk.tokenize.mwe.MWETokenizer
 
-use std::collections::HashMap;
 use pyo3::prelude::*;
+use std::collections::HashMap;
 
 #[derive(Clone, Default)]
 struct TrieNode {
@@ -97,18 +97,34 @@ mod tests {
     fn test_no_match() {
         let t = tok();
         let text: Vec<String> = "This is a test in spite"
-            .split_whitespace().map(String::from).collect();
-        assert_eq!(t.tokenize(text), vec!["This", "is", "a", "test", "in", "spite"]);
+            .split_whitespace()
+            .map(String::from)
+            .collect();
+        assert_eq!(
+            t.tokenize(text),
+            vec!["This", "is", "a", "test", "in", "spite"]
+        );
     }
 
     #[test]
     fn test_merged() {
         let t = tok();
-        let text: Vec<String> =
-            "In a little or a little bit or a lot in spite of"
-                .split_whitespace().map(String::from).collect();
-        assert_eq!(t.tokenize(text),
-            vec!["In", "a_little", "or", "a_little_bit", "or", "a_lot", "in_spite_of"]);
+        let text: Vec<String> = "In a little or a little bit or a lot in spite of"
+            .split_whitespace()
+            .map(String::from)
+            .collect();
+        assert_eq!(
+            t.tokenize(text),
+            vec![
+                "In",
+                "a_little",
+                "or",
+                "a_little_bit",
+                "or",
+                "a_lot",
+                "in_spite_of"
+            ]
+        );
     }
 
     #[test]
@@ -121,7 +137,10 @@ mod tests {
     fn test_add() {
         let mut t = MWETokenizer::new(None, "_");
         t.add_mwe(vec!["a".into(), "b".into()]);
-        assert_eq!(t.tokenize(vec!["a".into(), "b".into(), "c".into()]), vec!["a_b", "c"]);
+        assert_eq!(
+            t.tokenize(vec!["a".into(), "b".into(), "c".into()]),
+            vec!["a_b", "c"]
+        );
     }
 
     #[test]
@@ -129,6 +148,9 @@ mod tests {
         let mut t = MWETokenizer::new(None, "_");
         t.add_mwe(vec!["a".into(), "b".into()]);
         t.add_mwe(vec!["a".into(), "b".into(), "c".into()]);
-        assert_eq!(t.tokenize(vec!["a".into(), "b".into(), "c".into()]), vec!["a_b_c"]);
+        assert_eq!(
+            t.tokenize(vec!["a".into(), "b".into(), "c".into()]),
+            vec!["a_b_c"]
+        );
     }
 }

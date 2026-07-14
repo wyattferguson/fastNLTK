@@ -2,12 +2,12 @@
 //!
 //! NLTK equivalent: nltk.ccg.api
 
+pub mod chart;
 pub mod combinator;
 pub mod lexicon;
-pub mod chart;
 
-use std::fmt;
 use pyo3::prelude::*;
+use std::fmt;
 
 /// A CCG category: primitive (N, NP, S, PP) or functional (A/B, A\B).
 #[pyclass(name = "Category", module = "fastnltk._rust")]
@@ -65,7 +65,11 @@ impl fmt::Display for Category {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner {
             CategoryKind::Primitive(label) => write!(f, "{label}"),
-            CategoryKind::Functional { result, argument, is_forward } => {
+            CategoryKind::Functional {
+                result,
+                argument,
+                is_forward,
+            } => {
                 let result_s = fmt_kind(result);
                 let arg_s = fmt_kind(argument);
                 if *is_forward {
@@ -81,7 +85,11 @@ impl fmt::Display for Category {
 fn fmt_kind(k: &CategoryKind) -> String {
     match k {
         CategoryKind::Primitive(l) => l.clone(),
-        CategoryKind::Functional { result, argument, is_forward } => {
+        CategoryKind::Functional {
+            result,
+            argument,
+            is_forward,
+        } => {
             let rs = fmt_kind(result);
             let as_ = fmt_kind(argument);
             if *is_forward {
@@ -113,8 +121,11 @@ fn parse_inner(s: &str) -> Option<(CategoryKind, usize)> {
         let mut depth = 1;
         let mut i = 1;
         while i < s.len() && depth > 0 {
-            if s.as_bytes()[i] == b'(' { depth += 1; }
-            else if s.as_bytes()[i] == b')' { depth -= 1; }
+            if s.as_bytes()[i] == b'(' {
+                depth += 1;
+            } else if s.as_bytes()[i] == b')' {
+                depth -= 1;
+            }
             i += 1;
         }
         if depth == 0 {
@@ -131,11 +142,14 @@ fn parse_inner(s: &str) -> Option<(CategoryKind, usize)> {
                         let after = &rest[1..].trim();
                         if let Some((arg_kind, _)) = parse_inner(after) {
                             let total = i + 1 + (rest.len() - after.len());
-                            return Some((CategoryKind::Functional {
-                                result: Box::new(kind),
-                                argument: Box::new(arg_kind),
-                                is_forward: dir == '/',
-                            }, total));
+                            return Some((
+                                CategoryKind::Functional {
+                                    result: Box::new(kind),
+                                    argument: Box::new(arg_kind),
+                                    is_forward: dir == '/',
+                                },
+                                total,
+                            ));
                         }
                     }
                 }
@@ -160,27 +174,37 @@ fn parse_inner(s: &str) -> Option<(CategoryKind, usize)> {
             let right = &s[pos + 1..];
             if let Some(result) = parse_inner(left) {
                 if let Some((arg_kind, _)) = parse_inner(right) {
-                    return Some((CategoryKind::Functional {
-                        result: Box::new(result.0),
-                        argument: Box::new(arg_kind),
-                        is_forward: dir == '/',
-                    }, s.len()));
+                    return Some((
+                        CategoryKind::Functional {
+                            result: Box::new(result.0),
+                            argument: Box::new(arg_kind),
+                            is_forward: dir == '/',
+                        },
+                        s.len(),
+                    ));
                 }
             }
             None
         }
         None => {
             // Primitive category
-            let label: String = s.chars().take_while(|c| c.is_alphabetic() || c.is_ascii_punctuation()).collect();
-            if label.is_empty() { None }
-            else { Some((CategoryKind::Primitive(label.clone()), label.len())) }
+            let label: String = s
+                .chars()
+                .take_while(|c| c.is_alphabetic() || c.is_ascii_punctuation())
+                .collect();
+            if label.is_empty() {
+                None
+            } else {
+                Some((CategoryKind::Primitive(label.clone()), label.len()))
+            }
         }
     }
 }
 
 #[pyfunction]
 fn from_string(s: &str) -> PyResult<Category> {
-    parse_category(s).ok_or_else(|| pyo3::exceptions::PyValueError::new_err(format!("Invalid category: {s}")))
+    parse_category(s)
+        .ok_or_else(|| pyo3::exceptions::PyValueError::new_err(format!("Invalid category: {s}")))
 }
 
 /// Register the CCG module.

@@ -64,7 +64,8 @@ impl TnT {
                 words.push(word);
                 tag_set.insert(tag.clone());
                 tags.push(tag.clone());
-                *self.emission_counts
+                *self
+                    .emission_counts
                     .entry((tag.clone(), word.clone()))
                     .or_insert(0) += 1;
                 self.known_words.insert(word.to_lowercase());
@@ -79,10 +80,12 @@ impl TnT {
             // Count ngrams from the tag sequence
             for window in tags.windows(3) {
                 *self.uni_counts.entry(window[2].clone()).or_insert(0) += 1;
-                *self.bi_counts
+                *self
+                    .bi_counts
                     .entry((window[1].clone(), window[2].clone()))
                     .or_insert(0) += 1;
-                *self.tri_counts
+                *self
+                    .tri_counts
                     .entry((window[0].clone(), window[1].clone(), window[2].clone()))
                     .or_insert(0) += 1;
             }
@@ -215,7 +218,12 @@ impl TnT {
             .get(&(t1.to_string(), t2.to_string()))
             .copied()
             .unwrap_or(0);
-        let total: u64 = self.bi_counts.iter().filter(|((a, _), _)| a == t1).map(|(_, c)| c).sum();
+        let total: u64 = self
+            .bi_counts
+            .iter()
+            .filter(|((a, _), _)| a == t1)
+            .map(|(_, c)| c)
+            .sum();
         if total == 0 {
             return self.tag_prob(t2);
         }
@@ -297,7 +305,11 @@ impl TnT {
             return if tag == "VBG" { 3.0 } else { 1.0 };
         }
         if word_lower.ends_with("ed") {
-            return if tag == "VBD" || tag == "VBN" { 2.0 } else { 1.0 };
+            return if tag == "VBD" || tag == "VBN" {
+                2.0
+            } else {
+                1.0
+            };
         }
         if word_lower.ends_with("ly") {
             return if tag == "RB" { 4.0 } else { 1.0 };
@@ -311,7 +323,11 @@ impl TnT {
         if word[..1].to_uppercase() == word[..1] && word.len() > 1 {
             return if tag == "NNP" { 3.0 } else { 1.0 };
         }
-        if tag == "NN" { 2.0 } else { 1.0 }
+        if tag == "NN" {
+            2.0
+        } else {
+            1.0
+        }
     }
 }
 

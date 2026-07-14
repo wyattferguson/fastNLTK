@@ -1,11 +1,11 @@
 //! String & scoring metrics — Rust implementations.
 
+mod agreement;
+mod association;
+mod jaccard;
 mod jaro;
 mod scores;
-mod jaccard;
 mod segmentation;
-mod association;
-mod agreement;
 mod spearman;
 
 use pyo3::prelude::*;
@@ -17,8 +17,12 @@ fn edit_distance(s1: &str, s2: &str, substitution_cost: u32, transpositions: boo
 
 fn compute_edit_distance(s1: &str, s2: &str, sub_cost: usize, trans: bool) -> usize {
     let (xl, yl) = (s1.chars().count(), s2.chars().count());
-    if xl == 0 { return yl * sub_cost.min(1); }
-    if yl == 0 { return xl * sub_cost.min(1); }
+    if xl == 0 {
+        return yl * sub_cost.min(1);
+    }
+    if yl == 0 {
+        return xl * sub_cost.min(1);
+    }
     let mut prev: Vec<usize> = (0..=yl).collect();
     let mut curr = vec![0; yl + 1];
     let mut prev_prev = prev.clone();
@@ -29,10 +33,14 @@ fn compute_edit_distance(s1: &str, s2: &str, sub_cost: usize, trans: bool) -> us
             let mut best = prev[j + 1] + 1;
             best = best.min(curr[j] + 1);
             best = best.min(prev[j] + cost);
-            if trans && i > 0 && j > 0
+            if trans
+                && i > 0
+                && j > 0
                 && s1.chars().nth(i - 1) == Some(c2)
                 && s1.chars().nth(i) == Some(s2.chars().nth(j - 1).unwrap())
-            { best = best.min(prev_prev[j - 1] + sub_cost); }
+            {
+                best = best.min(prev_prev[j - 1] + sub_cost);
+            }
             curr[j + 1] = best;
         }
         std::mem::swap(&mut prev_prev, &mut prev);
@@ -56,7 +64,8 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test] fn test_ed() {
+    #[test]
+    fn test_ed() {
         assert!((compute_edit_distance("cat", "car", 1, false) as f64 - 1.0).abs() < 0.001);
         assert!((compute_edit_distance("kitten", "sitting", 1, false) as f64 - 3.0).abs() < 0.001);
         assert!((compute_edit_distance("", "a", 1, false) as f64 - 1.0).abs() < 0.001);

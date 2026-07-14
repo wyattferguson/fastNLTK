@@ -2,9 +2,9 @@
 //!
 //! NLTK equivalent: nltk.inference.resolution.ResolutionProver
 
-use std::collections::{HashSet, HashMap};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use std::collections::{HashMap, HashSet};
 
 use crate::inference::{Formula, Literal, ProverResult};
 
@@ -14,9 +14,15 @@ struct Clause {
 }
 
 impl Clause {
-    fn empty() -> Self { Clause { literals: vec![] } }
-    fn is_empty(&self) -> bool { self.literals.is_empty() }
-    fn contains(&self, lit: &Literal) -> bool { self.literals.contains(lit) }
+    fn empty() -> Self {
+        Clause { literals: vec![] }
+    }
+    fn is_empty(&self) -> bool {
+        self.literals.is_empty()
+    }
+    fn contains(&self, lit: &Literal) -> bool {
+        self.literals.contains(lit)
+    }
 }
 
 #[pyclass(name = "ResolutionProver", module = "fastnltk._rust")]
@@ -59,7 +65,9 @@ impl ResolutionProver {
         let mut usable: Vec<Clause> = Vec::new();
 
         for iter in 0..self.max_iterations {
-            if sos.is_empty() { break; }
+            if sos.is_empty() {
+                break;
+            }
             let clause = sos.remove(0);
             if clause.is_empty() {
                 return Ok(ProverResult {
@@ -97,7 +105,9 @@ fn resolve_clause(c1: &Clause, c2: &Clause) -> Option<Clause> {
     for l1 in &c1.literals {
         for l2 in &c2.literals {
             if comp(l1, l2) {
-                let mut new_lits: Vec<Literal> = c1.literals.iter()
+                let mut new_lits: Vec<Literal> = c1
+                    .literals
+                    .iter()
                     .filter(|l| *l != l1)
                     .chain(c2.literals.iter().filter(|l| *l != l2))
                     .cloned()
@@ -138,15 +148,26 @@ fn subsumes_clause(a: &Clause, b: &Clause) -> bool {
 
 fn parse_fol(s: &str) -> Option<Formula> {
     let s = s.trim();
-    if s.is_empty() { return None; }
+    if s.is_empty() {
+        return None;
+    }
     if let Some(pos) = find_conn(s, "&") {
-        return Some(Formula::And(vec![parse_fol(&s[..pos])?, parse_fol(&s[pos + 1..])?]));
+        return Some(Formula::And(vec![
+            parse_fol(&s[..pos])?,
+            parse_fol(&s[pos + 1..])?,
+        ]));
     }
     if let Some(pos) = find_conn(s, "|") {
-        return Some(Formula::Or(vec![parse_fol(&s[..pos])?, parse_fol(&s[pos + 1..])?]));
+        return Some(Formula::Or(vec![
+            parse_fol(&s[..pos])?,
+            parse_fol(&s[pos + 1..])?,
+        ]));
     }
     if let Some(pos) = find_conn(s, "->") {
-        return Some(Formula::Imp(Box::new(parse_fol(&s[..pos])?), Box::new(parse_fol(&s[pos + 2..])?)));
+        return Some(Formula::Imp(
+            Box::new(parse_fol(&s[..pos])?),
+            Box::new(parse_fol(&s[pos + 2..])?),
+        ));
     }
     if s.starts_with('-') || s.starts_with('~') {
         return Some(Formula::Not(Box::new(parse_fol(&s[1..].trim())?)));
@@ -165,7 +186,11 @@ fn parse_fol(s: &str) -> Option<Formula> {
         let paren = s.find('(')?;
         let close = s.rfind(')')?;
         let pred = s[..paren].trim().to_string();
-        let args: Vec<String> = s[paren + 1..close].split(',').map(|a| a.trim().to_string()).filter(|a| !a.is_empty()).collect();
+        let args: Vec<String> = s[paren + 1..close]
+            .split(',')
+            .map(|a| a.trim().to_string())
+            .filter(|a| !a.is_empty())
+            .collect();
         return Some(Formula::Atom(pred, args));
     }
     if s.chars().all(|c| c.is_alphabetic() || c == '_') {
@@ -182,7 +207,14 @@ fn find_conn(s: &str, conn: &str) -> Option<usize> {
             ')' => depth = depth.saturating_sub(1),
             _ => {
                 if depth == 0 && s[i..].starts_with(conn) {
-                    if i > 0 && s.as_bytes().get(i - 1).copied().map_or(false, |b| b.is_ascii_alphanumeric()) { continue; }
+                    if i > 0
+                        && s.as_bytes()
+                            .get(i - 1)
+                            .copied()
+                            .map_or(false, |b| b.is_ascii_alphanumeric())
+                    {
+                        continue;
+                    }
                     return Some(i);
                 }
             }
@@ -196,7 +228,11 @@ fn split_q(s: &str) -> Option<(String, String)> {
     let dot = s.find('.')?;
     let var = s[..dot].trim().to_string();
     let body = s[dot + 1..].trim().to_string();
-    if var.is_empty() || body.is_empty() { None } else { Some((var, body)) }
+    if var.is_empty() || body.is_empty() {
+        None
+    } else {
+        Some((var, body))
+    }
 }
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -217,8 +253,12 @@ mod tests {
 
     #[test]
     fn test_resolve_empty() {
-        let c1 = Clause { literals: vec![Literal::Pos("P".into(), vec![])] };
-        let c2 = Clause { literals: vec![Literal::Neg("P".into(), vec![])] };
+        let c1 = Clause {
+            literals: vec![Literal::Pos("P".into(), vec![])],
+        };
+        let c2 = Clause {
+            literals: vec![Literal::Neg("P".into(), vec![])],
+        };
         let r = resolve_clause(&c1, &c2);
         assert!(r.is_some());
         assert!(r.unwrap().is_empty());

@@ -16,36 +16,94 @@ use unicode_segmentation::UnicodeSegmentation;
 fn default_lexicon() -> HashMap<&'static str, f64> {
     let mut lex = HashMap::new();
     // Positive
-    lex.insert("love", 3.2); lex.insert("wonderful", 2.8); lex.insert("amazing", 2.7);
-    lex.insert("great", 2.5); lex.insert("good", 1.9); lex.insert("happy", 2.7);
-    lex.insert("beautiful", 2.4); lex.insert("excellent", 3.0); lex.insert("fantastic", 2.9);
-    lex.insert("nice", 1.8); lex.insert("awesome", 2.5); lex.insert("perfect", 2.8);
-    lex.insert("best", 2.5); lex.insert("better", 1.5); lex.insert("glad", 1.8);
-    lex.insert("enjoy", 2.0); lex.insert("like", 1.5); lex.insert("pleased", 1.8);
-    lex.insert("impressed", 2.0); lex.insert("thank", 1.5); lex.insert("thanks", 1.5);
+    lex.insert("love", 3.2);
+    lex.insert("wonderful", 2.8);
+    lex.insert("amazing", 2.7);
+    lex.insert("great", 2.5);
+    lex.insert("good", 1.9);
+    lex.insert("happy", 2.7);
+    lex.insert("beautiful", 2.4);
+    lex.insert("excellent", 3.0);
+    lex.insert("fantastic", 2.9);
+    lex.insert("nice", 1.8);
+    lex.insert("awesome", 2.5);
+    lex.insert("perfect", 2.8);
+    lex.insert("best", 2.5);
+    lex.insert("better", 1.5);
+    lex.insert("glad", 1.8);
+    lex.insert("enjoy", 2.0);
+    lex.insert("like", 1.5);
+    lex.insert("pleased", 1.8);
+    lex.insert("impressed", 2.0);
+    lex.insert("thank", 1.5);
+    lex.insert("thanks", 1.5);
     // Negative
-    lex.insert("bad", -2.5); lex.insert("terrible", -3.2); lex.insert("awful", -3.0);
-    lex.insert("hate", -3.0); lex.insert("horrible", -3.2); lex.insert("worst", -3.0);
-    lex.insert("ugly", -2.5); lex.insert("sad", -2.0); lex.insert("angry", -2.5);
-    lex.insert("boring", -1.8); lex.insert("stupid", -2.5); lex.insert("ugly", -2.5);
-    lex.insert("disgusting", -3.0); lex.insert("terrible", -3.2); lex.insert("pain", -2.5);
-    lex.insert("hurt", -2.0); lex.insert("miss", -1.5); lex.insert("cry", -2.0);
-    lex.insert("sorry", -1.5); lex.insert("problem", -2.0);
+    lex.insert("bad", -2.5);
+    lex.insert("terrible", -3.2);
+    lex.insert("awful", -3.0);
+    lex.insert("hate", -3.0);
+    lex.insert("horrible", -3.2);
+    lex.insert("worst", -3.0);
+    lex.insert("ugly", -2.5);
+    lex.insert("sad", -2.0);
+    lex.insert("angry", -2.5);
+    lex.insert("boring", -1.8);
+    lex.insert("stupid", -2.5);
+    lex.insert("ugly", -2.5);
+    lex.insert("disgusting", -3.0);
+    lex.insert("terrible", -3.2);
+    lex.insert("pain", -2.5);
+    lex.insert("hurt", -2.0);
+    lex.insert("miss", -1.5);
+    lex.insert("cry", -2.0);
+    lex.insert("sorry", -1.5);
+    lex.insert("problem", -2.0);
     lex
 }
 
 static BOOSTERS: &[&str] = &[
-    "very", "really", "extremely", "incredibly", "absolutely",
-    "completely", "totally", "deeply", "highly", "utterly",
-    "remarkably", "exceptionally", "intensely",
+    "very",
+    "really",
+    "extremely",
+    "incredibly",
+    "absolutely",
+    "completely",
+    "totally",
+    "deeply",
+    "highly",
+    "utterly",
+    "remarkably",
+    "exceptionally",
+    "intensely",
 ];
 
 static NEGATORS: &[&str] = &[
-    "not", "no", "never", "neither", "nor", "nothing",
-    "nowhere", "hardly", "barely", "scarcely", "doesn't",
-    "don't", "didn't", "won't", "wouldn't", "shouldn't",
-    "couldn't", "isn't", "aren't", "wasn't", "weren't",
-    "hasn't", "haven't", "hadn't", "can't", "cannot",
+    "not",
+    "no",
+    "never",
+    "neither",
+    "nor",
+    "nothing",
+    "nowhere",
+    "hardly",
+    "barely",
+    "scarcely",
+    "doesn't",
+    "don't",
+    "didn't",
+    "won't",
+    "wouldn't",
+    "shouldn't",
+    "couldn't",
+    "isn't",
+    "aren't",
+    "wasn't",
+    "weren't",
+    "hasn't",
+    "haven't",
+    "hadn't",
+    "can't",
+    "cannot",
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -71,10 +129,7 @@ impl SentimentIntensityAnalyzer {
     /// Compute sentiment scores for text.
     #[pyo3(signature = (text))]
     fn polarity_scores(&self, text: &str) -> HashMap<String, f64> {
-        let words: Vec<String> = text
-            .unicode_words()
-            .map(|w| w.to_lowercase())
-            .collect();
+        let words: Vec<String> = text.unicode_words().map(|w| w.to_lowercase()).collect();
         let word_refs: Vec<&str> = words.iter().map(|s| s.as_str()).collect();
 
         let mut sentiments: Vec<f64> = Vec::new();
@@ -84,7 +139,10 @@ impl SentimentIntensityAnalyzer {
             let word = word_refs[i];
             let mut valence = match self.lexicon.get(word) {
                 Some(&v) => v,
-                None => { i += 1; continue; }
+                None => {
+                    i += 1;
+                    continue;
+                }
             };
 
             // Check for booster words before

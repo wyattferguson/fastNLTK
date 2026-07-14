@@ -11,13 +11,13 @@
 //!
 //! NLTK equivalent: nltk.ccg.chart.CCGChartParser
 
-use std::collections::HashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use std::collections::HashMap;
 
-use crate::ccg::{Category, CategoryKind};
 use crate::ccg::combinator::{self, Combinator};
 use crate::ccg::lexicon::CCGLexicon;
+use crate::ccg::{Category, CategoryKind};
 
 /// A chart cell entry: a category over a span [start, end).
 ///
@@ -50,12 +50,7 @@ impl CCGEdge {
     }
 
     /// Create a combined edge from two sub-edges using a combinator rule.
-    fn combined(
-        cat: Category,
-        left: CCGEdge,
-        right: CCGEdge,
-        rule: &str,
-    ) -> Self {
+    fn combined(cat: Category, left: CCGEdge, right: CCGEdge, rule: &str) -> Self {
         CCGEdge {
             cat,
             start: left.start,
@@ -91,9 +86,10 @@ impl CCGChartParser {
             return Err(PyValueError::new_err("Empty input"));
         }
         if n > self.max_span {
-            return Err(PyValueError::new_err(
-                format!("Input too long ({} words, max {})", n, self.max_span)
-            ));
+            return Err(PyValueError::new_err(format!(
+                "Input too long ({} words, max {})",
+                n, self.max_span
+            )));
         }
 
         // Build chart: [span_size][start] -> Vec<CCGEdge>
@@ -106,15 +102,24 @@ impl CCGChartParser {
             if cats.is_empty() {
                 // Unknown word — try to give it NP and N as default
                 if let Some(np) = crate::ccg::parse_category("NP") {
-                    chart.entry((1, i)).or_default().push(CCGEdge::new_lexical(np, i));
+                    chart
+                        .entry((1, i))
+                        .or_default()
+                        .push(CCGEdge::new_lexical(np, i));
                 }
                 if let Some(n) = crate::ccg::parse_category("N") {
-                    chart.entry((1, i)).or_default().push(CCGEdge::new_lexical(n, i));
+                    chart
+                        .entry((1, i))
+                        .or_default()
+                        .push(CCGEdge::new_lexical(n, i));
                 }
                 continue;
             }
             for cat in cats {
-                chart.entry((1, i)).or_default().push(CCGEdge::new_lexical(cat.clone(), i));
+                chart
+                    .entry((1, i))
+                    .or_default()
+                    .push(CCGEdge::new_lexical(cat.clone(), i));
             }
         }
 
@@ -139,10 +144,12 @@ impl CCGChartParser {
                                         let kind_l = l.cat.kind();
                                         let kind_r = r.cat.kind();
                                         if let Some(result_kind) = apply_combinator_with_composition(
-                                            kind_l, kind_r, comb, span
+                                            kind_l, kind_r, comb, span,
                                         ) {
                                             let result_str = format_kind(&result_kind);
-                                            if let Some(result_cat) = crate::ccg::parse_category(&result_str) {
+                                            if let Some(result_cat) =
+                                                crate::ccg::parse_category(&result_str)
+                                            {
                                                 new_edges.push(CCGEdge::combined(
                                                     result_cat,
                                                     l.clone(),
@@ -165,9 +172,11 @@ impl CCGChartParser {
         }
 
         // Collect results: edges spanning all words with S category
-        let results: Vec<String> = chart.get(&(n, 0))
+        let results: Vec<String> = chart
+            .get(&(n, 0))
             .map(|edges| {
-                edges.iter()
+                edges
+                    .iter()
                     .filter(|e| {
                         let s = e.cat.to_string();
                         s == "S"
@@ -180,9 +189,11 @@ impl CCGChartParser {
 
         if results.is_empty() {
             // Try to find any complete spanning parse
-            let any_results: Vec<String> = chart.get(&(n, 0))
+            let any_results: Vec<String> = chart
+                .get(&(n, 0))
                 .map(|edges| {
-                    edges.iter()
+                    edges
+                        .iter()
                         .enumerate()
                         .map(|(i, e)| format!("Derivation {}: {} (rule: {})", i + 1, e.cat, e.rule))
                         .collect()
@@ -215,8 +226,18 @@ fn apply_combinator_with_composition(
     match comb_name(comb) {
         "FC" => {
             // Forward composition: A/B + B/C -> A/C
-            if let CategoryKind::Functional { result: lr, argument: la, is_forward: true } = left {
-                if let CategoryKind::Functional { result: rr, argument: ra, is_forward: true } = right {
+            if let CategoryKind::Functional {
+                result: lr,
+                argument: la,
+                is_forward: true,
+            } = left
+            {
+                if let CategoryKind::Functional {
+                    result: rr,
+                    argument: ra,
+                    is_forward: true,
+                } = right
+                {
                     if **la == **rr {
                         return Some(CategoryKind::Functional {
                             result: lr.clone(),
@@ -230,8 +251,18 @@ fn apply_combinator_with_composition(
         }
         "BC" => {
             // Backward composition: B\C + A\B -> A\C
-            if let CategoryKind::Functional { result: _, argument: la, is_forward: false } = right {
-                if let CategoryKind::Functional { result: rr, argument: ra, is_forward: false } = left {
+            if let CategoryKind::Functional {
+                result: _,
+                argument: la,
+                is_forward: false,
+            } = right
+            {
+                if let CategoryKind::Functional {
+                    result: rr,
+                    argument: ra,
+                    is_forward: false,
+                } = left
+                {
                     if **la == **rr {
                         return Some(CategoryKind::Functional {
                             result: ra.clone(),
@@ -254,7 +285,11 @@ fn comb_name(comb: &Combinator) -> &'static str {
 fn format_kind(k: &CategoryKind) -> String {
     match k {
         CategoryKind::Primitive(l) => l.clone(),
-        CategoryKind::Functional { result, argument, is_forward } => {
+        CategoryKind::Functional {
+            result,
+            argument,
+            is_forward,
+        } => {
             let r = format_kind(result);
             let a = format_kind(argument);
             if *is_forward {
@@ -286,26 +321,34 @@ mod tests {
             ("saw".into(), "(S\\NP)/NP".into()),
             ("a".into(), "NP/N".into()),
             ("ball".into(), "N".into()),
-        ])).unwrap()
+        ]))
+        .unwrap()
     }
 
     #[test]
     fn test_chart_parse_simple() {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> = "the cat chased a ball".split_whitespace()
-            .map(|s| s.to_string()).collect();
+        let words: Vec<String> = "the cat chased a ball"
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect();
         let results = parser.parse(words).unwrap();
         assert!(!results.is_empty(), "Should find at least one parse");
-        assert!(results.iter().any(|r| r.starts_with("Parse")), "Should have S parse");
+        assert!(
+            results.iter().any(|r| r.starts_with("Parse")),
+            "Should have S parse"
+        );
     }
 
     #[test]
     fn test_chart_parse_two_words() {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> = "the cat".split_whitespace()
-            .map(|s| s.to_string()).collect();
+        let words: Vec<String> = "the cat"
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect();
         let results = parser.parse(words).unwrap();
         // "the cat" should result in NP (not S)
         assert!(results.iter().any(|r| r.contains("NP")), "Should have NP");
@@ -323,8 +366,10 @@ mod tests {
     fn test_chart_parse_unknown_word() {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> = "the cat ate a ball".split_whitespace()
-            .map(|s| s.to_string()).collect();
+        let words: Vec<String> = "the cat ate a ball"
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect();
         let results = parser.parse(words).unwrap();
         assert!(!results.is_empty(), "Should handle unknown words");
     }
@@ -335,21 +380,29 @@ mod tests {
             ("the".into(), "NP/N".into()),
             ("cat".into(), "N".into()),
             ("ran".into(), "S\\NP".into()),
-        ])).unwrap();
+        ]))
+        .unwrap();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> = "the cat ran".split_whitespace()
-            .map(|s| s.to_string()).collect();
+        let words: Vec<String> = "the cat ran"
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect();
         let results = parser.parse(words).unwrap();
-        assert!(results.iter().any(|r| r.starts_with("Parse")),
-                "Should produce S parse: {:?}", results);
+        assert!(
+            results.iter().any(|r| r.starts_with("Parse")),
+            "Should produce S parse: {:?}",
+            results
+        );
     }
 
     #[test]
     fn test_max_span_exceeded() {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 3);
-        let words: Vec<String> = "the cat chased a ball".split_whitespace()
-            .map(|s| s.to_string()).collect();
+        let words: Vec<String> = "the cat chased a ball"
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect();
         let result = parser.parse(words);
         assert!(result.is_err(), "Should reject input exceeding max_span");
     }
@@ -360,25 +413,32 @@ mod tests {
         let lex = CCGLexicon::new(Some(vec![
             ("the".into(), "NP/N".into()),
             ("cat".into(), "N".into()),
-        ])).unwrap();
+        ]))
+        .unwrap();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> = "the cat".split_whitespace()
-            .map(|s| s.to_string()).collect();
+        let words: Vec<String> = "the cat"
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect();
         let results = parser.parse(words).unwrap();
         // Should get NP derivation, not an S parse
-        assert!(results.iter().any(|r| r.contains("NP")),
-                "Should find NP: {:?}", results);
+        assert!(
+            results.iter().any(|r| r.contains("NP")),
+            "Should find NP: {:?}",
+            results
+        );
     }
 
     #[test]
     fn test_single_word() {
-        let lex = CCGLexicon::new(Some(vec![
-            ("hello".into(), "S".into()),
-        ])).unwrap();
+        let lex = CCGLexicon::new(Some(vec![("hello".into(), "S".into())])).unwrap();
         let parser = CCGChartParser::new(lex, 20);
         let words: Vec<String> = vec!["hello".to_string()];
         let results = parser.parse(words).unwrap();
-        assert!(results[0].contains("S") || results[0].contains("Derivation"),
-                "Should handle single word: {:?}", results);
+        assert!(
+            results[0].contains("S") || results[0].contains("Derivation"),
+            "Should handle single word: {:?}",
+            results
+        );
     }
 }

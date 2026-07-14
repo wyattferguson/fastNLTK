@@ -6,11 +6,11 @@
 //!
 //! NLTK equivalent: nltk.ccg.lexicon
 
-use std::collections::HashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use std::collections::HashMap;
 
-use crate::ccg::{Category, parse_category};
+use crate::ccg::{parse_category, Category};
 
 /// A CCG lexicon mapping words to their possible categories.
 ///
@@ -31,9 +31,8 @@ impl CCGLexicon {
         let mut map: HashMap<String, Vec<Category>> = HashMap::new();
         if let Some(entries) = entries {
             for (word, cat_str) in entries {
-                let cat = parse_category(&cat_str).ok_or_else(|| {
-                    PyValueError::new_err(format!("Invalid category: {cat_str}"))
-                })?;
+                let cat = parse_category(&cat_str)
+                    .ok_or_else(|| PyValueError::new_err(format!("Invalid category: {cat_str}")))?;
                 map.entry(word).or_default().push(cat);
             }
         }
@@ -51,9 +50,8 @@ impl CCGLexicon {
     /// Add a word-category pair. If the word already has this category,
     /// it is appended (duplicates allowed).
     pub fn add(&mut self, word: &str, cat_str: &str) -> PyResult<()> {
-        let cat = parse_category(cat_str).ok_or_else(|| {
-            PyValueError::new_err(format!("Invalid category: {cat_str}"))
-        })?;
+        let cat = parse_category(cat_str)
+            .ok_or_else(|| PyValueError::new_err(format!("Invalid category: {cat_str}")))?;
         self.entries.entry(word.to_string()).or_default().push(cat);
         Ok(())
     }
@@ -65,7 +63,9 @@ impl CCGLexicon {
 
     /// All entries as sorted (word, category strings) list for debugging / inspection.
     fn entries(&self) -> Vec<(String, Vec<String>)> {
-        let mut result: Vec<(String, Vec<String>)> = self.entries.iter()
+        let mut result: Vec<(String, Vec<String>)> = self
+            .entries
+            .iter()
             .map(|(w, cats)| (w.clone(), cats.iter().map(|c| c.to_string()).collect()))
             .collect();
         result.sort_by(|a, b| a.0.cmp(&b.0));
@@ -97,7 +97,8 @@ mod tests {
             ("cat".into(), "N".into()),
             ("dog".into(), "N".into()),
             ("chased".into(), "(S\\NP)/NP".into()),
-        ])).unwrap()
+        ]))
+        .unwrap()
     }
 
     #[test]

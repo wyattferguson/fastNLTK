@@ -165,11 +165,7 @@ impl fmt::Debug for TreeNode {
 
 impl Tree {
     fn children_repr(&self) -> String {
-        let parts: Vec<String> = self
-            .children
-            .iter()
-            .map(|c| format!("{c:?}"))
-            .collect();
+        let parts: Vec<String> = self.children.iter().map(|c| format!("{c:?}")).collect();
         format!("[{}]", parts.join(", "))
     }
 

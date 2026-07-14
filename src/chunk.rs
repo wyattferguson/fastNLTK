@@ -17,10 +17,7 @@ use regex::Regex;
 /// The pattern is applied to just the tag string.
 fn compile_tag_pattern(pattern: &str) -> Result<Regex, String> {
     // Strip < and >, convert NLTK-style patterns to regex
-    let inner = pattern
-        .trim_start_matches('<')
-        .trim_end_matches('>')
-        .trim();
+    let inner = pattern.trim_start_matches('<').trim_end_matches('>').trim();
 
     // Convert NLTK pattern syntax to Rust regex:
     // - `?` → make preceding char optional in the regex sense
@@ -62,12 +59,12 @@ fn parse_tag_sequence(pattern: &str) -> Result<Vec<Regex>, String> {
     let mut remaining = pattern.trim();
 
     while !remaining.is_empty() {
-        let start = remaining.find('<').ok_or_else(|| {
-            format!("Expected '<' in pattern, got: {remaining}")
-        })?;
-        let end = remaining.find('>').ok_or_else(|| {
-            format!("Expected '>' closing tag in pattern: {remaining}")
-        })?;
+        let start = remaining
+            .find('<')
+            .ok_or_else(|| format!("Expected '<' in pattern, got: {remaining}"))?;
+        let end = remaining
+            .find('>')
+            .ok_or_else(|| format!("Expected '>' closing tag in pattern: {remaining}"))?;
         let tag_pattern = &remaining[start..=end];
         let re = compile_tag_pattern(tag_pattern)?;
         regexes.push(re);
@@ -133,10 +130,7 @@ impl RegexpParser {
 
     /// Parse a tagged sentence and return IOB tags as Vec<(word, iob_tag)>.
     #[pyo3(signature = (tokens))]
-    fn parse(
-        &self,
-        tokens: Vec<(String, String)>,
-    ) -> Vec<(String, String)> {
+    fn parse(&self, tokens: Vec<(String, String)>) -> Vec<(String, String)> {
         if tokens.is_empty() {
             return Vec::new();
         }
@@ -179,12 +173,12 @@ impl RegexpParser {
             let rest = line[colon_pos + 1..].trim();
 
             // Find {pattern}
-            let brace_start = rest.find('{').ok_or_else(|| {
-                PyValueError::new_err(format!("Expected '{{' in rule: {line}"))
-            })?;
-            let brace_end = rest.find('}').ok_or_else(|| {
-                PyValueError::new_err(format!("Expected '}}' in rule: {line}"))
-            })?;
+            let brace_start = rest
+                .find('{')
+                .ok_or_else(|| PyValueError::new_err(format!("Expected '{{' in rule: {line}")))?;
+            let brace_end = rest
+                .find('}')
+                .ok_or_else(|| PyValueError::new_err(format!("Expected '}}' in rule: {line}")))?;
 
             let pattern_str = &rest[brace_start + 1..brace_end];
             let tag_patterns = parse_tag_sequence(pattern_str)
@@ -267,10 +261,7 @@ mod tests {
 
     #[test]
     fn test_grammar_multiline() {
-        let parser = RegexpParser::new(
-            "NP: {<DT><NN>}\nVP: {<VB.*>}",
-        )
-        .unwrap();
+        let parser = RegexpParser::new("NP: {<DT><NN>}\nVP: {<VB.*>}").unwrap();
         assert_eq!(parser.rules.len(), 2);
     }
 
@@ -292,9 +283,7 @@ mod tests {
     #[test]
     fn test_parse_no_match() {
         let parser = RegexpParser::new("NP: {<DT><NN>}").unwrap();
-        let tokens = vec![
-            ("cat".to_string(), "NN".to_string()),
-        ];
+        let tokens = vec![("cat".to_string(), "NN".to_string())];
         let result = parser.parse(tokens);
         assert_eq!(result[0].1, "O");
     }

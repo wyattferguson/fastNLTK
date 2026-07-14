@@ -9,9 +9,7 @@ use regex::Regex;
 /// Regex patterns for tweet tokenization (from NLTK's casual.py)
 fn build_patterns() -> (Regex, Regex, Regex, Regex) {
     // URL pattern
-    let url_re = Regex::new(
-        r"https?://[^\s<>\[\]{}|\\^`]+|www\.[^\s<>\[\]{}|\\^`]+"
-    ).unwrap();
+    let url_re = Regex::new(r"https?://[^\s<>\[\]{}|\\^`]+|www\.[^\s<>\[\]{}|\\^`]+").unwrap();
 
     // Emoticon pattern
     let emoticon_re = Regex::new(
@@ -19,9 +17,7 @@ fn build_patterns() -> (Regex, Regex, Regex, Regex) {
     ).unwrap();
 
     // Phone number pattern
-    let phone_re = Regex::new(
-        r"(?:(?:\+?1[ \.-]?)?\(?\d{3}\)?[ \.-]?\d{3}[ \.-]?\d{4})"
-    ).unwrap();
+    let phone_re = Regex::new(r"(?:(?:\+?1[ \.-]?)?\(?\d{3}\)?[ \.-]?\d{3}[ \.-]?\d{4})").unwrap();
 
     // Main split pattern: preserve URL, emoji, hashtags, mentions
     let main_re = Regex::new(

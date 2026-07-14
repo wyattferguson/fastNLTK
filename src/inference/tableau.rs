@@ -2,9 +2,9 @@
 //!
 //! NLTK equivalent: nltk.inference.tableau.TableauProver
 
-use std::collections::HashSet;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use std::collections::HashSet;
 
 use crate::inference::{Formula, ProverResult};
 
@@ -38,18 +38,30 @@ impl TableauProver {
         if let Some(assumptions) = assumptions {
             for a in assumptions {
                 if let Some(f) = parse_fol(&a) {
-                    branch.push(SignedFormula { formula: f, sign: true });
+                    branch.push(SignedFormula {
+                        formula: f,
+                        sign: true,
+                    });
                 }
             }
         }
-        branch.push(SignedFormula { formula: goal.negate_nnf(), sign: true });
+        branch.push(SignedFormula {
+            formula: goal.negate_nnf(),
+            sign: true,
+        });
 
         let branches = &mut vec![branch];
         let found = self.search(branches, 0);
         if found {
-            Ok(ProverResult { success: true, proof: "Tableau proof found".into() })
+            Ok(ProverResult {
+                success: true,
+                proof: "Tableau proof found".into(),
+            })
         } else {
-            Ok(ProverResult { success: false, proof: "Tableau exhausted".into() })
+            Ok(ProverResult {
+                success: false,
+                proof: "Tableau exhausted".into(),
+            })
         }
     }
 }
@@ -86,7 +98,10 @@ impl TableauProver {
             match f {
                 Formula::And(children) => {
                     for child in children {
-                        base.push(SignedFormula { formula: child, sign: sf.sign });
+                        base.push(SignedFormula {
+                            formula: child,
+                            sign: sf.sign,
+                        });
                     }
                     branches.insert(0, base);
                     self.search(branches, depth + 1)
@@ -94,7 +109,10 @@ impl TableauProver {
                 Formula::Or(children) => {
                     for child in children {
                         let mut new_branch = base.clone();
-                        new_branch.push(SignedFormula { formula: child, sign: sf.sign });
+                        new_branch.push(SignedFormula {
+                            formula: child,
+                            sign: sf.sign,
+                        });
                         branches.insert(0, new_branch);
                     }
                     self.search(branches, depth + 1)
@@ -104,7 +122,10 @@ impl TableauProver {
                     let not_l = Formula::Not(l);
                     for child in vec![not_l, *r] {
                         let mut new_branch = base.clone();
-                        new_branch.push(SignedFormula { formula: child, sign: sf.sign });
+                        new_branch.push(SignedFormula {
+                            formula: child,
+                            sign: sf.sign,
+                        });
                         branches.insert(0, new_branch);
                     }
                     self.search(branches, depth + 1)
@@ -112,15 +133,24 @@ impl TableauProver {
                 Formula::Forall(v, body) => {
                     let fresh = format!("_c{depth}");
                     let inst = sub_var(&body, &v, &fresh);
-                    base.push(SignedFormula { formula: inst, sign: sf.sign });
-                    base.push(SignedFormula { formula: Formula::Forall(v, body), sign: sf.sign });
+                    base.push(SignedFormula {
+                        formula: inst,
+                        sign: sf.sign,
+                    });
+                    base.push(SignedFormula {
+                        formula: Formula::Forall(v, body),
+                        sign: sf.sign,
+                    });
                     branches.insert(0, base);
                     self.search(branches, depth + 1)
                 }
                 Formula::Exists(v, body) => {
                     let fresh = format!("_sk{depth}");
                     let inst = sub_var(&body, &v, &fresh);
-                    base.push(SignedFormula { formula: inst, sign: sf.sign });
+                    base.push(SignedFormula {
+                        formula: inst,
+                        sign: sf.sign,
+                    });
                     branches.insert(0, base);
                     self.search(branches, depth + 1)
                 }
@@ -136,7 +166,14 @@ impl TableauProver {
 }
 
 fn is_literal_simple(f: &Formula) -> bool {
-    matches!(f, Formula::Atom(_, _) | Formula::Not(_) | Formula::True | Formula::False | Formula::Equal(_, _))
+    matches!(
+        f,
+        Formula::Atom(_, _)
+            | Formula::Not(_)
+            | Formula::True
+            | Formula::False
+            | Formula::Equal(_, _)
+    )
 }
 
 fn is_atomic_simple(b: &[SignedFormula]) -> bool {
@@ -156,11 +193,13 @@ fn is_closed_simple(b: &[SignedFormula]) -> bool {
 
 fn contradict(a: &Formula, b: &Formula) -> bool {
     match (a, b) {
-        (Formula::Atom(p1, a1), Formula::Not(inner)) |
-        (Formula::Not(inner), Formula::Atom(p1, a1)) => {
+        (Formula::Atom(p1, a1), Formula::Not(inner))
+        | (Formula::Not(inner), Formula::Atom(p1, a1)) => {
             if let Formula::Atom(p2, a2) = inner.as_ref() {
                 p1 == p2 && a1 == a2
-            } else { false }
+            } else {
+                false
+            }
         }
         (Formula::True, Formula::False) | (Formula::False, Formula::True) => true,
         _ => false,
@@ -170,14 +209,25 @@ fn contradict(a: &Formula, b: &Formula) -> bool {
 fn sub_var(f: &Formula, var: &str, repl: &str) -> Formula {
     match f {
         Formula::Atom(p, args) => {
-            let new_args: Vec<String> = args.iter().map(|a| if a == var { repl.into() } else { a.clone() }).collect();
+            let new_args: Vec<String> = args
+                .iter()
+                .map(|a| if a == var { repl.into() } else { a.clone() })
+                .collect();
             Formula::Atom(p.clone(), new_args)
         }
         Formula::Not(inner) => Formula::Not(Box::new(sub_var(inner, var, repl))),
-        Formula::And(children) => Formula::And(children.iter().map(|c| sub_var(c, var, repl)).collect()),
-        Formula::Or(children) => Formula::Or(children.iter().map(|c| sub_var(c, var, repl)).collect()),
-        Formula::Forall(v, body) if v != var => Formula::Forall(v.clone(), Box::new(sub_var(body, var, repl))),
-        Formula::Exists(v, body) if v != var => Formula::Exists(v.clone(), Box::new(sub_var(body, var, repl))),
+        Formula::And(children) => {
+            Formula::And(children.iter().map(|c| sub_var(c, var, repl)).collect())
+        }
+        Formula::Or(children) => {
+            Formula::Or(children.iter().map(|c| sub_var(c, var, repl)).collect())
+        }
+        Formula::Forall(v, body) if v != var => {
+            Formula::Forall(v.clone(), Box::new(sub_var(body, var, repl)))
+        }
+        Formula::Exists(v, body) if v != var => {
+            Formula::Exists(v.clone(), Box::new(sub_var(body, var, repl)))
+        }
         Formula::Equal(a, b) => Formula::Equal(
             if a == var { repl.into() } else { a.clone() },
             if b == var { repl.into() } else { b.clone() },
@@ -188,15 +238,26 @@ fn sub_var(f: &Formula, var: &str, repl: &str) -> Formula {
 
 fn parse_fol(s: &str) -> Option<Formula> {
     let s = s.trim();
-    if s.is_empty() { return None; }
+    if s.is_empty() {
+        return None;
+    }
     if let Some(pos) = find_conn(s, "&") {
-        return Some(Formula::And(vec![parse_fol(&s[..pos])?, parse_fol(&s[pos + 1..])?]));
+        return Some(Formula::And(vec![
+            parse_fol(&s[..pos])?,
+            parse_fol(&s[pos + 1..])?,
+        ]));
     }
     if let Some(pos) = find_conn(s, "|") {
-        return Some(Formula::Or(vec![parse_fol(&s[..pos])?, parse_fol(&s[pos + 1..])?]));
+        return Some(Formula::Or(vec![
+            parse_fol(&s[..pos])?,
+            parse_fol(&s[pos + 1..])?,
+        ]));
     }
     if let Some(pos) = find_conn(s, "->") {
-        return Some(Formula::Imp(Box::new(parse_fol(&s[..pos])?), Box::new(parse_fol(&s[pos + 2..])?)));
+        return Some(Formula::Imp(
+            Box::new(parse_fol(&s[..pos])?),
+            Box::new(parse_fol(&s[pos + 2..])?),
+        ));
     }
     if s.starts_with('-') || s.starts_with('~') {
         return Some(Formula::Not(Box::new(parse_fol(&s[1..].trim())?)));
@@ -215,7 +276,11 @@ fn parse_fol(s: &str) -> Option<Formula> {
         let paren = s.find('(')?;
         let close = s.rfind(')')?;
         let pred = s[..paren].trim().to_string();
-        let args: Vec<String> = s[paren + 1..close].split(',').map(|a| a.trim().to_string()).filter(|a| !a.is_empty()).collect();
+        let args: Vec<String> = s[paren + 1..close]
+            .split(',')
+            .map(|a| a.trim().to_string())
+            .filter(|a| !a.is_empty())
+            .collect();
         return Some(Formula::Atom(pred, args));
     }
     if s.chars().all(|c| c.is_alphabetic() || c == '_') {
@@ -232,7 +297,14 @@ fn find_conn(s: &str, conn: &str) -> Option<usize> {
             ')' => depth = depth.saturating_sub(1),
             _ => {
                 if depth == 0 && s[i..].starts_with(conn) {
-                    if i > 0 && s.as_bytes().get(i - 1).copied().map_or(false, |b| b.is_ascii_alphanumeric()) { continue; }
+                    if i > 0
+                        && s.as_bytes()
+                            .get(i - 1)
+                            .copied()
+                            .map_or(false, |b| b.is_ascii_alphanumeric())
+                    {
+                        continue;
+                    }
                     return Some(i);
                 }
             }
@@ -246,7 +318,11 @@ fn split_q(s: &str) -> Option<(String, String)> {
     let dot = s.find('.')?;
     let var = s[..dot].trim().to_string();
     let body = s[dot + 1..].trim().to_string();
-    if var.is_empty() || body.is_empty() { None } else { Some((var, body)) }
+    if var.is_empty() || body.is_empty() {
+        None
+    } else {
+        Some((var, body))
+    }
 }
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {

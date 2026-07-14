@@ -8,10 +8,10 @@
 
 use pyo3::prelude::*;
 
-pub mod tableau;
-pub mod resolution;
 pub mod discourse;
 pub mod nonmonotonic;
+pub mod resolution;
+pub mod tableau;
 
 #[pyclass(name = "ProverResult", module = "fastnltk._rust")]
 #[derive(Clone)]
@@ -63,8 +63,12 @@ impl Formula {
             Formula::False => Formula::True,
             Formula::Atom(p, args) => Formula::Not(Box::new(Formula::Atom(p, args))),
             Formula::Not(inner) => inner.nnf(),
-            Formula::And(children) => Formula::Or(children.into_iter().map(|c| c.negate_nnf()).collect()),
-            Formula::Or(children) => Formula::And(children.into_iter().map(|c| c.negate_nnf()).collect()),
+            Formula::And(children) => {
+                Formula::Or(children.into_iter().map(|c| c.negate_nnf()).collect())
+            }
+            Formula::Or(children) => {
+                Formula::And(children.into_iter().map(|c| c.negate_nnf()).collect())
+            }
             Formula::Imp(l, r) => Formula::And(vec![l.nnf(), r.negate_nnf()]),
             Formula::Iff(l, r) => Formula::Or(vec![
                 Formula::And(vec![l.clone().nnf(), r.clone().nnf()]),
@@ -112,12 +116,15 @@ impl Formula {
                 let flat: Vec<Formula> = distributed.into_iter().flatten().collect();
                 Formula::Or(flat)
             }
-            Formula::And(children) => Formula::And(children.into_iter().map(|c| c.distribute()).collect()),
+            Formula::And(children) => {
+                Formula::And(children.into_iter().map(|c| c.distribute()).collect())
+            }
             Formula::Imp(l, r) => Formula::Or(vec![l.negate_nnf(), r.distribute()]).distribute(),
             Formula::Iff(l, r) => Formula::Or(vec![
                 Formula::And(vec![l.clone().nnf(), r.clone().nnf()]),
                 Formula::And(vec![l.negate_nnf(), r.negate_nnf()]),
-            ]).distribute(),
+            ])
+            .distribute(),
             other => other,
         }
     }
@@ -144,16 +151,17 @@ fn push_and_clauses(f: Formula, clauses: &mut Vec<Vec<Literal>>) {
 
 fn collect_literals(f: Formula) -> Vec<Literal> {
     match f {
-        Formula::Or(children) => {
-            children.into_iter().map(|c| match c {
+        Formula::Or(children) => children
+            .into_iter()
+            .map(|c| match c {
                 Formula::Atom(p, args) => Literal::Pos(p, args),
                 Formula::Not(inner) => match *inner {
                     Formula::Atom(p, args) => Literal::Neg(p, args),
                     _ => Literal::Pos("__CMP__".into(), vec![]),
                 },
                 _ => Literal::Pos("__CMP__".into(), vec![]),
-            }).collect()
-        }
+            })
+            .collect(),
         Formula::Atom(p, args) => vec![Literal::Pos(p, args)],
         Formula::Not(inner) => match *inner {
             Formula::Atom(p, args) => vec![Literal::Neg(p, args)],

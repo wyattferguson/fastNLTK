@@ -1,8 +1,8 @@
 //! Regexp-based tokenizers: RegexpTokenizer, WhitespaceTokenizer,
 //! WordPunctTokenizer, BlanklineTokenizer.
 
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 use regex::Regex;
 
 use crate::util::regex_cache;
@@ -45,9 +45,7 @@ impl RegexpTokenizer {
                 .map(String::from)
                 .collect()
         } else {
-            re.find_iter(text)
-                .map(|m| m.as_str().to_string())
-                .collect()
+            re.find_iter(text).map(|m| m.as_str().to_string()).collect()
         })
     }
 
@@ -68,9 +66,7 @@ impl RegexpTokenizer {
             }
             spans
         } else {
-            re.find_iter(text)
-                .map(|m| (m.start(), m.end()))
-                .collect()
+            re.find_iter(text).map(|m| (m.start(), m.end())).collect()
         })
     }
 }
@@ -91,9 +87,7 @@ impl WhitespaceTokenizer {
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        text.split_whitespace()
-            .map(String::from)
-            .collect()
+        text.split_whitespace().map(String::from).collect()
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
@@ -130,8 +124,7 @@ pub struct WordPunctTokenizer {
 impl WordPunctTokenizer {
     #[new]
     fn new() -> PyResult<Self> {
-        let re = Regex::new(r"\w+|[^\w\s]+")
-            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        let re = Regex::new(r"\w+|[^\w\s]+").map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(Self { re })
     }
 

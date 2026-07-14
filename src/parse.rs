@@ -148,7 +148,9 @@ impl CFG {
                 .rhs
                 .iter()
                 .map(|s| {
-                    if s.chars().all(|c| c.is_lowercase() || c.is_ascii_punctuation()) {
+                    if s.chars()
+                        .all(|c| c.is_lowercase() || c.is_ascii_punctuation())
+                    {
                         format!("'{}'", s)
                     } else {
                         s.clone()
@@ -400,7 +402,8 @@ mod tests {
 
     #[test]
     fn test_cfg_from_string() {
-        let grammar_str = "S -> NP VP\nNP -> Det N\nDet -> 'the'\nN -> 'cat'\nVP -> V NP\nV -> 'chased'";
+        let grammar_str =
+            "S -> NP VP\nNP -> Det N\nDet -> 'the'\nN -> 'cat'\nVP -> V NP\nV -> 'chased'";
         let cfg = CFG::from_string(grammar_str).unwrap();
         assert_eq!(cfg.start(), "S");
         assert_eq!(cfg.__len__(), 6);
@@ -434,10 +437,7 @@ mod tests {
     fn test_earley_no_parse() {
         let parser = EarleyChartParser::new();
         let cfg = sample_grammar();
-        let result = parser.parse(
-            &cfg,
-            vec!["the".to_string(), "dog".to_string()],
-        );
+        let result = parser.parse(&cfg, vec!["the".to_string(), "dog".to_string()]);
         // "the dog" is just a noun phrase, not a full sentence
         assert!(result.is_err());
     }

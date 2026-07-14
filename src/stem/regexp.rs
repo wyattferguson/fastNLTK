@@ -12,10 +12,14 @@ pub struct RegexpStemmer {
 impl RegexpStemmer {
     #[new]
     #[pyo3(signature = (min_length = 0))]
-    fn new(min_length: usize) -> Self { Self { min_length } }
+    fn new(min_length: usize) -> Self {
+        Self { min_length }
+    }
 
     fn stem(&self, word: &str) -> String {
-        if word.len() <= self.min_length { return word.to_string(); }
+        if word.len() <= self.min_length {
+            return word.to_string();
+        }
         let re = Regex::new(r"(?i)(ing|ed|s|ly|ness|ment|tion|able)$").unwrap();
         re.replace(word, "").to_string()
     }

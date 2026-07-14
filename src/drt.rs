@@ -15,7 +15,9 @@ use std::fmt;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-use crate::sem::{self, Expression, parse_expression, model_evaluate, Assignment, Individual, Valuation};
+use crate::sem::{
+    self, model_evaluate, parse_expression, Assignment, Expression, Individual, Valuation,
+};
 
 // ═══════════════════════════════════════════════════════════
 // DRS types
@@ -87,7 +89,9 @@ impl DRS {
         let mut i = pos;
 
         // Skip whitespace
-        while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+        while i < chars.len() && chars[i].is_whitespace() {
+            i += 1;
+        }
 
         // Expect '('
         if i >= chars.len() || chars[i] != '(' {
@@ -96,7 +100,9 @@ impl DRS {
         i += 1;
 
         // Skip whitespace
-        while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+        while i < chars.len() && chars[i].is_whitespace() {
+            i += 1;
+        }
 
         // Expect '['
         if i >= chars.len() || chars[i] != '[' {
@@ -107,28 +113,42 @@ impl DRS {
         // Parse universe: comma-separated variables
         let mut universe = Vec::new();
         loop {
-            while i < chars.len() && chars[i].is_whitespace() { i += 1; }
-            if i >= chars.len() { return Err("Unexpected end in universe".to_string()); }
-            if chars[i] == ']' { break; }
+            while i < chars.len() && chars[i].is_whitespace() {
+                i += 1;
+            }
+            if i >= chars.len() {
+                return Err("Unexpected end in universe".to_string());
+            }
+            if chars[i] == ']' {
+                break;
+            }
             // Read variable name
             let mut name = String::new();
-            while i < chars.len() && (chars[i].is_alphanumeric() || chars[i] == '_' || chars[i] == '\'') {
+            while i < chars.len()
+                && (chars[i].is_alphanumeric() || chars[i] == '_' || chars[i] == '\'')
+            {
                 name.push(chars[i]);
                 i += 1;
             }
             if !name.is_empty() {
                 universe.push(name);
             }
-            while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+            while i < chars.len() && chars[i].is_whitespace() {
+                i += 1;
+            }
             if i < chars.len() && chars[i] == ',' {
                 i += 1;
             }
         }
         // Skip ']'
-        if i < chars.len() && chars[i] == ']' { i += 1; }
+        if i < chars.len() && chars[i] == ']' {
+            i += 1;
+        }
 
         // Skip whitespace
-        while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+        while i < chars.len() && chars[i].is_whitespace() {
+            i += 1;
+        }
 
         // Expect ','
         if i >= chars.len() || chars[i] != ',' {
@@ -137,7 +157,9 @@ impl DRS {
         i += 1;
 
         // Skip whitespace
-        while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+        while i < chars.len() && chars[i].is_whitespace() {
+            i += 1;
+        }
 
         // Expect '['
         if i >= chars.len() || chars[i] != '[' {
@@ -148,9 +170,15 @@ impl DRS {
         // Parse conditions
         let mut conditions = Vec::new();
         loop {
-            while i < chars.len() && chars[i].is_whitespace() { i += 1; }
-            if i >= chars.len() { return Err("Unexpected end in conditions".to_string()); }
-            if chars[i] == ']' { break; }
+            while i < chars.len() && chars[i].is_whitespace() {
+                i += 1;
+            }
+            if i >= chars.len() {
+                return Err("Unexpected end in conditions".to_string());
+            }
+            if chars[i] == ']' {
+                break;
+            }
 
             // Check for nested DRS (negation, implication, etc.)
             if chars[i] == '-' {
@@ -161,24 +189,40 @@ impl DRS {
             } else if chars[i] == '(' {
                 let (nested_drs, new_i) = Self::parse_drs(input, i)?;
                 // Check if followed by '=>' or '|' or is just a sub-DRS
-                while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+                while i < chars.len() && chars[i].is_whitespace() {
+                    i += 1;
+                }
                 if input[new_i..].trim_start().starts_with("=>") {
                     // Implication
                     i = new_i;
-                    while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+                    while i < chars.len() && chars[i].is_whitespace() {
+                        i += 1;
+                    }
                     i += 2; // skip =>
-                    while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+                    while i < chars.len() && chars[i].is_whitespace() {
+                        i += 1;
+                    }
                     let (rhs, new_i) = Self::parse_drs(input, i)?;
-                    conditions.push(DRSCondition::Implication(Box::new(nested_drs), Box::new(rhs)));
+                    conditions.push(DRSCondition::Implication(
+                        Box::new(nested_drs),
+                        Box::new(rhs),
+                    ));
                     i = new_i;
                 } else if input[new_i..].trim_start().starts_with('|') {
                     // Disjunction
                     i = new_i;
-                    while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+                    while i < chars.len() && chars[i].is_whitespace() {
+                        i += 1;
+                    }
                     i += 1; // skip |
-                    while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+                    while i < chars.len() && chars[i].is_whitespace() {
+                        i += 1;
+                    }
                     let (rhs, new_i) = Self::parse_drs(input, i)?;
-                    conditions.push(DRSCondition::Disjunction(Box::new(nested_drs), Box::new(rhs)));
+                    conditions.push(DRSCondition::Disjunction(
+                        Box::new(nested_drs),
+                        Box::new(rhs),
+                    ));
                     i = new_i;
                 } else {
                     conditions.push(DRSCondition::DRS(Box::new(nested_drs)));
@@ -191,24 +235,36 @@ impl DRS {
                     name.push(chars[i]);
                     i += 1;
                 }
-                while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+                while i < chars.len() && chars[i].is_whitespace() {
+                    i += 1;
+                }
 
                 if i < chars.len() && chars[i] == '(' {
                     // Predicate: name(arg)
                     i += 1;
-                    while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+                    while i < chars.len() && chars[i].is_whitespace() {
+                        i += 1;
+                    }
                     let mut arg = String::new();
-                    while i < chars.len() && (chars[i].is_alphanumeric() || chars[i] == '_' || chars[i] == '\'') {
+                    while i < chars.len()
+                        && (chars[i].is_alphanumeric() || chars[i] == '_' || chars[i] == '\'')
+                    {
                         arg.push(chars[i]);
                         i += 1;
                     }
-                    while i < chars.len() && chars[i].is_whitespace() { i += 1; }
-                    if i < chars.len() && chars[i] == ')' { i += 1; }
+                    while i < chars.len() && chars[i].is_whitespace() {
+                        i += 1;
+                    }
+                    if i < chars.len() && chars[i] == ')' {
+                        i += 1;
+                    }
                     conditions.push(DRSCondition::Predicate(name, arg));
                 } else if i < chars.len() && chars[i] == '=' {
                     // Equality: x = y
                     i += 1;
-                    while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+                    while i < chars.len() && chars[i].is_whitespace() {
+                        i += 1;
+                    }
                     let mut arg2 = String::new();
                     while i < chars.len() && (chars[i].is_alphanumeric() || chars[i] == '_') {
                         arg2.push(chars[i]);
@@ -220,17 +276,23 @@ impl DRS {
                 }
             }
 
-            while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+            while i < chars.len() && chars[i].is_whitespace() {
+                i += 1;
+            }
             if i < chars.len() && chars[i] == ',' {
                 i += 1;
             }
         }
 
         // Skip ']'
-        if i < chars.len() && chars[i] == ']' { i += 1; }
+        if i < chars.len() && chars[i] == ']' {
+            i += 1;
+        }
 
         // Skip whitespace
-        while i < chars.len() && chars[i].is_whitespace() { i += 1; }
+        while i < chars.len() && chars[i].is_whitespace() {
+            i += 1;
+        }
 
         // Expect ')'
         if i >= chars.len() || chars[i] != ')' {
@@ -238,7 +300,13 @@ impl DRS {
         }
         i += 1;
 
-        Ok((DRS { universe, conditions }, i))
+        Ok((
+            DRS {
+                universe,
+                conditions,
+            },
+            i,
+        ))
     }
 
     /// Convert DRS to a first-order logic formula.
@@ -286,32 +354,20 @@ impl DRS {
 /// Convert a DRS condition to a first-order logic Expression.
 fn cond_to_fol(cond: &DRSCondition) -> Expression {
     match cond {
-        DRSCondition::Predicate(name, arg) => {
-            Expression::Application(
-                Box::new(Expression::Variable(name.clone(), None)),
-                Box::new(Expression::Variable(arg.clone(), None)),
-            )
-        }
-        DRSCondition::Equality(a, b) => {
-            Expression::Equality(
-                Box::new(Expression::Variable(a.clone(), None)),
-                Box::new(Expression::Variable(b.clone(), None)),
-            )
-        }
-        DRSCondition::Negation(drs) => {
-            Expression::Not(Box::new(drs.to_fol()))
-        }
+        DRSCondition::Predicate(name, arg) => Expression::Application(
+            Box::new(Expression::Variable(name.clone(), None)),
+            Box::new(Expression::Variable(arg.clone(), None)),
+        ),
+        DRSCondition::Equality(a, b) => Expression::Equality(
+            Box::new(Expression::Variable(a.clone(), None)),
+            Box::new(Expression::Variable(b.clone(), None)),
+        ),
+        DRSCondition::Negation(drs) => Expression::Not(Box::new(drs.to_fol())),
         DRSCondition::Implication(ante, cons) => {
-            Expression::If(
-                Box::new(ante.to_fol()),
-                Box::new(cons.to_fol()),
-            )
+            Expression::If(Box::new(ante.to_fol()), Box::new(cons.to_fol()))
         }
         DRSCondition::Disjunction(a, b) => {
-            Expression::Or(
-                Box::new(a.to_fol()),
-                Box::new(b.to_fol()),
-            )
+            Expression::Or(Box::new(a.to_fol()), Box::new(b.to_fol()))
         }
         DRSCondition::DRS(drs) => drs.to_fol(),
     }
@@ -324,16 +380,14 @@ fn cond_to_fol(cond: &DRSCondition) -> Expression {
 #[pyfunction]
 #[pyo3(signature = (drs_string))]
 fn parse_drs(drs_string: &str) -> PyResult<String> {
-    let drs = DRS::from_string(drs_string)
-        .map_err(|e| PyValueError::new_err(e))?;
+    let drs = DRS::from_string(drs_string).map_err(|e| PyValueError::new_err(e))?;
     Ok(format!("{drs}"))
 }
 
 #[pyfunction]
 #[pyo3(signature = (drs_string))]
 fn drs_to_fol(drs_string: &str) -> PyResult<String> {
-    let drs = DRS::from_string(drs_string)
-        .map_err(|e| PyValueError::new_err(e))?;
+    let drs = DRS::from_string(drs_string).map_err(|e| PyValueError::new_err(e))?;
     let fol = drs.to_fol();
     Ok(format!("{fol}"))
 }

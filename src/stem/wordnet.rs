@@ -26,12 +26,7 @@ impl WordNetData {
         let mut known_words = HashSet::new();
 
         // POS files mapping
-        let pos_files = &[
-            ("n", "noun"),
-            ("v", "verb"),
-            ("a", "adj"),
-            ("r", "adv"),
-        ];
+        let pos_files = &[("n", "noun"), ("v", "verb"), ("a", "adj"), ("r", "adv")];
 
         for (pos, prefix) in pos_files {
             // Load exception file: {prefix}.exc
@@ -122,15 +117,7 @@ static MORPHY_RULES: &[(&str, &[(&str, &str)])] = &[
             ("ing", ""),
         ],
     ),
-    (
-        "a",
-        &[
-            ("er", ""),
-            ("est", ""),
-            ("er", "e"),
-            ("est", "e"),
-        ],
-    ),
+    ("a", &[("er", ""), ("est", ""), ("er", "e"), ("est", "e")]),
 ];
 
 /// Apply morphy rules to find the base form of a word.
@@ -199,12 +186,18 @@ impl WordNetLemmatizer {
             std::env::var("NLTK_DATA")
                 .ok()
                 .map(|p| Path::new(&p).join("corpora").join("wordnet")),
-            std::env::var("HOME")
-                .ok()
-                .map(|p| Path::new(&p).join("nltk_data").join("corpora").join("wordnet")),
-            std::env::var("USERPROFILE")
-                .ok()
-                .map(|p| Path::new(&p).join("nltk_data").join("corpora").join("wordnet")),
+            std::env::var("HOME").ok().map(|p| {
+                Path::new(&p)
+                    .join("nltk_data")
+                    .join("corpora")
+                    .join("wordnet")
+            }),
+            std::env::var("USERPROFILE").ok().map(|p| {
+                Path::new(&p)
+                    .join("nltk_data")
+                    .join("corpora")
+                    .join("wordnet")
+            }),
         ];
 
         for path_opt in &search_paths {

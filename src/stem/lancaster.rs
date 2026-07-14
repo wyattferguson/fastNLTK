@@ -4,12 +4,30 @@
 use pyo3::prelude::*;
 
 static RULES: &[(&str, &str, i32)] = &[
-    ("ai", "", 1), ("ance", "", 1), ("ence", "", 1), ("er", "", 1),
-    ("ic", "", 1), ("able", "", 1), ("ible", "", 1), ("ant", "", 1),
-    ("ement", "", 1), ("ment", "", 1), ("ent", "", 1), ("sion", "", 1),
-    ("tion", "", 1), ("ou", "", 1), ("ism", "", 1), ("ate", "", 1),
-    ("iti", "", 1), ("ous", "", 1), ("ive", "", 1), ("ize", "", 1),
-    ("al", "", -1), ("all", "", -1), ("ful", "", -1), ("ness", "", -1),
+    ("ai", "", 1),
+    ("ance", "", 1),
+    ("ence", "", 1),
+    ("er", "", 1),
+    ("ic", "", 1),
+    ("able", "", 1),
+    ("ible", "", 1),
+    ("ant", "", 1),
+    ("ement", "", 1),
+    ("ment", "", 1),
+    ("ent", "", 1),
+    ("sion", "", 1),
+    ("tion", "", 1),
+    ("ou", "", 1),
+    ("ism", "", 1),
+    ("ate", "", 1),
+    ("iti", "", 1),
+    ("ous", "", 1),
+    ("ive", "", 1),
+    ("ize", "", 1),
+    ("al", "", -1),
+    ("all", "", -1),
+    ("ful", "", -1),
+    ("ness", "", -1),
 ];
 
 #[pyclass(name = "LancasterStemmer", module = "fastnltk._rust")]
@@ -18,11 +36,15 @@ pub struct LancasterStemmer;
 #[pymethods]
 impl LancasterStemmer {
     #[new]
-    fn new() -> Self { Self }
+    fn new() -> Self {
+        Self
+    }
 
     fn stem(&self, word: &str) -> String {
         let word = word.to_lowercase();
-        if word.len() <= 2 { return word; }
+        if word.len() <= 2 {
+            return word;
+        }
         let mut s = word;
         let mut changed = true;
         while changed {

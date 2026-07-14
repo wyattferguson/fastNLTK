@@ -2,10 +2,10 @@
 //!
 //! Implements the averaged perceptron tagger and sequential taggers.
 
+pub mod hmm;
 pub mod perceptron;
 pub mod sequential;
 pub mod tnt;
-pub mod hmm;
 
 use pyo3::prelude::*;
 

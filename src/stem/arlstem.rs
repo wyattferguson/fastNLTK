@@ -106,29 +106,29 @@ fn normalize(token: &str) -> String {
 // ═══════════════════════════════════════════════════════════
 
 static PREFIXES: &[&str] = &[
-    "ال", // Al-
+    "ال",   // Al-
     "وبال", // Wa-bi-Al
     "فبال", // Fa-bi-Al
-    "بال", // Bi-Al
-    "ولل", // Wa-li-Al
-    "لل", // Li-Al
+    "بال",  // Bi-Al
+    "ولل",  // Wa-li-Al
+    "لل",   // Li-Al
     "فسوف", // Fa-sawfa
-    "سوف", // Sawfa
-    "فال", // Fa-Al
+    "سوف",  // Sawfa
+    "فال",  // Fa-Al
     "وسوف", // Wa-sawfa
-    "وال", // Wa-Al
-    "وب", // Wa-bi
-    "فل", // Fa-li
-    "وسي", // Wa-sa-
-    "فسي", // Fa-sa-
-    "وس", // Wa-sa
-    "فس", // Fa-sa
-    "لي", // Li-
-    "ل", // L-
-    "ف", // F-
-    "و", // W-
-    "س", // S-
-    "ب", // B-
+    "وال",  // Wa-Al
+    "وب",   // Wa-bi
+    "فل",   // Fa-li
+    "وسي",  // Wa-sa-
+    "فسي",  // Fa-sa-
+    "وس",   // Wa-sa
+    "فس",   // Fa-sa
+    "لي",   // Li-
+    "ل",    // L-
+    "ف",    // F-
+    "و",    // W-
+    "س",    // S-
+    "ب",    // B-
 ];
 
 fn strip_prefix(token: &str) -> Option<String> {
@@ -151,27 +151,27 @@ fn strip_prefix(token: &str) -> Option<String> {
 static SUFFIXES: &[&str] = &[
     "\u{643}\u{645}\u{627}", // كما
     "\u{647}\u{645}\u{627}", // هما
-    "\u{643}\u{645}", // كم
-    "\u{647}\u{645}", // هم
-    "\u{647}\u{646}", // هن
-    "\u{643}\u{646}", // كن
-    "\u{648}\u{646}", // ون (masculine plural)
-    "\u{64A}\u{646}", // ين (masculine plural)
-    "\u{627}\u{646}", // ان (dual)
-    "\u{648}\u{627}", // وا
-    "\u{647}\u{627}", // ها
-    "\u{646}\u{627}", // نا
-    "\u{62A}\u{645}", // تم
-    "\u{62A}\u{646}", // تن
-    "\u{62A}\u{627}", // تا
-    "\u{647}", // ه
-    "\u{647}\u{627}", // ها
-    "\u{646}", // ن
-    "\u{627}", // ا
-    "\u{64A}", // ي
-    "\u{62A}", // ت
-    "\u{629}", // ة
-    "\u{643}", // ك
+    "\u{643}\u{645}",        // كم
+    "\u{647}\u{645}",        // هم
+    "\u{647}\u{646}",        // هن
+    "\u{643}\u{646}",        // كن
+    "\u{648}\u{646}",        // ون (masculine plural)
+    "\u{64A}\u{646}",        // ين (masculine plural)
+    "\u{627}\u{646}",        // ان (dual)
+    "\u{648}\u{627}",        // وا
+    "\u{647}\u{627}",        // ها
+    "\u{646}\u{627}",        // نا
+    "\u{62A}\u{645}",        // تم
+    "\u{62A}\u{646}",        // تن
+    "\u{62A}\u{627}",        // تا
+    "\u{647}",               // ه
+    "\u{647}\u{627}",        // ها
+    "\u{646}",               // ن
+    "\u{627}",               // ا
+    "\u{64A}",               // ي
+    "\u{62A}",               // ت
+    "\u{629}",               // ة
+    "\u{643}",               // ك
 ];
 
 fn strip_suffix(token: &str) -> String {
@@ -193,10 +193,10 @@ fn strip_suffix(token: &str) -> String {
 // ═══════════════════════════════════════════════════════════
 
 static PLURAL_SUFFIXES: &[(&str, &str)] = &[
-    ("ات", ""),   // جمع مؤنث سالم
-    ("ين", ""),   // جمع مذكر سالم
-    ("ون", ""),   // جمع مذكر سالم
-    ("ان", ""),   // مثنى
+    ("ات", ""), // جمع مؤنث سالم
+    ("ين", ""), // جمع مذكر سالم
+    ("ون", ""), // جمع مذكر سالم
+    ("ان", ""), // مثنى
 ];
 
 fn plural_to_singular(token: &str) -> Option<String> {
@@ -254,7 +254,16 @@ fn strip_verb(token: &str) -> String {
     let chars: Vec<char> = token.chars().collect();
     let mut t: String = chars.iter().collect();
 
-    let verb_prefixes = ["\u{633}\u{64A}", "\u{633}", "\u{641}", "\u{64A}", "\u{62A}", "\u{627}", "\u{646}", "\u{623}"];
+    let verb_prefixes = [
+        "\u{633}\u{64A}",
+        "\u{633}",
+        "\u{641}",
+        "\u{64A}",
+        "\u{62A}",
+        "\u{627}",
+        "\u{646}",
+        "\u{623}",
+    ];
     for p in &verb_prefixes {
         let p_chars = p.chars().count();
         if t.starts_with(*p) && chars.len() > p_chars + 2 {
@@ -263,7 +272,19 @@ fn strip_verb(token: &str) -> String {
         }
     }
 
-    let verb_suffixes = ["\u{648}\u{646}", "\u{64A}\u{646}", "\u{627}\u{646}", "\u{648}\u{627}", "\u{646}", "\u{627}", "\u{64A}", "\u{62A}", "\u{62A}\u{645}", "\u{62A}\u{646}", "\u{646}\u{627}"];
+    let verb_suffixes = [
+        "\u{648}\u{646}",
+        "\u{64A}\u{646}",
+        "\u{627}\u{646}",
+        "\u{648}\u{627}",
+        "\u{646}",
+        "\u{627}",
+        "\u{64A}",
+        "\u{62A}",
+        "\u{62A}\u{645}",
+        "\u{62A}\u{646}",
+        "\u{646}\u{627}",
+    ];
     for s in &verb_suffixes {
         let s_chars = s.chars().count();
         if t.ends_with(*s) && t.chars().count() > s_chars + 1 {
@@ -283,7 +304,19 @@ fn strip_verb2(token: &str) -> String {
     let chars: Vec<char> = token.chars().collect();
     let mut t: String = chars.iter().collect();
 
-    let verb_prefixes = ["\u{641}", "\u{648}", "\u{628}", "\u{644}", "\u{633}", "\u{64A}", "\u{62A}", "\u{627}", "\u{646}", "\u{623}", "\u{633}\u{64A}"];
+    let verb_prefixes = [
+        "\u{641}",
+        "\u{648}",
+        "\u{628}",
+        "\u{644}",
+        "\u{633}",
+        "\u{64A}",
+        "\u{62A}",
+        "\u{627}",
+        "\u{646}",
+        "\u{623}",
+        "\u{633}\u{64A}",
+    ];
     for p in &verb_prefixes {
         let p_chars = p.chars().count();
         if t.starts_with(*p) && chars.len() > p_chars + 2 {
@@ -292,7 +325,24 @@ fn strip_verb2(token: &str) -> String {
         }
     }
 
-    let verb_suffixes = ["\u{648}\u{646}", "\u{64A}\u{646}", "\u{627}\u{646}", "\u{648}\u{627}", "\u{646}", "\u{627}", "\u{64A}", "\u{62A}", "\u{62A}\u{627}", "\u{62A}\u{645}", "\u{62A}\u{646}", "\u{646}\u{627}", "\u{643}\u{645}\u{627}", "\u{647}\u{645}", "\u{647}\u{646}", "\u{643}\u{646}"];
+    let verb_suffixes = [
+        "\u{648}\u{646}",
+        "\u{64A}\u{646}",
+        "\u{627}\u{646}",
+        "\u{648}\u{627}",
+        "\u{646}",
+        "\u{627}",
+        "\u{64A}",
+        "\u{62A}",
+        "\u{62A}\u{627}",
+        "\u{62A}\u{645}",
+        "\u{62A}\u{646}",
+        "\u{646}\u{627}",
+        "\u{643}\u{645}\u{627}",
+        "\u{647}\u{645}",
+        "\u{647}\u{646}",
+        "\u{643}\u{646}",
+    ];
     for s in &verb_suffixes {
         let s_chars = s.chars().count();
         if t.ends_with(*s) && t.chars().count() > s_chars + 1 {

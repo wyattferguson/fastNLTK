@@ -90,10 +90,7 @@ impl PerceptronTagger {
 
     /// Tag multiple sentences.
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
-        sentences
-            .iter()
-            .map(|s| self.tag_sentence(s))
-            .collect()
+        sentences.iter().map(|s| self.tag_sentence(s)).collect()
     }
 }
 
@@ -123,13 +120,7 @@ impl PerceptronTagger {
     }
 
     /// Predict the tag for a single word in context.
-    fn predict_tag(
-        &self,
-        word: &str,
-        i: usize,
-        tokens: &[String],
-        prev_tags: &[String],
-    ) -> String {
+    fn predict_tag(&self, word: &str, i: usize, tokens: &[String], prev_tags: &[String]) -> String {
         // Check tagdict first (most common words)
         if let Some(tag) = self.tagdict.get(word) {
             return tag.clone();
@@ -312,11 +303,7 @@ mod tests {
         weights.insert("i shape Xxx".to_string(), w4);
 
         tagger.weights = weights;
-        tagger.classes = vec![
-            "DT".to_string(),
-            "NN".to_string(),
-            "VB".to_string(),
-        ];
+        tagger.classes = vec!["DT".to_string(), "NN".to_string(), "VB".to_string()];
 
         tagger
     }

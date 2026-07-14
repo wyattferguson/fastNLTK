@@ -33,7 +33,9 @@ fn bleu_score(candidate: Vec<String>, reference: Vec<String>, max_n: usize) -> f
     let cand_len = candidate.len();
     let ref_len = reference.len();
 
-    if cand_len == 0 || ref_len == 0 { return 0.0; }
+    if cand_len == 0 || ref_len == 0 {
+        return 0.0;
+    }
 
     // Brevity penalty
     let bp = if cand_len < ref_len {
@@ -54,7 +56,9 @@ fn bleu_score(candidate: Vec<String>, reference: Vec<String>, max_n: usize) -> f
         }
     }
 
-    if valid_n == 0 { return 0.0; }
+    if valid_n == 0 {
+        return 0.0;
+    }
 
     let avg = (log_avg / valid_n as f64).exp();
     bp * avg
@@ -83,7 +87,9 @@ fn corpus_bleu(candidates: Vec<Vec<String>>, references: Vec<Vec<String>>, max_n
         }
     }
 
-    if total_cand_len == 0 { return 0.0; }
+    if total_cand_len == 0 {
+        return 0.0;
+    }
 
     let bp = if total_cand_len < total_ref_len {
         (1.0 - total_ref_len as f64 / total_cand_len as f64).exp()
@@ -101,7 +107,9 @@ fn corpus_bleu(candidates: Vec<Vec<String>>, references: Vec<Vec<String>>, max_n
         }
     }
 
-    if valid_n == 0 { return 0.0; }
+    if valid_n == 0 {
+        return 0.0;
+    }
     bp * (log_avg / valid_n as f64).exp()
 }
 

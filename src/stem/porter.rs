@@ -75,7 +75,11 @@ fn porter_stem(word: &str) -> String {
             w.push('e');
         } else if ends_with(&w, "iz") {
             replace_end(&mut w, "iz", "ize");
-        } else if double_consonant(&w) && !ends_with(&w, "l") && !ends_with(&w, "s") && !ends_with(&w, "z") {
+        } else if double_consonant(&w)
+            && !ends_with(&w, "l")
+            && !ends_with(&w, "s")
+            && !ends_with(&w, "z")
+        {
             w.pop();
         } else if measure(&w) == 1 && ends_with_cvc(&w) {
             w.push('e');
@@ -92,26 +96,47 @@ fn porter_stem(word: &str) -> String {
     if w.len() >= 4 {
         let m = measure(&w);
         if m > 0 {
-            if ends_with(&w, "ational") { replace_end(&mut w, "ational", "ate"); }
-            else if ends_with(&w, "tional") { replace_end(&mut w, "tional", "tion"); }
-            else if ends_with(&w, "enci") { replace_end(&mut w, "enci", "ence"); }
-            else if ends_with(&w, "anci") { replace_end(&mut w, "anci", "ance"); }
-            else if ends_with(&w, "izer") { replace_end(&mut w, "izer", "ize"); }
-            else if ends_with(&w, "abli") { replace_end(&mut w, "abli", "able"); }
-            else if ends_with(&w, "alli") { replace_end(&mut w, "alli", "al"); }
-            else if ends_with(&w, "entli") { replace_end(&mut w, "entli", "ent"); }
-            else if ends_with(&w, "eli") { replace_end(&mut w, "eli", "e"); }
-            else if ends_with(&w, "ousli") { replace_end(&mut w, "ousli", "ous"); }
-            else if ends_with(&w, "ization") { replace_end(&mut w, "ization", "ize"); }
-            else if ends_with(&w, "ation") { replace_end(&mut w, "ation", "ate"); }
-            else if ends_with(&w, "ator") { replace_end(&mut w, "ator", "ate"); }
-            else if ends_with(&w, "alism") { replace_end(&mut w, "alism", "al"); }
-            else if ends_with(&w, "iveness") { replace_end(&mut w, "iveness", "ive"); }
-            else if ends_with(&w, "fulness") { replace_end(&mut w, "fulness", "ful"); }
-            else if ends_with(&w, "ousness") { replace_end(&mut w, "ousness", "ous"); }
-            else if ends_with(&w, "aliti") { replace_end(&mut w, "aliti", "al"); }
-            else if ends_with(&w, "iviti") { replace_end(&mut w, "iviti", "ive"); }
-            else if ends_with(&w, "biliti") { replace_end(&mut w, "biliti", "ble"); }
+            if ends_with(&w, "ational") {
+                replace_end(&mut w, "ational", "ate");
+            } else if ends_with(&w, "tional") {
+                replace_end(&mut w, "tional", "tion");
+            } else if ends_with(&w, "enci") {
+                replace_end(&mut w, "enci", "ence");
+            } else if ends_with(&w, "anci") {
+                replace_end(&mut w, "anci", "ance");
+            } else if ends_with(&w, "izer") {
+                replace_end(&mut w, "izer", "ize");
+            } else if ends_with(&w, "abli") {
+                replace_end(&mut w, "abli", "able");
+            } else if ends_with(&w, "alli") {
+                replace_end(&mut w, "alli", "al");
+            } else if ends_with(&w, "entli") {
+                replace_end(&mut w, "entli", "ent");
+            } else if ends_with(&w, "eli") {
+                replace_end(&mut w, "eli", "e");
+            } else if ends_with(&w, "ousli") {
+                replace_end(&mut w, "ousli", "ous");
+            } else if ends_with(&w, "ization") {
+                replace_end(&mut w, "ization", "ize");
+            } else if ends_with(&w, "ation") {
+                replace_end(&mut w, "ation", "ate");
+            } else if ends_with(&w, "ator") {
+                replace_end(&mut w, "ator", "ate");
+            } else if ends_with(&w, "alism") {
+                replace_end(&mut w, "alism", "al");
+            } else if ends_with(&w, "iveness") {
+                replace_end(&mut w, "iveness", "ive");
+            } else if ends_with(&w, "fulness") {
+                replace_end(&mut w, "fulness", "ful");
+            } else if ends_with(&w, "ousness") {
+                replace_end(&mut w, "ousness", "ous");
+            } else if ends_with(&w, "aliti") {
+                replace_end(&mut w, "aliti", "al");
+            } else if ends_with(&w, "iviti") {
+                replace_end(&mut w, "iviti", "ive");
+            } else if ends_with(&w, "biliti") {
+                replace_end(&mut w, "biliti", "ble");
+            }
         }
     }
 
@@ -119,13 +144,21 @@ fn porter_stem(word: &str) -> String {
     if w.len() >= 3 {
         let m = measure(&w);
         if m > 0 {
-            if ends_with(&w, "icate") { replace_end(&mut w, "icate", "ic"); }
-            else if ends_with(&w, "ative") { replace_end(&mut w, "ative", ""); }
-            else if ends_with(&w, "alize") { replace_end(&mut w, "alize", "al"); }
-            else if ends_with(&w, "iciti") { replace_end(&mut w, "iciti", "ic"); }
-            else if ends_with(&w, "ical") { replace_end(&mut w, "ical", "ic"); }
-            else if ends_with(&w, "ful") { replace_end(&mut w, "ful", ""); }
-            else if ends_with(&w, "ness") { replace_end(&mut w, "ness", ""); }
+            if ends_with(&w, "icate") {
+                replace_end(&mut w, "icate", "ic");
+            } else if ends_with(&w, "ative") {
+                replace_end(&mut w, "ative", "");
+            } else if ends_with(&w, "alize") {
+                replace_end(&mut w, "alize", "al");
+            } else if ends_with(&w, "iciti") {
+                replace_end(&mut w, "iciti", "ic");
+            } else if ends_with(&w, "ical") {
+                replace_end(&mut w, "ical", "ic");
+            } else if ends_with(&w, "ful") {
+                replace_end(&mut w, "ful", "");
+            } else if ends_with(&w, "ness") {
+                replace_end(&mut w, "ness", "");
+            }
         }
     }
 
@@ -133,27 +166,48 @@ fn porter_stem(word: &str) -> String {
     if w.len() >= 3 {
         let m = measure(&w);
         if m > 1 {
-            if ends_with(&w, "al") { replace_end(&mut w, "al", ""); }
-            else if ends_with(&w, "ance") { replace_end(&mut w, "ance", ""); }
-            else if ends_with(&w, "ence") { replace_end(&mut w, "ence", ""); }
-            else if ends_with(&w, "er") { replace_end(&mut w, "er", ""); }
-            else if ends_with(&w, "ic") { replace_end(&mut w, "ic", ""); }
-            else if ends_with(&w, "able") { replace_end(&mut w, "able", ""); }
-            else if ends_with(&w, "ible") { replace_end(&mut w, "ible", ""); }
-            else if ends_with(&w, "ant") { replace_end(&mut w, "ant", ""); }
-            else if ends_with(&w, "ement") { replace_end(&mut w, "ement", ""); }
-            else if ends_with(&w, "ment") { replace_end(&mut w, "ment", ""); }
-            else if ends_with(&w, "ent") { replace_end(&mut w, "ent", ""); }
-            else if ends_with(&w, "ion") && w.len() > 4 && (w[w.len() - 4] == 's' || w[w.len() - 4] == 't') {
+            if ends_with(&w, "al") {
+                replace_end(&mut w, "al", "");
+            } else if ends_with(&w, "ance") {
+                replace_end(&mut w, "ance", "");
+            } else if ends_with(&w, "ence") {
+                replace_end(&mut w, "ence", "");
+            } else if ends_with(&w, "er") {
+                replace_end(&mut w, "er", "");
+            } else if ends_with(&w, "ic") {
+                replace_end(&mut w, "ic", "");
+            } else if ends_with(&w, "able") {
+                replace_end(&mut w, "able", "");
+            } else if ends_with(&w, "ible") {
+                replace_end(&mut w, "ible", "");
+            } else if ends_with(&w, "ant") {
+                replace_end(&mut w, "ant", "");
+            } else if ends_with(&w, "ement") {
+                replace_end(&mut w, "ement", "");
+            } else if ends_with(&w, "ment") {
+                replace_end(&mut w, "ment", "");
+            } else if ends_with(&w, "ent") {
+                replace_end(&mut w, "ent", "");
+            } else if ends_with(&w, "ion")
+                && w.len() > 4
+                && (w[w.len() - 4] == 's' || w[w.len() - 4] == 't')
+            {
                 replace_end(&mut w, "ion", "");
+            } else if ends_with(&w, "ou") {
+                replace_end(&mut w, "ou", "");
+            } else if ends_with(&w, "ism") {
+                replace_end(&mut w, "ism", "");
+            } else if ends_with(&w, "ate") {
+                replace_end(&mut w, "ate", "");
+            } else if ends_with(&w, "iti") {
+                replace_end(&mut w, "iti", "");
+            } else if ends_with(&w, "ous") {
+                replace_end(&mut w, "ous", "");
+            } else if ends_with(&w, "ive") {
+                replace_end(&mut w, "ive", "");
+            } else if ends_with(&w, "ize") {
+                replace_end(&mut w, "ize", "");
             }
-            else if ends_with(&w, "ou") { replace_end(&mut w, "ou", ""); }
-            else if ends_with(&w, "ism") { replace_end(&mut w, "ism", ""); }
-            else if ends_with(&w, "ate") { replace_end(&mut w, "ate", ""); }
-            else if ends_with(&w, "iti") { replace_end(&mut w, "iti", ""); }
-            else if ends_with(&w, "ous") { replace_end(&mut w, "ous", ""); }
-            else if ends_with(&w, "ive") { replace_end(&mut w, "ive", ""); }
-            else if ends_with(&w, "ize") { replace_end(&mut w, "ize", ""); }
         }
     }
 
@@ -224,8 +278,11 @@ fn measure(s: &[char]) -> usize {
             let mut had_vowel = false;
             let mut had_consonant = false;
             for j in 0..i {
-                if !is_consonant(s, j) { had_vowel = true; }
-                else if had_vowel { had_consonant = true; }
+                if !is_consonant(s, j) {
+                    had_vowel = true;
+                } else if had_vowel {
+                    had_consonant = true;
+                }
             }
             if had_vowel && had_consonant {
                 count += 1;

@@ -1,14 +1,14 @@
 //! Stemming — Rust-accelerated stemmers matching NLTK's API.
 
-pub mod snowball;
-pub mod porter;
-pub mod lancaster;
-pub mod isri;
-pub mod cistem;
-pub mod rslp;
-pub mod regexp;
-pub mod wordnet;
 pub mod arlstem;
+pub mod cistem;
+pub mod isri;
+pub mod lancaster;
+pub mod porter;
+pub mod regexp;
+pub mod rslp;
+pub mod snowball;
+pub mod wordnet;
 
 use pyo3::prelude::*;
 

@@ -27,10 +27,18 @@ fn windowdiff(reference: &str, hypothesis: &str, k: usize, boundary: &str) -> Py
     let mut wd: f64 = 0.0;
     for i in 0..=(n - k) {
         if i > 0 {
-            if b_ref[i - 1] { count1 = count1.saturating_sub(1); }
-            if b_ref[i + k - 1] { count1 += 1; }
-            if b_hyp[i - 1] { count2 = count2.saturating_sub(1); }
-            if b_hyp[i + k - 1] { count2 += 1; }
+            if b_ref[i - 1] {
+                count1 = count1.saturating_sub(1);
+            }
+            if b_ref[i + k - 1] {
+                count1 += 1;
+            }
+            if b_hyp[i - 1] {
+                count2 = count2.saturating_sub(1);
+            }
+            if b_hyp[i + k - 1] {
+                count2 += 1;
+            }
         }
         wd += (if count1 != count2 { 1.0 } else { 0.0 });
     }

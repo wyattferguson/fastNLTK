@@ -8,7 +8,10 @@ use crate::ccg::{Category, CategoryKind};
 
 /// Direction of combination.
 #[derive(Clone, Copy, PartialEq)]
-enum Direction { Forward, Backward }
+enum Direction {
+    Forward,
+    Backward,
+}
 
 /// A combinator that can combine two categories.
 #[derive(Clone)]
@@ -19,19 +22,31 @@ pub(crate) struct Combinator {
 
 /// Standard CCG combinators.
 pub(crate) fn forward_application() -> Combinator {
-    Combinator { name: "FA", dir: Direction::Forward }
+    Combinator {
+        name: "FA",
+        dir: Direction::Forward,
+    }
 }
 
 pub(crate) fn backward_application() -> Combinator {
-    Combinator { name: "BA", dir: Direction::Backward }
+    Combinator {
+        name: "BA",
+        dir: Direction::Backward,
+    }
 }
 
 pub(crate) fn forward_composition() -> Combinator {
-    Combinator { name: "FC", dir: Direction::Forward }
+    Combinator {
+        name: "FC",
+        dir: Direction::Forward,
+    }
 }
 
 pub(crate) fn backward_composition() -> Combinator {
-    Combinator { name: "BC", dir: Direction::Backward }
+    Combinator {
+        name: "BC",
+        dir: Direction::Backward,
+    }
 }
 
 /// Try to combine two categories using a combinator.
@@ -45,7 +60,11 @@ pub(crate) fn apply_combinator(
         Direction::Forward => {
             // Left must be functional: result/arg
             match left {
-                CategoryKind::Functional { result, argument, is_forward } if *is_forward => {
+                CategoryKind::Functional {
+                    result,
+                    argument,
+                    is_forward,
+                } if *is_forward => {
                     // Check argument matches right
                     if **argument == *right {
                         Some(*result.clone())
@@ -59,7 +78,11 @@ pub(crate) fn apply_combinator(
         Direction::Backward => {
             // Right must be functional: result\arg
             match right {
-                CategoryKind::Functional { result, argument, is_forward } if !*is_forward => {
+                CategoryKind::Functional {
+                    result,
+                    argument,
+                    is_forward,
+                } if !*is_forward => {
                     // Check argument matches left
                     if **argument == *left {
                         Some(*result.clone())

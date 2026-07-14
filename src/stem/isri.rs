@@ -7,22 +7,36 @@ pub struct ISRIStemmer;
 #[pymethods]
 impl ISRIStemmer {
     #[new]
-    fn new() -> Self { Self }
+    fn new() -> Self {
+        Self
+    }
 
     fn stem(&self, word: &str) -> String {
         let w = word.trim().to_lowercase();
-        if w.len() <= 3 { return w.clone(); }
-        let mut s = w.clone();
-        if s.starts_with("al") && s.len() > 4 { s = s[2..].to_string(); }
-        for p in ["w", "f", "b", "l", "y", "t", "n", "s"] {
-            if s.starts_with(p) && s.len() > 3 { s = s[p.len()..].to_string(); break; }
+        if w.len() <= 3 {
+            return w.clone();
         }
-        for suf in ["huma", "km", "kn", "hm", "hn", "na", "ny", "at", "an", "yn", "wn", "h", "t", "k", "n"] {
-            if s.ends_with(suf) && s.len() > suf.len() + 2 {
-                s = s[..s.len() - suf.len()].to_string(); break;
+        let mut s = w.clone();
+        if s.starts_with("al") && s.len() > 4 {
+            s = s[2..].to_string();
+        }
+        for p in ["w", "f", "b", "l", "y", "t", "n", "s"] {
+            if s.starts_with(p) && s.len() > 3 {
+                s = s[p.len()..].to_string();
+                break;
             }
         }
-        if s.len() < 2 { return w; }
+        for suf in [
+            "huma", "km", "kn", "hm", "hn", "na", "ny", "at", "an", "yn", "wn", "h", "t", "k", "n",
+        ] {
+            if s.ends_with(suf) && s.len() > suf.len() + 2 {
+                s = s[..s.len() - suf.len()].to_string();
+                break;
+            }
+        }
+        if s.len() < 2 {
+            return w;
+        }
         s
     }
 }

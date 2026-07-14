@@ -3,7 +3,6 @@
 //! Implements BigramCollocationFinder, TrigramCollocationFinder,
 //! QuadgramCollocationFinder with frequency counting and scoring.
 
-
 use hashbrown::HashMap as FastHashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -53,9 +52,8 @@ impl CollocationData {
     where
         F: Fn(&str) -> bool,
     {
-        self.ngram_fd.retain(|ngram, _| {
-            !ngram.iter().any(|w| filter_fn(w))
-        });
+        self.ngram_fd
+            .retain(|ngram, _| !ngram.iter().any(|w| filter_fn(w)));
     }
 
     fn score_ngrams(&self, score_fn: &str) -> Vec<(Vec<String>, f64)> {
@@ -110,7 +108,11 @@ impl CollocationData {
         let e22 = ((total - w1_count) * (total - w2_count)) / total;
 
         let chi = |o: f64, e: f64| -> f64 {
-            if e <= 0.0 { 0.0 } else { (o - e) * (o - e) / e }
+            if e <= 0.0 {
+                0.0
+            } else {
+                (o - e) * (o - e) / e
+            }
         };
 
         chi(o11, e11) + chi(o12, e12) + chi(o21, e21) + chi(o22, e22)
@@ -130,11 +132,15 @@ impl CollocationData {
         let p2 = (w2_count - k) / (n - w1_count);
 
         let ll = |k: f64, n: f64, p: f64| -> f64 {
-            if k <= 0.0 || n <= 0.0 || p <= 0.0 { return 0.0; }
+            if k <= 0.0 || n <= 0.0 || p <= 0.0 {
+                return 0.0;
+            }
             k * p.ln() + (n - k) * (1.0 - p).ln()
         };
 
-        2.0 * (ll(k, w1_count, p1) + ll(w2_count - k, n - w1_count, p2) - ll(k, w1_count, p) - ll(w2_count - k, n - w1_count, p))
+        2.0 * (ll(k, w1_count, p1) + ll(w2_count - k, n - w1_count, p2)
+            - ll(k, w1_count, p)
+            - ll(w2_count - k, n - w1_count, p))
     }
 }
 
@@ -151,7 +157,9 @@ pub struct BigramCollocationFinder {
 impl BigramCollocationFinder {
     #[new]
     fn new(_word_fd: &Bound<'_, PyDict>, _ngram_fd: &Bound<'_, PyDict>) -> PyResult<Self> {
-        Err(PyValueError::new_err("Use BigramCollocationFinder.from_words(words)"))
+        Err(PyValueError::new_err(
+            "Use BigramCollocationFinder.from_words(words)",
+        ))
     }
 
     #[staticmethod]
@@ -190,7 +198,9 @@ pub struct TrigramCollocationFinder {
 impl TrigramCollocationFinder {
     #[new]
     fn new(_word_fd: &Bound<'_, PyDict>, _ngram_fd: &Bound<'_, PyDict>) -> PyResult<Self> {
-        Err(PyValueError::new_err("Use TrigramCollocationFinder.from_words(words)"))
+        Err(PyValueError::new_err(
+            "Use TrigramCollocationFinder.from_words(words)",
+        ))
     }
 
     #[staticmethod]
@@ -229,7 +239,9 @@ pub struct QuadgramCollocationFinder {
 impl QuadgramCollocationFinder {
     #[new]
     fn new(_word_fd: &Bound<'_, PyDict>, _ngram_fd: &Bound<'_, PyDict>) -> PyResult<Self> {
-        Err(PyValueError::new_err("Use QuadgramCollocationFinder.from_words(words)"))
+        Err(PyValueError::new_err(
+            "Use QuadgramCollocationFinder.from_words(words)",
+        ))
     }
 
     #[staticmethod]

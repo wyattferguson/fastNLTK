@@ -106,11 +106,8 @@ impl FreqDist {
     /// Return the n most common (sample, count) pairs.
     #[pyo3(signature = (n=None))]
     fn most_common(&self, n: Option<usize>) -> Vec<(String, u64)> {
-        let mut items: Vec<(String, u64)> = self
-            .counts
-            .iter()
-            .map(|(k, v)| (k.clone(), *v))
-            .collect();
+        let mut items: Vec<(String, u64)> =
+            self.counts.iter().map(|(k, v)| (k.clone(), *v)).collect();
         items.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
 
         if let Some(n) = n {
@@ -151,10 +148,7 @@ impl FreqDist {
 
     /// Return all (sample, count) pairs.
     fn items(&self) -> Vec<(String, u64)> {
-        self.counts
-            .iter()
-            .map(|(k, v)| (k.clone(), *v))
-            .collect()
+        self.counts.iter().map(|(k, v)| (k.clone(), *v)).collect()
     }
 
     /// Combine two FreqDists by adding counts.
@@ -175,11 +169,12 @@ impl FreqDist {
     /// Python string representation.
     fn __repr__(&self) -> String {
         let items = self.most_common(Some(10));
-        let _item_strs: Vec<String> = items
-            .iter()
-            .map(|(k, v)| format!("{k}: {v}"))
-            .collect();
-        format!("<FreqDist with {} samples and {} outcomes>", self.N(), self.B())
+        let _item_strs: Vec<String> = items.iter().map(|(k, v)| format!("{k}: {v}")).collect();
+        format!(
+            "<FreqDist with {} samples and {} outcomes>",
+            self.N(),
+            self.B()
+        )
     }
 
     /// Increment count for a single sample.
@@ -192,7 +187,10 @@ impl FreqDist {
     /// Return count for sample (Python dict-style get).
     #[pyo3(signature = (sample, default=None))]
     fn get(&self, sample: &str, default: Option<u64>) -> u64 {
-        self.counts.get(sample).copied().unwrap_or(default.unwrap_or(0))
+        self.counts
+            .get(sample)
+            .copied()
+            .unwrap_or(default.unwrap_or(0))
     }
 
     /// Subtract another FreqDist (only keep positive counts).
@@ -301,7 +299,9 @@ impl MLEProbDist {
 
     fn prob(&self, sample: &str) -> f64 {
         let n = self.freqdist.get_total();
-        if n == 0 { return 0.0; }
+        if n == 0 {
+            return 0.0;
+        }
         self.freqdist.get_count(sample) as f64 / n as f64
     }
 
@@ -334,8 +334,14 @@ impl LaplaceProbDist {
 
     fn prob(&self, sample: &str) -> f64 {
         let n = self.freqdist.get_total();
-        let b = if self.bins > 0 { self.bins } else { self.freqdist.num_samples() };
-        if n == 0 { return 1.0 / b.max(1) as f64; }
+        let b = if self.bins > 0 {
+            self.bins
+        } else {
+            self.freqdist.num_samples()
+        };
+        if n == 0 {
+            return 1.0 / b.max(1) as f64;
+        }
         (self.freqdist.get_count(sample) + 1) as f64 / (n as f64 + b.max(1) as f64)
     }
 

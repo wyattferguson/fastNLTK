@@ -18,8 +18,8 @@ use regex::Regex;
 
 #[pyclass(name = "TextTilingTokenizer", module = "fastnltk._rust")]
 pub struct TextTilingTokenizer {
-    w: usize,       // pseudo-sentence size (words)
-    k: usize,       // block size (pseudo-sentences)
+    w: usize, // pseudo-sentence size (words)
+    k: usize, // block size (pseudo-sentences)
     demo_mode: bool,
 }
 
@@ -67,7 +67,9 @@ impl TextTilingTokenizer {
 
 fn tokenize_words(text: &str) -> Vec<String> {
     let re = Regex::new(r"[A-Za-z]+").unwrap();
-    re.find_iter(text).map(|m| m.as_str().to_lowercase()).collect()
+    re.find_iter(text)
+        .map(|m| m.as_str().to_lowercase())
+        .collect()
 }
 
 fn build_pseudo_sentences(words: &[String], w: usize) -> Vec<Vec<String>> {
@@ -197,7 +199,11 @@ fn find_boundaries(depths: &[f64], _scores: &[f64], demo_mode: bool) -> Vec<u8> 
     boundaries
 }
 
-fn build_segments_from_bounds(text: &str, pseudo_sents: &[Vec<String>], boundaries: &[u8]) -> Vec<String> {
+fn build_segments_from_bounds(
+    text: &str,
+    pseudo_sents: &[Vec<String>],
+    boundaries: &[u8],
+) -> Vec<String> {
     if boundaries.is_empty() || pseudo_sents.is_empty() {
         return vec![text.to_string()];
     }

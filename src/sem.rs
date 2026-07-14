@@ -32,25 +32,25 @@ pub type Assignment = HashMap<String, Individual>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Expression {
-    Constant(String, Option<Type>),     // e.g., "john", "man"
-    Variable(String, Option<Type>),     // e.g., "x", "y"
-    Application(Box<Expression>, Box<Expression>),  // f(a)
-    Lambda(Box<Expression>, Box<Expression>),       // \x.f(x)
-    Exists(Box<Expression>, Box<Expression>),       // exists x.P(x)
-    All(Box<Expression>, Box<Expression>),          // all x.P(x)
-    And(Box<Expression>, Box<Expression>),          // P & Q
-    Or(Box<Expression>, Box<Expression>),           // P | Q
-    Not(Box<Expression>),                            // -P
-    If(Box<Expression>, Box<Expression>),           // P -> Q
-    Iff(Box<Expression>, Box<Expression>),          // P <-> Q
-    Equality(Box<Expression>, Box<Expression>),     // x = y
+    Constant(String, Option<Type>),                // e.g., "john", "man"
+    Variable(String, Option<Type>),                // e.g., "x", "y"
+    Application(Box<Expression>, Box<Expression>), // f(a)
+    Lambda(Box<Expression>, Box<Expression>),      // \x.f(x)
+    Exists(Box<Expression>, Box<Expression>),      // exists x.P(x)
+    All(Box<Expression>, Box<Expression>),         // all x.P(x)
+    And(Box<Expression>, Box<Expression>),         // P & Q
+    Or(Box<Expression>, Box<Expression>),          // P | Q
+    Not(Box<Expression>),                          // -P
+    If(Box<Expression>, Box<Expression>),          // P -> Q
+    Iff(Box<Expression>, Box<Expression>),         // P <-> Q
+    Equality(Box<Expression>, Box<Expression>),    // x = y
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Type {
-    Entity,       // e
-    TruthValue,   // t
-    Fun(Box<Type>, Box<Type>),  // <e,t>
+    Entity,                    // e
+    TruthValue,                // t
+    Fun(Box<Type>, Box<Type>), // <e,t>
 }
 
 impl fmt::Display for Type {
@@ -138,8 +138,11 @@ impl Expression {
                 body.collect_free(bound, free);
                 bound.remove(&var_name);
             }
-            Expression::And(a, b) | Expression::Or(a, b) | Expression::If(a, b)
-            | Expression::Iff(a, b) | Expression::Equality(a, b) => {
+            Expression::And(a, b)
+            | Expression::Or(a, b)
+            | Expression::If(a, b)
+            | Expression::Iff(a, b)
+            | Expression::Equality(a, b) => {
                 a.collect_free(bound, free);
                 b.collect_free(bound, free);
             }
@@ -233,9 +236,7 @@ impl Expression {
                 Box::new(a.substitute(var, replacement)),
                 Box::new(b.substitute(var, replacement)),
             ),
-            Expression::Not(expr) => {
-                Expression::Not(Box::new(expr.substitute(var, replacement)))
-            }
+            Expression::Not(expr) => Expression::Not(Box::new(expr.substitute(var, replacement))),
             Expression::If(a, b) => Expression::If(
                 Box::new(a.substitute(var, replacement)),
                 Box::new(b.substitute(var, replacement)),
@@ -277,13 +278,9 @@ impl Expression {
             Expression::And(a, b) => {
                 Expression::And(Box::new(a.simplify()), Box::new(b.simplify()))
             }
-            Expression::Or(a, b) => {
-                Expression::Or(Box::new(a.simplify()), Box::new(b.simplify()))
-            }
+            Expression::Or(a, b) => Expression::Or(Box::new(a.simplify()), Box::new(b.simplify())),
             Expression::Not(expr) => Expression::Not(Box::new(expr.simplify())),
-            Expression::If(a, b) => {
-                Expression::If(Box::new(a.simplify()), Box::new(b.simplify()))
-            }
+            Expression::If(a, b) => Expression::If(Box::new(a.simplify()), Box::new(b.simplify())),
             Expression::Iff(a, b) => {
                 Expression::Iff(Box::new(a.simplify()), Box::new(b.simplify()))
             }
@@ -319,22 +316,22 @@ fn fresh_var(base: &str, avoid: &[String]) -> String {
 
 #[derive(Clone, Debug, PartialEq)]
 enum Token {
-    Ident(String),    // variable/constant name
-    Lambda,           // \ or lambda
-    Dot,              // .
-    LParen,           // (
-    RParen,           // )
-    Comma,            // ,
-    And,              // & or ^
-    Or,               // |
-    Not,              // -
-    Arrow,            // ->
-    Iff,              // <->
-    Eq,               // =
-    Exists,           // exists or E
-    All,              // all or A
-    TypeColon,        // : (for type annotations)
-    End,              // end of input
+    Ident(String), // variable/constant name
+    Lambda,        // \ or lambda
+    Dot,           // .
+    LParen,        // (
+    RParen,        // )
+    Comma,         // ,
+    And,           // & or ^
+    Or,            // |
+    Not,           // -
+    Arrow,         // ->
+    Iff,           // <->
+    Eq,            // =
+    Exists,        // exists or E
+    All,           // all or A
+    TypeColon,     // : (for type annotations)
+    End,           // end of input
 }
 
 struct Tokenizer {
@@ -378,13 +375,34 @@ impl Tokenizer {
         };
 
         match c {
-            '(' => { self.advance(); Ok(Token::LParen) }
-            ')' => { self.advance(); Ok(Token::RParen) }
-            ',' => { self.advance(); Ok(Token::Comma) }
-            '.' => { self.advance(); Ok(Token::Dot) }
-            '\\' => { self.advance(); Ok(Token::Lambda) }
-            '^' => { self.advance(); Ok(Token::And) }
-            '|' => { self.advance(); Ok(Token::Or) }
+            '(' => {
+                self.advance();
+                Ok(Token::LParen)
+            }
+            ')' => {
+                self.advance();
+                Ok(Token::RParen)
+            }
+            ',' => {
+                self.advance();
+                Ok(Token::Comma)
+            }
+            '.' => {
+                self.advance();
+                Ok(Token::Dot)
+            }
+            '\\' => {
+                self.advance();
+                Ok(Token::Lambda)
+            }
+            '^' => {
+                self.advance();
+                Ok(Token::And)
+            }
+            '|' => {
+                self.advance();
+                Ok(Token::Or)
+            }
             '=' => {
                 self.advance();
                 if self.peek() == Some('>') {
@@ -418,8 +436,14 @@ impl Tokenizer {
                     Err(format!("Unexpected '<' at position {}", self.pos))
                 }
             }
-            '&' => { self.advance(); Ok(Token::And) }
-            ':' => { self.advance(); Ok(Token::TypeColon) }
+            '&' => {
+                self.advance();
+                Ok(Token::And)
+            }
+            ':' => {
+                self.advance();
+                Ok(Token::TypeColon)
+            }
             _ if c.is_alphabetic() || c == '_' => {
                 let mut name = String::new();
                 while let Some(ch) = self.peek() {
@@ -437,7 +461,10 @@ impl Tokenizer {
                     _ => Ok(Token::Ident(name)),
                 }
             }
-            _ => Err(format!("Unexpected character '{c}' at position {}", self.pos)),
+            _ => Err(format!(
+                "Unexpected character '{c}' at position {}",
+                self.pos
+            )),
         }
     }
 }
@@ -467,10 +494,7 @@ impl Parser {
         if self.current == *expected {
             self.advance()
         } else {
-            Err(format!(
-                "Expected {:?}, got {:?}",
-                expected, self.current
-            ))
+            Err(format!("Expected {:?}, got {:?}", expected, self.current))
         }
     }
 
@@ -588,22 +612,20 @@ impl Parser {
                     self.advance()?;
                     let arg = self.parse()?;
                     // Handle multiple args by currying
-                    let mut result = Expression::Application(
-                        Box::new(expr),
-                        Box::new(arg),
-                    );
+                    let mut result = Expression::Application(Box::new(expr), Box::new(arg));
                     while self.current == Token::Comma {
                         self.advance()?;
                         let next_arg = self.parse()?;
-                        result = Expression::Application(
-                            Box::new(result),
-                            Box::new(next_arg),
-                        );
+                        result = Expression::Application(Box::new(result), Box::new(next_arg));
                     }
                     self.expect(&Token::RParen)?;
                     expr = result;
                 }
-                Token::Ident(_) | Token::Exists | Token::All | Token::Lambda | Token::Not
+                Token::Ident(_)
+                | Token::Exists
+                | Token::All
+                | Token::Lambda
+                | Token::Not
                 | Token::LParen => {
                     // Adjacent expressions: f a
                     let arg = if self.current == Token::LParen
@@ -721,16 +743,14 @@ pub fn parse_expression(input: &str) -> Result<Expression, String> {
 #[pyfunction]
 #[pyo3(signature = (formula))]
 fn fromstring(formula: &str) -> PyResult<String> {
-    let expr = parse_expression(formula)
-        .map_err(|e| PyValueError::new_err(e))?;
+    let expr = parse_expression(formula).map_err(|e| PyValueError::new_err(e))?;
     Ok(format!("{}", expr))
 }
 
 #[pyfunction]
 #[pyo3(signature = (formula))]
 fn simplify(formula: &str) -> PyResult<String> {
-    let expr = parse_expression(formula)
-        .map_err(|e| PyValueError::new_err(e))?;
+    let expr = parse_expression(formula).map_err(|e| PyValueError::new_err(e))?;
     Ok(format!("{}", expr.simplify()))
 }
 
@@ -748,8 +768,7 @@ fn evaluate_formula(
     domain_json: &str,
     assignment_json: &str,
 ) -> PyResult<bool> {
-    let expr = parse_expression(formula)
-        .map_err(|e| PyValueError::new_err(e))?;
+    let expr = parse_expression(formula).map_err(|e| PyValueError::new_err(e))?;
     // Parse JSON inputs
     let valuation: Valuation = serde_json::from_str(valuation_json)
         .map_err(|e| PyValueError::new_err(format!("Invalid valuation JSON: {e}")))?;
@@ -761,8 +780,7 @@ fn evaluate_formula(
         serde_json::from_str(assignment_json)
             .map_err(|e| PyValueError::new_err(format!("Invalid assignment JSON: {e}")))?
     };
-    model_evaluate(&expr, &valuation, &domain, &assignment)
-        .map_err(|e| PyValueError::new_err(e))
+    model_evaluate(&expr, &valuation, &domain, &assignment).map_err(|e| PyValueError::new_err(e))
 }
 
 /// Core Rust evaluation function (no JSON).
@@ -774,22 +792,22 @@ pub fn model_evaluate(
 ) -> Result<bool, String> {
     match expr {
         Expression::Constant(name, _) => {
-            if name == "true" { Ok(true) }
-            else if name == "false" { Ok(false) }
-            else { Ok(domain.contains(name)) }
+            if name == "true" {
+                Ok(true)
+            } else if name == "false" {
+                Ok(false)
+            } else {
+                Ok(domain.contains(name))
+            }
         }
-        Expression::Variable(name, _) => {
-            Ok(assignment.contains_key(name))
-        }
+        Expression::Variable(name, _) => Ok(assignment.contains_key(name)),
         Expression::Application(func, arg) => {
             let pred_name = match func.as_ref() {
                 Expression::Variable(n, _) | Expression::Constant(n, _) => n.clone(),
                 _ => return Err(format!("Expected predicate, got {func}")),
             };
             let arg_val = match arg.as_ref() {
-                Expression::Variable(n, _) => {
-                    assignment.get(n).cloned().unwrap_or_default()
-                }
+                Expression::Variable(n, _) => assignment.get(n).cloned().unwrap_or_default(),
                 Expression::Constant(n, _) => n.clone(),
                 e => return Err(format!("Expected argument, got {e}")),
             };
@@ -811,9 +829,7 @@ pub fn model_evaluate(
             }
             model_evaluate(b, valuation, domain, assignment)
         }
-        Expression::Not(e) => {
-            Ok(!model_evaluate(e, valuation, domain, assignment)?)
-        }
+        Expression::Not(e) => Ok(!model_evaluate(e, valuation, domain, assignment)?),
         Expression::If(a, b) => {
             if !model_evaluate(a, valuation, domain, assignment)? {
                 return Ok(true);
@@ -860,9 +876,7 @@ pub fn model_evaluate(
             }
             Ok(true)
         }
-        Expression::Lambda(_, _) => {
-            Err("Cannot evaluate lambda directly".to_string())
-        }
+        Expression::Lambda(_, _) => Err("Cannot evaluate lambda directly".to_string()),
     }
 }
 

@@ -452,8 +452,8 @@ impl RegexpTagger {
     fn new(patterns: Vec<(String, String)>, _backoff: Option<&str>) -> PyResult<Self> {
         let mut rules = Vec::with_capacity(patterns.len());
         for (pat, tag) in &patterns {
-            let re =
-                Regex::new(pat).map_err(|e| PyValueError::new_err(format!("Invalid regex: {e}")))?;
+            let re = Regex::new(pat)
+                .map_err(|e| PyValueError::new_err(format!("Invalid regex: {e}")))?;
             rules.push((re, tag.clone()));
         }
         Ok(RegexpTagger {

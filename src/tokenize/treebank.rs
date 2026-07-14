@@ -26,7 +26,10 @@ static CONTRACTIONS2: Lazy<Vec<(Regex, &str)>> = Lazy::new(|| {
         (r"(?i)\b(t)(was)\b", " $1 $2"),
         (r"(?i)\b(wan)(na)\b", " $1 $2"),
     ];
-    patterns.iter().filter_map(|(p, r)| Regex::new(p).ok().map(|re| (re, *r))).collect()
+    patterns
+        .iter()
+        .filter_map(|(p, r)| Regex::new(p).ok().map(|re| (re, *r)))
+        .collect()
 });
 
 /// Punctuation rules for splitting. Regexes pre-compiled at load time.
@@ -38,7 +41,10 @@ static PUNCTUATION: Lazy<Vec<(Regex, &str)>> = Lazy::new(|| {
         (r"''", " '' "),
         (r"''", " '' "),
     ];
-    patterns.iter().filter_map(|(p, r)| Regex::new(p).ok().map(|re| (re, *r))).collect()
+    patterns
+        .iter()
+        .filter_map(|(p, r)| Regex::new(p).ok().map(|re| (re, *r)))
+        .collect()
 });
 
 /// Collapse multiple spaces — pre-compiled at load time.
@@ -125,19 +131,7 @@ impl TreebankWordDetokenizer {
                 result.push_str(token);
             } else if matches!(
                 token.as_str(),
-                "."
-                    | ","
-                    | "!"
-                    | "?"
-                    | ":"
-                    | ";"
-                    | ")"
-                    | "]"
-                    | "}"
-                    | "%"
-                    | "''"
-                    | "'"
-                    | "n't"
+                "." | "," | "!" | "?" | ":" | ";" | ")" | "]" | "}" | "%" | "''" | "'" | "n't"
             ) || token.starts_with('\'')
             {
                 result.push_str(token);
@@ -212,12 +206,7 @@ mod tests {
     #[test]
     fn test_treebank_detokenize() {
         let tok = TreebankWordDetokenizer::new();
-        let result = tok.detokenize(vec![
-            "Hello".into(),
-            ",".into(),
-            "world".into(),
-            ".".into(),
-        ]);
+        let result = tok.detokenize(vec!["Hello".into(), ",".into(), "world".into(), ".".into()]);
         assert_eq!(result, "Hello, world.");
     }
 

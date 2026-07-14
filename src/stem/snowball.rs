@@ -4,8 +4,8 @@
 //! Hungarian, Italian, Norwegian, Portuguese, Romanian, Russian,
 //! Spanish, Swedish, Turkish, Arabic.
 
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 use rust_stemmers::{Algorithm, Stemmer};
 
 /// Map language name to rust-stemmers Algorithm.
@@ -63,10 +63,7 @@ impl SnowballStemmer {
     /// Stem multiple words in batch (faster than calling stem() in a loop).
     fn stem_many(&self, words: Vec<String>) -> Vec<String> {
         let stemmer = Stemmer::create(self.algorithm);
-        words
-            .iter()
-            .map(|w| stemmer.stem(w).to_string())
-            .collect()
+        words.iter().map(|w| stemmer.stem(w).to_string()).collect()
     }
 }
 

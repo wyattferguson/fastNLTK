@@ -26,11 +26,7 @@ pub struct PlaintextCorpusReader {
 impl PlaintextCorpusReader {
     #[new]
     #[pyo3(signature = (root, fileids=None, _encoding=None))]
-    fn new(
-        root: &str,
-        fileids: Option<Vec<String>>,
-        _encoding: Option<&str>,
-    ) -> PyResult<Self> {
+    fn new(root: &str, fileids: Option<Vec<String>>, _encoding: Option<&str>) -> PyResult<Self> {
         let root_path = Path::new(root);
         if !root_path.is_dir() {
             return Err(PyFileNotFoundError::new_err(format!(
@@ -74,9 +70,8 @@ impl PlaintextCorpusReader {
         let mut contents = Vec::with_capacity(ids.len());
         for fid in &ids {
             let path = self.root.join(fid);
-            let text = fs::read_to_string(&path).map_err(|e| {
-                PyFileNotFoundError::new_err(format!("Cannot read {fid}: {e}"))
-            })?;
+            let text = fs::read_to_string(&path)
+                .map_err(|e| PyFileNotFoundError::new_err(format!("Cannot read {fid}: {e}")))?;
             contents.push(text);
         }
         Ok(contents)

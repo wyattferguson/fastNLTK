@@ -4,9 +4,9 @@
 //!   - NaiveBayesClassifier (training + prediction)
 //!   - TextCat (language detection via whatlang)
 
+pub mod maxent;
 pub mod naivebayes;
 pub mod textcat;
-pub mod maxent;
 
 use pyo3::prelude::*;
 

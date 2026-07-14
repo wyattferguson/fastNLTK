@@ -49,17 +49,25 @@ impl NaiveBayesClassifier {
     /// `labeled_featuresets` is a list of (dict, label) pairs where
     /// dict maps feature_name → feature_value.
     #[pyo3(signature = (labeled_featuresets, alpha=1.0))]
-    fn train(&mut self, py: Python<'_>, labeled_featuresets: &Bound<'_, PyList>, alpha: f64) -> PyResult<()> {
+    fn train(
+        &mut self,
+        py: Python<'_>,
+        labeled_featuresets: &Bound<'_, PyList>,
+        alpha: f64,
+    ) -> PyResult<()> {
         // Extract data from Python objects first (can't pass PyList into allow_threads)
         let mut raw_data: Vec<(String, Vec<(String, String)>)> = Vec::new();
         for item in labeled_featuresets.iter() {
-            let tuple = item.downcast::<PyTuple>()
+            let tuple = item
+                .downcast::<PyTuple>()
                 .map_err(|_| PyValueError::new_err("Expected (features_dict, label) tuples"))?;
             let item0 = tuple.get_item(0)?;
-            let features_dict = item0.downcast::<PyDict>()
+            let features_dict = item0
+                .downcast::<PyDict>()
                 .map_err(|_| PyValueError::new_err("Expected dict as first element"))?;
             let item1 = tuple.get_item(1)?;
-            let label: String = item1.extract()
+            let label: String = item1
+                .extract()
                 .map_err(|_| PyValueError::new_err("Expected string label as second element"))?;
 
             let mut feats = Vec::new();
@@ -95,7 +103,8 @@ impl NaiveBayesClassifier {
             labels.sort();
 
             let features: Vec<String> = {
-                let set: std::collections::HashSet<String> = feature_value_counts.values()
+                let set: std::collections::HashSet<String> = feature_value_counts
+                    .values()
                     .flat_map(|m| m.keys())
                     .cloned()
                     .collect();
@@ -172,11 +181,12 @@ impl NaiveBayesClassifier {
             return Ok(self.labels.iter().map(|l| (l.clone(), uniform)).collect());
         }
 
-        let exp_scores: Vec<f64> = scores.values()
-            .map(|v| (v - max_logprob).exp())
-            .collect();
+        let exp_scores: Vec<f64> = scores.values().map(|v| (v - max_logprob).exp()).collect();
         let sum: f64 = exp_scores.iter().sum();
-        let result: HashMap<String, f64> = self.labels.iter().zip(exp_scores.iter())
+        let result: HashMap<String, f64> = self
+            .labels
+            .iter()
+            .zip(exp_scores.iter())
             .map(|(l, s)| (l.clone(), s / sum))
             .collect();
         Ok(result)
@@ -193,11 +203,15 @@ impl NaiveBayesClassifier {
                     if label_i >= label_j {
                         continue;
                     }
-                    let p_i = self.feature_logprobs.get(label_i)
+                    let p_i = self
+                        .feature_logprobs
+                        .get(label_i)
                         .and_then(|m| m.get(feat))
                         .copied()
                         .unwrap_or(0.0);
-                    let p_j = self.feature_logprobs.get(label_j)
+                    let p_j = self
+                        .feature_logprobs
+                        .get(label_j)
                         .and_then(|m| m.get(feat))
                         .copied()
                         .unwrap_or(0.0);
@@ -210,9 +224,7 @@ impl NaiveBayesClassifier {
         scores.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         scores.truncate(n);
 
-        scores.iter()
-            .map(|(feat, _)| feat.clone())
-            .collect()
+        scores.iter().map(|(feat, _)| feat.clone()).collect()
     }
 }
 

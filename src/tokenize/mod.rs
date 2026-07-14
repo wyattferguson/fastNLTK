@@ -3,15 +3,15 @@
 //! Implements all tokenizers from nltk.tokenize:
 //! simple (Space, Tab, Line, Char), regexp, Treebank, Tweet, Punkt, etc.
 
-pub mod simple;
+pub mod mwe;
+pub mod punkt;
 pub mod regexp;
+pub mod sexpr;
+pub mod simple;
+pub mod texttiling;
+pub mod toktok;
 pub mod treebank;
 pub mod tweet;
-pub mod punkt;
-pub mod sexpr;
-pub mod toktok;
-pub mod mwe;
-pub mod texttiling;
 
 use pyo3::prelude::*;
 
@@ -70,9 +70,7 @@ pub fn sent_tokenize_py(py: Python<'_>, text: &str, language: &str) -> PyResult<
         let mut start = 0;
         let bytes = text.as_bytes();
         for (i, _) in text.char_indices() {
-            if i > 0
-                && (bytes[i - 1] == b'.' || bytes[i - 1] == b'!' || bytes[i - 1] == b'?')
-            {
+            if i > 0 && (bytes[i - 1] == b'.' || bytes[i - 1] == b'!' || bytes[i - 1] == b'?') {
                 if i + 1 < bytes.len() && bytes[i] == b' ' {
                     sentences.push(text[start..i].to_string());
                     start = i + 1;

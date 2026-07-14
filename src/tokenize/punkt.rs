@@ -7,7 +7,7 @@
 use std::collections::{HashMap, HashSet};
 
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PySet, PyFrozenSet};
+use pyo3::types::{PyDict, PyFrozenSet, PySet};
 
 // ═══════════════════════════════════════════════════════════
 // Parameter types matching NLTK's PunktParameters
@@ -39,14 +39,14 @@ impl PunktParams {
     /// Check if a word is a known abbreviation.
     fn is_abbrev(&self, word: &str) -> bool {
         let stripped = word.trim_end_matches('.');
-        self.abbrev_types.contains(stripped)
-            || self.abbrev_types.contains(word)
+        self.abbrev_types.contains(stripped) || self.abbrev_types.contains(word)
     }
 
     /// Check if a word pair is a known collocation.
     #[allow(dead_code)]
     fn is_collocation(&self, w1: &str, w2: &str) -> bool {
-        self.collocations.contains(&(w1.to_lowercase(), w2.to_lowercase()))
+        self.collocations
+            .contains(&(w1.to_lowercase(), w2.to_lowercase()))
     }
 
     /// Check if a word is a known sentence starter.
@@ -136,7 +136,10 @@ impl PunktSentenceTokenizer {
     /// Return sentences from text.
     fn sentences_from_text(&self, text: &str) -> Vec<String> {
         let spans = self.punkt_spans(text);
-        spans.into_iter().map(|(s, e)| text[s..e].to_string()).collect()
+        spans
+            .into_iter()
+            .map(|(s, e)| text[s..e].to_string())
+            .collect()
     }
 }
 
@@ -153,7 +156,12 @@ impl PunktSentenceTokenizer {
             if i > 0 {
                 let c = bytes[i - 1];
                 if c == b'.' || c == b'!' || c == b'?' {
-                    if i >= text.len() || bytes[i] == b' ' || bytes[i] == b'\n' || bytes[i] == b'"' || bytes[i] == b'\'' {
+                    if i >= text.len()
+                        || bytes[i] == b' '
+                        || bytes[i] == b'\n'
+                        || bytes[i] == b'"'
+                        || bytes[i] == b'\''
+                    {
                         let end = if bytes[i] == b' ' { i } else { i };
                         spans.push((start, end));
                         start = end;
@@ -193,7 +201,10 @@ impl PunktSentenceTokenizer {
                         // Include trailing whitespace/quote in current sentence
                         let real_end = if end < text.len() {
                             let remaining = &text[end..];
-                            let ws_end = remaining.find(|c: char| !c.is_whitespace() && c != '"' && c != '\'' && c != ')')
+                            let ws_end = remaining
+                                .find(|c: char| {
+                                    !c.is_whitespace() && c != '"' && c != '\'' && c != ')'
+                                })
                                 .map(|pos| end + pos)
                                 .unwrap_or(text.len());
                             ws_end
@@ -228,12 +239,19 @@ impl PunktSentenceTokenizer {
         let chars: Vec<char> = text.chars().collect();
 
         while i < chars.len() {
-            if chars[i].is_whitespace() { i += 1; continue; }
+            if chars[i].is_whitespace() {
+                i += 1;
+                continue;
+            }
             let start = i;
 
             // Collect a word: alphanumeric + internal periods/hyphens/apostrophes
-            while i < chars.len() && !chars[i].is_whitespace()
-                && (chars[i].is_alphanumeric() || chars[i] == '.' || chars[i] == '-' || chars[i] == '\'')
+            while i < chars.len()
+                && !chars[i].is_whitespace()
+                && (chars[i].is_alphanumeric()
+                    || chars[i] == '.'
+                    || chars[i] == '-'
+                    || chars[i] == '\'')
             {
                 i += 1;
             }
@@ -250,7 +268,13 @@ impl PunktSentenceTokenizer {
     }
 
     /// Determine if a period/final-punctuation token is a sentence boundary.
-    fn is_sentence_boundary(&self, _text: &str, tokens: &[(usize, String)], idx: usize, params: &PunktParams) -> bool {
+    fn is_sentence_boundary(
+        &self,
+        _text: &str,
+        tokens: &[(usize, String)],
+        idx: usize,
+        params: &PunktParams,
+    ) -> bool {
         let (_, tok_text) = &tokens[idx];
 
         // No final punctuation → not a boundary
@@ -268,8 +292,12 @@ impl PunktSentenceTokenizer {
                 }
                 let next_word = &tokens[idx + 1].1;
                 if let Some(c) = next_word.chars().next() {
-                    if c.is_lowercase() { return false; }
-                    if params.is_sent_start(next_word) { return true; }
+                    if c.is_lowercase() {
+                        return false;
+                    }
+                    if params.is_sent_start(next_word) {
+                        return true;
+                    }
                     return false;
                 }
                 return false;
@@ -335,7 +363,8 @@ mod tests {
 
     #[test]
     fn test_simple_sentences() {
-        let spans = PunktSentenceTokenizer::tokenize_simple_sentences("Hello world. This is a test.");
+        let spans =
+            PunktSentenceTokenizer::tokenize_simple_sentences("Hello world. This is a test.");
         assert_eq!(spans.len(), 2);
     }
 
@@ -345,9 +374,20 @@ mod tests {
         let p = test_params();
         tok.params = Some(p);
         let sentences = tok.sentences_from_text("Dr. Smith went home. He ate dinner.");
-        assert_eq!(sentences.len(), 2, "Should have 2 sentences: {:?}", sentences);
-        assert!(sentences[0].contains("Dr."), "First sentence should contain Dr.");
-        assert!(!sentences[0].contains("He ate"), "First sentence should not contain 'He ate'");
+        assert_eq!(
+            sentences.len(),
+            2,
+            "Should have 2 sentences: {:?}",
+            sentences
+        );
+        assert!(
+            sentences[0].contains("Dr."),
+            "First sentence should contain Dr."
+        );
+        assert!(
+            !sentences[0].contains("He ate"),
+            "First sentence should not contain 'He ate'"
+        );
     }
 
     #[test]

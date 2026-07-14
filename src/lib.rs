@@ -5,20 +5,20 @@
 
 use pyo3::prelude::*;
 
-mod prelude;
-pub mod chunk;
+pub mod ccg;
 pub mod chat;
+pub mod chunk;
 pub mod classify;
 pub mod cluster;
 pub mod collocations;
 pub mod corpus;
 pub mod data;
-pub mod ccg;
-pub mod inference;
 pub mod drt;
+pub mod inference;
 pub mod lm;
 pub mod metrics;
 pub mod parse;
+mod prelude;
 pub mod probability;
 pub mod sem;
 pub mod sentiment;

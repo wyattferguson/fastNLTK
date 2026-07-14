@@ -223,7 +223,8 @@ impl MaxentClassifier {
                     let update = (emp / model).ln() / c;
                     if gaussian_prior_sigma > 0.0 {
                         // Gaussian prior: penalize large weights
-                        let gaussian = weights[li][fi] / (gaussian_prior_sigma * gaussian_prior_sigma * num_instances);
+                        let gaussian = weights[li][fi]
+                            / (gaussian_prior_sigma * gaussian_prior_sigma * num_instances);
                         weights[li][fi] += update - gaussian;
                     } else {
                         weights[li][fi] += update;
@@ -322,7 +323,6 @@ impl MaxentClassifier {
         scores
     }
 }
-
 
 // ═══════════════════════════════════════════════════════════
 // Tests

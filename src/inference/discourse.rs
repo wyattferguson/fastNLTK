@@ -11,12 +11,12 @@
 //!
 //! NLTK equivalent: nltk.inference.discourse
 
-use std::collections::HashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use std::collections::HashMap;
 
 use crate::drt::DRS;
-use crate::sem::{self, Expression, model_evaluate, Assignment, Individual, Valuation};
+use crate::sem::{self, model_evaluate, Assignment, Expression, Individual, Valuation};
 
 /// A discourse representation thread: sequence of DRSs with referent tracking.
 #[pyclass(name = "DiscourseThread", module = "fastnltk._rust")]
@@ -39,8 +39,7 @@ impl DiscourseThread {
 
     /// Add a DRS from bracket notation.
     fn add_drs(&mut self, drs_string: &str) -> PyResult<()> {
-        let drs = DRS::from_string(drs_string)
-            .map_err(|e| PyValueError::new_err(e))?;
+        let drs = DRS::from_string(drs_string).map_err(|e| PyValueError::new_err(e))?;
         // Track new referents
         for ref_ in &drs.universe {
             if !self.all_referents.contains(ref_) {
@@ -83,7 +82,10 @@ impl DiscourseThread {
             }
         }
 
-        let merged = DRS { universe, conditions };
+        let merged = DRS {
+            universe,
+            conditions,
+        };
         format!("{merged}")
     }
 
@@ -96,16 +98,21 @@ impl DiscourseThread {
 
     /// Answer a yes/no question about the discourse.
     /// Returns "true", "false", or "unknown".
-    fn answer_question(&self, question_drs: &str, valuation_json: &str, domain_json: &str) -> PyResult<String> {
-        let q = DRS::from_string(question_drs)
-            .map_err(|e| PyValueError::new_err(e))?;
+    fn answer_question(
+        &self,
+        question_drs: &str,
+        valuation_json: &str,
+        domain_json: &str,
+    ) -> PyResult<String> {
+        let q = DRS::from_string(question_drs).map_err(|e| PyValueError::new_err(e))?;
 
         // Merge discourse into single DRS
         let discourse = self.merge_drs();
 
         // Combine discourse & question: discourse & question
         let mut combined_universe = discourse.universe.clone();
-        let mut seen: std::collections::HashSet<String> = discourse.universe.iter().cloned().collect();
+        let mut seen: std::collections::HashSet<String> =
+            discourse.universe.iter().cloned().collect();
         for ref_ in &q.universe {
             if seen.insert(ref_.clone()) {
                 combined_universe.push(ref_.clone());
@@ -115,7 +122,10 @@ impl DiscourseThread {
         let mut conditions = discourse.conditions.clone();
         conditions.extend(q.conditions.clone());
 
-        let combined = DRS { universe: combined_universe, conditions };
+        let combined = DRS {
+            universe: combined_universe,
+            conditions,
+        };
 
         let valuation: Valuation = serde_json::from_str(valuation_json)
             .map_err(|e| PyValueError::new_err(format!("Invalid valuation JSON: {e}")))?;
@@ -148,7 +158,10 @@ impl DiscourseThread {
             }
         }
 
-        DRS { universe, conditions }
+        DRS {
+            universe,
+            conditions,
+        }
     }
 }
 
@@ -206,7 +219,9 @@ mod tests {
         let val_json = serde_json::to_string(&valuation).unwrap();
         let dom_json = serde_json::to_string(&domain).unwrap();
 
-        let answer = thread.answer_question("([x],[dog(x)])", &val_json, &dom_json).unwrap();
+        let answer = thread
+            .answer_question("([x],[dog(x)])", &val_json, &dom_json)
+            .unwrap();
         assert_eq!(answer, "true");
     }
 
@@ -220,7 +235,9 @@ mod tests {
         let val_json = serde_json::to_string(&valuation).unwrap();
         let dom_json = serde_json::to_string(&domain).unwrap();
 
-        let answer = thread.answer_question("([x],[dog(x)])", &val_json, &dom_json).unwrap();
+        let answer = thread
+            .answer_question("([x],[dog(x)])", &val_json, &dom_json)
+            .unwrap();
         assert_eq!(answer, "false");
     }
 
@@ -262,7 +279,9 @@ mod tests {
         let fol = thread.to_fol();
         // FOL should contain both dog and negation
         assert!(fol.contains("dog"), "should contain dog: {fol}");
-        assert!(fol.contains("exists") || fol.contains("all"),
-                "should have quantifier: {fol}");
+        assert!(
+            fol.contains("exists") || fol.contains("all"),
+            "should have quantifier: {fol}"
+        );
     }
 }
