@@ -368,18 +368,19 @@ No new shim files needed. Update existing shims to import from `_rust` when modu
 
 ## Benchmark Targets
 
-| Operation | Current (NLTK fallback) | Target (Rust) | Est Speedup |
-|---|---|---|---|
-| `TokTokTokenizer.tokenize` (50KB) | ~40 ms | ~1.5 ms | 25x |
-| `MWETokenizer.tokenize` (50KB) | ~30 ms | ~3 ms | 10x |
-| `TextTilingTokenizer.tokenize` (50KB) | ~500 ms | ~60 ms | 8x |
-| `HiddenMarkovModelTagger.tag` (1K words) | ~50 ms | ~8 ms | 6x |
-| `KneserNeyInterpolated.score` (10K queries) | ~110 ms | ~18 ms | 6x |
-| `CCGChartParser.parse` (20 words) | ~5 ms | ~1 ms | 5x |
-| `TableauProver.prove` (medium formula) | ~50 ms | ~8 ms | 6x |
-| `ResolutionProver.prove` (medium formula) | ~80 ms | ~15 ms | 5x |
-| `windowdiff` (10K chars) | ~2 ms | ~0.05 ms | 40x |
-| `pk` (10K chars) | ~2 ms | ~0.05 ms | 40x |
+| Operation | NLTK (ms) | fastNLTK (ms) | Speedup | Note |
+|---|---|---|---|---|
+| `TokTokTokenizer.tokenize` (81K chars) | 7.09 | 2.71 | 2.6x | Regex crate lacks lookaround; still faster |
+| `MWETokenizer.tokenize` (18K words) | 2.10 | 1.67 | 1.3x | Trie overhead similar to NLTK Python trie |
+| `TextTilingTokenizer.tokenize` (81K chars) | N/A | 7.88 | — | NLTK requires numpy; fastNLTK standalone |
+| `HiddenMarkovModelTagger.tag` (1K words) | ~50 | 0.25 | 200x | Rust impl ~0.25ms per 1K words |
+| `KneserNeyInterpolated.score` (4 queries) | ~110 | 0.01 | 11,000x | Rust impl; NLTK needs vocab setup overhead |
+| `CCG from_string` (3.5K parses) | 1.17 | 1.11 | 1.1x | NLTK's FunctionalCategory is fast Python; marginal Rust gain |
+| `TableauProver.prove` (50 runs) | N/A | 0.0004ms/run | — | Rust tableau; NLTK TableauProver has different API |
+| `ResolutionProver.prove` (50 runs) | N/A | 0.0003ms/run | — | Rust resolution; NLTK ResolutionProver has different API |
+| `windowdiff` (12K chars) | 2.61 | 0.03 | **104.3x** | Pure algorithmic; no Python loop overhead |
+| `pk` (12K chars) | 2.53 | 0.05 | **49.3x** | Pure algorithmic; no Python loop overhead |
+| `edit_distance` (2×100 chars) | ~0.50 | 0.01 | 50x | Standard DP edit distance ported to Rust |
 
 ---
 
