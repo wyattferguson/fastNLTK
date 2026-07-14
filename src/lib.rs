@@ -13,6 +13,7 @@ pub mod cluster;
 pub mod collocations;
 pub mod corpus;
 pub mod data;
+pub mod ccg;
 pub mod drt;
 pub mod lm;
 pub mod metrics;
@@ -62,6 +63,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // ── Chunking ───────────────────────────────────────
     chunk::register_module(m)?;
+
+    // ── CCG ──────────────────────────────────────────
+    ccg::register_module(m)?;
 
     // ── DRT ───────────────────────────────────────────
     drt::register_module(m)?;

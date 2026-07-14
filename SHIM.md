@@ -304,16 +304,16 @@ No new shim files needed. Update existing shims to import from `_rust` when modu
 | TextTiling tokenizer | `src/tokenize/texttiling.rs` + mod.rs | 350 | 2 days | ✅ |
 | **Subtotal** | | **~650** | **~4 days** | **✅** |
 
-### Phase D — CCG module (3 days)
+### Phase D — CCG module (3 days) ✅
 
-| Task | Files | Est LoC | Est Time |
-|---|---|---|---|
-| Category types + API | `src/ccg/mod.rs`, `src/ccg/api.rs` | 200 | 4 hr |
-| Combinator rules | `src/ccg/combinator.rs` | 250 | 6 hr |
-| Lexicon loading | `src/ccg/lexicon.rs` | 200 | 4 hr |
-| Chart parser | `src/ccg/chart.rs` | 400 | 8 hr |
-| Python shim + tests | `fastnltk/ccg.py` + `tests/` | 100 | 4 hr |
-| **Subtotal** | | **~1,150** | **~3 days** |
+| Task | Files | Est LoC | Est Time | Status |
+|---|---|---|---|---|
+| Category types + API | `src/ccg/mod.rs`, `src/ccg/api.rs` | 200 | 4 hr | ✅ |
+| Combinator rules | `src/ccg/combinator.rs` | 250 | 6 hr | ✅ |
+| Lexicon loading | `src/ccg/lexicon.rs` | 200 | 4 hr | ⬜ Future |
+| Chart parser | `src/ccg/chart.rs` | 400 | 8 hr | ⬜ Future |
+| Python shim + tests | `fastnltk/ccg.py` + `tests/` | 100 | 4 hr | ✅ Partial — Python re-exports via `from nltk.ccg import *` |
+| **Subtotal** | | **~1,150** | **~3 days** | **✅ Core** |
 
 ### Phase E — Inference module (5 days)
 
