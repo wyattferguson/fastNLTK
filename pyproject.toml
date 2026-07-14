@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "fastnltk"
-version = "0.2.0"
+version = "0.3.0"
 requires-python = ">=3.8"
 description = "Drop-in Rust-accelerated replacement for NLTK. Same API, 5-50x faster."
 authors = [
