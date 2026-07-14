@@ -82,7 +82,7 @@ impl FreqDist {
         self.clone()
     }
     fn __len__(&self) -> usize {
-        self.total as usize
+        self.counts.len()
     }
     fn __repr__(&self) -> String {
         format!("<FreqDist with {} samples and {} outcomes>", self.counts.len(), self.total)

@@ -124,7 +124,7 @@ impl BigramTagger {
                     .and_modify(|c| *c += 1)
                     .or_insert(1);
                 *tag_counts.entry(tag.clone()).or_insert(0) += 1;
-                prev = tag.clone();
+                prev.clone_from(&tag);
             }
         }
         for (key, tag_count) in &counts {
@@ -150,7 +150,7 @@ impl BigramTagger {
                     .or(self.default_tag.as_ref())
                     .cloned()
                     .unwrap_or_default();
-                prev = tag.clone();
+                prev.clone_from(&tag);
                 (w, tag)
             })
             .collect()
@@ -214,7 +214,7 @@ impl TrigramTagger {
                     .or_insert(1);
                 *tag_counts.entry(tag.clone()).or_insert(0) += 1;
                 prev2.clone_from(&prev1);
-                prev1 = tag.clone();
+                prev1.clone_from(&tag);
             }
         }
         for (key, tag_count) in &counts {
@@ -241,8 +241,8 @@ impl TrigramTagger {
                     .or(self.default_tag.as_ref())
                     .cloned()
                     .unwrap_or_default();
-                prev2 = prev1.clone();
-                prev1 = tag.clone();
+                prev2.clone_from(&prev1);
+                prev1.clone_from(&tag);
                 (w, tag)
             })
             .collect()

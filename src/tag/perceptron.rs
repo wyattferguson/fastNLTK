@@ -140,7 +140,7 @@ impl PerceptronTagger {
             }
             if score > best_score {
                 best_score = score;
-                best_tag = class.clone();
+                best_tag.clone_from(class);
             }
         }
 

@@ -421,8 +421,8 @@ mod tests {
     fn test_parse_lambda() {
         let expr = parse_expression(r"\x.walk(x)").unwrap();
         let s = format!("{expr}");
-        assert!(s.contains("\\") || s.contains("lambda"));
-        assert!(s.contains("x"));
+        assert!(s.contains('\\') || s.contains("lambda"));
+        assert!(s.contains('x'));
         assert!(s.contains("walk"));
     }
 
@@ -444,21 +444,21 @@ mod tests {
     fn test_parse_and() {
         let expr = parse_expression("walk(x) & talk(x)").unwrap();
         let s = format!("{expr}");
-        assert!(s.contains("&"));
+        assert!(s.contains('&'));
     }
 
     #[test]
     fn test_parse_or() {
         let expr = parse_expression("walk(x) | talk(x)").unwrap();
         let s = format!("{expr}");
-        assert!(s.contains("|"));
+        assert!(s.contains('|'));
     }
 
     #[test]
     fn test_parse_not() {
         let expr = parse_expression("-walk(x)").unwrap();
         let s = format!("{expr}");
-        assert!(s.contains("-"));
+        assert!(s.contains('-'));
     }
 
     #[test]
@@ -488,7 +488,7 @@ mod tests {
     fn test_equality() {
         let expr = parse_expression("x = john").unwrap();
         let s = format!("{expr}");
-        assert!(s.contains("="));
+        assert!(s.contains('='));
     }
 
     #[test]

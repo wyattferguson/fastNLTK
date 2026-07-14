@@ -463,7 +463,7 @@ mod tests {
     #[test]
     fn test_implication() {
         // Implication as nested DRS: ([x],[dog(x)] => ([y],[bone(y)]))
-        let drs = DRS::from_string("([x],[dog(x) => ([y],[bone(y)]))])").unwrap_or_else(|e| {
+        let drs = DRS::from_string("([x],[dog(x) => ([y],[bone(y)]))])").unwrap_or_else(|_e| {
             // fallback: just test that implication format is recognized
             DRS::from_string("([x],[dog(x)])").unwrap()
         });

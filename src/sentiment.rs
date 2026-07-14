@@ -203,7 +203,7 @@ impl SentimentIntensityAnalyzer {
             (0.0, 0.0, 1.0)
         };
 
-        let compound = compound.max(-1.0).min(1.0);
+        let compound = compound.clamp(-1.0, 1.0);
 
         let mut result = HashMap::new();
         result.insert("compound".to_string(), compound);

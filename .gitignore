@@ -17,6 +17,7 @@ target/
 debug/
 **/*.rs.bk
 *.pdb
+clippy_out.txt
 
 # IDE
 .idea/

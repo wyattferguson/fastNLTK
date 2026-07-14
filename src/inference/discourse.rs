@@ -160,7 +160,6 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::drt::DRS;
     use std::collections::HashMap;
 
     #[test]

@@ -74,7 +74,6 @@ pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 # Allow pedantic lints that don't fit our domain
 module_name_repetitions = "allow"
-similar_names = "allow"
 too_many_lines = "allow"
 cast_precision_loss = "allow"
 must_use_candidate = "allow"
@@ -88,6 +87,28 @@ missing_panics_doc = "allow"
 # These are informational, not action items
 missing_const_for_fn = "allow"
 needless_pass_by_value = "allow"
+# PyO3 #[pymethods] require &self even for stateless methods
+unused_self = "allow"
+# PyO3 #[pymethods] must return PyResult for FFI compatibility
+unnecessary_wraps = "allow"
+# #[pyo3] pyfunctions need complex return types for FFI
+type_complexity = "allow"
+# Intentional numeric casts in performance paths
+cast_possible_truncation = "allow"
+cast_sign_loss = "allow"
+cast_possible_wrap = "allow"
+cast_lossless = "allow"
+# PyO3 uses Option-based patterns that trigger this
+option_if_let_else = "allow"
+# Performance-critical code uses index loops intentionally
+needless_range_loop = "allow"
+# PyO3 Signature attributes use parameter names matching Python API
+similar_names = "allow"
+# Tokenizer tokenize() methods use &self per PyO3 requirement
+# Hashbrown entry API triggers this
+or_fun_call = "allow"
+# PyO3 allocates Vec<Vec<...>> for chart parsing
+ptr_arg = "allow"
 
 [lints.rust]
 unused_must_use = "warn"

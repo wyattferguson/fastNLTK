@@ -134,7 +134,7 @@ impl TnT {
                 let mut best = neg_inf;
                 let mut best_k = -1;
                 for k in 0..t {
-                    if dp[i - 1][k] == neg_inf {
+                    if (dp[i - 1][k] - neg_inf).abs() < f64::EPSILON {
                         continue;
                     }
                     let tag_k = &self.tags[k];

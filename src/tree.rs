@@ -363,7 +363,7 @@ mod tests {
     fn test_display() {
         let s = format!("{}", sample_tree());
         assert!(s.starts_with('('));
-        assert!(s.contains("S"));
+        assert!(s.contains('S'));
         assert!(s.contains("The"));
     }
 

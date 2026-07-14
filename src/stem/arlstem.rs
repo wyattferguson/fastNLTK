@@ -26,7 +26,7 @@ impl ARLSTem {
         let mut t = normalize(token);
         let pre = strip_prefix(&t);
         if let Some(ref p) = pre {
-            t = p.clone();
+            t.clone_from(p);
         }
         t = strip_suffix(&t);
         if let Some(ps) = plural_to_singular(&t) {
@@ -63,7 +63,7 @@ impl ARLSTem2 {
         let mut t = normalize(token);
         let pre = strip_prefix(&t);
         if let Some(ref p) = pre {
-            t = p.clone();
+            t.clone_from(p);
         }
         t = strip_suffix(&t);
         if let Some(ps) = plural_to_singular(&t) {
@@ -88,7 +88,7 @@ fn normalize(token: &str) -> String {
     for c in token.chars() {
         match c {
             // Remove Arabic diacritics (Tashkeel)
-            '\u{064B}'..='\u{0652}' | '\u{0670}' => continue,
+            '\u{064B}'..='\u{0652}' | '\u{0670}' => {},
             // Replace hamzated Alif with plain Alif
             '\u{0622}' | '\u{0623}' | '\u{0625}' => result.push('\u{0627}'), // Alif
             // Replace Alif Maqsura with Yaa
