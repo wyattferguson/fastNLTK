@@ -31,12 +31,14 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install Python dev headers (needed by PyO3 for linking test binary)
-        run: sudo apt-get update && sudo apt-get install -y python3-dev
+        run: |
+          pyver=$(python -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}-dev')")
+          sudo apt-get update && sudo apt-get install -y "$pyver"
       # Standard: deny correctness+suspicious+perf, warn style+complexity
       # pedantic+nursery are informational (no CI gate)
       - run: cargo clippy --all-targets -- -D clippy::correctness -D clippy::suspicious -D clippy::perf -W clippy::style -W clippy::complexity
         env:
-          PYO3_PYTHON: python3
+          PYO3_PYTHON: python
 
   doc:
     runs-on: ubuntu-latest
@@ -56,11 +58,13 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install Python dev headers (needed by PyO3 for linking test binary)
-        run: sudo apt-get update && sudo apt-get install -y python3-dev
+        run: |
+          pyver=$(python -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}-dev')")
+          sudo apt-get update && sudo apt-get install -y "$pyver"
       - name: Run tests
         run: cargo test
         env:
-          PYO3_PYTHON: python3
+          PYO3_PYTHON: python
 
   deny:
     runs-on: ubuntu-latest
