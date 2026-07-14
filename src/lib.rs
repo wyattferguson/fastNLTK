@@ -3,6 +3,11 @@
 //! This crate compiles to a PyO3 extension module (`fastnltk._rust`)
 //! that provides native-speed implementations of NLTK's NLP algorithms.
 
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
 use pyo3::prelude::*;
 
 pub mod ccg;

@@ -37,6 +37,7 @@ rustc-hash = "2"
 once_cell = "1"
 parking_lot = "0.12"
 rand = "0.9"
+mimalloc = "0.1"
 
 # Optional parallel processing
 rayon = { version = "1", optional = true }
@@ -50,11 +51,11 @@ default = ["parallel"]
 parallel = ["rayon", "rustling/parallel"]
 
 [profile.release]
-lto = "thin"
+lto = "fat"
 codegen-units = 1
 strip = true
 opt-level = 3
-panic = "unwind"
+panic = "abort"
 
 [profile.dev]
 opt-level = 0
