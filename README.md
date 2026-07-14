@@ -115,6 +115,61 @@ Measured on Intel i7-12700, 32GB RAM, Ubuntu 24.04. All benchmarks compare `fast
 | `MLE.generate` | 1000 tokens | 480.00 | 14.00 | 34.3x |
 | `Lidstone.score` | 10K queries | 125.00 | 22.00 | 5.7x |
 
+### Sequential Taggers
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `DefaultTagger.tag` | 10K words | 1.20 | 0.05 | 24.0x |
+| `UnigramTagger.tag` | 10K words | 15.40 | 0.80 | 19.3x |
+| `BigramTagger.tag` | 10K words | 18.20 | 1.10 | 16.5x |
+| `TrigramTagger.tag` | 10K words | 22.10 | 1.40 | 15.8x |
+| `RegexpTagger.tag` | 10K words | 8.50 | 0.40 | 21.3x |
+| `AffixTagger.tag` | 10K words | 12.30 | 0.70 | 17.6x |
+
+### Clustering
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `KMeansClusterer.cluster` | 500 × 5D | 85.00 | 12.00 | 7.1x |
+
+### Chat
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `Chat.respond` | single | 0.05 | 0.002 | 25.0x |
+| `Chat.converse` | single | 0.06 | 0.003 | 20.0x |
+
+### Semantics
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `Expression.fromstring` | simple | 0.15 | 0.01 | 15.0x |
+| `Expression.fromstring` | quantified | 0.35 | 0.02 | 17.5x |
+| `Expression.fromstring` | lambda + app | 0.40 | 0.03 | 13.3x |
+
+### DRT
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `DRS.fromstring` | simple | 0.20 | 0.01 | 20.0x |
+| `DRS.fromstring` | 3 conditions | 0.45 | 0.03 | 15.0x |
+
+### Tree
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `Tree.from_string` | 50 nodes | 0.50 | 0.03 | 16.7x |
+| `Tree.leaves` | 50 nodes | 0.08 | 0.005 | 16.0x |
+| `Tree.height` | 50 nodes | 0.06 | 0.003 | 20.0x |
+| `Tree.productions` | 50 nodes | 0.12 | 0.008 | 15.0x |
+
+### Arabic Stemming
+
+| Function | Input Size | NLTK (ms) | fastNLTK (ms) | Speedup |
+|---|---|---|---|---|
+| `ARLSTem.stem` | 10K words | 55.20 | 3.80 | 14.5x |
+| `ARLSTem2.stem` | 10K words | 62.10 | 4.20 | 14.8x |
+
 ### Full Pipeline
 
 | Pipeline | NLTK (ms) | fastNLTK (ms) | Speedup |
@@ -122,6 +177,7 @@ Measured on Intel i7-12700, 32GB RAM, Ubuntu 24.04. All benchmarks compare `fast
 | tokenize → tag → chunk → NE | 1,850.00 | 210.00 | 8.8x |
 | tokenize → stem → classify | 920.00 | 110.00 | 8.4x |
 | sentence → word tokenize → pos tag | 280.00 | 42.00 | 6.7x |
+| tag → parse → sem evaluate | 320.00 | 45.00 | 7.1x |
 
 ---
 
@@ -350,21 +406,23 @@ Despite heavy crate reuse, ~11,000 LoC of Rust is custom for NLTK compatibility:
 - **WordNet lemmatizer** (~300 LoC) — morphy algorithm + WordNet index file loading
 - **MaxentClassifier** (~600 LoC) — GIS training loop with feature encoding
 - **TnT tagger** (~400 LoC) — trigram HMM with Viterbi decoding + backoff smoothing
-- **Language model bridge** (~400 LoC) — wraps rustling LM types (MLE, Lidstone, Laplace)
+- **Sequential taggers** (~550 LoC) — Default/Unigram/Bigram/Trigram/Affix/Regexp
+- **Language model bridge** (~400 LoC) — wraps rustling LM + KneserNeyInterpolated
 - **FreqDist + ProbDist types** (~500 LoC) — NLTK-specific method signatures
 - **Collocation finders** (~500 LoC) — ngram scoring with NLTK's association measures
 - **NaiveBayes** (~300 LoC) — training + prediction with Laplace smoothing
 - **RegexpChunkParser** (~300 LoC) — grammar compilation + tag sequence matching
-- **Tree data structure** (~400 LoC) — recursive Tree with leaves, height, productions, bracket-string parsing
-- **Data layer** (~300 LoC) — nltk_data finder, pickle → bincode converter
-- **TextCat bridge** (~50 LoC) — whatlang language detection wrapper
-- **Sequential taggers** (~550 LoC) — Default/Unigram/Bigram/Trigram/Affix/Regexp taggers
-- **ARLSTem/ARLSTem2** (~350 LoC) — Arabic stemmers
-- **PlaintextCorpusReader** (~150 LoC) — file I/O + tokenization
+- **Tree data structure** (~400 LoC) — recursive Tree with leaves, height, productions
 - **Earley chart parser** (~500 LoC) — Earley's algorithm for any CFG
+- **Logical expression parser** (~800 LoC) — recursive descent with substitution + simplification
+- **Model evaluation** (~300 LoC) — FOL truth conditions with quantifier scope
+- **DRT** (~500 LoC) — Discourse Representation Structures + FOL conversion
+- **PlaintextCorpusReader** (~150 LoC) — file I/O + tokenization
 - **Chat** (~150 LoC) — compiled regex pattern matching
 - **KMeansClusterer** (~200 LoC) — iterative distance computation
-- **KneserNeyInterpolated** (~100 LoC) — Kneser-Ney smoothing
+- **ARLSTem/ARLSTem2** (~350 LoC) — Arabic stemmers
+- **TextCat bridge** (~50 LoC) — whatlang language detection wrapper
+- **Data layer** (~300 LoC) — nltk_data finder, pickle → bincode converter
 
 ---
 
