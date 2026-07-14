@@ -5,12 +5,12 @@
 //!   - Punctuation splitting (parentheses, quotes, commas, etc.)
 //!   - Clitics and hyphenated words
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use pyo3::prelude::*;
 use regex::Regex;
 
 /// Contraction/starting rules applied in order. Regexes pre-compiled at load time.
-static CONTRACTIONS2: Lazy<Vec<(Regex, &str)>> = Lazy::new(|| {
+static CONTRACTIONS2: LazyLock<Vec<(Regex, &str)>> = LazyLock::new(|| {
     let patterns: &[(&str, &str)] = &[
         (r"(?i)('ll|'re|'ve|'m|'d|'s)\b", " $1"),
         (r"(?i)n't\b", " n't"),
@@ -30,7 +30,7 @@ static CONTRACTIONS2: Lazy<Vec<(Regex, &str)>> = Lazy::new(|| {
 });
 
 /// Punctuation rules for splitting. Regexes pre-compiled at load time.
-static PUNCTUATION: Lazy<Vec<(Regex, &str)>> = Lazy::new(|| {
+static PUNCTUATION: LazyLock<Vec<(Regex, &str)>> = LazyLock::new(|| {
     let patterns: &[(&str, &str)] = &[
         (r"([\[\](){}<>])", " $1 "),
         (r"([:;,.?!])", " $1 "),
@@ -42,7 +42,7 @@ static PUNCTUATION: Lazy<Vec<(Regex, &str)>> = Lazy::new(|| {
 });
 
 /// Collapse multiple spaces — pre-compiled at load time.
-static COLLAPSE_SPACES: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s+").unwrap());
+static COLLAPSE_SPACES: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+").unwrap());
 
 /// Tokenize text using Treebank rules.
 pub fn tokenize_treebank(text: &str) -> Vec<String> {

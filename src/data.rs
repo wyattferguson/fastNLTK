@@ -3,11 +3,11 @@
 //! Resolves nltk_data paths and loads serialized models (pickle, bincode).
 //! Compatible with NLTK's data directory structure.
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use std::path::PathBuf;
 
 /// Search paths for nltk_data, computed once at first use.
-static DATA_SEARCH_PATHS: Lazy<Vec<PathBuf>> = Lazy::new(|| {
+static DATA_SEARCH_PATHS: LazyLock<Vec<PathBuf>> = LazyLock::new(|| {
     let mut paths = Vec::new();
 
     // 1. NLTK_DATA env var

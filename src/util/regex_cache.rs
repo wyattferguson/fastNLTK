@@ -5,12 +5,12 @@
 
 use std::collections::HashMap;
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use parking_lot::Mutex;
 use regex::Regex;
 
-static REGEX_CACHE: Lazy<Mutex<HashMap<(String, u32), Regex>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
+static REGEX_CACHE: LazyLock<Mutex<HashMap<(String, u32), Regex>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// Get or compile a regex, caching it by pattern+flags.
 pub fn get_or_compile(pattern: &str, flags: u32) -> Result<Regex, regex::Error> {
