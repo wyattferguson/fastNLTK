@@ -385,6 +385,26 @@ Functions with zero dedicated tests:
 
 ---
 
+## Execution Status (2026-07-13)
+
+| Section | Status | Notes |
+|---|---|---|
+| C1: panic!() | ✅ Fixed | toktok.rs: better error message. drt.rs: test-only, not production |
+| C2: unwrap in constructors | ⏳ Deferred | 15 sites, 2-3h refactor — needs Result propagation in PyO3 constructors |
+| C3: #[allow] suppressors | ✅ Fixed | 6 sites — dead_code, unused_variables, unused_mut all fixed |
+| H1: clippy warnings | 🔄 563 remain | 612→563 (-49), 433 auto-fixable with pedantic+nursery |
+| H2: Documentation gap | ⏳ Deferred | 7 files need pub API docs (3-4h) |
+| H3: lossy as casts | ✅ Fixed | translate.rs i32→f64 casts fixed |
+| H4: Clone reduction | ⏳ Deferred | 252 sites, 1-2d deep refactor |
+| H5: Large file splitting | ⏳ Deferred | 5 files >500 lines (2-3d) |
+| L1: suboptimal_flops | ✅ Fixed | log2() in texttiling, mul_add in tnt.rs |
+| L2: uninlined_format_args | ✅ Fixed | tree.rs, punkt.rs |
+| L3: clone_from | ✅ Fixed | sequential.rs (2 sites) |
+| M3: dead if branches | ✅ Fixed | punkt.rs (identical branches), treebank.rs (detokenizer simplified) |
+| M5: extract error prop | ✅ Fixed | naivebayes.rs, maxent.rs propagate PyErr instead of default |
+
+---
+
 ## Summary
 
 v0.2.0 is functional and correct (275 Rust + 254 Python tests pass). For production-readiness matching major Rust crates:
