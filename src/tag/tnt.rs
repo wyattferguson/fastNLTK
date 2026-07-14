@@ -43,7 +43,8 @@ impl TnT {
                 continue;
             }
 
-            let mut tags: Vec<SmolStr> = vec![SmolStr::new_inline("<S>"), SmolStr::new_inline("<S>")];
+            let mut tags: Vec<SmolStr> =
+                vec![SmolStr::new_inline("<S>"), SmolStr::new_inline("<S>")];
 
             for (word, tag) in sentence {
                 let t = SmolStr::new(tag);
@@ -61,10 +62,7 @@ impl TnT {
 
             for window in tags.windows(3) {
                 *self.uni_counts.entry(window[2].clone()).or_insert(0) += 1;
-                *self
-                    .bi_counts
-                    .entry((window[1].clone(), window[2].clone()))
-                    .or_insert(0) += 1;
+                *self.bi_counts.entry((window[1].clone(), window[2].clone())).or_insert(0) += 1;
                 *self
                     .tri_counts
                     .entry((window[0].clone(), window[1].clone(), window[2].clone()))
@@ -95,10 +93,14 @@ impl TnT {
 
         // Precompute emission probs
         let word_smols: Vec<SmolStr> = words.iter().map(|w| SmolStr::new(w)).collect();
-        let em_probs: Vec<f64> = self.tags.iter().map(|tag| {
-            let em = self.emission_prob_smol(&SmolStr::new(tag), &word_smols[0]);
-            em
-        }).collect();
+        let em_probs: Vec<f64> = self
+            .tags
+            .iter()
+            .map(|tag| {
+                let em = self.emission_prob_smol(&SmolStr::new(tag), &word_smols[0]);
+                em
+            })
+            .collect();
 
         let mut dp: Vec<Vec<f64>> = vec![vec![neg_inf; t]; n];
         let mut back: Vec<Vec<isize>> = vec![vec![-1; t]; n];
@@ -209,11 +211,8 @@ impl TnT {
     }
 
     fn trans_prob_tri_smol(&self, t1: &SmolStr, t2: &SmolStr, t3: &SmolStr) -> f64 {
-        let tri_count = self
-            .tri_counts
-            .get(&(t1.clone(), t2.clone(), t3.clone()))
-            .copied()
-            .unwrap_or(0);
+        let tri_count =
+            self.tri_counts.get(&(t1.clone(), t2.clone(), t3.clone())).copied().unwrap_or(0);
         let bi_count = self.bi_counts.get(&(t2.clone(), t3.clone())).copied().unwrap_or(0);
         if bi_count == 0 {
             return self.trans_prob_smol(t2, t3);
