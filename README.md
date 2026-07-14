@@ -177,13 +177,12 @@ fastNLTK is a **drop-in replacement** for NLTK. This means:
 | `metrics` | edit_distance, jaro, jaro_winkler, dice, jaccard, binary, precision, recall, f_measure | ✅ v0.2 |
 | `chunk` | RegexpParser (grammar compilation + tag sequence matching) | ✅ v0.6 |
 | `wordnet` | WordNetLemmatizer (morphy algorithm) | ✅ v0.6 |
-| `tree` | Tree (leaves, height, productions, subtrees, bracket-string parsing) | ✅ v0.6 |
+| `sem` | Expression parsing, substitution, simplification, model evaluation | ✅ v0.6 |
 
 ### What's a Python Shim (falls back to NLTK)
 
 | Module | Strategy |
 |---|---|
-| `sem` | Pure Python — wraps nltk.sem |
 | `inference` | Pure Python — wraps nltk.inference |
 | `ccg` | Pure Python — wraps nltk.ccg |
 | `twitter` | Pure Python — wraps nltk.twitter |
