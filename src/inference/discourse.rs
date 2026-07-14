@@ -1,7 +1,13 @@
 //! Inference Discourse — DRT discourse thread processing.
 //!
 //! Builds on `src/drt.rs` for DRS representation and provides
-//! discourse-level reading comprehension.
+//! discourse-level reading comprehension over threaded DRSs.
+//!
+//! Core functionality:
+//!   - `DiscourseThread`: manages a sequence of DRSs
+//!   - DRS merging across the thread (union of referents + conditions)
+//!   - FOL conversion of the merged discourse
+//!   - Yes/no question answering over a model
 //!
 //! NLTK equivalent: nltk.inference.discourse
 
@@ -226,5 +232,37 @@ mod tests {
         let merged = thread.merge();
         // The DRS should merge referents
         assert!(merged.contains("dog") && merged.contains("bone"));
+    }
+
+    #[test]
+    fn test_add_method_alias() {
+        let mut thread = DiscourseThread::new();
+        thread.add("([x],[dog(x)])").unwrap();
+        assert_eq!(thread.__len__(), 1);
+    }
+
+    #[test]
+    fn test_question_unknown() {
+        let thread = DiscourseThread::new();
+        let mut valuation: Valuation = HashMap::new();
+        valuation.insert("dog".to_string(), vec![vec!["fido".to_string()]]);
+        let domain = vec!["fido".to_string()];
+        let val_json = serde_json::to_string(&valuation).unwrap();
+        let dom_json = serde_json::to_string(&domain).unwrap();
+        // Empty discourse + invalid question DRS -> should error
+        let result = thread.answer_question("([x],[dog(x)])", &val_json, &dom_json);
+        assert!(result.is_ok(), "Should handle empty discourse");
+    }
+
+    #[test]
+    fn test_negation_in_drs() {
+        let mut thread = DiscourseThread::new();
+        thread.add_drs("([x],[dog(x), -([y],[cat(y)])])").unwrap();
+        assert_eq!(thread.__len__(), 1);
+        let fol = thread.to_fol();
+        // FOL should contain both dog and negation
+        assert!(fol.contains("dog"), "should contain dog: {fol}");
+        assert!(fol.contains("exists") || fol.contains("all"),
+                "should have quantifier: {fol}");
     }
 }

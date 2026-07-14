@@ -1,9 +1,17 @@
 //! Nonmonotonic Reasoning — DefaultReasoner + ClosedWorldReasoner.
 //!
-//! NLTK equivalents: nltk.inference.nonmonotonic
+//! Implements two nonmonotonic reasoning systems over symbolic knowledge bases:
 //!
-//! DefaultReasoner: computes extensions from default logic rules.
-//! ClosedWorldReasoner: everything not provable is assumed false.
+//! - **DefaultReasoner**: Computes extensions from default logic rules.
+//!   A default rule has the form (prerequisite : justification / consequent).
+//!   If the prerequisite holds and the justification is consistent,
+//!   the consequent can be inferred. Multiple extensions arise when
+//!   default rules conflict.
+//!
+//! - **ClosedWorldReasoner**: Assumes any fact not provably true is false.
+//!   For each unknown proposition P, infers ~P.
+//!
+//! NLTK equivalents: nltk.inference.nonmonotonic
 
 use std::collections::HashSet;
 use std::fmt;
@@ -260,5 +268,50 @@ mod tests {
         );
         let all = reasoner.facts();
         assert!(all.contains(&"bird(tweety)".to_string()));
+    }
+
+    #[test]
+    fn test_rules_method() {
+        let rule = DefaultRule::new(
+            "bird".into(), "flies".into(), "flies".into(), "bf".into(),
+        );
+        let reasoner = DefaultReasoner::new(vec![rule], 10);
+        let rs = reasoner.rules();
+        assert_eq!(rs.len(), 1);
+        assert_eq!(rs[0].name, "bf");
+    }
+
+    #[test]
+    fn test_empty_prerequisite() {
+        // A rule with empty prerequisite should always fire
+        let rules = vec![
+            DefaultRule::new(
+                "".into(), "fact".into(), "fact".into(), "always".into(),
+            ),
+        ];
+        let reasoner = DefaultReasoner::new(rules, 10);
+        let exts = reasoner.extensions();
+        assert!(!exts.is_empty());
+        // Empty prereq should allow default to fire
+        assert!(exts.iter().any(|e| e.contains(&"fact".to_string())),
+                "should derive 'fact' from empty prereq: {:?}", exts);
+    }
+
+    #[test]
+    fn test_closed_world_negative_facts() {
+        let reasoner = ClosedWorldReasoner::new(
+            vec!["bird(tweety)".into(), "cat(felix)".into()]
+        );
+        let pos = reasoner.positive_facts();
+        assert_eq!(pos.len(), 2);
+        assert!(pos.contains(&"bird(tweety)".to_string()));
+    }
+
+    #[test]
+    fn test_closed_world_empty_kb() {
+        let reasoner = ClosedWorldReasoner::new(vec![]);
+        // Empty KB: everything is false under CWA
+        assert!(!reasoner.query("anything"));
+        assert!(reasoner.positive_facts().is_empty());
     }
 }

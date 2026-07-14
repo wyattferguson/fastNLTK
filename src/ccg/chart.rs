@@ -1,5 +1,14 @@
 //! CCG Chart Parser — CKY-style CCG parsing with combinators.
 //!
+//! Implements a bottom-up chart parser for Combinatory Categorial Grammar.
+//! The parser uses a CKY-style dynamic programming approach:
+//!   1. Initialize chart with lexical categories from `CCGLexicon`
+//!   2. For each span size 2..n, try all split points and apply combinators
+//!   3. Collect parses that span the entire input with category S
+//!
+//! Supports forward/backward application (FA, BA) and composition (FC, BC).
+//! Unknown words receive default NP and N categories for robustness.
+//!
 //! NLTK equivalent: nltk.ccg.chart.CCGChartParser
 
 use std::collections::HashMap;
@@ -10,19 +19,25 @@ use crate::ccg::{Category, CategoryKind};
 use crate::ccg::combinator::{self, Combinator};
 use crate::ccg::lexicon::CCGLexicon;
 
-/// A chart cell entry: a category applied over a span [start, end).
+/// A chart cell entry: a category over a span [start, end).
+///
+/// Tracks the category, its input span, and optional children
+/// for derivation tree reconstruction.
 #[derive(Clone, Debug)]
 struct CCGEdge {
     cat: Category,
     start: usize,
     end: usize,
-    /// Optional children for derivation tree
+    /// Left child for derivation tree (None for lexical edges).
     left_child: Option<Box<CCGEdge>>,
+    /// Right child for derivation tree (None for lexical edges).
     right_child: Option<Box<CCGEdge>>,
+    /// Rule name ("lex", "FA", "BA", "FC", "BC").
     rule: String,
 }
 
 impl CCGEdge {
+    /// Create a lexical edge for a word at position `pos`.
     fn new_lexical(cat: Category, pos: usize) -> Self {
         CCGEdge {
             cat,
@@ -34,6 +49,7 @@ impl CCGEdge {
         }
     }
 
+    /// Create a combined edge from two sub-edges using a combinator rule.
     fn combined(
         cat: Category,
         left: CCGEdge,
@@ -51,14 +67,7 @@ impl CCGEdge {
     }
 }
 
-/// Possible results from combining two categories.
-#[derive(Clone, Debug)]
-enum CCGParseResult {
-    Success(Vec<CCGEdge>),
-    Failure(String),
-}
-
-/// The CCG chart parser.
+/// The CCG chart parser, using CKY-style dynamic programming.
 #[pyclass(name = "CCGChartParser", module = "fastnltk._rust")]
 pub struct CCGChartParser {
     lexicon: CCGLexicon,
@@ -333,5 +342,43 @@ mod tests {
         let results = parser.parse(words).unwrap();
         assert!(results.iter().any(|r| r.starts_with("Parse")),
                 "Should produce S parse: {:?}", results);
+    }
+
+    #[test]
+    fn test_max_span_exceeded() {
+        let lex = test_lexicon();
+        let parser = CCGChartParser::new(lex, 3);
+        let words: Vec<String> = "the cat chased a ball".split_whitespace()
+            .map(|s| s.to_string()).collect();
+        let result = parser.parse(words);
+        assert!(result.is_err(), "Should reject input exceeding max_span");
+    }
+
+    #[test]
+    fn test_no_parse_possible() {
+        // NP and N categories only -> cannot form S
+        let lex = CCGLexicon::new(Some(vec![
+            ("the".into(), "NP/N".into()),
+            ("cat".into(), "N".into()),
+        ])).unwrap();
+        let parser = CCGChartParser::new(lex, 20);
+        let words: Vec<String> = "the cat".split_whitespace()
+            .map(|s| s.to_string()).collect();
+        let results = parser.parse(words).unwrap();
+        // Should get NP derivation, not an S parse
+        assert!(results.iter().any(|r| r.contains("NP")),
+                "Should find NP: {:?}", results);
+    }
+
+    #[test]
+    fn test_single_word() {
+        let lex = CCGLexicon::new(Some(vec![
+            ("hello".into(), "S".into()),
+        ])).unwrap();
+        let parser = CCGChartParser::new(lex, 20);
+        let words: Vec<String> = vec!["hello".to_string()];
+        let results = parser.parse(words).unwrap();
+        assert!(results[0].contains("S") || results[0].contains("Derivation"),
+                "Should handle single word: {:?}", results);
     }
 }
