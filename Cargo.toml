@@ -43,6 +43,7 @@ rayon = { version = "1", optional = true }
 
 # Language detection (for TextCat replacement)
 whatlang = "0.16"
+nltk-metrics = "0.4"
 
 [features]
 default = ["parallel"]

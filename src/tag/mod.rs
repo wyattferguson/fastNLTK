@@ -5,6 +5,7 @@
 pub mod perceptron;
 pub mod sequential;
 pub mod tnt;
+pub mod hmm;
 
 use pyo3::prelude::*;
 
@@ -18,5 +19,6 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<sequential::AffixTagger>()?;
     m.add_class::<sequential::RegexpTagger>()?;
     m.add_class::<tnt::TnT>()?;
+    m.add_class::<hmm::HiddenMarkovModelTagger>()?;
     Ok(())
 }

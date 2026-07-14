@@ -51,6 +51,12 @@ try:
     from fastnltk._rust import (
         word_tokenize as _rust_word_tokenize,
     )
+    from fastnltk._rust import (
+        SExprTokenizer as _RustSExprTokenizer,
+    )
+    from fastnltk._rust import (
+        ToktokTokenizer as _RustToktokTokenizer,
+    )
     _rust_available = True
 except ImportError:
     warnings.warn(

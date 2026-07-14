@@ -8,6 +8,9 @@ pub mod regexp;
 pub mod treebank;
 pub mod tweet;
 pub mod punkt;
+pub mod sexpr;
+pub mod toktok;
+pub mod mwe;
 
 use pyo3::prelude::*;
 
@@ -34,6 +37,15 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // Punkt sentence tokenizer
     m.add_class::<punkt::PunktSentenceTokenizer>()?;
+
+    // S-Expr tokenizer
+    m.add_class::<sexpr::SExprTokenizer>()?;
+
+    // TokTok tokenizer
+    m.add_class::<toktok::ToktokTokenizer>()?;
+
+    // MWE tokenizer
+    m.add_class::<mwe::MWETokenizer>()?;
 
     // Free functions
     m.add_function(wrap_pyfunction!(sent_tokenize_py, m)?)?;

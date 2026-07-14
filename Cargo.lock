@@ -316,6 +316,7 @@ dependencies = [
  "approx",
  "bincode",
  "hashbrown 0.15.5",
+ "nltk-metrics",
  "once_cell",
  "parking_lot",
  "pyo3",
@@ -592,6 +593,12 @@ dependencies = [
  "adler2",
  "simd-adler32",
 ]
+
+[[package]]
+name = "nltk-metrics"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f5f24f71b8c084047326a25048112fb097ac3d80e0e709a060b8c5caf8aa828"
 
 [[package]]
 name = "num-conv"

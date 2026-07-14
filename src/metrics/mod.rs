@@ -3,6 +3,7 @@
 mod jaro;
 mod scores;
 mod jaccard;
+mod segmentation;
 
 use pyo3::prelude::*;
 
@@ -42,6 +43,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     jaro::register_module(m)?;
     scores::register_module(m)?;
     jaccard::register_module(m)?;
+    segmentation::register_module(m)?;
     Ok(())
 }
 
