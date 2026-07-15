@@ -116,28 +116,27 @@ impl RegexpParser {
         Ok(Self { rules })
     }
 
-    /// Parse a tagged sentence and return IOB tags as Vec<(word, `iob_tag`)>.
+    /// Parse a tagged sentence and return (word, pos_tag, iob_tag) triples.
     #[pyo3(signature = (tokens))]
-    fn parse(&self, tokens: Vec<(String, String)>) -> Vec<(String, String)> {
+    fn parse(&self, tokens: Vec<(String, String)>) -> Vec<(String, String, String)> {
         if tokens.is_empty() {
             return Vec::new();
         }
 
-        // Extract words and tags
-        let tags: Vec<&str> = tokens.iter().map(|(_, t)| t.as_str()).collect();
+        // Extract words and POS tags
+        let pos_tags: Vec<&str> = tokens.iter().map(|(_, t)| t.as_str()).collect();
         let mut iob: Vec<&str> = vec!["O"; tokens.len()];
 
         // Apply each rule
         for (_label, tag_patterns) in &self.rules {
-            apply_chunk_rule(tag_patterns, &mut tags.clone(), &mut iob);
+            apply_chunk_rule(tag_patterns, &mut pos_tags.clone(), &mut iob);
         }
 
-        // Return (word, iob_tag) pairs
-        tokens
-            .iter()
-            .map(|(w, _)| w.as_str())
-            .zip(iob)
-            .map(|(w, i)| (w.to_string(), i.to_string()))
+        // Return (word, pos_tag, iob_tag) triples
+        tokens.into_iter()
+            .map(|(w, t)| (w, t))
+            .zip(iob.into_iter())
+            .map(|((w, t), i)| (w, t, i.to_string()))
             .collect()
     }
 }
@@ -259,9 +258,9 @@ mod tests {
         ];
         let result = parser.parse(tokens);
         assert_eq!(result.len(), 3);
-        assert_eq!(result[0].1, "B-NP");
-        assert_eq!(result[1].1, "I-NP");
-        assert_eq!(result[2].1, "O");
+        assert_eq!(result[0].2, "B-NP");
+        assert_eq!(result[1].2, "I-NP");
+        assert_eq!(result[2].2, "O");
     }
 
     #[test]
@@ -269,7 +268,7 @@ mod tests {
         let parser = RegexpParser::new("NP: {<DT><NN>}").unwrap();
         let tokens = vec![("cat".to_string(), "NN".to_string())];
         let result = parser.parse(tokens);
-        assert_eq!(result[0].1, "O");
+        assert_eq!(result[0].2, "O");
     }
 
     #[test]

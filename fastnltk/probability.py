@@ -71,10 +71,21 @@ class FreqDist:
     def __getitem__(self, sample):
         return self._impl[sample]
 
+    def get(self, sample, default=0):
+        try:
+            if sample in self._impl:
+                return self._impl[sample]
+            return default
+        except Exception:
+            return default
+
     def __setitem__(self, sample, count):
-        # Used by cfd['a']['x'] += 1 — need to rebuild from scratch
-        # For now, delegate to inc() if count > current
-        pass
+        current = self._impl[sample] if sample in self._impl else 0
+        if count > current:
+            self._impl.inc(sample, count - current)
+        elif count < current:
+            # Reset and rebuild — rare case, use inc for simplicity
+            self._impl.inc(sample, count - current)
 
     def __len__(self):
         return len(self._impl)
