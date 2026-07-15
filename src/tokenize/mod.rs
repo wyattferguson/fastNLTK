@@ -1,7 +1,4 @@
 //! Tokenization — Rust-accelerated tokenizers matching NLTK's API.
-//!
-//! Implements all tokenizers from nltk.tokenize:
-//! simple (Space, Tab, Line, Char), regexp, Treebank, Tweet, Punkt, etc.
 
 pub mod logos_tokenizer;
 pub mod mwe;

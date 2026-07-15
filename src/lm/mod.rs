@@ -1,12 +1,4 @@
 //! Language models — Rust-accelerated ngram language models.
-//!
-//! Implements NLTK-compatible:
-//! - `MLE` (Maximum Likelihood Estimation)
-//! - `Lidstone` (additive smoothing)
-//! - `Laplace` (add-one smoothing)
-//! - `KneserNeyInterpolated`
-//! - `WittenBellInterpolated`
-//! - `StupidBackoff`
 
 pub mod kneser_ney;
 pub mod stupid_backoff;

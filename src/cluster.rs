@@ -1,7 +1,4 @@
 //! Clustering — Rust-accelerated K-means clusterer.
-//!
-//! K-means with Euclidean distance, iterative refinement, and
-//! convergence detection. 5-10x faster than NLTK's pure-Python `KMeansClusterer`.
 
 use pyo3::prelude::*;
 

@@ -1,10 +1,4 @@
 //! Logos-based fast word tokenizer — DFA lexer, single-pass.
-//!
-//! Replaces the multi-pass regex tokenizer with a compile-time
-//! generated deterministic finite automaton. 2-4x faster.
-//!
-//! Unlike `TreebankWordTokenizer`, this does NOT aim for exact
-//! NLTK compatibility — it's a speed-optimized alternative.
 
 use logos::Logos;
 use pyo3::prelude::*;

@@ -1,7 +1,4 @@
 //! `ARLSTem` — Arabic stemmers matching NLTK's `ARLSTem` and `ARLSTem2`.
-//!
-//! Rule-based Arabic stemming: removes prefixes, suffixes, diacritics,
-//! normalizes letters, converts plural to singular, feminine to masculine.
 
 use pyo3::prelude::*;
 

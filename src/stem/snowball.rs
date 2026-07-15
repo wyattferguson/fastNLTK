@@ -1,8 +1,4 @@
 //! Snowball stemmer — wraps `rust-stemmers` crate.
-//!
-//! Supports: Danish, Dutch, English, Finnish, French, German,
-//! Hungarian, Italian, Norwegian, Portuguese, Romanian, Russian,
-//! Spanish, Swedish, Turkish, Arabic.
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;

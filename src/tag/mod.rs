@@ -1,6 +1,4 @@
 //! POS tagging — Rust-accelerated taggers matching NLTK's API.
-//!
-//! Implements the averaged perceptron tagger and sequential taggers.
 
 pub mod hmm;
 pub mod perceptron;

@@ -1,10 +1,4 @@
 //! `NaiveBayesClassifier` — Rust implementation matching NLTK's API.
-//!
-//! Naive Bayes classifier with:
-//!   - Maximum Likelihood Estimation for P(feature|label)
-//!   - Add-k smoothing (Laplace smoothing)
-//!   - Log-space computation to avoid underflow
-//!   - Training + prediction in compiled Rust
 
 use std::collections::HashMap;
 

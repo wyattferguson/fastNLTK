@@ -1,13 +1,4 @@
 //! DRT — Discourse Representation Theory, Rust-accelerated.
-//!
-//! Implements NLTK's `nltk.sem.drt` module:
-//!   - DRS (Discourse Representation Structure) with universe + conditions
-//!   - DRS parsing from string format: (\[x,y\],\[dog(x),cat(y)\])
-//!   - DRS conditions: Predicate, Equality, Negation, Implication, Disjunction
-//!   - DRS -> FOL conversion
-//!   - DRS embedding (model evaluation)
-//!
-//! Phase 3 of the sem module port.
 
 use std::fmt;
 

@@ -1,8 +1,4 @@
 //! `WordNet` lemmatizer — morphy algorithm in Rust.
-//!
-//! Implements the morphy algorithm matching NLTK's `WordNetLemmatizer`.
-//! Loads exception lists and index files from `nltk_data`.
-//! ~10x faster than NLTK's pure-Python implementation.
 
 use std::collections::{HashMap, HashSet};
 use std::path::Path;

@@ -1,7 +1,4 @@
 //! Ngram and pattern-based sequential taggers.
-//!
-//! Implements `UnigramTagger`, `BigramTagger`, `TrigramTagger`,
-//! `AffixTagger`, and `RegexpTagger` with SmolStr-optimized lookups.
 
 use hashbrown::HashMap as FastMap;
 use smol_str::SmolStr;

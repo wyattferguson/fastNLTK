@@ -1,7 +1,4 @@
 //! Simple tokenizers: Space, Tab, Line, Char.
-//!
-//! These are the simplest tokenizers in NLTK, serving as the
-//! first functions to implement in the "one at a time" workflow.
 
 use pyo3::prelude::*;
 

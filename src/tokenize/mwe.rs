@@ -1,6 +1,4 @@
 //! Multi-Word Expression tokenizer — Rust implementation.
-//!
-//! NLTK equivalent: nltk.tokenize.mwe.MWETokenizer
 
 use hashbrown::HashMap;
 use pyo3::prelude::*;

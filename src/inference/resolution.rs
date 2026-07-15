@@ -1,6 +1,4 @@
 //! Resolution theorem prover — CNF + binary resolution for FOL.
-//!
-//! NLTK equivalent: nltk.inference.resolution.ResolutionProver
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;

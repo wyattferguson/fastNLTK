@@ -1,16 +1,4 @@
 //! Semantics — Rust-accelerated logical expression parsing and evaluation.
-//!
-//! Implements NLTK's `nltk.sem.logic` module:
-//!   - `Expression` types (Constant, Variable, Application, Lambda, Quantifier)
-//!   - Recursive descent parser for logical formulas
-//!   - Substitution, simplification (beta-reduction)
-//!   - Free variable extraction
-//!   - Model evaluation with domain + valuation
-//!
-//! Sub-modules:
-//!   - `expression`: Core types (Expression, Type), Display, substitution, free vars
-//!   - `parse`: Tokenizer, recursive descent parser, `parse_expression()`
-//!   - `evaluate`: Model evaluation, `PyO3` bindings (fromstring, simplify, `evaluate_formula`)
 
 pub mod evaluate;
 pub mod expression;

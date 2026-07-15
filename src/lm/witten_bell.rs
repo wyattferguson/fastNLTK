@@ -1,6 +1,4 @@
 //! Witten-Bell interpolated language model.
-//!
-//! Implements Witten-Bell smoothing: P(w) = c(w)/total for seen, 1/(N+T) for unseen.
 
 use pyo3::prelude::*;
 

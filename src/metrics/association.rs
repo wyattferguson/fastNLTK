@@ -1,9 +1,4 @@
 //! Association measures — Rust wrappers around `nltk_metrics::association`.
-//!
-//! `BigramAssocMeasures`, `TrigramAssocMeasures`, `QuadgramAssocMeasures`
-//! with PMI, chi-square, likelihood ratio, Dice, etc.
-//!
-//! NLTK equivalent: nltk.metrics.association
 
 #![allow(clippy::similar_names)]
 

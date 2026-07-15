@@ -1,6 +1,4 @@
 //! Stupid backoff language model.
-//!
-//! Implements: P(w) = c(w)/total for seen, alpha/(N+V) for unseen.
 
 use pyo3::prelude::*;
 

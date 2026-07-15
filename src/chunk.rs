@@ -1,9 +1,4 @@
 //! Chunking — Rust-accelerated `RegexpChunkParser`.
-//!
-//! Implements NLTK's `RegexpParser` with `ChunkRule` support.
-//! Compiles chunk grammar patterns to tag-sequence regexes
-//! and applies them to tagged text for IOB chunking.
-//! 5-10x faster than NLTK's pure-Python implementation.
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;

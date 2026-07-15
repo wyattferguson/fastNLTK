@@ -1,6 +1,4 @@
 //! CCG combinator rules — Forward/Backward Application, Composition, Type Raising.
-//!
-//! NLTK equivalent: nltk.ccg.combinator
 
 use crate::ccg::CategoryKind;
 

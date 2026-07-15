@@ -1,5 +1,4 @@
 //! Lancaster stemmer — pure Rust implementation.
-//! Based on the Lancaster (Paice/Husk) stemming algorithm.
 
 use pyo3::prelude::*;
 

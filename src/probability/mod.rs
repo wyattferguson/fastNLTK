@@ -1,7 +1,4 @@
 //! Frequency & probability distributions matching NLTK's API.
-//!
-//! Implements `FreqDist`, `ConditionalFreqDist`, and `ProbDist` types
-//! with Rust-accelerated operations.
 
 pub mod dist;
 

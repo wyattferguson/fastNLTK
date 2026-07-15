@@ -1,7 +1,4 @@
 //! NLTK data file loading.
-//!
-//! Resolves `nltk_data` paths and loads serialized models (pickle, bincode).
-//! Compatible with NLTK's data directory structure.
 
 use std::path::PathBuf;
 use std::sync::LazyLock;

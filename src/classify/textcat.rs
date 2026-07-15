@@ -1,7 +1,4 @@
 //! `TextCat` — language detection via `whatlang` crate.
-//!
-//! Bridges `whatlang::detect()` to NLTK's `TextCat` API.
-//! 10-50x faster than NLTK's pure-Python ngram-based `TextCat`.
 
 use pyo3::prelude::*;
 

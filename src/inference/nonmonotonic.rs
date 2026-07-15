@@ -1,17 +1,4 @@
 //! Nonmonotonic Reasoning — `DefaultReasoner` + `ClosedWorldReasoner`.
-//!
-//! Implements two nonmonotonic reasoning systems over symbolic knowledge bases:
-//!
-//! - **`DefaultReasoner`**: Computes extensions from default logic rules.
-//!   A default rule has the form (prerequisite : justification / consequent).
-//!   If the prerequisite holds and the justification is consistent,
-//!   the consequent can be inferred. Multiple extensions arise when
-//!   default rules conflict.
-//!
-//! - **`ClosedWorldReasoner`**: Assumes any fact not provably true is false.
-//!   For each unknown proposition P, infers ~P.
-//!
-//! NLTK equivalents: nltk.inference.nonmonotonic
 
 use hashbrown::HashSet;
 use pyo3::prelude::*;

@@ -1,6 +1,4 @@
 //! Tableau theorem prover — connected tableau calculus for FOL.
-//!
-//! NLTK equivalent: nltk.inference.tableau.TableauProver
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;

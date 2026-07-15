@@ -1,10 +1,4 @@
 //! CCG Lexicon — maps words to category lists.
-//!
-//! A CCG lexicon stores possible syntactic categories for each word.
-//! Words can have multiple categories (e.g., "run" can be NP or S\NP).
-//! The lexicon is used by `CCGChartParser` to initialize chart edges.
-//!
-//! NLTK equivalent: nltk.ccg.lexicon
 
 use hashbrown::HashMap;
 use pyo3::exceptions::PyValueError;

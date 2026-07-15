@@ -1,8 +1,4 @@
 //! Punkt sentence tokenizer — Rust port matching NLTK's implementation.
-//!
-//! Uses trained Punkt models loaded from NLTK's `nltk_data` directory.
-//! The model parameters (abbreviations, collocations, orthographic context)
-//! are loaded via Python pickle and passed to Rust for inference.
 
 use hashbrown::HashSet;
 

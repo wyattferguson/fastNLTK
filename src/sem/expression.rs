@@ -1,7 +1,4 @@
 //! Expression types for logical semantics.
-//!
-//! Defines the core `Expression` and `Type` enums, display formatting,
-//! free variable extraction, substitution, and beta-reduction.
 
 use std::collections::HashSet;
 use std::fmt;

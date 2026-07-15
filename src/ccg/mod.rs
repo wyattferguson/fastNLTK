@@ -1,6 +1,4 @@
 //! CCG — Combinatory Categorial Grammar types + API.
-//!
-//! NLTK equivalent: nltk.ccg.api
 
 pub mod chart;
 pub mod combinator;

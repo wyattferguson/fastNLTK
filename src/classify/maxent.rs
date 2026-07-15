@@ -1,8 +1,4 @@
 //! Maximum Entropy classifier — GIS training + inference in Rust.
-//!
-//! Implements NLTK's `MaxentClassifier` with Generalized Iterative Scaling (GIS).
-//! Feature encoding matches NLTK's `BinaryMaxentFeatureEncoding`.
-//! 3-8x faster than NLTK's pure-Python implementation.
 
 use std::collections::HashMap;
 

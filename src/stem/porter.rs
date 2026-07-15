@@ -1,9 +1,4 @@
 //! Porter stemmer — pure Rust implementation of the Porter stemming algorithm.
-//!
-//! Based on the original 1980 paper by Martin Porter:
-//! "An algorithm for suffix stripping" (Program, 14(3): 130–137).
-//!
-//! Matches NLTK's `PorterStemmer` implementation.
 
 use pyo3::prelude::*;
 

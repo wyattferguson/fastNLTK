@@ -1,10 +1,4 @@
 //! Parsing — Rust-accelerated CFG + Earley chart parser.
-//!
-//! Implements:
-//!   - CFG: context-free grammar representation
-//!   - `EarleyChartParser`: Earley's algorithm for any CFG
-//!
-//! Matching NLTK's nltk.parse.EarleyChartParser and nltk.CFG.
 
 use hashbrown::HashMap;
 

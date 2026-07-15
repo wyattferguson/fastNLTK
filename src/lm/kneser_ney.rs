@@ -1,6 +1,4 @@
 //! Kneser-Ney interpolated language model.
-//!
-//! Implements modified Kneser-Ney smoothing with fixed discount parameter.
 
 use pyo3::prelude::*;
 

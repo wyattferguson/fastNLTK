@@ -1,7 +1,4 @@
 //! Tree data structure — Rust-accelerated for common operations.
-//!
-//! Implements NLTK-compatible Tree with optimized methods for
-//! `leaves()`, `height()`, `productions()`, `subtrees()`, and bracket-string parsing.
 
 use std::fmt;
 

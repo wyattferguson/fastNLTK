@@ -1,7 +1,4 @@
 //! Simple regex compilation cache.
-//!
-//! Compiled regexes are cached by pattern+flags to avoid recompilation
-//! overhead when the same pattern is used repeatedly.
 
 use std::collections::HashMap;
 

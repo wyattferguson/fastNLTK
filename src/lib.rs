@@ -1,7 +1,4 @@
 //! Drop-in Rust-accelerated replacement for NLTK.
-//!
-//! Compiles to a PyO3 extension module (`fastnltk._rust`) providing
-//! native-speed NLP implementations.
 
 #![allow(deprecated)]  // PyO3 0.29: FromPyObject for Clone #[pyclass]
 

@@ -1,10 +1,4 @@
 //! CCG Chart Parser — CKY-style CCG parsing with combinators.
-//!
-//! Implements a bottom-up chart parser for Combinatory Categorial Grammar.
-//! Uses a flat `Vec<Vec<Vec<CCGEdge>>>` chart (O(1) array indexing)
-//! instead of `HashMap` for maximum parser throughput.
-//!
-//! NLTK equivalent: nltk.ccg.chart.CCGChartParser
 
 use pyo3::prelude::*;
 

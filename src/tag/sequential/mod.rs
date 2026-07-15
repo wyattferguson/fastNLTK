@@ -1,10 +1,4 @@
 //! Sequential taggers — Rust-accelerated lookup-based POS taggers.
-//!
-//! Implements NLTK's sequential backoff taggers:
-//!   - `DefaultTagger`: assign same tag to every word
-//!   - `NgramTagger` (Unigram/Bigram/Trigram): lookup tag from training data
-//!   - `AffixTagger`: tag based on word suffix/prefix
-//!   - `RegexpTagger`: tag based on regex pattern match on the word
 
 pub mod taggers;
 pub use taggers::{AffixTagger, BigramTagger, RegexpTagger, TrigramTagger, UnigramTagger};

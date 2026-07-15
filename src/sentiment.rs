@@ -1,8 +1,4 @@
 //! VADER sentiment analysis — Rust implementation.
-//!
-//! Port of NLTK's nltk.sentiment.vader module.
-//! Rule-based sentiment intensity analyzer using a lexicon
-//! of valence scores and heuristics (boosters, negators, etc.).
 
 use phf::phf_map;
 use std::collections::HashMap;

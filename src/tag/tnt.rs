@@ -1,8 +1,4 @@
 //! `TnT` — Trigram 'n Tags, Rust-accelerated.
-//!
-//! Trigram HMM POS tagger with backoff smoothing matching NLTK's `TnT`.
-//! Uses Viterbi decoding with transition/emission probabilities
-//! estimated from training data.
 
 use hashbrown::{HashMap, HashSet};
 use pyo3::prelude::*;

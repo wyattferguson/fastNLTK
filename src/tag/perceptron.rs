@@ -1,7 +1,4 @@
 //! Perceptron tagger — averaged perceptron POS tagging.
-//!
-//! Implementation matching NLTK's `nltk.tag.perceptron.PerceptronTagger`.
-//! Loads weights from NLTK's trained model pickle and performs inference.
 
 use std::collections::HashMap;
 

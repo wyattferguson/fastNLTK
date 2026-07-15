@@ -1,6 +1,4 @@
 //! HMM tagger — wraps `rustling::hmm::HiddenMarkovModel`.
-//!
-//! NLTK equivalent: nltk.tag.hmm.HiddenMarkovModelTagger
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;

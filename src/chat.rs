@@ -1,8 +1,4 @@
 //! Chat — Rust-accelerated pattern-matching chatbot.
-//!
-//! Implements NLTK's Chat class: regex pattern pairs are matched
-//! against user input, returning a random response from matching pair.
-//! Pure pattern matching — no ML, 10-50x faster than NLTK.
 
 use pyo3::prelude::*;
 use rand::RngExt;
