@@ -27,9 +27,7 @@ impl PyDagHmmSegmenter {
         random_seed: Option<u64>,
         features: Option<Vec<SeqFeatureTemplate>>,
     ) -> Self {
-        Self {
-            inner: DagHmmSegmenter::new(n_iter, tolerance, gamma, random_seed, features),
-        }
+        Self { inner: DagHmmSegmenter::new(n_iter, tolerance, gamma, random_seed, features) }
     }
 
     fn fit_segmented(&mut self, sents: Vec<Vec<String>>) {

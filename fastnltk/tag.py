@@ -24,17 +24,30 @@ from nltk.tag import (
     NgramTagger,
     SequentialBackoffTagger,
     TaggerI,
-    map_tag,)
+    map_tag,
+)
 
 from fastnltk._rust import (
     AffixTagger as _RustAffixTagger,
+)
+from fastnltk._rust import (
     BigramTagger as _RustBigramTagger,
+)
+from fastnltk._rust import (
     DefaultTagger as _RustDefaultTagger,
+)
+from fastnltk._rust import (
     PerceptronTagger as _RustPerceptronTagger,
+)
+from fastnltk._rust import (
     RegexpTagger as _RustRegexpTagger,
-    TnT as _RustTnT,
+)
+from fastnltk._rust import (
     TrigramTagger as _RustTrigramTagger,
-    UnigramTagger as _RustUnigramTagger,)
+)
+from fastnltk._rust import (
+    UnigramTagger as _RustUnigramTagger,
+)
 
 
 def _load_tagger_model(tagger):
@@ -44,6 +57,7 @@ def _load_tagger_model(tagger):
     with open(pickle_path, "rb") as f:
         model_data = pickle.load(f)
     tagger.load(model_data[0], model_data[1], sorted(model_data[2]))
+
 
 __all__ = [
     "pos_tag",
@@ -94,10 +108,7 @@ def pos_tag(tokens: list[str], tagset=None, lang="eng"):
         tagger = _get_tagger()
         result = tagger.tag(tokens)
         if tagset:
-            return [
-                (word, map_tag("en-ptb", tagset, tag) if tag else tag)
-                for word, tag in result
-            ]
+            return [(word, map_tag("en-ptb", tagset, tag) if tag else tag) for word, tag in result]
         return result
     except (ValueError, LookupError, RuntimeError):
         return _nltk_tag.pos_tag(tokens, tagset, lang)
@@ -110,8 +121,7 @@ def pos_tag_sents(sentences: list[list[str]], tagset=None, lang="eng"):
         results = tagger.tag_sents(sentences)
         if tagset:
             return [
-                [(word, map_tag("en-ptb", tagset, tag) if tag else tag)
-                 for word, tag in sent]
+                [(word, map_tag("en-ptb", tagset, tag) if tag else tag) for word, tag in sent]
                 for sent in results
             ]
         return results
@@ -121,6 +131,7 @@ def pos_tag_sents(sentences: list[list[str]], tagset=None, lang="eng"):
 
 class PerceptronTagger:
     """Rust-accelerated averaged perceptron tagger."""
+
     def __init__(self, load_model=True):
         self._impl = _RustPerceptronTagger()
         if load_model:
@@ -138,8 +149,10 @@ class PerceptronTagger:
 
 class TnT:
     """TnT trigram HMM tagger — delegates to NLTK (Rust impl still being optimized)."""
+
     def __init__(self):
         import nltk.tag
+
         self._impl = nltk.tag.TnT()
 
     def train(self, sentences: list[list[str]]) -> None:
@@ -154,6 +167,7 @@ class TnT:
 
 class DefaultTagger:
     """Assign same tag to every token — Rust-accelerated."""
+
     def __init__(self, tag):
         self._impl = _RustDefaultTagger(tag)
 
@@ -166,6 +180,7 @@ class DefaultTagger:
 
 class UnigramTagger:
     """Unigram tagger — Rust-accelerated lookup."""
+
     def __init__(self, backoff=None):
         self._impl = _RustUnigramTagger(backoff)
 
@@ -184,6 +199,7 @@ class UnigramTagger:
 
 class BigramTagger:
     """Bigram tagger — Rust-accelerated lookup."""
+
     def __init__(self, backoff=None):
         self._impl = _RustBigramTagger(backoff)
 
@@ -199,6 +215,7 @@ class BigramTagger:
 
 class TrigramTagger:
     """Trigram tagger — Rust-accelerated lookup."""
+
     def __init__(self, backoff=None):
         self._impl = _RustTrigramTagger(backoff)
 
@@ -214,6 +231,7 @@ class TrigramTagger:
 
 class AffixTagger:
     """Affix (suffix/prefix) tagger — Rust-accelerated."""
+
     def __init__(self, affix_len=3, use_suffix=True, backoff=None):
         self._impl = _RustAffixTagger(affix_len, use_suffix, backoff)
 
@@ -226,6 +244,7 @@ class AffixTagger:
 
 class RegexpTagger:
     """Regexp pattern tagger — Rust-accelerated."""
+
     def __init__(self, patterns, backoff=None):
         self._impl = _RustRegexpTagger(patterns, backoff)
 

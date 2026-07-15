@@ -23,7 +23,8 @@ pub struct DefaultRule {
 impl DefaultRule {
     #[new]
     #[pyo3(signature = (prerequisite, justification, consequent, name=String::new()))]
-    pub fn new(
+    #[must_use]
+    pub const fn new(
         prerequisite: String,
         justification: String,
         consequent: String,
@@ -66,7 +67,8 @@ pub struct DefaultReasoner {
 impl DefaultReasoner {
     #[new]
     #[pyo3(signature = (rules, max_extensions=10))]
-    pub fn new(rules: Vec<DefaultRule>, max_extensions: usize) -> Self {
+    #[must_use]
+    pub const fn new(rules: Vec<DefaultRule>, max_extensions: usize) -> Self {
         Self { rules, max_extensions }
     }
 
@@ -144,7 +146,8 @@ pub struct ClosedWorldReasoner {
 #[pymethods]
 impl ClosedWorldReasoner {
     #[new]
-    pub fn new(facts: Vec<String>) -> Self {
+    #[must_use]
+    pub const fn new(facts: Vec<String>) -> Self {
         Self { facts }
     }
 

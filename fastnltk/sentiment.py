@@ -10,6 +10,7 @@ __all__ = ["SentimentAnalyzer", "SentimentIntensityAnalyzer"]
 
 class SentimentIntensityAnalyzer:
     """VADER sentiment intensity analyzer — Rust-accelerated."""
+
     def __init__(self):
         self._impl = _RustSentimentIntensityAnalyzer()
 

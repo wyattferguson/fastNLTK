@@ -21,9 +21,7 @@ fn write_section<W: Write>(writer: &mut W, data: &[u8]) -> Result<(), ModelError
     writer
         .write_all(&len.to_le_bytes())
         .map_err(|e| ModelError::Io(format!("Failed to write section length: {e}")))?;
-    writer
-        .write_all(data)
-        .map_err(|e| ModelError::Io(format!("Failed to write section data: {e}")))
+    writer.write_all(data).map_err(|e| ModelError::Io(format!("Failed to write section data: {e}")))
 }
 
 /// Read a length-prefixed section written by [`write_section`].
@@ -504,9 +502,7 @@ mod tests {
         let path_str = path.to_str().unwrap();
 
         let metadata: HashMap<String, String> =
-            [("foo".into(), "bar".into()), ("baz".into(), "qux".into())]
-                .into_iter()
-                .collect();
+            [("foo".into(), "bar".into()), ("baz".into(), "qux".into())].into_iter().collect();
 
         seg.save(path_str, &metadata).unwrap();
 

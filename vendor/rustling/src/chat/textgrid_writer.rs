@@ -52,12 +52,7 @@ pub(crate) fn chat_file_to_textgrid_str(
             None => continue,
         };
 
-        let text = utt
-            .tiers
-            .as_ref()
-            .and_then(|t| t.get(participant))
-            .cloned()
-            .unwrap_or_default();
+        let text = utt.tiers.as_ref().and_then(|t| t.get(participant)).cloned().unwrap_or_default();
         let text = strip_bullet_markers(&text);
 
         let xmin = start as f64 / 1000.0;

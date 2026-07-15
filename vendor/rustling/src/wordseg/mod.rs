@@ -95,28 +95,19 @@ mod tests {
     fn test_attach_offsets_basic() {
         let words = vec![vec!["你好".into(), "世界".into()]];
         let result = attach_offsets(words);
-        assert_eq!(
-            result,
-            vec![vec![("你好".into(), (0, 2)), ("世界".into(), (2, 4)),]]
-        );
+        assert_eq!(result, vec![vec![("你好".into(), (0, 2)), ("世界".into(), (2, 4)),]]);
     }
 
     #[test]
     fn test_attach_offsets_ascii() {
         let words = vec![vec!["hello".into(), "world".into()]];
         let result = attach_offsets(words);
-        assert_eq!(
-            result,
-            vec![vec![("hello".into(), (0, 5)), ("world".into(), (5, 10)),]]
-        );
+        assert_eq!(result, vec![vec![("hello".into(), (0, 5)), ("world".into(), (5, 10)),]]);
     }
 
     #[test]
     fn test_attach_offsets_multiple_sents() {
-        let words = vec![
-            vec!["ab".into(), "cd".into()],
-            vec!["x".into(), "yz".into()],
-        ];
+        let words = vec![vec!["ab".into(), "cd".into()], vec!["x".into(), "yz".into()]];
         let result = attach_offsets(words);
         assert_eq!(
             result,

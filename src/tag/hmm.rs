@@ -23,7 +23,7 @@ fn map_err(e: ModelError) -> PyErr {
 impl HiddenMarkovModelTagger {
     #[new]
     #[pyo3(signature = (n_states=10, n_iter=10, tolerance=1e-4, gamma=0.1))]
-    fn new(n_states: usize, n_iter: usize, tolerance: f64, gamma: f64) -> Self {
+    const fn new(n_states: usize, n_iter: usize, tolerance: f64, gamma: f64) -> Self {
         Self { inner: None, n_states, n_iter, tolerance, gamma }
     }
 

@@ -13,6 +13,7 @@ from fastnltk._rust import EarleyChartParser as _RustEarleyChartParser
 
 class CFG:
     """Context-free grammar — Rust-accelerated."""
+
     def __init__(self, start, productions):
         self._impl = _RustCFG(start, productions)
 
@@ -44,6 +45,7 @@ class CFG:
 
 class EarleyChartParser:
     """Earley chart parser — Rust-accelerated."""
+
     def __init__(self):
         self._impl = _RustEarleyChartParser()
 

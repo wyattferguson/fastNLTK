@@ -11,11 +11,15 @@ from nltk.probability import (
     MLEProbDist,
     ProbDistI,
     SimpleGoodTuringProbDist,
-    WittenBellProbDist,)
+    WittenBellProbDist,
+)
 
 from fastnltk._rust import (
     ConditionalFreqDist as _RustConditionalFreqDist,
-    FreqDist as _RustFreqDist,)
+)
+from fastnltk._rust import (
+    FreqDist as _RustFreqDist,
+)
 
 __all__ = [
     "FreqDist",
@@ -33,6 +37,7 @@ __all__ = [
 
 class FreqDist:
     """Frequency distribution — Rust-accelerated."""
+
     def __init__(self, samples=None):
         self._impl = _RustFreqDist(samples or [])
 
@@ -96,6 +101,7 @@ class FreqDist:
 
 class ConditionalFreqDist:
     """Conditional frequency distribution — Rust-accelerated."""
+
     def __init__(self):
         self._impl = _RustConditionalFreqDist()
 

@@ -21,9 +21,7 @@ impl BaseHiddenMarkovModelSegmenter for PyHiddenMarkovModelSegmenter {
         self.inner.hmm_mut()
     }
     fn from_hmm(hmm: HiddenMarkovModel) -> Self {
-        Self {
-            inner: HiddenMarkovModelSegmenter::from_hmm(hmm),
-        }
+        Self { inner: HiddenMarkovModelSegmenter::from_hmm(hmm) }
     }
 }
 

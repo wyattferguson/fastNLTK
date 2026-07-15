@@ -14,12 +14,15 @@ pub struct FreqDist {
 }
 
 impl FreqDist {
+    #[must_use]
     pub fn get_count(&self, sample: &str) -> u64 {
         self.counts.get(sample).copied().unwrap_or(0)
     }
-    pub fn get_total(&self) -> u64 {
+    #[must_use]
+    pub const fn get_total(&self) -> u64 {
         self.total
     }
+    #[must_use]
     pub fn num_samples(&self) -> usize {
         self.counts.len()
     }
@@ -37,7 +40,7 @@ impl FreqDist {
         fd
     }
     #[allow(non_snake_case)]
-    fn N(&self) -> u64 {
+    const fn N(&self) -> u64 {
         self.total
     }
     #[allow(non_snake_case)]

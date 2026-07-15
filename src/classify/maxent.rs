@@ -46,7 +46,7 @@ pub struct MaxentClassifier {
 #[pymethods]
 impl MaxentClassifier {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self { labels: Vec::new(), feature_names: Vec::new(), weights: Vec::new(), max_iter: 100 }
     }
 

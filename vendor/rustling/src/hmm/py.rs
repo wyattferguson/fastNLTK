@@ -116,9 +116,7 @@ impl PyHiddenMarkovModel {
         use pyo3::types::{PyList, PyString};
 
         if !self.inner.fitted() {
-            return Err(pyo3::exceptions::PyValueError::new_err(
-                "Model has not been fitted yet.",
-            ));
+            return Err(pyo3::exceptions::PyValueError::new_err("Model has not been fitted yet."));
         }
         let n_states = self.inner.n_states;
         let n_features = self.inner.features.templates.len();

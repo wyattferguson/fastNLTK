@@ -62,7 +62,7 @@ pub struct CCGChartParser {
 impl CCGChartParser {
     #[new]
     #[pyo3(signature = (lexicon, max_span=20))]
-    fn new(lexicon: CCGLexicon, max_span: usize) -> Self {
+    const fn new(lexicon: CCGLexicon, max_span: usize) -> Self {
         Self { lexicon, max_span }
     }
 

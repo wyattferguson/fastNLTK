@@ -14,6 +14,7 @@ from fastnltk._rust import KMeansClusterer as _RustKMeansClusterer
 
 class KMeansClusterer:
     """Rust-accelerated K-means clustering."""
+
     def __init__(self, num_clusters, max_iterations=50):
         self._impl = _RustKMeansClusterer(num_clusters, max_iterations)
 

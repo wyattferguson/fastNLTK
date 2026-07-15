@@ -24,11 +24,7 @@ pub(crate) fn elan_file_to_textgrid_str(file: &ElanFile) -> String {
             if xmax > global_xmax {
                 global_xmax = xmax;
             }
-            intervals.push(crate::textgrid::Interval {
-                xmin,
-                xmax,
-                text: ann.value.clone(),
-            });
+            intervals.push(crate::textgrid::Interval { xmin, xmax, text: ann.value.clone() });
         }
 
         let tier_xmax = intervals.last().map(|i| i.xmax).unwrap_or(global_xmax);
@@ -86,10 +82,7 @@ mod tests {
     fn test_basic() {
         let file = ElanFile {
             file_path: "test.eaf".to_string(),
-            tiers: vec![make_tier(
-                "CHI",
-                vec![make_ann("a1", 0, 1500, "hello world")],
-            )],
+            tiers: vec![make_tier("CHI", vec![make_ann("a1", 0, 1500, "hello world")])],
             raw_xml: String::new(),
         };
         let tg_str = elan_file_to_textgrid_str(&file);
@@ -107,10 +100,7 @@ mod tests {
             file_path: "test.eaf".to_string(),
             tiers: vec![make_tier(
                 "CHI",
-                vec![
-                    make_ann("a1", 0, 1500, "hello"),
-                    make_ann("a2", 2000, 3500, "world"),
-                ],
+                vec![make_ann("a1", 0, 1500, "hello"), make_ann("a2", 2000, 3500, "world")],
             )],
             raw_xml: String::new(),
         };

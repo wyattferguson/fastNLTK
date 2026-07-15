@@ -10,7 +10,7 @@ pub struct ARLSTem;
 #[pymethods]
 impl ARLSTem {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -45,7 +45,7 @@ pub struct ARLSTem2;
 #[pymethods]
 impl ARLSTem2 {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 

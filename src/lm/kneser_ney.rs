@@ -54,10 +54,10 @@ impl KneserNeyInterpolated {
         max_term + lambda * unk_prob
     }
 
-    fn order(&self) -> usize {
+    const fn order(&self) -> usize {
         self.order
     }
-    fn fitted(&self) -> bool {
+    const fn fitted(&self) -> bool {
         self.fitted
     }
 }

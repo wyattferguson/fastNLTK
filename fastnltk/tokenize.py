@@ -5,28 +5,58 @@ fastnltk.tokenize — Drop-in replacement for nltk.tokenize.
 from __future__ import annotations
 
 import functools
-from typing import Any, FrozenSet, Iterator, List, Optional, Set, Tuple
+from typing import Any
 
 import nltk.tokenize as _nltk_tokenize
 
 from fastnltk._rust import (
     BlanklineTokenizer as _RustBlanklineTokenizer,
+)
+from fastnltk._rust import (
     CharTokenizer as _RustCharTokenizer,
+)
+from fastnltk._rust import (
     LineTokenizer as _RustLineTokenizer,
+)
+from fastnltk._rust import (
     MWETokenizer as _RustMWETokenizer,
+)
+from fastnltk._rust import (
     PunktSentenceTokenizer as _RustPunktSentenceTokenizer,
+)
+from fastnltk._rust import (
     RegexpTokenizer as _RustRegexpTokenizer,
+)
+from fastnltk._rust import (
     SExprTokenizer as _RustSExprTokenizer,
-    SpaceTokenizer as _RustSpaceTokenizer,
+)
+from fastnltk._rust import (
     TabTokenizer as _RustTabTokenizer,
+)
+from fastnltk._rust import (
     TextTilingTokenizer as _RustTextTilingTokenizer,
+)
+from fastnltk._rust import (
     ToktokTokenizer as _RustToktokTokenizer,
+)
+from fastnltk._rust import (
     TreebankWordDetokenizer as _RustTreebankWordDetokenizer,
+)
+from fastnltk._rust import (
     TreebankWordTokenizer as _RustTreebankWordTokenizer,
+)
+from fastnltk._rust import (
     TweetTokenizer as _RustTweetTokenizer,
+)
+from fastnltk._rust import (
     WhitespaceTokenizer as _RustWhitespaceTokenizer,
+)
+from fastnltk._rust import (
     WordPunctTokenizer as _RustWordPunctTokenizer,
-    word_tokenize as _rust_word_tokenize,)
+)
+from fastnltk._rust import (
+    word_tokenize as _rust_word_tokenize,
+)
 
 __all__ = [
     "sent_tokenize",
@@ -59,6 +89,7 @@ def _get_punkt_tokenizer() -> _RustPunktSentenceTokenizer:
         import pickle
 
         from nltk.data import find
+
         path = find("tokenizers/punkt/english.pickle")
         with open(str(path), "rb") as f:
             model = pickle.load(f)
@@ -74,7 +105,7 @@ def _get_punkt_tokenizer() -> _RustPunktSentenceTokenizer:
     return tok
 
 
-def sent_tokenize(text: str, language: str = "english") -> List[str]:
+def sent_tokenize(text: str, language: str = "english") -> list[str]:
     """Sentence tokenization (Rust-accelerated Punkt)."""
     try:
         tok = _get_punkt_tokenizer()
@@ -83,9 +114,7 @@ def sent_tokenize(text: str, language: str = "english") -> List[str]:
         return _nltk_tokenize.sent_tokenize(text, language)
 
 
-def word_tokenize(
-    text: str, language: str = "english", preserve_line: bool = False
-) -> List[str]:
+def word_tokenize(text: str, language: str = "english", preserve_line: bool = False) -> list[str]:
     """Word tokenization (Rust-accelerated)."""
     try:
         return _rust_word_tokenize(text, language, preserve_line)
@@ -99,149 +128,162 @@ def regexp_tokenize(
     gaps: bool = False,
     discard_empty: bool = True,
     flags: int = 0,
-) -> List[str]:
+) -> list[str]:
     """Tokenize text using a regular expression pattern."""
     return _RustRegexpTokenizer(pattern, gaps, flags).tokenize(text)
 
 
 class RegexpTokenizer:
     """Rust-accelerated regexp tokenizer."""
+
     def __init__(self, pattern: str = r"\w+", gaps: bool = False, flags: int = 0) -> None:
         self._impl = _RustRegexpTokenizer(pattern, gaps, flags)
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)
 
-    def span_tokenize(self, text: str) -> List[Tuple[int, int]]:
+    def span_tokenize(self, text: str) -> list[tuple[int, int]]:
         return self._impl.span_tokenize(text)
 
 
 class WhitespaceTokenizer:
     """Rust-accelerated whitespace tokenizer."""
+
     def __init__(self) -> None:
         self._impl = _RustWhitespaceTokenizer()
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)
 
-    def span_tokenize(self, text: str) -> List[Tuple[int, int]]:
+    def span_tokenize(self, text: str) -> list[tuple[int, int]]:
         return self._impl.span_tokenize(text)
 
 
 class WordPunctTokenizer:
     """Rust-accelerated word/punctuation tokenizer."""
+
     def __init__(self) -> None:
         self._impl = _RustWordPunctTokenizer()
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)
 
-    def span_tokenize(self, text: str) -> List[Tuple[int, int]]:
+    def span_tokenize(self, text: str) -> list[tuple[int, int]]:
         return self._impl.span_tokenize(text)
 
 
 class BlanklineTokenizer:
     """Rust-accelerated blankline tokenizer."""
+
     def __init__(self) -> None:
         self._impl = _RustBlanklineTokenizer()
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)
 
 
 class LineTokenizer:
     """Rust-accelerated line tokenizer."""
+
     def __init__(self) -> None:
         self._impl = _RustLineTokenizer()
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)
 
-    def span_tokenize(self, text: str) -> List[Tuple[int, int]]:
+    def span_tokenize(self, text: str) -> list[tuple[int, int]]:
         return self._impl.span_tokenize(text)
 
 
 class SpaceTokenizer:
     """Space tokenizer — delegates to NLTK (Rust impl still being optimized)."""
+
     def __init__(self) -> None:
         import nltk.tokenize
+
         self._impl: Any = nltk.tokenize.SpaceTokenizer()
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)
 
-    def span_tokenize(self, text: str) -> List[Tuple[int, int]]:
+    def span_tokenize(self, text: str) -> list[tuple[int, int]]:
         return self._impl.span_tokenize(text)
 
 
 class TabTokenizer:
     """Rust-accelerated tab tokenizer."""
+
     def __init__(self) -> None:
         self._impl = _RustTabTokenizer()
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)
 
-    def span_tokenize(self, text: str) -> List[Tuple[int, int]]:
+    def span_tokenize(self, text: str) -> list[tuple[int, int]]:
         return self._impl.span_tokenize(text)
 
 
 class TreebankWordTokenizer:
     """Rust-accelerated Treebank tokenizer."""
+
     def __init__(self) -> None:
         self._impl = _RustTreebankWordTokenizer()
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)
 
-    def span_tokenize(self, text: str) -> List[Tuple[int, int]]:
+    def span_tokenize(self, text: str) -> list[tuple[int, int]]:
         return self._impl.span_tokenize(text)
 
 
 class TreebankWordDetokenizer:
     """Rust-accelerated Treebank detokenizer."""
+
     def __init__(self) -> None:
         self._impl = _RustTreebankWordDetokenizer()
 
-    def detokenize(self, tokens: List[str]) -> str:
+    def detokenize(self, tokens: list[str]) -> str:
         return self._impl.detokenize(tokens)
 
 
 class TweetTokenizer:
     """Rust-accelerated tweet tokenizer."""
+
     def __init__(
         self,
         preserve_case: bool = True,
         reduce_len: bool = False,
         strip_handles: bool = False,
-) -> None:
+    ) -> None:
         self._impl = _RustTweetTokenizer(preserve_case, reduce_len, strip_handles)
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)
 
 
 class CharTokenizer:
     """Character tokenizer."""
+
     def __init__(self) -> None:
         self._impl = _RustCharTokenizer()
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)
 
 
 class PunktSentenceTokenizer:
     """Rust-accelerated Punkt sentence tokenizer."""
-    def __init__(self, train_text: Optional[str] = None, language: str = "english") -> None:
+
+    def __init__(self, train_text: str | None = None, language: str = "english") -> None:
         self._impl = _RustPunktSentenceTokenizer()
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)
 
-    def span_tokenize(self, text: str) -> List[Tuple[int, int]]:
+    def span_tokenize(self, text: str) -> list[tuple[int, int]]:
         return self._impl.span_tokenize(text)
 
-    def sentences_from_text(self, text: str) -> List[str]:
+    def sentences_from_text(self, text: str) -> list[str]:
         return self._impl.sentences_from_text(text)
 
     def load(self, params: dict) -> None:

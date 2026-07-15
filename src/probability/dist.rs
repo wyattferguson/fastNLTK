@@ -14,7 +14,7 @@ pub struct MLEProbDist {
 impl MLEProbDist {
     #[new]
     #[pyo3(signature = (freqdist, _bins=None))]
-    fn new(freqdist: FreqDist, _bins: Option<usize>) -> Self {
+    const fn new(freqdist: FreqDist, _bins: Option<usize>) -> Self {
         Self { freqdist }
     }
     fn prob(&self, sample: &str) -> f64 {

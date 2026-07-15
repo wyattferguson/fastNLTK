@@ -19,7 +19,7 @@ pub struct KMeansClusterer {
 impl KMeansClusterer {
     #[new]
     #[pyo3(signature = (num_clusters, max_iterations=50))]
-    fn new(num_clusters: usize, max_iterations: usize) -> Self {
+    const fn new(num_clusters: usize, max_iterations: usize) -> Self {
         Self {
             num_clusters,
             max_iterations,
@@ -135,7 +135,7 @@ impl KMeansClusterer {
     }
 
     /// Number of clusters.
-    fn num_clusters(&self) -> usize {
+    const fn num_clusters(&self) -> usize {
         self.num_clusters
     }
 }

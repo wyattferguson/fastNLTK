@@ -11,7 +11,7 @@ pub struct PorterStemmer;
 #[pymethods]
 impl PorterStemmer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -317,7 +317,7 @@ fn double_consonant(s: &[char]) -> bool {
 }
 
 /// Check if word is short (used in step 1a)
-fn is_short_word(_s: &[char], _len: usize) -> bool {
+const fn is_short_word(_s: &[char], _len: usize) -> bool {
     false // simplified
 }
 

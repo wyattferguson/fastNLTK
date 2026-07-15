@@ -48,12 +48,7 @@ pub(crate) fn chat_file_to_srt_str(file: &ChatFile, participants: Option<&[Strin
         }
 
         // Get the main text from tiers.
-        let text = utt
-            .tiers
-            .as_ref()
-            .and_then(|t| t.get(participant))
-            .cloned()
-            .unwrap_or_default();
+        let text = utt.tiers.as_ref().and_then(|t| t.get(participant)).cloned().unwrap_or_default();
 
         // Strip CHAT bullet markers from text: \x15start_end\x15
         let text = strip_bullet_markers(&text);
@@ -66,11 +61,7 @@ pub(crate) fn chat_file_to_srt_str(file: &ChatFile, participants: Option<&[Strin
     }
 
     // Sort by start time, then end time.
-    entries.sort_by(|a, b| {
-        a.start_ms
-            .cmp(&b.start_ms)
-            .then_with(|| a.end_ms.cmp(&b.end_ms))
-    });
+    entries.sort_by(|a, b| a.start_ms.cmp(&b.start_ms).then_with(|| a.end_ms.cmp(&b.end_ms)));
 
     // Check if we need participant prefixes (re-evaluate after filtering).
     let multi_participant = seen_participants.len() > 1;
@@ -140,12 +131,7 @@ fn generate_srt_from_chat_file(file: &ChatFile, participants: Option<&[String]>)
             None => continue,
         };
 
-        let text = utt
-            .tiers
-            .as_ref()
-            .and_then(|t| t.get(participant))
-            .cloned()
-            .unwrap_or_default();
+        let text = utt.tiers.as_ref().and_then(|t| t.get(participant)).cloned().unwrap_or_default();
         let text = strip_bullet_markers(&text);
 
         entries.push(SrtEntry {
@@ -155,11 +141,7 @@ fn generate_srt_from_chat_file(file: &ChatFile, participants: Option<&[String]>)
         });
     }
 
-    entries.sort_by(|a, b| {
-        a.start_ms
-            .cmp(&b.start_ms)
-            .then_with(|| a.end_ms.cmp(&b.end_ms))
-    });
+    entries.sort_by(|a, b| a.start_ms.cmp(&b.start_ms).then_with(|| a.end_ms.cmp(&b.end_ms)));
 
     let mut output = String::with_capacity(4096);
     for (i, entry) in entries.iter().enumerate() {
@@ -180,11 +162,7 @@ fn generate_srt_from_chat_file(file: &ChatFile, participants: Option<&[String]>)
 
 /// Format subtitle text, optionally prefixing with participant code.
 fn format_subtitle_text(text: &str, participant: &str, multi_participant: bool) -> String {
-    if multi_participant {
-        format!("{participant}: {text}")
-    } else {
-        text.to_string()
-    }
+    if multi_participant { format!("{participant}: {text}") } else { text.to_string() }
 }
 
 /// Strip CHAT bullet markers (`\x15start_end\x15`) from text.

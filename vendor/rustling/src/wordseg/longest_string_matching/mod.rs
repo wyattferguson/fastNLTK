@@ -56,10 +56,7 @@ pub trait BaseLongestStringMatching: Sized + Clone + Sync {
         }
         #[cfg(not(feature = "parallel"))]
         {
-            sent_strs
-                .into_iter()
-                .map(|sent_str| self.predict_sent(&sent_str))
-                .collect()
+            sent_strs.into_iter().map(|sent_str| self.predict_sent(&sent_str)).collect()
         }
     }
 
@@ -129,12 +126,8 @@ fn save_lsm_flatbuffers<T: BaseLongestStringMatching, W: Write>(
 
     let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(512 * 1024);
 
-    let mut words: Vec<String> = model
-        .trie()
-        .all_sequences()
-        .into_iter()
-        .map(|chars| chars.into_iter().collect())
-        .collect();
+    let mut words: Vec<String> =
+        model.trie().all_sequences().into_iter().map(|chars| chars.into_iter().collect()).collect();
     words.sort();
 
     let word_strs: Vec<_> = words.iter().map(|w| builder.create_string(w)).collect();
@@ -201,10 +194,7 @@ impl BaseLongestStringMatching for LongestStringMatching {
         &mut self.trie
     }
     fn from_parts(max_word_length: usize, trie: Trie<char, ()>) -> Self {
-        Self {
-            max_word_length,
-            trie,
-        }
+        Self { max_word_length, trie }
     }
 }
 
@@ -222,10 +212,7 @@ impl LongestStringMatching {
                 max_word_length
             )));
         }
-        Ok(Self {
-            max_word_length,
-            trie: Trie::new(),
-        })
+        Ok(Self { max_word_length, trie: Trie::new() })
     }
 }
 
@@ -251,12 +238,7 @@ mod tests {
     fn test_basic() {
         let mut model = LongestStringMatching::new(4).unwrap();
         model.fit(vec![
-            vec![
-                "this".to_string(),
-                "is".to_string(),
-                "a".to_string(),
-                "sentence".to_string(),
-            ],
+            vec!["this".to_string(), "is".to_string(), "a".to_string(), "sentence".to_string()],
             vec![
                 "that".to_string(),
                 "is".to_string(),
@@ -298,11 +280,7 @@ mod tests {
     #[test]
     fn test_single_char_words_ignored_in_training() {
         let mut model = LongestStringMatching::new(4).unwrap();
-        model.fit(vec![vec![
-            "a".to_string(),
-            "b".to_string(),
-            "ab".to_string(),
-        ]]);
+        model.fit(vec![vec!["a".to_string(), "b".to_string(), "ab".to_string()]]);
 
         let result = model.predict(vec!["abab".to_string()]);
         assert_eq!(result, vec![vec!["ab", "ab"]]);
@@ -330,12 +308,7 @@ mod tests {
     fn test_save_and_load() {
         let mut model = LongestStringMatching::new(4).unwrap();
         model.fit(vec![
-            vec![
-                "this".to_string(),
-                "is".to_string(),
-                "a".to_string(),
-                "sentence".to_string(),
-            ],
+            vec!["this".to_string(), "is".to_string(), "a".to_string(), "sentence".to_string()],
             vec![
                 "that".to_string(),
                 "is".to_string(),

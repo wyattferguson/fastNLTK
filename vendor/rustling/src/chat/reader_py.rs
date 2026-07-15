@@ -35,9 +35,7 @@ fn compile_file_patterns(files: &Bound<'_, PyAny>) -> PyResult<Vec<FancyRegex>> 
     };
 
     if raw_patterns.is_empty() {
-        return Err(pyo3::exceptions::PyValueError::new_err(
-            "files must not be empty",
-        ));
+        return Err(pyo3::exceptions::PyValueError::new_err("files must not be empty"));
     }
 
     raw_patterns
@@ -64,9 +62,7 @@ fn compile_participant_patterns(participants: &Bound<'_, PyAny>) -> PyResult<Vec
     };
 
     if raw_patterns.is_empty() {
-        return Err(pyo3::exceptions::PyValueError::new_err(
-            "participants must not be empty",
-        ));
+        return Err(pyo3::exceptions::PyValueError::new_err("participants must not be empty"));
     }
 
     raw_patterns
@@ -92,16 +88,8 @@ fn compile_participant_patterns(participants: &Bound<'_, PyAny>) -> PyResult<Vec
 fn tier_keys(mor_tier: Option<&str>, gra_tier: Option<&str>) -> (Option<String>, Option<String>) {
     match (mor_tier, gra_tier) {
         (Some(m), Some(g)) => {
-            let mk = if m.starts_with('%') {
-                m.to_string()
-            } else {
-                format!("%{m}")
-            };
-            let gk = if g.starts_with('%') {
-                g.to_string()
-            } else {
-                format!("%{g}")
-            };
+            let mk = if m.starts_with('%') { m.to_string() } else { format!("%{m}") };
+            let gk = if g.starts_with('%') { g.to_string() } else { format!("%{g}") };
             (Some(mk), Some(gk))
         }
         _ => (None, None),
@@ -119,10 +107,8 @@ fn handle_misalignments(
     }
 
     if strict {
-        let mut msg = format!(
-            "Found {} utterance(s) with mor/word misalignment:\n",
-            misalignments.len()
-        );
+        let mut msg =
+            format!("Found {} utterance(s) with mor/word misalignment:\n", misalignments.len());
         for (i, m) in misalignments.iter().enumerate() {
             msg.push_str(&format!(
                 "\n  {}. File: {}\n     Participant: {}\n     Main tier: {}\n\
@@ -216,9 +202,7 @@ fn handle_validation_errors(errors: &[ValidationError], strict: bool) -> PyResul
 impl ChatFile {
     pub(crate) fn cached_py_utterances(&self, py: Python<'_>) -> &[Py<PyUtterance>] {
         self.py_utterances.get_or_init(|| {
-            self.utterances()
-                .map(|utt| Py::new(py, PyUtterance(utt.clone())).unwrap())
-                .collect()
+            self.utterances().map(|utt| Py::new(py, PyUtterance(utt.clone())).unwrap()).collect()
         })
     }
 
@@ -229,9 +213,7 @@ impl ChatFile {
                     u.tokens
                         .as_ref()
                         .map(|toks| {
-                            toks.iter()
-                                .map(|t| Py::new(py, PyToken(t.clone())).unwrap())
-                                .collect()
+                            toks.iter().map(|t| Py::new(py, PyToken(t.clone())).unwrap()).collect()
                         })
                         .unwrap_or_default()
                 })
@@ -322,20 +304,18 @@ pub trait BasePyChat: BaseChat {
 
     /// Write CHAT (.cha) files to a directory with Python error conversion.
     fn py_write_chat(&self, dir_path: &str, filenames: Option<Vec<String>>) -> PyResult<()> {
-        self.write_chat_files(dir_path, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_chat_files(dir_path, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Write ELAN (.eaf) files to a directory with Python error conversion.
     fn py_write_elan(&self, dir_path: &str, filenames: Option<Vec<String>>) -> PyResult<()> {
-        self.write_elan_files(dir_path, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_elan_files(dir_path, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Write SRT (.srt) files to a directory with Python error conversion.
@@ -345,11 +325,10 @@ pub trait BasePyChat: BaseChat {
         participants: Option<&[String]>,
         filenames: Option<Vec<String>>,
     ) -> PyResult<()> {
-        self.write_srt_files(dir_path, participants, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_srt_files(dir_path, participants, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Write TextGrid (.TextGrid) files to a directory with Python error conversion.
@@ -359,22 +338,18 @@ pub trait BasePyChat: BaseChat {
         participants: Option<&[String]>,
         filenames: Option<Vec<String>>,
     ) -> PyResult<()> {
-        self.write_textgrid_files(dir_path, participants, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_textgrid_files(dir_path, participants, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Print a summary of this reader's data.
     fn py_info(&self, py: Python<'_>, verbose: bool) -> PyResult<()> {
         let n_files = self.files().len();
 
-        let total_utterances: usize = self
-            .files()
-            .iter()
-            .map(|f| f.real_utterances().count())
-            .sum();
+        let total_utterances: usize =
+            self.files().iter().map(|f| f.real_utterances().count()).sum();
 
         let total_words: usize = self
             .files()
@@ -445,12 +420,8 @@ pub trait BasePyChat: BaseChat {
             .max()
             .unwrap_or(0)
             .max(word_header.len());
-        let path_width = display_stats
-            .iter()
-            .map(|(_, _, p)| p.len())
-            .max()
-            .unwrap_or(0)
-            .max(path_header.len());
+        let path_width =
+            display_stats.iter().map(|(_, _, p)| p.len()).max().unwrap_or(0).max(path_header.len());
 
         // Header.
         py_print.call1((format!(
@@ -523,9 +494,7 @@ impl BaseChat for PyChat {
         self.inner.files_mut()
     }
     fn from_files(files: VecDeque<ChatFile>) -> Self {
-        Self {
-            inner: Chat::from_files(files),
-        }
+        Self { inner: Chat::from_files(files) }
     }
 }
 
@@ -601,10 +570,8 @@ impl PyChat {
         mor_tier: Option<&str>,
         gra_tier: Option<&str>,
     ) -> PyResult<Self> {
-        let paths: Vec<String> = paths
-            .into_iter()
-            .map(pathbuf_to_string)
-            .collect::<PyResult<_>>()?;
+        let paths: Vec<String> =
+            paths.into_iter().map(pathbuf_to_string).collect::<PyResult<_>>()?;
         let (mor_key, gra_key) = tier_keys(mor_tier, gra_tier);
         let py = _cls.py();
         let (chat, misalignments) =
@@ -814,11 +781,7 @@ impl PyChat {
             let patterns = compile_file_patterns(files_arg)?;
             self.files()
                 .iter()
-                .filter(|f| {
-                    patterns
-                        .iter()
-                        .any(|re| re.is_match(&f.file_path).unwrap_or(false))
-                })
+                .filter(|f| patterns.iter().any(|re| re.is_match(&f.file_path).unwrap_or(false)))
                 .cloned()
                 .collect()
         } else {
@@ -846,12 +809,7 @@ impl PyChat {
             let result: Vec<Vec<Py<PyUtterance>>> = self
                 .files()
                 .iter()
-                .map(|f| {
-                    f.cached_py_utterances(py)
-                        .iter()
-                        .map(|p| p.clone_ref(py))
-                        .collect()
-                })
+                .map(|f| f.cached_py_utterances(py).iter().map(|p| p.clone_ref(py)).collect())
                 .collect();
             Ok(result.into_pyobject(py)?.into_any().unbind())
         } else {
@@ -1035,11 +993,7 @@ impl PyChat {
         if by_file {
             Ok(self.participants().into_pyobject(py)?.into_any().unbind())
         } else {
-            Ok(self
-                .unique_participants()
-                .into_pyobject(py)?
-                .into_any()
-                .unbind())
+            Ok(self.unique_participants().into_pyobject(py)?.into_any().unbind())
         }
     }
 
@@ -1050,11 +1004,7 @@ impl PyChat {
         if by_file {
             Ok(self.languages().into_pyobject(py)?.into_any().unbind())
         } else {
-            Ok(self
-                .unique_languages()
-                .into_pyobject(py)?
-                .into_any()
-                .unbind())
+            Ok(self.unique_languages().into_pyobject(py)?.into_any().unbind())
         }
     }
 
@@ -1098,9 +1048,7 @@ impl PyChat {
     fn pop_back(&mut self) -> PyResult<PyChat> {
         match self.files_mut().pop_back() {
             Some(file) => Ok(Self::from_files(VecDeque::from(vec![file]))),
-            None => Err(pyo3::exceptions::PyIndexError::new_err(
-                "pop from an empty CHAT reader",
-            )),
+            None => Err(pyo3::exceptions::PyIndexError::new_err("pop from an empty CHAT reader")),
         }
     }
 
@@ -1109,9 +1057,7 @@ impl PyChat {
     fn pop_front(&mut self) -> PyResult<PyChat> {
         match self.files_mut().pop_front() {
             Some(file) => Ok(Self::from_files(VecDeque::from(vec![file]))),
-            None => Err(pyo3::exceptions::PyIndexError::new_err(
-                "pop from an empty CHAT reader",
-            )),
+            None => Err(pyo3::exceptions::PyIndexError::new_err("pop from an empty CHAT reader")),
         }
     }
 
@@ -1132,10 +1078,7 @@ impl PyChat {
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> ChatIter {
-        ChatIter {
-            inner: slf.files().clone(),
-            index: 0,
-        }
+        ChatIter { inner: slf.files().clone(), index: 0 }
     }
 
     fn __getitem__(&self, index: &Bound<'_, PyAny>) -> PyResult<PyChat> {
@@ -1143,13 +1086,9 @@ impl PyChat {
             let len = self.files().len() as isize;
             let idx = if i < 0 { len + i } else { i };
             if idx < 0 || idx >= len {
-                return Err(pyo3::exceptions::PyIndexError::new_err(
-                    "index out of range",
-                ));
+                return Err(pyo3::exceptions::PyIndexError::new_err("index out of range"));
             }
-            return Ok(Self::from_files(VecDeque::from(vec![
-                self.files()[idx as usize].clone(),
-            ])));
+            return Ok(Self::from_files(VecDeque::from(vec![self.files()[idx as usize].clone()])));
         }
         if let Ok(slice) = index.cast::<PySlice>() {
             let indices = slice.indices(self.files().len() as isize)?;
@@ -1161,9 +1100,7 @@ impl PyChat {
             }
             return Ok(Self::from_files(result));
         }
-        Err(pyo3::exceptions::PyTypeError::new_err(
-            "indices must be integers or slices",
-        ))
+        Err(pyo3::exceptions::PyTypeError::new_err("indices must be integers or slices"))
     }
 
     // -----------------------------------------------------------------------
@@ -1193,9 +1130,7 @@ impl PyChat {
     /// Convert to an ELAN object.
     #[pyo3(name = "to_elan")]
     fn py_to_elan(&self) -> crate::elan::PyElan {
-        crate::elan::PyElan {
-            inner: self.to_elan(),
-        }
+        crate::elan::PyElan { inner: self.to_elan() }
     }
 
     /// Write ELAN (.eaf) files to a directory.
@@ -1217,9 +1152,7 @@ impl PyChat {
     #[pyo3(name = "to_srt")]
     #[pyo3(signature = (*, participants=None))]
     fn py_to_srt(&self, participants: Option<Vec<String>>) -> crate::srt::PySrt {
-        crate::srt::PySrt {
-            inner: self.to_srt(participants.as_deref()),
-        }
+        crate::srt::PySrt { inner: self.to_srt(participants.as_deref()) }
     }
 
     /// Write SRT (.srt) files to a directory.
@@ -1246,9 +1179,7 @@ impl PyChat {
     #[pyo3(name = "to_textgrid")]
     #[pyo3(signature = (*, participants=None))]
     fn py_to_textgrid(&self, participants: Option<Vec<String>>) -> crate::textgrid::PyTextGrid {
-        crate::textgrid::PyTextGrid {
-            inner: self.to_textgrid(participants.as_deref()),
-        }
+        crate::textgrid::PyTextGrid { inner: self.to_textgrid(participants.as_deref()) }
     }
 
     /// Write TextGrid (.TextGrid) files to a directory.
@@ -1273,9 +1204,7 @@ impl PyChat {
     /// Convert to a CoNLL-U object.
     #[pyo3(name = "to_conllu")]
     fn py_to_conllu(&self) -> crate::conllu::PyConllu {
-        crate::conllu::PyConllu {
-            inner: self.to_conllu(),
-        }
+        crate::conllu::PyConllu { inner: self.to_conllu() }
     }
 
     /// Write CoNLL-U (.conllu) files to a directory.
@@ -1283,11 +1212,10 @@ impl PyChat {
     #[pyo3(signature = (dir_path, /, *, filenames=None))]
     fn write_conllu(&self, dir_path: PathBuf, filenames: Option<Vec<String>>) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_conllu_files(&dir_path, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_conllu_files(&dir_path, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     fn __bool__(&self) -> bool {
@@ -1308,11 +1236,7 @@ impl PyChat {
 
     fn __eq__(&self, other: &PyChat) -> bool {
         self.files().len() == other.files().len()
-            && self
-                .files()
-                .iter()
-                .zip(other.files())
-                .all(|(a, b)| a.eq_data(b))
+            && self.files().iter().zip(other.files()).all(|(a, b)| a.eq_data(b))
     }
 
     fn __hash__(&self) -> u64 {
@@ -1348,9 +1272,7 @@ impl ChatIter {
         if self.index < self.inner.len() {
             let file = self.inner[self.index].clone();
             self.index += 1;
-            Some(PyChat {
-                inner: Chat::from_files(VecDeque::from(vec![file])),
-            })
+            Some(PyChat { inner: Chat::from_files(VecDeque::from(vec![file])) })
         } else {
             None
         }

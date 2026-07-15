@@ -9,21 +9,36 @@ from nltk.lm.preprocessing import (
     everygrams,
     pad_both_ends,
     pad_sequence,
-    padded_everygrams,)
+    padded_everygrams,
+)
 from nltk.lm.util import log_base2
 
 from fastnltk._rust import (
     MLE as _RustMLE,
+)
+from fastnltk._rust import (
     KneserNeyInterpolated as _RustKneserNeyInterpolated,
+)
+from fastnltk._rust import (
     Laplace as _RustLaplace,
+)
+from fastnltk._rust import (
     Lidstone as _RustLidstone,
+)
+from fastnltk._rust import (
     StupidBackoff as _RustStupidBackoff,
-    WittenBellInterpolated as _RustWittenBellInterpolated,)
+)
+from fastnltk._rust import (
+    WittenBellInterpolated as _RustWittenBellInterpolated,
+)
 
 __all__ = [
-    "MLE", "Lidstone", "Laplace",
+    "MLE",
+    "Lidstone",
+    "Laplace",
     "KneserNeyInterpolated",
-    "StupidBackoff", "WittenBellInterpolated",
+    "StupidBackoff",
+    "WittenBellInterpolated",
     "AbsoluteDiscountingInterpolated",
     "padded_everygrams",
     "everygrams",
@@ -162,6 +177,7 @@ class WittenBellInterpolated:
 
 class StupidBackoff:
     """Stupid backoff LM — Rust-accelerated."""
+
     def __init__(self, order, alpha=0.4):
         self._impl = _RustStupidBackoff(order, alpha)
 

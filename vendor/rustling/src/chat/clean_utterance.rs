@@ -50,9 +50,8 @@ enum OutputItem {
 // Static data for word filtering (Stage 5 — kept from original)
 // ---------------------------------------------------------------------------
 
-static ESCAPE_PREFIXES: &[&str] = &[
-    "[?", "[/", "[<", "[>", "[:", "[!", "[*", "+\"", "+,", "<&", "&",
-];
+static ESCAPE_PREFIXES: &[&str] =
+    &["[?", "[/", "[<", "[>", "[:", "[!", "[*", "+\"", "+,", "<&", "&"];
 
 static ESCAPE_SUFFIXES: &[&str] = &["\u{21ab}xxx"]; // ↫xxx
 
@@ -135,9 +134,7 @@ fn classify_bracket(content: &str, mode: Mode) -> Segment {
 
     // Overlap markers: [<], [>], [<N], [>N].
     let trimmed = content.trim();
-    if let Some(rest) = trimmed
-        .strip_prefix('<')
-        .or_else(|| trimmed.strip_prefix('>'))
+    if let Some(rest) = trimmed.strip_prefix('<').or_else(|| trimmed.strip_prefix('>'))
         && (rest.is_empty() || rest.chars().all(|c| c.is_ascii_digit()))
     {
         return Segment::Drop;
@@ -722,10 +719,7 @@ mod tests {
 
     #[test]
     fn test_drop_explanation() {
-        assert_eq!(
-            clean_utterance("I want [= desire] cookie ."),
-            "I want cookie ."
-        );
+        assert_eq!(clean_utterance("I want [= desire] cookie ."), "I want cookie .");
     }
 
     #[test]
@@ -851,10 +845,7 @@ mod tests {
 
     #[test]
     fn test_multiple_annotations() {
-        assert_eq!(
-            clean_utterance("hello [= greeting] [+ IMP] world ."),
-            "hello world ."
-        );
+        assert_eq!(clean_utterance("hello [= greeting] [+ IMP] world ."), "hello world .");
     }
 
     #[test]
@@ -887,19 +878,13 @@ mod tests {
     #[test]
     fn test_false_start() {
         // [/-] drops the immediately preceding word only.
-        assert_eq!(
-            clean_utterance("want [/-] I need cookie ."),
-            "I need cookie ."
-        );
+        assert_eq!(clean_utterance("want [/-] I need cookie ."), "I need cookie .");
     }
 
     #[test]
     fn test_false_start_angle_group() {
         // Use angle brackets to scope multiple words.
-        assert_eq!(
-            clean_utterance("< I want > [/-] I need cookie ."),
-            "I need cookie ."
-        );
+        assert_eq!(clean_utterance("< I want > [/-] I need cookie ."), "I need cookie .");
     }
 
     #[test]
@@ -913,10 +898,7 @@ mod tests {
         assert_eq!(clean_utterance("0you go ."), "go .");
         assert_eq!(clean_utterance("I 0can go ."), "I go .");
         assert_eq!(clean_utterance("0the dog ."), "dog .");
-        assert_eq!(
-            clean_utterance("I going 0to do another Bx ."),
-            "I going do another Bx ."
-        );
+        assert_eq!(clean_utterance("I going 0to do another Bx ."), "I going do another Bx .");
         // Non-ASCII 0-prefixed words should also be filtered.
         assert_eq!(clean_utterance("0學 去 ."), "去 .");
         assert_eq!(clean_utterance("0你 好 ."), "好 .");
@@ -946,18 +928,12 @@ mod tests {
 
     #[test]
     fn test_exclude_single_word() {
-        assert_eq!(
-            clean_utterance("this is a mor [e] exclude ."),
-            "this is a exclude ."
-        );
+        assert_eq!(clean_utterance("this is a mor [e] exclude ."), "this is a exclude .");
     }
 
     #[test]
     fn test_exclude_angle_group() {
-        assert_eq!(
-            clean_utterance("this is <a multi-word> [e] exclude ."),
-            "this is exclude ."
-        );
+        assert_eq!(clean_utterance("this is <a multi-word> [e] exclude ."), "this is exclude .");
     }
 
     #[test]
@@ -968,10 +944,7 @@ mod tests {
         assert_eq!(clean_utterance("um@fp ."), "um .");
         assert_eq!(clean_utterance("b@l ."), "b .");
         assert_eq!(clean_utterance("wug@t ."), "wug .");
-        assert_eq!(
-            clean_utterance("I got a bingbing@c ."),
-            "I got a bingbing ."
-        );
+        assert_eq!(clean_utterance("I got a bingbing@c ."), "I got a bingbing .");
     }
 
     #[test]
@@ -1047,18 +1020,12 @@ mod tests {
 
     #[test]
     fn test_audible_keeps_false_start() {
-        assert_eq!(
-            audible_utterance("want [/-] I need cookie ."),
-            "want I need cookie ."
-        );
+        assert_eq!(audible_utterance("want [/-] I need cookie ."), "want I need cookie .");
     }
 
     #[test]
     fn test_audible_keeps_excluded() {
-        assert_eq!(
-            audible_utterance("this is a mor [e] exclude ."),
-            "this is a mor exclude ."
-        );
+        assert_eq!(audible_utterance("this is a mor [e] exclude ."), "this is a mor exclude .");
     }
 
     #[test]
@@ -1161,10 +1128,7 @@ mod tests {
 
     #[test]
     fn test_audible_drops_annotations() {
-        assert_eq!(
-            audible_utterance("I want [= desire] cookie ."),
-            "I want cookie ."
-        );
+        assert_eq!(audible_utterance("I want [= desire] cookie ."), "I want cookie .");
     }
 
     #[test]

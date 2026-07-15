@@ -1,7 +1,7 @@
-/// `RegexpStemmer` — strip suffix matching a pattern.
-use std::sync::LazyLock;
 use pyo3::prelude::*;
 use regex::Regex;
+/// `RegexpStemmer` — strip suffix matching a pattern.
+use std::sync::LazyLock;
 
 static STEM_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)(ing|ed|s|ly|ness|ment|tion|able)$").unwrap());
@@ -16,7 +16,7 @@ pub struct RegexpStemmer {
 impl RegexpStemmer {
     #[new]
     #[pyo3(signature = (min_length = 0))]
-    fn new(min_length: usize) -> Self {
+    const fn new(min_length: usize) -> Self {
         Self { min_length }
     }
 

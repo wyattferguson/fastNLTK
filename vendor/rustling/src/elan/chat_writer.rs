@@ -85,9 +85,7 @@ pub(crate) fn elan_file_to_chat_str(file: &ElanFile, participants: Option<&[Stri
             continue;
         }
         for ann in &tier.annotations {
-            let dep_tiers = child_annotations
-                .remove(ann.id.as_str())
-                .unwrap_or_default();
+            let dep_tiers = child_annotations.remove(ann.id.as_str()).unwrap_or_default();
             utterances.push(ChatUtterance {
                 participant: tier.id.clone(),
                 main_text: ann.value.clone(),
@@ -99,11 +97,8 @@ pub(crate) fn elan_file_to_chat_str(file: &ElanFile, participants: Option<&[Stri
     }
 
     // 5. Sort by (start_time, end_time). None sorts before Some.
-    utterances.sort_by(|a, b| {
-        a.start_time
-            .cmp(&b.start_time)
-            .then_with(|| a.end_time.cmp(&b.end_time))
-    });
+    utterances
+        .sort_by(|a, b| a.start_time.cmp(&b.start_time).then_with(|| a.end_time.cmp(&b.end_time)));
 
     // 6. Generate CHAT output.
     let mut output = String::with_capacity(4096);
@@ -198,11 +193,7 @@ mod tests {
     }
 
     fn make_elan_file(tiers: Vec<Tier>) -> ElanFile {
-        ElanFile {
-            file_path: "test.eaf".to_string(),
-            tiers,
-            raw_xml: String::new(),
-        }
+        ElanFile { file_path: "test.eaf".to_string(), tiers, raw_xml: String::new() }
     }
 
     #[test]
@@ -228,29 +219,16 @@ mod tests {
                 "Target_Child",
                 vec![make_alignable_ann("a1", 0, 2000, "more cookie .")],
             ),
-            make_dep_tier(
-                "mor@CHI",
-                "CHI",
-                vec![make_ref_ann("a2", "a1", "qn|more n|cookie .")],
-            ),
+            make_dep_tier("mor@CHI", "CHI", vec![make_ref_ann("a2", "a1", "qn|more n|cookie .")]),
             make_main_tier(
                 "MOT",
                 "Mother",
-                vec![make_alignable_ann(
-                    "a3",
-                    2500,
-                    5000,
-                    "do you want more cookies ?",
-                )],
+                vec![make_alignable_ann("a3", 2500, 5000, "do you want more cookies ?")],
             ),
             make_dep_tier(
                 "mor@MOT",
                 "MOT",
-                vec![make_ref_ann(
-                    "a4",
-                    "a3",
-                    "mod|do pro:per|you v|want qn|more n|cookie-PL ?",
-                )],
+                vec![make_ref_ann("a4", "a3", "mod|do pro:per|you v|want qn|more n|cookie-PL ?")],
             ),
         ]);
         let chat = elan_file_to_chat_str(&file, None);
@@ -270,16 +248,8 @@ mod tests {
     #[test]
     fn test_auto_detect_skips_non_3char_tiers() {
         let file = make_elan_file(vec![
-            make_main_tier(
-                "Speaker1",
-                "Alice",
-                vec![make_alignable_ann("a1", 0, 1000, "hello")],
-            ),
-            make_main_tier(
-                "CHI",
-                "Target_Child",
-                vec![make_alignable_ann("a2", 1000, 2000, "hi")],
-            ),
+            make_main_tier("Speaker1", "Alice", vec![make_alignable_ann("a1", 0, 1000, "hello")]),
+            make_main_tier("CHI", "Target_Child", vec![make_alignable_ann("a2", 1000, 2000, "hi")]),
         ]);
         // Auto-detect: only CHI (3 chars) should be picked up.
         let chat = elan_file_to_chat_str(&file, None);
@@ -292,16 +262,8 @@ mod tests {
     #[test]
     fn test_explicit_participants() {
         let file = make_elan_file(vec![
-            make_main_tier(
-                "Speaker1",
-                "Alice",
-                vec![make_alignable_ann("a1", 0, 1000, "hello")],
-            ),
-            make_main_tier(
-                "CHI",
-                "Target_Child",
-                vec![make_alignable_ann("a2", 1000, 2000, "hi")],
-            ),
+            make_main_tier("Speaker1", "Alice", vec![make_alignable_ann("a1", 0, 1000, "hello")]),
+            make_main_tier("CHI", "Target_Child", vec![make_alignable_ann("a2", 1000, 2000, "hi")]),
         ]);
         // Explicitly request Speaker1.
         let participants = vec!["Speaker1".to_string()];
@@ -387,11 +349,7 @@ mod tests {
                 "Target_Child",
                 vec![make_alignable_ann("a1", 0, 2000, "more cookie .")],
             ),
-            make_dep_tier(
-                "mor@CHI",
-                "CHI",
-                vec![make_ref_ann("a2", "a1", "qn|more n|cookie .")],
-            ),
+            make_dep_tier("mor@CHI", "CHI", vec![make_ref_ann("a2", "a1", "qn|more n|cookie .")]),
         ]);
         let chat_str = elan_file_to_chat_str(&file, None);
 

@@ -39,7 +39,7 @@ pub struct TweetTokenizer {
 impl TweetTokenizer {
     #[new]
     #[pyo3(signature = (preserve_case=true, reduce_len=false, strip_handles=false))]
-    fn new(preserve_case: bool, reduce_len: bool, strip_handles: bool) -> Self {
+    const fn new(preserve_case: bool, reduce_len: bool, strip_handles: bool) -> Self {
         Self { preserve_case, reduce_len, strip_handles }
     }
 

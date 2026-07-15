@@ -282,6 +282,7 @@ impl DRS {
     }
 
     /// Convert DRS to a first-order logic formula.
+    #[must_use]
     pub fn to_fol(&self) -> Expression {
         // DRS([x1,...,xn],[C1,...,Cn]) becomes exists x1...exists xn.(C1 & ... & Cn)
         // Build conjunction from conditions without artificial "true" sentinel

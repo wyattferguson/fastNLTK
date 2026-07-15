@@ -62,12 +62,7 @@ impl DependencyGraph {
             }
         }
 
-        Self {
-            nodes,
-            dep_to_head,
-            dep_to_rel,
-            faulty,
-        }
+        Self { nodes, dep_to_head, dep_to_rel, faulty }
     }
 
     /// Number of nodes including ROOT.
@@ -152,10 +147,7 @@ struct ScoringBoard {
 
 impl ScoringBoard {
     fn new() -> Self {
-        Self {
-            scores: [0; NUM_ITEMS],
-            stopped: [false; NUM_ITEMS],
-        }
+        Self { scores: [0; NUM_ITEMS], stopped: [false; NUM_ITEMS] }
     }
 
     /// Add one point to `item`. If it reaches 2, stop further scoring.
@@ -792,10 +784,7 @@ fn score_q1(graph: &DependencyGraph, board: &mut ScoringBoard) {
         return;
     }
     let first_word = graph.nodes[1].word.to_lowercase();
-    if matches!(
-        first_word.as_str(),
-        "what" | "why" | "how" | "which" | "where" | "when"
-    ) {
+    if matches!(first_word.as_str(), "what" | "why" | "how" | "which" | "where" | "when") {
         return;
     }
     board.add_point(Item::Q1);
@@ -812,10 +801,7 @@ fn score_q2(graph: &DependencyGraph, board: &mut ScoringBoard) {
         return;
     }
     let first_word = graph.nodes[1].word.to_lowercase();
-    if !matches!(
-        first_word.as_str(),
-        "what" | "why" | "how" | "which" | "where" | "when"
-    ) {
+    if !matches!(first_word.as_str(), "what" | "why" | "how" | "which" | "where" | "when") {
         return;
     }
     if n > 2 {
@@ -854,10 +840,7 @@ fn score_q4(graph: &DependencyGraph, board: &mut ScoringBoard) {
         return;
     }
     let first_word = graph.nodes[1].word.to_lowercase();
-    if !matches!(
-        first_word.as_str(),
-        "what" | "why" | "how" | "which" | "where" | "when"
-    ) {
+    if !matches!(first_word.as_str(), "what" | "why" | "how" | "which" | "where" | "when") {
         return;
     }
     // Check if the head of the first word is a verb
@@ -984,11 +967,7 @@ fn score_q8(graph: &DependencyGraph, board: &mut ScoringBoard) {
         }
         let pos1 = graph.nodes[i].pos.as_str();
         // Check that the preceding word is not a wh-word
-        let wh_test = if i > 1 {
-            graph.nodes[i - 1].pos.as_str()
-        } else {
-            "dummy"
-        };
+        let wh_test = if i > 1 { graph.nodes[i - 1].pos.as_str() } else { "dummy" };
         if (pos1 == "cop" || pos1 == "mod" || pos1 == "aux") && !wh_test.ends_with("wh") {
             // Check if the next word has a SUBJ relation
             if i + 1 < n {
@@ -1412,9 +1391,7 @@ fn score_s15(graph: &DependencyGraph, board: &mut ScoringBoard) {
     if graph.n_nodes() <= 3 {
         return;
     }
-    let verb_count: usize = (1..graph.n_nodes())
-        .filter(|&i| graph.nodes[i].pos == "v")
-        .count();
+    let verb_count: usize = (1..graph.n_nodes()).filter(|&i| graph.nodes[i].pos == "v").count();
     if verb_count > 2 {
         board.add_point(Item::S15);
         board.credit(Item::S6);
@@ -1642,11 +1619,7 @@ mod tests {
             word: word.to_string(),
             pos: Some(pos.to_string()),
             mor: Some(mor.to_string()),
-            gra: Some(Gra {
-                dep,
-                head,
-                rel: rel.to_string(),
-            }),
+            gra: Some(Gra { dep, head, rel: rel.to_string() }),
         }
     }
 

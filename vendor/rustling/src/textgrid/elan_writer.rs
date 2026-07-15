@@ -29,10 +29,7 @@ pub(crate) fn textgrid_file_to_eaf_xml(file: &TextGridFile) -> String {
     let mut ann_counter = 1usize;
 
     for tier in &file.tiers {
-        if let TextGridTier::IntervalTier {
-            name, intervals, ..
-        } = tier
-        {
+        if let TextGridTier::IntervalTier { name, intervals, .. } = tier {
             let mut annotations = Vec::new();
             for interval in intervals {
                 if interval.text.is_empty() {
@@ -52,10 +49,7 @@ pub(crate) fn textgrid_file_to_eaf_xml(file: &TextGridFile) -> String {
                 time_slots.push((ts_id2.clone(), end_ms));
                 annotations.push((ann_id, ts_id1, ts_id2, interval.text.clone()));
             }
-            tier_data_list.push(TierData {
-                name: name.clone(),
-                annotations,
-            });
+            tier_data_list.push(TierData { name: name.clone(), annotations });
         }
     }
 
@@ -110,12 +104,7 @@ mod tests {
 
     fn make_interval_tier(name: &str, intervals: Vec<Interval>) -> TextGridTier {
         let xmax = intervals.last().map(|i| i.xmax).unwrap_or(0.0);
-        TextGridTier::IntervalTier {
-            name: name.to_string(),
-            xmin: 0.0,
-            xmax,
-            intervals,
-        }
+        TextGridTier::IntervalTier { name: name.to_string(), xmin: 0.0, xmax, intervals }
     }
 
     fn make_textgrid_file(tiers: Vec<TextGridTier>) -> TextGridFile {
@@ -140,16 +129,8 @@ mod tests {
         let file = make_textgrid_file(vec![make_interval_tier(
             "words",
             vec![
-                Interval {
-                    xmin: 0.0,
-                    xmax: 1.5,
-                    text: "hello".to_string(),
-                },
-                Interval {
-                    xmin: 1.5,
-                    xmax: 2.3,
-                    text: "world".to_string(),
-                },
+                Interval { xmin: 0.0, xmax: 1.5, text: "hello".to_string() },
+                Interval { xmin: 1.5, xmax: 2.3, text: "world".to_string() },
             ],
         )]);
         let xml = textgrid_file_to_eaf_xml(&file);
@@ -168,10 +149,7 @@ mod tests {
             name: "events".to_string(),
             xmin: 0.0,
             xmax: 1.0,
-            points: vec![crate::textgrid::reader::Point {
-                number: 0.5,
-                mark: "click".to_string(),
-            }],
+            points: vec![crate::textgrid::reader::Point { number: 0.5, mark: "click".to_string() }],
         }]);
         let xml = textgrid_file_to_eaf_xml(&file);
 
@@ -184,16 +162,8 @@ mod tests {
         let file = make_textgrid_file(vec![make_interval_tier(
             "words",
             vec![
-                Interval {
-                    xmin: 0.0,
-                    xmax: 0.5,
-                    text: String::new(),
-                },
-                Interval {
-                    xmin: 0.5,
-                    xmax: 1.0,
-                    text: "hello".to_string(),
-                },
+                Interval { xmin: 0.0, xmax: 0.5, text: String::new() },
+                Interval { xmin: 0.5, xmax: 1.0, text: "hello".to_string() },
             ],
         )]);
         let xml = textgrid_file_to_eaf_xml(&file);
@@ -207,11 +177,7 @@ mod tests {
     fn test_xml_escape() {
         let file = make_textgrid_file(vec![make_interval_tier(
             "tier",
-            vec![Interval {
-                xmin: 0.0,
-                xmax: 1.0,
-                text: "a < b & c > d".to_string(),
-            }],
+            vec![Interval { xmin: 0.0, xmax: 1.0, text: "a < b & c > d".to_string() }],
         )]);
         let xml = textgrid_file_to_eaf_xml(&file);
 
@@ -222,11 +188,7 @@ mod tests {
     fn test_round_trip_through_elan() {
         let file = make_textgrid_file(vec![make_interval_tier(
             "CHI",
-            vec![Interval {
-                xmin: 0.0,
-                xmax: 1.5,
-                text: "hello world".to_string(),
-            }],
+            vec![Interval { xmin: 0.0, xmax: 1.5, text: "hello world".to_string() }],
         )]);
         let xml = textgrid_file_to_eaf_xml(&file);
 

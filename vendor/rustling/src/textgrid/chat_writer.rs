@@ -36,10 +36,7 @@ pub(crate) fn textgrid_file_to_chat_str(
     // 2. Collect utterances from selected tiers.
     let mut utterances: Vec<ChatUtterance> = Vec::new();
     for tier in &file.tiers {
-        if let TextGridTier::IntervalTier {
-            name, intervals, ..
-        } = tier
-        {
+        if let TextGridTier::IntervalTier { name, intervals, .. } = tier {
             if !main_tier_names.contains(&name.as_str()) {
                 continue;
             }
@@ -60,11 +57,7 @@ pub(crate) fn textgrid_file_to_chat_str(
     }
 
     // 3. Sort by (start_time, end_time).
-    utterances.sort_by(|a, b| {
-        a.start_ms
-            .cmp(&b.start_ms)
-            .then_with(|| a.end_ms.cmp(&b.end_ms))
-    });
+    utterances.sort_by(|a, b| a.start_ms.cmp(&b.start_ms).then_with(|| a.end_ms.cmp(&b.end_ms)));
 
     // 4. Generate CHAT output.
     let mut output = String::with_capacity(4096);
@@ -74,10 +67,8 @@ pub(crate) fn textgrid_file_to_chat_str(
     // @Participants line.
     if !main_tier_names.is_empty() {
         output.push_str("@Participants:\t");
-        let parts: Vec<String> = main_tier_names
-            .iter()
-            .map(|code| format!("{code} {code}"))
-            .collect();
+        let parts: Vec<String> =
+            main_tier_names.iter().map(|code| format!("{code} {code}")).collect();
         output.push_str(&parts.join(", "));
         output.push('\n');
     }
@@ -105,12 +96,7 @@ mod tests {
 
     fn make_interval_tier(name: &str, intervals: Vec<Interval>) -> TextGridTier {
         let xmax = intervals.last().map(|i| i.xmax).unwrap_or(0.0);
-        TextGridTier::IntervalTier {
-            name: name.to_string(),
-            xmin: 0.0,
-            xmax,
-            intervals,
-        }
+        TextGridTier::IntervalTier { name: name.to_string(), xmin: 0.0, xmax, intervals }
     }
 
     fn make_textgrid_file(tiers: Vec<TextGridTier>) -> TextGridFile {
@@ -127,11 +113,7 @@ mod tests {
     fn test_single_tier() {
         let file = make_textgrid_file(vec![make_interval_tier(
             "CHI",
-            vec![Interval {
-                xmin: 0.0,
-                xmax: 1.5,
-                text: "hello world .".to_string(),
-            }],
+            vec![Interval { xmin: 0.0, xmax: 1.5, text: "hello world .".to_string() }],
         )]);
         let chat = textgrid_file_to_chat_str(&file, None);
 
@@ -146,19 +128,11 @@ mod tests {
         let file = make_textgrid_file(vec![
             make_interval_tier(
                 "Speaker1",
-                vec![Interval {
-                    xmin: 0.0,
-                    xmax: 1.0,
-                    text: "hello".to_string(),
-                }],
+                vec![Interval { xmin: 0.0, xmax: 1.0, text: "hello".to_string() }],
             ),
             make_interval_tier(
                 "CHI",
-                vec![Interval {
-                    xmin: 1.0,
-                    xmax: 2.0,
-                    text: "hi".to_string(),
-                }],
+                vec![Interval { xmin: 1.0, xmax: 2.0, text: "hi".to_string() }],
             ),
         ]);
         let chat = textgrid_file_to_chat_str(&file, None);
@@ -172,11 +146,7 @@ mod tests {
     fn test_explicit_participants() {
         let file = make_textgrid_file(vec![make_interval_tier(
             "Speaker1",
-            vec![Interval {
-                xmin: 0.0,
-                xmax: 1.0,
-                text: "hello".to_string(),
-            }],
+            vec![Interval { xmin: 0.0, xmax: 1.0, text: "hello".to_string() }],
         )]);
         let participants = vec!["Speaker1".to_string()];
         let chat = textgrid_file_to_chat_str(&file, Some(&participants));
@@ -189,16 +159,8 @@ mod tests {
         let file = make_textgrid_file(vec![make_interval_tier(
             "CHI",
             vec![
-                Interval {
-                    xmin: 0.0,
-                    xmax: 0.5,
-                    text: String::new(),
-                },
-                Interval {
-                    xmin: 0.5,
-                    xmax: 1.0,
-                    text: "hello .".to_string(),
-                },
+                Interval { xmin: 0.0, xmax: 0.5, text: String::new() },
+                Interval { xmin: 0.5, xmax: 1.0, text: "hello .".to_string() },
             ],
         )]);
         let chat = textgrid_file_to_chat_str(&file, None);

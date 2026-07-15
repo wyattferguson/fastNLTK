@@ -49,22 +49,13 @@ pub(crate) fn chat_file_to_conllu_str(file: &ChatFile) -> String {
                 let word_id = word_idx + 1;
 
                 // Use gra.dep as the ID if available, otherwise sequential.
-                let id = token
-                    .gra
-                    .as_ref()
-                    .map_or_else(|| word_id.to_string(), |g| g.dep.to_string());
+                let id =
+                    token.gra.as_ref().map_or_else(|| word_id.to_string(), |g| g.dep.to_string());
 
-                let form = if token.word.is_empty() {
-                    "_"
-                } else {
-                    &token.word
-                };
+                let form = if token.word.is_empty() { "_" } else { &token.word };
                 let upos = token.pos.as_deref().unwrap_or("_");
                 let lemma = token.mor.as_deref().unwrap_or("_");
-                let head = token
-                    .gra
-                    .as_ref()
-                    .map_or("_".to_string(), |g| g.head.to_string());
+                let head = token.gra.as_ref().map_or("_".to_string(), |g| g.head.to_string());
                 let deprel = token.gra.as_ref().map_or("_", |g| g.rel.as_str());
 
                 output.push_str(&format!(
@@ -90,13 +81,8 @@ mod tests {
     fn test_basic_conversion() {
         // Use CHAT's native %mor format: lowercase POS tags, punctuation is bare.
         let chat_str = "@UTF8\n@Begin\n@Participants:\tCHI Child\n*CHI:\tI want cookie .\n%mor:\tpro|I v|want n|cookie .\n%gra:\t1|2|SUBJ 2|0|ROOT 3|2|OBJ 4|2|PUNCT\n@End\n";
-        let (chat, _) = Chat::from_strs(
-            vec![chat_str.to_string()],
-            None,
-            false,
-            Some("%mor"),
-            Some("%gra"),
-        );
+        let (chat, _) =
+            Chat::from_strs(vec![chat_str.to_string()], None, false, Some("%mor"), Some("%gra"));
         let conllu = chat_file_to_conllu_str(&chat.files()[0]);
 
         assert!(conllu.contains("# sent_id = 1"));
@@ -112,13 +98,8 @@ mod tests {
     #[test]
     fn test_multiple_utterances() {
         let chat_str = "@UTF8\n@Begin\n@Participants:\tCHI Child, MOT Mother\n*CHI:\tI want cookie .\n%mor:\tpro|I v|want n|cookie .\n%gra:\t1|2|SUBJ 2|0|ROOT 3|2|OBJ 4|2|PUNCT\n*MOT:\tno .\n%mor:\tco|no .\n%gra:\t1|0|ROOT 2|1|PUNCT\n@End\n";
-        let (chat, _) = Chat::from_strs(
-            vec![chat_str.to_string()],
-            None,
-            false,
-            Some("%mor"),
-            Some("%gra"),
-        );
+        let (chat, _) =
+            Chat::from_strs(vec![chat_str.to_string()], None, false, Some("%mor"), Some("%gra"));
         let conllu = chat_file_to_conllu_str(&chat.files()[0]);
 
         assert!(conllu.contains("# sent_id = 1"));

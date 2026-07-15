@@ -3,7 +3,6 @@
 use memchr::memchr3;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use regex::Regex;
 use smol_str::SmolStr;
 
 use crate::util::regex_cache;
@@ -39,25 +38,22 @@ fn tokenize_whitespace(text: &str) -> Vec<String> {
             start += 1;
             continue;
         }
-        match memchr3(b' ', b'\t', b'\n', &bytes[start..]) {
-            Some(rel) => {
-                let ws_pos = start + rel; // position of whitespace byte
-                // Exclude trailing \r before \n from token
-                let mut token_end = ws_pos;
-                if bytes[ws_pos] == b'\n' && token_end > start && bytes[token_end - 1] == b'\r' {
-                    token_end -= 1;
-                }
-                tokens.push(text[start..token_end].to_string());
-                start = ws_pos + 1;
-                // Skip consecutive ASCII whitespace
-                while start < bytes.len() && bytes[start].is_ascii_whitespace() {
-                    start += 1;
-                }
+        if let Some(rel) = memchr3(b' ', b'\t', b'\n', &bytes[start..]) {
+            let ws_pos = start + rel; // position of whitespace byte
+                                      // Exclude trailing \r before \n from token
+            let mut token_end = ws_pos;
+            if bytes[ws_pos] == b'\n' && token_end > start && bytes[token_end - 1] == b'\r' {
+                token_end -= 1;
             }
-            None => {
-                tokens.push(text[start..].to_string());
-                break;
+            tokens.push(text[start..token_end].to_string());
+            start = ws_pos + 1;
+            // Skip consecutive ASCII whitespace
+            while start < bytes.len() && bytes[start].is_ascii_whitespace() {
+                start += 1;
             }
+        } else {
+            tokens.push(text[start..].to_string());
+            break;
         }
     }
     tokens
@@ -73,29 +69,26 @@ fn span_tokenize_whitespace(text: &str) -> Vec<(usize, usize)> {
             start += 1;
             continue;
         }
-        match memchr3(b' ', b'\t', b'\n', &bytes[start..]) {
-            Some(rel) => {
-                let ws_pos = start + rel;
-                let mut token_end = ws_pos;
-                if bytes[ws_pos] == b'\n' && token_end > start && bytes[token_end - 1] == b'\r' {
-                    token_end -= 1;
-                }
-                spans.push((start, token_end));
-                start = ws_pos + 1;
-                while start < bytes.len() && bytes[start].is_ascii_whitespace() {
-                    start += 1;
-                }
+        if let Some(rel) = memchr3(b' ', b'\t', b'\n', &bytes[start..]) {
+            let ws_pos = start + rel;
+            let mut token_end = ws_pos;
+            if bytes[ws_pos] == b'\n' && token_end > start && bytes[token_end - 1] == b'\r' {
+                token_end -= 1;
             }
-            None => {
-                spans.push((start, bytes.len()));
-                break;
+            spans.push((start, token_end));
+            start = ws_pos + 1;
+            while start < bytes.len() && bytes[start].is_ascii_whitespace() {
+                start += 1;
             }
+        } else {
+            spans.push((start, bytes.len()));
+            break;
         }
     }
     spans
 }
 
-/// Gap tokenizer: same as tokenize_whitespace (both return non-ws runs).
+/// Gap tokenizer: same as `tokenize_whitespace` (both return non-ws runs).
 fn split_whitespace_gaps(text: &str) -> Vec<String> {
     tokenize_whitespace(text)
 }
@@ -119,12 +112,7 @@ impl RegexpTokenizer {
     #[pyo3(signature = (pattern="\\w+", gaps=false, flags=0))]
     fn new(pattern: &str, gaps: bool, flags: u32) -> Self {
         let is_simple = is_simple_whitespace_pattern(pattern, gaps) && flags == 0;
-        Self {
-            pattern: pattern.to_string(),
-            gaps,
-            flags,
-            is_simple_whitespace: is_simple,
-        }
+        Self { pattern: pattern.to_string(), gaps, flags, is_simple_whitespace: is_simple }
     }
 
     fn tokenize(&self, text: &str) -> PyResult<Vec<String>> {
@@ -182,7 +170,7 @@ pub struct WhitespaceTokenizer;
 #[pymethods]
 impl WhitespaceTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -284,7 +272,7 @@ fn tokenize_wordpunct(text: &str) -> (Vec<String>, Vec<(usize, usize)>) {
 #[pymethods]
 impl WordPunctTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -306,7 +294,7 @@ pub struct BlanklineTokenizer;
 #[pymethods]
 impl BlanklineTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 

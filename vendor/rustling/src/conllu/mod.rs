@@ -224,19 +224,12 @@ mod reader {
         // Handle final sentence (no trailing blank line).
         if !tokens.is_empty() || !comments.is_empty() {
             sentences.push(Sentence {
-                comments: if comments.is_empty() {
-                    None
-                } else {
-                    Some(comments)
-                },
+                comments: if comments.is_empty() { None } else { Some(comments) },
                 tokens,
             });
         }
 
-        Ok(ConlluFile {
-            file_path,
-            sentences,
-        })
+        Ok(ConlluFile { file_path, sentences })
     }
 
     /// Serialize a [`ConlluFile`] back to a CoNLL-U string.
@@ -294,10 +287,7 @@ mod reader {
         if parallel {
             #[cfg(feature = "parallel")]
             {
-                pairs
-                    .into_par_iter()
-                    .map(parse_one)
-                    .collect::<Result<Vec<_>, _>>()
+                pairs.into_par_iter().map(parse_one).collect::<Result<Vec<_>, _>>()
             }
             #[cfg(not(feature = "parallel"))]
             {
@@ -375,9 +365,7 @@ mod reader {
                 }
             }
 
-            (0..self.files().len())
-                .map(|i| format!("{:04}{target_ext}", i + 1))
-                .collect()
+            (0..self.files().len()).map(|i| format!("{:04}{target_ext}", i + 1)).collect()
         }
 
         /// Write CoNLL-U files to a directory.
@@ -418,10 +406,7 @@ mod reader {
 
         /// Return CHAT format strings (one per file) for CHAT export.
         fn to_chat_strings(&self) -> Vec<String> {
-            self.files()
-                .iter()
-                .map(super::chat_writer::conllu_file_to_chat_str)
-                .collect()
+            self.files().iter().map(super::chat_writer::conllu_file_to_chat_str).collect()
         }
 
         /// Convert to a [`Chat`](crate::chat::Chat) object.
@@ -504,9 +489,7 @@ mod reader {
     impl Conllu {
         /// Construct from a Vec of [`ConlluFile`] entries.
         pub fn from_conllu_files(files: Vec<ConlluFile>) -> Self {
-            Self {
-                files: VecDeque::from(files),
-            }
+            Self { files: VecDeque::from(files) }
         }
 
         /// Append data from another Conllu.
@@ -523,16 +506,12 @@ mod reader {
 
         /// Remove and return the last file as a new Conllu.
         pub fn pop_back(&mut self) -> Option<Conllu> {
-            self.files
-                .pop_back()
-                .map(|f| Conllu::from_files(VecDeque::from(vec![f])))
+            self.files.pop_back().map(|f| Conllu::from_files(VecDeque::from(vec![f])))
         }
 
         /// Remove and return the first file as a new Conllu.
         pub fn pop_front(&mut self) -> Option<Conllu> {
-            self.files
-                .pop_front()
-                .map(|f| Conllu::from_files(VecDeque::from(vec![f])))
+            self.files.pop_front().map(|f| Conllu::from_files(VecDeque::from(vec![f])))
         }
 
         /// Parse CoNLL-U data from in-memory strings.
@@ -541,11 +520,8 @@ mod reader {
             ids: Option<Vec<String>>,
             parallel: bool,
         ) -> Result<Self, ConlluError> {
-            let ids = ids.unwrap_or_else(|| {
-                strs.iter()
-                    .map(|_| uuid::Uuid::new_v4().to_string())
-                    .collect()
-            });
+            let ids = ids
+                .unwrap_or_else(|| strs.iter().map(|_| uuid::Uuid::new_v4().to_string()).collect());
             assert_eq!(
                 strs.len(),
                 ids.len(),
@@ -572,10 +548,7 @@ mod reader {
             parallel: bool,
         ) -> Result<Self, ConlluError> {
             let mut paths: Vec<String> = Vec::new();
-            for entry in walkdir::WalkDir::new(path)
-                .into_iter()
-                .filter_map(|e| e.ok())
-            {
+            for entry in walkdir::WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
                 if entry.file_type().is_file() {
                     let file_path = entry.path().to_string_lossy().to_string();
                     if file_path.ends_with(extension) {
@@ -606,11 +579,7 @@ mod reader {
                 .filter_map(|i| {
                     let entry = archive.by_index(i).ok()?;
                     let name = entry.name().to_string();
-                    if name.ends_with(extension) && !entry.is_dir() {
-                        Some(name)
-                    } else {
-                        None
-                    }
+                    if name.ends_with(extension) && !entry.is_dir() { Some(name) } else { None }
                 })
                 .collect();
             entry_names.sort();
@@ -860,9 +829,7 @@ mod reader {
             .unwrap();
             let dir = tempfile::tempdir().unwrap();
             let out_dir = dir.path().join("output");
-            conllu
-                .write_conllu_files(out_dir.to_str().unwrap(), None)
-                .unwrap();
+            conllu.write_conllu_files(out_dir.to_str().unwrap(), None).unwrap();
             let content = std::fs::read_to_string(out_dir.join("test.conllu")).unwrap();
             let file2 = parse_conllu_str(&content, "test.conllu".to_string()).unwrap();
             assert_eq!(conllu.files()[0].sentences, file2.sentences);

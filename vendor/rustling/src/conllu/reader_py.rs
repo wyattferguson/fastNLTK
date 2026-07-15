@@ -133,11 +133,7 @@ impl PySentence {
 
     /// Tokens in this sentence.
     fn tokens(&self) -> Vec<PyConlluToken> {
-        self.0
-            .tokens
-            .iter()
-            .map(|t| PyConlluToken(t.clone()))
-            .collect()
+        self.0.tokens.iter().map(|t| PyConlluToken(t.clone())).collect()
     }
 
     fn __repr__(&self) -> String {
@@ -183,9 +179,7 @@ impl BaseConllu for PyConllu {
         self.inner.files_mut()
     }
     fn from_files(files: VecDeque<ConlluFile>) -> Self {
-        Self {
-            inner: Conllu::from_files(files),
-        }
+        Self { inner: Conllu::from_files(files) }
     }
 }
 
@@ -223,10 +217,8 @@ impl PyConllu {
     #[pyo3(name = "from_files")]
     #[pyo3(signature = (paths, *, parallel=true))]
     fn read_files(_cls: &Bound<'_, PyType>, paths: Vec<PathBuf>, parallel: bool) -> PyResult<Self> {
-        let paths: Vec<String> = paths
-            .into_iter()
-            .map(pathbuf_to_string)
-            .collect::<PyResult<_>>()?;
+        let paths: Vec<String> =
+            paths.into_iter().map(pathbuf_to_string).collect::<PyResult<_>>()?;
         let conllu = Conllu::read_files(&paths, parallel).map_err(conllu_error_to_pyerr)?;
         Ok(Self { inner: conllu })
     }
@@ -329,11 +321,7 @@ impl PyConllu {
 
     /// Return all sentences across all files as a flat list.
     fn sentences(&self) -> Vec<PySentence> {
-        self.files()
-            .iter()
-            .flat_map(|f| &f.sentences)
-            .map(|s| PySentence(s.clone()))
-            .collect()
+        self.files().iter().flat_map(|f| &f.sentences).map(|s| PySentence(s.clone())).collect()
     }
 
     // -----------------------------------------------------------------------
@@ -355,9 +343,7 @@ impl PyConllu {
     /// Convert to a CHAT object.
     #[pyo3(name = "to_chat")]
     fn py_to_chat(&self) -> crate::chat::PyChat {
-        crate::chat::PyChat {
-            inner: self.to_chat_obj(),
-        }
+        crate::chat::PyChat { inner: self.to_chat_obj() }
     }
 
     /// Write CHAT (.cha) files to a directory.
@@ -365,11 +351,10 @@ impl PyConllu {
     #[pyo3(signature = (dir_path, /, *, filenames=None))]
     fn write_chat(&self, dir_path: PathBuf, filenames: Option<Vec<String>>) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_chat_files(&dir_path, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_chat_files(&dir_path, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Write CoNLL-U files to a directory.
@@ -377,11 +362,10 @@ impl PyConllu {
     #[pyo3(signature = (dir_path, /, *, filenames=None))]
     fn write(&self, dir_path: PathBuf, filenames: Option<Vec<String>>) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_conllu_files(&dir_path, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_conllu_files(&dir_path, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     // -----------------------------------------------------------------------
@@ -413,9 +397,9 @@ impl PyConllu {
     fn pop_back(&mut self) -> PyResult<PyConllu> {
         match self.files_mut().pop_back() {
             Some(file) => Ok(Self::from_files(VecDeque::from(vec![file]))),
-            None => Err(pyo3::exceptions::PyIndexError::new_err(
-                "pop from an empty CoNLL-U reader",
-            )),
+            None => {
+                Err(pyo3::exceptions::PyIndexError::new_err("pop from an empty CoNLL-U reader"))
+            }
         }
     }
 
@@ -424,9 +408,9 @@ impl PyConllu {
     fn pop_front(&mut self) -> PyResult<PyConllu> {
         match self.files_mut().pop_front() {
             Some(file) => Ok(Self::from_files(VecDeque::from(vec![file]))),
-            None => Err(pyo3::exceptions::PyIndexError::new_err(
-                "pop from an empty CoNLL-U reader",
-            )),
+            None => {
+                Err(pyo3::exceptions::PyIndexError::new_err("pop from an empty CoNLL-U reader"))
+            }
         }
     }
 
@@ -447,10 +431,7 @@ impl PyConllu {
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> ConlluIter {
-        ConlluIter {
-            inner: slf.files().clone(),
-            index: 0,
-        }
+        ConlluIter { inner: slf.files().clone(), index: 0 }
     }
 
     fn __getitem__(&self, index: &Bound<'_, PyAny>) -> PyResult<PyConllu> {
@@ -458,13 +439,9 @@ impl PyConllu {
             let len = self.files().len() as isize;
             let idx = if i < 0 { len + i } else { i };
             if idx < 0 || idx >= len {
-                return Err(pyo3::exceptions::PyIndexError::new_err(
-                    "index out of range",
-                ));
+                return Err(pyo3::exceptions::PyIndexError::new_err("index out of range"));
             }
-            return Ok(Self::from_files(VecDeque::from(vec![
-                self.files()[idx as usize].clone(),
-            ])));
+            return Ok(Self::from_files(VecDeque::from(vec![self.files()[idx as usize].clone()])));
         }
         if let Ok(slice) = index.cast::<PySlice>() {
             let indices = slice.indices(self.files().len() as isize)?;
@@ -476,9 +453,7 @@ impl PyConllu {
             }
             return Ok(Self::from_files(result));
         }
-        Err(pyo3::exceptions::PyTypeError::new_err(
-            "indices must be integers or slices",
-        ))
+        Err(pyo3::exceptions::PyTypeError::new_err("indices must be integers or slices"))
     }
 
     fn __bool__(&self) -> bool {
@@ -537,9 +512,7 @@ impl ConlluIter {
         if self.index < self.inner.len() {
             let file = self.inner[self.index].clone();
             self.index += 1;
-            Some(PyConllu {
-                inner: Conllu::from_files(VecDeque::from(vec![file])),
-            })
+            Some(PyConllu { inner: Conllu::from_files(VecDeque::from(vec![file])) })
         } else {
             None
         }

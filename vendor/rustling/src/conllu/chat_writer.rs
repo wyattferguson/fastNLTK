@@ -122,15 +122,7 @@ mod tests {
                 tokens: vec![
                     make_token("1", "The", "the", "DET", "Definite=Def", "2", "det"),
                     make_token("2", "cat", "cat", "NOUN", "Number=Sing", "3", "nsubj"),
-                    make_token(
-                        "3",
-                        "sat",
-                        "sit",
-                        "VERB",
-                        "Mood=Ind|Tense=Past",
-                        "0",
-                        "root",
-                    ),
+                    make_token("3", "sat", "sit", "VERB", "Mood=Ind|Tense=Past", "0", "root"),
                     make_token("4", ".", ".", "PUNCT", "_", "3", "punct"),
                 ],
             }],
@@ -187,10 +179,7 @@ mod tests {
 
     #[test]
     fn test_empty_file() {
-        let file = ConlluFile {
-            file_path: "empty.conllu".to_string(),
-            sentences: vec![],
-        };
+        let file = ConlluFile { file_path: "empty.conllu".to_string(), sentences: vec![] };
         let chat = conllu_file_to_chat_str(&file);
 
         assert!(chat.contains("@Begin"));

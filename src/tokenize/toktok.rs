@@ -1,8 +1,8 @@
-use std::sync::LazyLock;
 use pyo3::prelude::*;
 use regex::Regex;
 use smol_str::SmolStr;
 use std::borrow::Cow;
+use std::sync::LazyLock;
 
 #[pyclass(name = "ToktokTokenizer", module = "fastnltk._rust")]
 pub struct ToktokTokenizer;
@@ -20,7 +20,7 @@ fn sub(p: &str, r: &str) -> (Regex, String) {
 #[pymethods]
 impl ToktokTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 

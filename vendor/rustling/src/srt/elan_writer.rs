@@ -87,10 +87,7 @@ mod tests {
     use crate::srt::reader::{SrtBlock, SrtFile};
 
     fn make_srt_file(blocks: Vec<SrtBlock>) -> SrtFile {
-        SrtFile {
-            file_path: "test.srt".to_string(),
-            blocks,
-        }
+        SrtFile { file_path: "test.srt".to_string(), blocks }
     }
 
     #[test]
@@ -141,18 +138,8 @@ mod tests {
     #[test]
     fn test_multiple_blocks() {
         let file = make_srt_file(vec![
-            SrtBlock {
-                index: 1,
-                text: "First.".to_string(),
-                start_ms: 0,
-                end_ms: 1000,
-            },
-            SrtBlock {
-                index: 2,
-                text: "Second.".to_string(),
-                start_ms: 1500,
-                end_ms: 3000,
-            },
+            SrtBlock { index: 1, text: "First.".to_string(), start_ms: 0, end_ms: 1000 },
+            SrtBlock { index: 2, text: "Second.".to_string(), start_ms: 1500, end_ms: 3000 },
         ]);
         let xml = srt_file_to_eaf_xml(&file);
 
@@ -178,18 +165,8 @@ mod tests {
     #[test]
     fn test_round_trip_via_elan_parser() {
         let file = make_srt_file(vec![
-            SrtBlock {
-                index: 1,
-                text: "Hello world.".to_string(),
-                start_ms: 0,
-                end_ms: 1500,
-            },
-            SrtBlock {
-                index: 2,
-                text: "Goodbye.".to_string(),
-                start_ms: 2000,
-                end_ms: 3500,
-            },
+            SrtBlock { index: 1, text: "Hello world.".to_string(), start_ms: 0, end_ms: 1500 },
+            SrtBlock { index: 2, text: "Goodbye.".to_string(), start_ms: 2000, end_ms: 3500 },
         ]);
         let xml = srt_file_to_eaf_xml(&file);
 

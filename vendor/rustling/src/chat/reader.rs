@@ -253,10 +253,7 @@ fn get_all_events(lines: &[String], start_idx: usize) -> Vec<EventOrTierGroup> {
             // Parse *CODE:\t content  or  *CODE: content
             if let Some(colon_pos) = line.find(':') {
                 let participant = line[1..colon_pos].to_string();
-                let content = line[colon_pos + 1..]
-                    .trim_start_matches('\t')
-                    .trim()
-                    .to_string();
+                let content = line[colon_pos + 1..].trim_start_matches('\t').trim().to_string();
                 current = Some(TierGroup {
                     participant,
                     main_tier: content,
@@ -268,10 +265,7 @@ fn get_all_events(lines: &[String], start_idx: usize) -> Vec<EventOrTierGroup> {
             && let Some(colon_pos) = line.find(':')
         {
             let tier_name = line[..colon_pos].to_string();
-            let content = line[colon_pos + 1..]
-                .trim_start_matches('\t')
-                .trim()
-                .to_string();
+            let content = line[colon_pos + 1..].trim_start_matches('\t').trim().to_string();
             group.dependent_tiers.insert(tier_name, content);
         }
     }
@@ -284,10 +278,7 @@ fn get_all_events(lines: &[String], start_idx: usize) -> Vec<EventOrTierGroup> {
 /// Split a POS|morphology item at the first pipe.
 fn split_pos_mor(item: &str) -> (String, String) {
     if let Some(pipe_pos) = item.find('|') {
-        (
-            item[..pipe_pos].to_string(),
-            item[pipe_pos + 1..].to_string(),
-        )
+        (item[..pipe_pos].to_string(), item[pipe_pos + 1..].to_string())
     } else {
         // Punctuation items (like ".") have no pipe.
         (String::new(), item.to_string())
@@ -312,11 +303,7 @@ fn parse_mor_tier(mor_str: &str) -> Vec<MorItem> {
             for (dollar_idx, dollar_part) in dollar_parts.iter().enumerate() {
                 let (pos, mor) = split_pos_mor(dollar_part);
                 let is_clitic = tilde_idx > 0 || dollar_idx < dollar_parts.len() - 1;
-                items.push(MorItem {
-                    pos,
-                    mor,
-                    is_clitic,
-                });
+                items.push(MorItem { pos, mor, is_clitic });
             }
         }
     }
@@ -332,11 +319,7 @@ fn parse_mor_tier(mor_str: &str) -> Vec<MorItem> {
         if matches!(final_byte, b'.' | b'?' | b'!') {
             let punct = last.mor[last.mor.len() - 1..].to_string();
             last.mor.truncate(last.mor.len() - 1);
-            items.push(MorItem {
-                pos: String::new(),
-                mor: punct,
-                is_clitic: false,
-            });
+            items.push(MorItem { pos: String::new(), mor: punct, is_clitic: false });
         }
     }
 
@@ -380,12 +363,7 @@ fn build_tokens(
         return (
             words
                 .iter()
-                .map(|w| Token {
-                    word: w.to_string(),
-                    pos: None,
-                    mor: None,
-                    gra: None,
-                })
+                .map(|w| Token { word: w.to_string(), pos: None, mor: None, gra: None })
                 .collect(),
             None,
         );
@@ -431,11 +409,7 @@ fn build_tokens(
             });
         } else {
             // Regular word.
-            let word = if word_idx < words.len() {
-                words[word_idx]
-            } else {
-                ""
-            };
+            let word = if word_idx < words.len() { words[word_idx] } else { "" };
             let gra = gra_items.and_then(|g| g.get(mor_idx)).cloned();
             tokens.push(Token {
                 word: word.to_string(),
@@ -484,17 +458,12 @@ fn parse_chat_str(
             .map(|tg| build_utterance(tg, mor_tier, gra_tier))
             .collect()
     } else {
-        tier_groups
-            .iter()
-            .map(|tg| build_utterance(tg, mor_tier, gra_tier))
-            .collect()
+        tier_groups.iter().map(|tg| build_utterance(tg, mor_tier, gra_tier)).collect()
     };
 
     #[cfg(not(feature = "parallel"))]
-    let results: Vec<(Utterance, Option<MisalignmentInfo>)> = tier_groups
-        .iter()
-        .map(|tg| build_utterance(tg, mor_tier, gra_tier))
-        .collect();
+    let results: Vec<(Utterance, Option<MisalignmentInfo>)> =
+        tier_groups.iter().map(|tg| build_utterance(tg, mor_tier, gra_tier)).collect();
 
     // Split results into utterances and misalignment info.
     let mut utterances = Vec::with_capacity(results.len());
@@ -545,13 +514,11 @@ fn build_utterance(
     gra_tier: Option<&str>,
 ) -> (Utterance, Option<MisalignmentInfo>) {
     // Extract time marks.
-    let time_marks = TIME_MARKS_REGEX
-        .captures(&group.main_tier)
-        .and_then(|caps| {
-            let start: i64 = caps.get(1)?.as_str().parse().ok()?;
-            let end: i64 = caps.get(2)?.as_str().parse().ok()?;
-            Some((start, end))
-        });
+    let time_marks = TIME_MARKS_REGEX.captures(&group.main_tier).and_then(|caps| {
+        let start: i64 = caps.get(1)?.as_str().parse().ok()?;
+        let end: i64 = caps.get(2)?.as_str().parse().ok()?;
+        Some((start, end))
+    });
 
     // Clean the utterance text.
     let cleaned = clean_utterance(&group.main_tier);
@@ -638,18 +605,15 @@ pub(crate) fn filter_chat_file_by_participants(
         if u.changeable_header.is_some() {
             false
         } else {
-            patterns.iter().any(|re| {
-                re.is_match(u.participant.as_deref().unwrap_or(""))
-                    .unwrap_or(false)
-            })
+            patterns
+                .iter()
+                .any(|re| re.is_match(u.participant.as_deref().unwrap_or("")).unwrap_or(false))
         }
     });
 
-    file.headers.participants.retain(|p| {
-        patterns
-            .iter()
-            .any(|re| re.is_match(&p.code).unwrap_or(false))
-    });
+    file.headers
+        .participants
+        .retain(|p| patterns.iter().any(|re| re.is_match(&p.code).unwrap_or(false)));
 
     // Reset cached Python objects (stale after filtering).
     file.reset_caches();
@@ -672,27 +636,19 @@ pub(crate) fn parse_chat_strs(
         for m in &mut mis {
             m.file_path = id.to_string();
         }
-        (
-            ChatFile::new(id.to_string(), headers, events, raw_lines),
-            mis,
-        )
+        (ChatFile::new(id.to_string(), headers, events, raw_lines), mis)
     };
 
     #[cfg(feature = "parallel")]
     if parallel {
-        let results: Vec<(ChatFile, Vec<MisalignmentInfo>)> = pairs
-            .par_iter()
-            .with_min_len(16)
-            .map(|(content, id)| build(content, id))
-            .collect();
+        let results: Vec<(ChatFile, Vec<MisalignmentInfo>)> =
+            pairs.par_iter().with_min_len(16).map(|(content, id)| build(content, id)).collect();
         let (files, nested): (Vec<_>, Vec<_>) = results.into_iter().unzip();
         return (files, nested.into_iter().flatten().collect());
     }
 
-    let results: Vec<(ChatFile, Vec<MisalignmentInfo>)> = pairs
-        .iter()
-        .map(|(content, id)| build(content, id))
-        .collect();
+    let results: Vec<(ChatFile, Vec<MisalignmentInfo>)> =
+        pairs.iter().map(|(content, id)| build(content, id)).collect();
     let (files, nested): (Vec<_>, Vec<_>) = results.into_iter().unzip();
     (files, nested.into_iter().flatten().collect())
 }
@@ -713,10 +669,7 @@ pub(crate) fn load_chat_files(
         for m in &mut mis {
             m.file_path = path.to_string();
         }
-        Ok((
-            ChatFile::new(path.to_string(), headers, events, raw_lines),
-            mis,
-        ))
+        Ok((ChatFile::new(path.to_string(), headers, events, raw_lines), mis))
     };
 
     #[cfg(feature = "parallel")]
@@ -730,10 +683,8 @@ pub(crate) fn load_chat_files(
         return Ok((files, nested.into_iter().flatten().collect()));
     }
 
-    let results: Vec<(ChatFile, Vec<MisalignmentInfo>)> = paths
-        .iter()
-        .map(|path| build(path))
-        .collect::<Result<Vec<_>, _>>()?;
+    let results: Vec<(ChatFile, Vec<MisalignmentInfo>)> =
+        paths.iter().map(|path| build(path)).collect::<Result<Vec<_>, _>>()?;
     let (files, nested): (Vec<_>, Vec<_>) = results.into_iter().unzip();
     Ok((files, nested.into_iter().flatten().collect()))
 }
@@ -808,12 +759,8 @@ pub trait BaseChat: Sized {
             raw_lines.extend(utt.to_chat_lines());
             events.push(utt.to_utterance());
         }
-        let file = ChatFile::new(
-            uuid::Uuid::new_v4().to_string(),
-            Headers::default(),
-            events,
-            raw_lines,
-        );
+        let file =
+            ChatFile::new(uuid::Uuid::new_v4().to_string(), Headers::default(), events, raw_lines);
         Self::from_files(VecDeque::from(vec![file]))
     }
 
@@ -846,21 +793,14 @@ pub trait BaseChat: Sized {
         self.files()
             .iter()
             .map(|f| {
-                f.headers
-                    .participants
-                    .iter()
-                    .find(|p| p.code == "CHI")
-                    .and_then(|p| p.age.clone())
+                f.headers.participants.iter().find(|p| p.code == "CHI").and_then(|p| p.age.clone())
             })
             .collect()
     }
 
     /// Return participants per file.
     fn participants(&self) -> Vec<Vec<Participant>> {
-        self.files()
-            .iter()
-            .map(|f| f.headers.participants.clone())
-            .collect()
+        self.files().iter().map(|f| f.headers.participants.clone()).collect()
     }
 
     /// Return unique participants across all files.
@@ -875,10 +815,7 @@ pub trait BaseChat: Sized {
 
     /// Return languages per file.
     fn languages(&self) -> Vec<Vec<String>> {
-        self.files()
-            .iter()
-            .map(|f| f.headers.languages.clone())
-            .collect()
+        self.files().iter().map(|f| f.headers.languages.clone()).collect()
     }
 
     /// Return unique languages across all files.
@@ -925,9 +862,7 @@ pub trait BaseChat: Sized {
         }
 
         // Fallback: numbered.
-        (0..self.files().len())
-            .map(|i| format!("{:04}{target_ext}", i + 1))
-            .collect()
+        (0..self.files().len()).map(|i| format!("{:04}{target_ext}", i + 1)).collect()
     }
 
     /// Return CHAT data strings, one per file.
@@ -937,10 +872,7 @@ pub trait BaseChat: Sized {
 
     /// Return EAF XML strings (one per file) for ELAN export.
     fn to_elan_strings(&self) -> Vec<String> {
-        self.files()
-            .iter()
-            .map(super::elan_writer::chat_file_to_eaf_xml)
-            .collect()
+        self.files().iter().map(super::elan_writer::chat_file_to_eaf_xml).collect()
     }
 
     /// Convert to an [`Elan`] object.
@@ -1097,10 +1029,7 @@ pub trait BaseChat: Sized {
 
     /// Return CoNLL-U format strings (one per file) for CoNLL-U export.
     fn to_conllu_strings(&self) -> Vec<String> {
-        self.files()
-            .iter()
-            .map(super::conllu_writer::chat_file_to_conllu_str)
-            .collect()
+        self.files().iter().map(super::conllu_writer::chat_file_to_conllu_str).collect()
     }
 
     /// Convert to a [`Conllu`](crate::conllu::Conllu) object.
@@ -1265,11 +1194,8 @@ pub trait BaseChat: Sized {
     /// Return a formatted info string.
     fn info_string(&self, verbose: bool) -> String {
         let n_files = self.files().len();
-        let total_utterances: usize = self
-            .files()
-            .iter()
-            .map(|f| f.real_utterances().count())
-            .sum();
+        let total_utterances: usize =
+            self.files().iter().map(|f| f.real_utterances().count()).sum();
         let total_words: usize = self
             .files()
             .iter()
@@ -1411,11 +1337,7 @@ pub trait BaseChat: Sized {
                     .filter(|t| !t.word.is_empty() && t.pos.as_deref() != Some(""))
                     .map(|t| t.word.as_str())
                     .collect();
-                let words = if let Some(n) = n {
-                    &words[..words.len().min(n)]
-                } else {
-                    &words[..]
-                };
+                let words = if let Some(n) = n { &words[..words.len().min(n)] } else { &words[..] };
                 if words.is_empty() {
                     0.0
                 } else {
@@ -1441,13 +1363,8 @@ pub trait BaseChat: Sized {
 
     /// Return the first n utterances.
     fn head(&self, n: usize) -> Utterances {
-        let utterances: Vec<Utterance> = self
-            .files()
-            .iter()
-            .flat_map(|f| f.utterances())
-            .take(n)
-            .cloned()
-            .collect();
+        let utterances: Vec<Utterance> =
+            self.files().iter().flat_map(|f| f.utterances()).take(n).cloned().collect();
         Utterances::new(utterances)
     }
 
@@ -1487,9 +1404,7 @@ impl BaseChat for Chat {
 impl Chat {
     /// Construct from a Vec of [`ChatFile`] entries.
     pub fn from_chat_files(files: Vec<ChatFile>) -> Self {
-        Self {
-            files: VecDeque::from(files),
-        }
+        Self { files: VecDeque::from(files) }
     }
 
     /// Append data from another Chat.
@@ -1506,16 +1421,12 @@ impl Chat {
 
     /// Remove and return the last file as a new Chat.
     pub fn pop_back(&mut self) -> Option<Chat> {
-        self.files
-            .pop_back()
-            .map(|f| Chat::from_files(VecDeque::from(vec![f])))
+        self.files.pop_back().map(|f| Chat::from_files(VecDeque::from(vec![f])))
     }
 
     /// Remove and return the first file as a new Chat.
     pub fn pop_front(&mut self) -> Option<Chat> {
-        self.files
-            .pop_front()
-            .map(|f| Chat::from_files(VecDeque::from(vec![f])))
+        self.files.pop_front().map(|f| Chat::from_files(VecDeque::from(vec![f])))
     }
 
     /// Parse CHAT data from in-memory strings.
@@ -1533,11 +1444,8 @@ impl Chat {
         mor_tier: Option<&str>,
         gra_tier: Option<&str>,
     ) -> (Self, Vec<MisalignmentInfo>) {
-        let ids = ids.unwrap_or_else(|| {
-            strs.iter()
-                .map(|_| uuid::Uuid::new_v4().to_string())
-                .collect()
-        });
+        let ids =
+            ids.unwrap_or_else(|| strs.iter().map(|_| uuid::Uuid::new_v4().to_string()).collect());
         assert_eq!(
             strs.len(),
             ids.len(),
@@ -1576,10 +1484,7 @@ impl Chat {
         gra_tier: Option<&str>,
     ) -> Result<(Self, Vec<MisalignmentInfo>), ChatError> {
         let mut paths: Vec<String> = Vec::new();
-        for entry in walkdir::WalkDir::new(path)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
+        for entry in walkdir::WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
             if entry.file_type().is_file() {
                 let file_path = entry.path().to_string_lossy().to_string();
                 if file_path.ends_with(extension) {
@@ -1615,11 +1520,7 @@ impl Chat {
             .filter_map(|i| {
                 let entry = archive.by_index(i).ok()?;
                 let name = entry.name().to_string();
-                if name.ends_with(extension) && !entry.is_dir() {
-                    Some(name)
-                } else {
-                    None
-                }
+                if name.ends_with(extension) && !entry.is_dir() { Some(name) } else { None }
             })
             .collect();
         entry_names.sort();
@@ -1661,14 +1562,7 @@ impl Chat {
     ) -> Result<(Self, Vec<MisalignmentInfo>), ChatError> {
         let local_path = crate::sources::resolve_git(url, rev, depth, cache_dir, force_download)?;
         let path = local_path.to_string_lossy();
-        Self::read_dir(
-            &path,
-            match_pattern,
-            extension,
-            parallel,
-            mor_tier,
-            gra_tier,
-        )
+        Self::read_dir(&path, match_pattern, extension, parallel, mor_tier, gra_tier)
     }
 
     /// Load CHAT data from a URL.
@@ -1689,23 +1583,10 @@ impl Chat {
         let (local_path, is_zip) = crate::sources::resolve_url(url, cache_dir, force_download)?;
         let path = local_path.to_string_lossy();
         if is_zip {
-            Self::read_zip(
-                &path,
-                match_pattern,
-                extension,
-                parallel,
-                mor_tier,
-                gra_tier,
-            )
+            Self::read_zip(&path, match_pattern, extension, parallel, mor_tier, gra_tier)
         } else {
             let content = std::fs::read_to_string(local_path)?;
-            Ok(Self::from_strs(
-                vec![content],
-                None,
-                parallel,
-                mor_tier,
-                gra_tier,
-            ))
+            Ok(Self::from_strs(vec![content], None, parallel, mor_tier, gra_tier))
         }
     }
 }
@@ -1752,10 +1633,8 @@ mod tests {
     fn test_parse_chat_str_leading_whitespace() {
         let input = "  @UTF8\n  @Begin\n  @Participants:\tCHI Child, MOT Mother\n  *CHI:\tI want cookie .\n  %mor:\tpro|I v|want n|cookie .\n  %gra:\t1|2|SUBJ 2|0|ROOT 3|2|OBJ 4|2|PUNCT\n  @End\n";
         let (_, events, _, _) = parse_chat_str(input, true, DEFAULT_MOR, DEFAULT_GRA);
-        let utterances: Vec<&Utterance> = events
-            .iter()
-            .filter(|u| u.changeable_header.is_none())
-            .collect();
+        let utterances: Vec<&Utterance> =
+            events.iter().filter(|u| u.changeable_header.is_none()).collect();
         assert_eq!(utterances.len(), 1);
         assert_eq!(utterances[0].participant.as_deref(), Some("CHI"));
         let tokens = utterances[0].tokens.as_ref().unwrap();
@@ -1893,10 +1772,8 @@ mod tests {
     #[test]
     fn test_parse_chat_str_basic() {
         let (_, events, _, _) = parse_chat_str(make_basic_chat(), true, DEFAULT_MOR, DEFAULT_GRA);
-        let utterances: Vec<&Utterance> = events
-            .iter()
-            .filter(|u| u.changeable_header.is_none())
-            .collect();
+        let utterances: Vec<&Utterance> =
+            events.iter().filter(|u| u.changeable_header.is_none()).collect();
         assert_eq!(utterances.len(), 2);
         assert_eq!(utterances[0].participant.as_deref(), Some("CHI"));
         let tokens0 = utterances[0].tokens.as_ref().unwrap();
@@ -1916,10 +1793,8 @@ mod tests {
                      @End\n";
         let (_, events, _, misalignments) = parse_chat_str(input, false, DEFAULT_MOR, DEFAULT_GRA);
         assert!(misalignments.is_empty());
-        let utterances: Vec<&Utterance> = events
-            .iter()
-            .filter(|u| u.changeable_header.is_none())
-            .collect();
+        let utterances: Vec<&Utterance> =
+            events.iter().filter(|u| u.changeable_header.is_none()).collect();
         assert_eq!(utterances.len(), 1);
         let tokens = utterances[0].tokens.as_ref().unwrap();
         assert_eq!(tokens.len(), 6); // she, said, I, want, cookies, .
@@ -1935,10 +1810,8 @@ mod tests {
     fn test_parse_chat_str_time_marks() {
         let input = "@UTF8\n@Begin\n*CHI:\thello . \x15123_456\x15\n@End\n";
         let (_, events, _, _) = parse_chat_str(input, true, DEFAULT_MOR, DEFAULT_GRA);
-        let utterances: Vec<&Utterance> = events
-            .iter()
-            .filter(|u| u.changeable_header.is_none())
-            .collect();
+        let utterances: Vec<&Utterance> =
+            events.iter().filter(|u| u.changeable_header.is_none()).collect();
         assert_eq!(utterances.len(), 1);
         assert_eq!(utterances[0].time_marks, Some((123, 456)));
     }
@@ -1947,10 +1820,8 @@ mod tests {
     fn test_parse_chat_str_no_mor() {
         let input = "@UTF8\n@Begin\n*CHI:\thello world .\n@End\n";
         let (_, events, _, _) = parse_chat_str(input, true, DEFAULT_MOR, DEFAULT_GRA);
-        let utterances: Vec<&Utterance> = events
-            .iter()
-            .filter(|u| u.changeable_header.is_none())
-            .collect();
+        let utterances: Vec<&Utterance> =
+            events.iter().filter(|u| u.changeable_header.is_none()).collect();
         assert_eq!(utterances.len(), 1);
         let tokens0 = utterances[0].tokens.as_ref().unwrap();
         assert_eq!(tokens0.len(), 3);
@@ -2019,11 +1890,8 @@ mod tests {
 
     #[test]
     fn test_filter_file_paths() {
-        let paths = vec![
-            "a/action.cha".to_string(),
-            "a/codes.cha".to_string(),
-            "a/phono.cha".to_string(),
-        ];
+        let paths =
+            vec!["a/action.cha".to_string(), "a/codes.cha".to_string(), "a/phono.cha".to_string()];
         let filtered = filter_file_paths(&paths, Some("action")).unwrap();
         assert_eq!(filtered, vec!["a/action.cha"]);
 
@@ -2058,10 +1926,8 @@ mod tests {
     #[test]
     fn test_tiers_in_utterance() {
         let (_, events, _, _) = parse_chat_str(make_basic_chat(), true, DEFAULT_MOR, DEFAULT_GRA);
-        let utterances: Vec<&Utterance> = events
-            .iter()
-            .filter(|u| u.changeable_header.is_none())
-            .collect();
+        let utterances: Vec<&Utterance> =
+            events.iter().filter(|u| u.changeable_header.is_none()).collect();
         let tiers = utterances[0].tiers.as_ref().unwrap();
         assert!(tiers.contains_key("CHI"));
         assert!(tiers.contains_key("%mor"));
@@ -2103,9 +1969,7 @@ mod tests {
     }
 
     fn make_chat(files: Vec<ChatFile>) -> Chat {
-        Chat {
-            files: VecDeque::from(files),
-        }
+        Chat { files: VecDeque::from(files) }
     }
 
     #[test]
@@ -2248,11 +2112,8 @@ mod tests {
             DEFAULT_MOR,
             DEFAULT_GRA,
         );
-        let utts: Vec<Utterance> = original
-            .files
-            .iter()
-            .flat_map(|f| f.utterances().cloned())
-            .collect();
+        let utts: Vec<Utterance> =
+            original.files.iter().flat_map(|f| f.utterances().cloned()).collect();
         let rebuilt = Chat::from_utterances(utts);
         let serialized = rebuilt.to_strings();
         assert_eq!(serialized.len(), 1);
@@ -2430,11 +2291,7 @@ mod tests {
 
     /// Format an Utterances as text (same logic as __repr__, for testing).
     fn utterances_text(us: &Utterances) -> String {
-        us.utterances
-            .iter()
-            .map(|u| u.to_str())
-            .collect::<Vec<_>>()
-            .join("\n\n")
+        us.utterances.iter().map(|u| u.to_str()).collect::<Vec<_>>().join("\n\n")
     }
 
     #[test]
@@ -2539,11 +2396,7 @@ mod tests {
         assert!(misalignments.is_empty());
         assert_eq!(chat.num_files(), 1);
         assert_eq!(chat.file_paths(), vec!["test-id"]);
-        let utts: Vec<&Utterance> = chat
-            .files()
-            .iter()
-            .flat_map(|f| f.real_utterances())
-            .collect();
+        let utts: Vec<&Utterance> = chat.files().iter().flat_map(|f| f.real_utterances()).collect();
         assert_eq!(utts.len(), 2);
         assert_eq!(utts[0].participant.as_deref(), Some("CHI"));
         assert_eq!(utts[1].participant.as_deref(), Some("MOT"));
@@ -2591,11 +2444,7 @@ mod tests {
         .unwrap();
         assert!(misalignments.is_empty());
         assert_eq!(chat.num_files(), 1);
-        let utts: Vec<&Utterance> = chat
-            .files()
-            .iter()
-            .flat_map(|f| f.real_utterances())
-            .collect();
+        let utts: Vec<&Utterance> = chat.files().iter().flat_map(|f| f.real_utterances()).collect();
         assert_eq!(utts.len(), 2);
     }
 
@@ -2698,12 +2547,8 @@ mod tests {
 
     #[test]
     fn test_custom_tier_names_parsed() {
-        let (_, events, _, misalignments) = parse_chat_str(
-            make_chat_with_custom_tiers(),
-            true,
-            Some("%xmor"),
-            Some("%xgra"),
-        );
+        let (_, events, _, misalignments) =
+            parse_chat_str(make_chat_with_custom_tiers(), true, Some("%xmor"), Some("%xgra"));
         assert!(misalignments.is_empty());
         assert_eq!(events.len(), 1);
         let utt = &events[0];
@@ -2720,12 +2565,8 @@ mod tests {
     #[test]
     fn test_default_tiers_ignore_custom_tier_data() {
         // If data has %xmor but we look for %mor, no mor/gra should be parsed.
-        let (_, events, _, _) = parse_chat_str(
-            make_chat_with_custom_tiers(),
-            true,
-            DEFAULT_MOR,
-            DEFAULT_GRA,
-        );
+        let (_, events, _, _) =
+            parse_chat_str(make_chat_with_custom_tiers(), true, DEFAULT_MOR, DEFAULT_GRA);
         let tokens = events[0].tokens.as_ref().unwrap();
         assert!(tokens[0].mor.is_none());
         assert!(tokens[0].gra.is_none());
@@ -2791,12 +2632,8 @@ mod tests {
 
     #[test]
     fn test_custom_tiers_to_chat_lines() {
-        let (_, events, _, _) = parse_chat_str(
-            make_chat_with_custom_tiers(),
-            true,
-            Some("%xmor"),
-            Some("%xgra"),
-        );
+        let (_, events, _, _) =
+            parse_chat_str(make_chat_with_custom_tiers(), true, Some("%xmor"), Some("%xgra"));
         let lines = events[0].to_chat_lines();
         let joined = lines.join("\n");
         // Serialized output should use %xmor and %xgra, not %mor/%gra

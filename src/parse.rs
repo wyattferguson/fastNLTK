@@ -159,7 +159,7 @@ pub struct EarleyChartParser;
 #[pymethods]
 impl EarleyChartParser {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 

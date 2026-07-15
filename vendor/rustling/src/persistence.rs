@@ -68,10 +68,7 @@ pub(crate) fn read_all_bytes<R: io::Read>(mut reader: R) -> io::Result<Vec<u8>> 
 /// [`VerifierOptions`]: flatbuffers::VerifierOptions
 /// [`VocabEntry`]: crate::hmm::generated::rustling::hmm_fbs::VocabEntry
 pub(crate) fn flatbuffers_verifier_opts() -> flatbuffers::VerifierOptions {
-    flatbuffers::VerifierOptions {
-        max_tables: 20_000_000,
-        ..Default::default()
-    }
+    flatbuffers::VerifierOptions { max_tables: 20_000_000, ..Default::default() }
 }
 
 /// Convert a [`PathBuf`] to a UTF-8 [`String`], or return a Python error.
@@ -100,9 +97,7 @@ pub fn save_zstd(path: &str, data: &[u8]) -> Result<(), ModelError> {
         .map_err(|e| ModelError::Io(format!("Failed to create file: {e}")))?;
     let mut encoder = zstd::Encoder::new(file, 19)
         .map_err(|e| ModelError::Io(format!("Failed to create zstd encoder: {e}")))?;
-    encoder
-        .write_all(data)
-        .map_err(|e| ModelError::Io(format!("Failed to write data: {e}")))?;
+    encoder.write_all(data).map_err(|e| ModelError::Io(format!("Failed to write data: {e}")))?;
     encoder
         .finish()
         .map_err(|e| ModelError::Io(format!("Failed to finish zstd compression: {e}")))?;

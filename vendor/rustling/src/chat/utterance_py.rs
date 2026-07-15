@@ -34,10 +34,7 @@ impl Gra {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "Gra(dep={}, head={}, rel='{}')",
-            self.dep, self.head, self.rel
-        )
+        format!("Gra(dep={}, head={}, rel='{}')", self.dep, self.head, self.rel)
     }
 
     fn __eq__(&self, other: &Gra) -> bool {
@@ -65,12 +62,7 @@ impl PyToken {
     #[new]
     #[pyo3(signature = (word, pos=None, mor=None, gra=None))]
     fn new(word: String, pos: Option<String>, mor: Option<String>, gra: Option<Gra>) -> Self {
-        Self(Token {
-            word,
-            pos,
-            mor,
-            gra,
-        })
+        Self(Token { word, pos, mor, gra })
     }
 
     #[getter]
@@ -163,10 +155,7 @@ impl PyUtterance {
 
     #[getter]
     fn tokens(&self) -> Option<Vec<PyToken>> {
-        self.0
-            .tokens
-            .as_ref()
-            .map(|ts| ts.iter().map(|t| PyToken(t.clone())).collect())
+        self.0.tokens.as_ref().map(|ts| ts.iter().map(|t| PyToken(t.clone())).collect())
     }
 
     #[getter]
@@ -244,12 +233,7 @@ pub struct PyUtterances(pub Utterances);
 #[pymethods]
 impl PyUtterances {
     fn __repr__(&self) -> String {
-        self.0
-            .utterances
-            .iter()
-            .map(|u| u.to_str())
-            .collect::<Vec<_>>()
-            .join("\n\n")
+        self.0.utterances.iter().map(|u| u.to_str()).collect::<Vec<_>>().join("\n\n")
     }
 
     fn __str__(&self) -> String {
@@ -257,12 +241,7 @@ impl PyUtterances {
     }
 
     fn _repr_html_(&self) -> String {
-        self.0
-            .utterances
-            .iter()
-            .map(|u| u.repr_html())
-            .collect::<Vec<_>>()
-            .join("\n")
+        self.0.utterances.iter().map(|u| u.repr_html()).collect::<Vec<_>>().join("\n")
     }
 
     fn __len__(&self) -> usize {
@@ -273,9 +252,7 @@ impl PyUtterances {
         let len = self.0.utterances.len() as isize;
         let idx = if index < 0 { len + index } else { index };
         if idx < 0 || idx >= len {
-            return Err(pyo3::exceptions::PyIndexError::new_err(
-                "index out of range",
-            ));
+            return Err(pyo3::exceptions::PyIndexError::new_err("index out of range"));
         }
         Ok(PyUtterance(self.0.utterances[idx as usize].clone()))
     }
@@ -294,10 +271,7 @@ impl PyUtterances {
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> PyUtterancesIter {
-        PyUtterancesIter {
-            inner: slf.0.utterances.clone(),
-            index: 0,
-        }
+        PyUtterancesIter { inner: slf.0.utterances.clone(), index: 0 }
     }
 }
 

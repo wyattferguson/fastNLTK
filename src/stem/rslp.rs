@@ -7,7 +7,7 @@ pub struct RSLPStemmer;
 #[pymethods]
 impl RSLPStemmer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 

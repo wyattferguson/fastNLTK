@@ -137,11 +137,7 @@ impl PyTier {
     /// Annotations in this tier.
     #[getter]
     fn annotations(&self) -> Vec<PyAnnotation> {
-        self.0
-            .annotations
-            .iter()
-            .map(|a| PyAnnotation(a.clone()))
-            .collect()
+        self.0.annotations.iter().map(|a| PyAnnotation(a.clone())).collect()
     }
 
     fn __repr__(&self) -> String {
@@ -189,9 +185,7 @@ impl BaseElan for PyElan {
         self.inner.files_mut()
     }
     fn from_files(files: VecDeque<ElanFile>) -> Self {
-        Self {
-            inner: Elan::from_files(files),
-        }
+        Self { inner: Elan::from_files(files) }
     }
 }
 
@@ -229,10 +223,8 @@ impl PyElan {
     #[pyo3(name = "from_files")]
     #[pyo3(signature = (paths, *, parallel=true))]
     fn read_files(_cls: &Bound<'_, PyType>, paths: Vec<PathBuf>, parallel: bool) -> PyResult<Self> {
-        let paths: Vec<String> = paths
-            .into_iter()
-            .map(pathbuf_to_string)
-            .collect::<PyResult<_>>()?;
+        let paths: Vec<String> =
+            paths.into_iter().map(pathbuf_to_string).collect::<PyResult<_>>()?;
         let elan = Elan::read_files(&paths, parallel).map_err(elan_error_to_pyerr)?;
         Ok(Self { inner: elan })
     }
@@ -370,9 +362,7 @@ impl PyElan {
     #[pyo3(name = "to_chat")]
     #[pyo3(signature = (*, participants=None))]
     fn py_to_chat(&self, participants: Option<Vec<String>>) -> crate::chat::PyChat {
-        crate::chat::PyChat {
-            inner: self.to_chat_obj(participants.as_deref()),
-        }
+        crate::chat::PyChat { inner: self.to_chat_obj(participants.as_deref()) }
     }
 
     /// Write CHAT (.cha) files to a directory.
@@ -385,11 +375,10 @@ impl PyElan {
         filenames: Option<Vec<String>>,
     ) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_chat_files(&dir_path, participants.as_deref(), filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_chat_files(&dir_path, participants.as_deref(), filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Write ELAN (.eaf) files to a directory.
@@ -414,9 +403,7 @@ impl PyElan {
     #[pyo3(name = "to_srt")]
     #[pyo3(signature = (*, participants=None))]
     fn py_to_srt(&self, participants: Option<Vec<String>>) -> crate::srt::PySrt {
-        crate::srt::PySrt {
-            inner: self.to_srt(participants.as_deref()),
-        }
+        crate::srt::PySrt { inner: self.to_srt(participants.as_deref()) }
     }
 
     /// Write SRT (.srt) files to a directory.
@@ -429,11 +416,10 @@ impl PyElan {
         filenames: Option<Vec<String>>,
     ) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_srt_files(&dir_path, participants.as_deref(), filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_srt_files(&dir_path, participants.as_deref(), filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Return TextGrid format strings, one per file.
@@ -445,9 +431,7 @@ impl PyElan {
     /// Convert to a TextGrid object.
     #[pyo3(name = "to_textgrid")]
     fn py_to_textgrid(&self) -> crate::textgrid::PyTextGrid {
-        crate::textgrid::PyTextGrid {
-            inner: self.to_textgrid(),
-        }
+        crate::textgrid::PyTextGrid { inner: self.to_textgrid() }
     }
 
     /// Write TextGrid (.TextGrid) files to a directory.
@@ -455,11 +439,10 @@ impl PyElan {
     #[pyo3(signature = (dir_path, /, *, filenames=None))]
     fn write_textgrid(&self, dir_path: PathBuf, filenames: Option<Vec<String>>) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_textgrid_files(&dir_path, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_textgrid_files(&dir_path, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     // -----------------------------------------------------------------------
@@ -491,9 +474,7 @@ impl PyElan {
     fn pop_back(&mut self) -> PyResult<PyElan> {
         match self.files_mut().pop_back() {
             Some(file) => Ok(Self::from_files(VecDeque::from(vec![file]))),
-            None => Err(pyo3::exceptions::PyIndexError::new_err(
-                "pop from an empty ELAN reader",
-            )),
+            None => Err(pyo3::exceptions::PyIndexError::new_err("pop from an empty ELAN reader")),
         }
     }
 
@@ -502,9 +483,7 @@ impl PyElan {
     fn pop_front(&mut self) -> PyResult<PyElan> {
         match self.files_mut().pop_front() {
             Some(file) => Ok(Self::from_files(VecDeque::from(vec![file]))),
-            None => Err(pyo3::exceptions::PyIndexError::new_err(
-                "pop from an empty ELAN reader",
-            )),
+            None => Err(pyo3::exceptions::PyIndexError::new_err("pop from an empty ELAN reader")),
         }
     }
 
@@ -525,10 +504,7 @@ impl PyElan {
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> ElanIter {
-        ElanIter {
-            inner: slf.files().clone(),
-            index: 0,
-        }
+        ElanIter { inner: slf.files().clone(), index: 0 }
     }
 
     fn __getitem__(&self, index: &Bound<'_, PyAny>) -> PyResult<PyElan> {
@@ -536,13 +512,9 @@ impl PyElan {
             let len = self.files().len() as isize;
             let idx = if i < 0 { len + i } else { i };
             if idx < 0 || idx >= len {
-                return Err(pyo3::exceptions::PyIndexError::new_err(
-                    "index out of range",
-                ));
+                return Err(pyo3::exceptions::PyIndexError::new_err("index out of range"));
             }
-            return Ok(Self::from_files(VecDeque::from(vec![
-                self.files()[idx as usize].clone(),
-            ])));
+            return Ok(Self::from_files(VecDeque::from(vec![self.files()[idx as usize].clone()])));
         }
         if let Ok(slice) = index.cast::<PySlice>() {
             let indices = slice.indices(self.files().len() as isize)?;
@@ -554,9 +526,7 @@ impl PyElan {
             }
             return Ok(Self::from_files(result));
         }
-        Err(pyo3::exceptions::PyTypeError::new_err(
-            "indices must be integers or slices",
-        ))
+        Err(pyo3::exceptions::PyTypeError::new_err("indices must be integers or slices"))
     }
 
     fn __bool__(&self) -> bool {
@@ -619,9 +589,7 @@ impl ElanIter {
         if self.index < self.inner.len() {
             let file = self.inner[self.index].clone();
             self.index += 1;
-            Some(PyElan {
-                inner: Elan::from_files(VecDeque::from(vec![file])),
-            })
+            Some(PyElan { inner: Elan::from_files(VecDeque::from(vec![file])) })
         } else {
             None
         }

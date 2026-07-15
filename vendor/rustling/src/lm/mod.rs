@@ -94,11 +94,7 @@ impl Vocabulary {
 
     /// Look up a word: return it if known, otherwise return `<UNK>`.
     pub fn lookup(&self, word: &str) -> String {
-        if self.words.contains(word) {
-            word.to_string()
-        } else {
-            UNK_LABEL.to_string()
-        }
+        if self.words.contains(word) { word.to_string() } else { UNK_LABEL.to_string() }
     }
 
     /// Number of unique words in the vocabulary (including special tokens).
@@ -204,11 +200,7 @@ pub trait BaseLanguageModel: Sized + Clone {
                 let vocab_size = self.vocabulary().len() as f64;
                 let numerator = word_count + gamma;
                 let denominator = context_count + vocab_size * gamma;
-                if denominator == 0.0 {
-                    0.0
-                } else {
-                    numerator / denominator
-                }
+                if denominator == 0.0 { 0.0 } else { numerator / denominator }
             }
         }
     }
@@ -216,16 +208,11 @@ pub trait BaseLanguageModel: Sized + Clone {
     /// Return the probability of a word given a context.
     fn score(&self, word: String, context: Option<Vec<String>>) -> Result<f64, ModelError> {
         if !self.fitted() {
-            return Err(ModelError::ValidationError(
-                "Model has not been fitted yet.".to_string(),
-            ));
+            return Err(ModelError::ValidationError("Model has not been fitted yet.".to_string()));
         }
         let word = self.vocabulary().lookup(&word);
-        let context: Vec<String> = context
-            .unwrap_or_default()
-            .iter()
-            .map(|w| self.vocabulary().lookup(w))
-            .collect();
+        let context: Vec<String> =
+            context.unwrap_or_default().iter().map(|w| self.vocabulary().lookup(w)).collect();
         Ok(self.compute_score(&word, &context))
     }
 
@@ -236,9 +223,7 @@ pub trait BaseLanguageModel: Sized + Clone {
         context: Option<Vec<String>>,
     ) -> Result<f64, ModelError> {
         if !self.fitted() {
-            return Err(ModelError::ValidationError(
-                "Model has not been fitted yet.".to_string(),
-            ));
+            return Err(ModelError::ValidationError("Model has not been fitted yet.".to_string()));
         }
         let context = context.unwrap_or_default();
         Ok(self.compute_score(&word, &context))
@@ -247,11 +232,7 @@ pub trait BaseLanguageModel: Sized + Clone {
     /// Return the log (base 2) probability of a word given a context.
     fn logscore(&self, word: String, context: Option<Vec<String>>) -> Result<f64, ModelError> {
         let s = self.score(word, context)?;
-        if s == 0.0 {
-            Ok(f64::NEG_INFINITY)
-        } else {
-            Ok(s.log2())
-        }
+        if s == 0.0 { Ok(f64::NEG_INFINITY) } else { Ok(s.log2()) }
     }
 
     // -----------------------------------------------------------------------
@@ -266,9 +247,7 @@ pub trait BaseLanguageModel: Sized + Clone {
         random_seed: Option<u64>,
     ) -> Result<Vec<String>, ModelError> {
         if !self.fitted() {
-            return Err(ModelError::ValidationError(
-                "Model has not been fitted yet.".to_string(),
-            ));
+            return Err(ModelError::ValidationError("Model has not been fitted yet.".to_string()));
         }
 
         let mut rng: Box<dyn rand::Rng> = match random_seed {
@@ -277,9 +256,7 @@ pub trait BaseLanguageModel: Sized + Clone {
         };
 
         let mut context: Vec<String> = text_seed.unwrap_or_else(|| {
-            (0..self.order().saturating_sub(1))
-                .map(|_| BOS_LABEL.to_string())
-                .collect()
+            (0..self.order().saturating_sub(1)).map(|_| BOS_LABEL.to_string()).collect()
         });
 
         let mut generated = Vec::with_capacity(num_words);
@@ -360,10 +337,7 @@ fn save_lm_flatbuffers<T: BaseLanguageModel, W: Write>(
     // vocabulary (sorted).
     let mut vocab_words: Vec<&String> = model.vocabulary().words().iter().collect();
     vocab_words.sort();
-    let vocab_strs: Vec<_> = vocab_words
-        .iter()
-        .map(|w| builder.create_string(w))
-        .collect();
+    let vocab_strs: Vec<_> = vocab_words.iter().map(|w| builder.create_string(w)).collect();
     let vocab_fb = builder.create_vector(&vocab_strs);
 
     // ngrams from CountTrie.
@@ -376,10 +350,7 @@ fn save_lm_flatbuffers<T: BaseLanguageModel, W: Write>(
             let ngram_fb = builder.create_vector(&ngram_strs);
             fbs::NgramEntry::create(
                 &mut builder,
-                &fbs::NgramEntryArgs {
-                    ngram: Some(ngram_fb),
-                    count: *count,
-                },
+                &fbs::NgramEntryArgs { ngram: Some(ngram_fb), count: *count },
             )
         })
         .collect();
@@ -452,8 +423,7 @@ fn load_lm_flatbuffers<T: BaseLanguageModel>(lm: &mut T, bytes: &[u8]) -> Result
     *lm.counts_mut() = CountTrie::new();
     for entry in model.ngrams().iter() {
         let ngram: Vec<String> = entry.ngram().iter().map(|s| s.to_owned()).collect();
-        lm.counts_mut()
-            .insert_count(ngram.into_iter(), entry.count());
+        lm.counts_mut().insert_count(ngram.into_iter(), entry.count());
     }
 
     lm.set_fitted(true);
@@ -516,9 +486,7 @@ impl MLE {
     /// * `order` - The order of the n-gram model (e.g., 2 for bigram). Must be >= 1.
     pub fn new(order: usize) -> Result<Self, ModelError> {
         if order < 1 {
-            return Err(ModelError::ValidationError(
-                "order must be >= 1".to_string(),
-            ));
+            return Err(ModelError::ValidationError("order must be >= 1".to_string()));
         }
         Ok(Self {
             order,
@@ -582,9 +550,7 @@ impl Lidstone {
     /// * `gamma` - The smoothing parameter. Must be > 0.
     pub fn new(order: usize, gamma: f64) -> Result<Self, ModelError> {
         if order < 1 {
-            return Err(ModelError::ValidationError(
-                "order must be >= 1".to_string(),
-            ));
+            return Err(ModelError::ValidationError("order must be >= 1".to_string()));
         }
         if gamma <= 0.0 {
             return Err(ModelError::ValidationError("gamma must be > 0".to_string()));
@@ -655,9 +621,7 @@ impl Laplace {
     /// * `order` - The order of the n-gram model (e.g., 2 for bigram). Must be >= 1.
     pub fn new(order: usize) -> Result<Self, ModelError> {
         if order < 1 {
-            return Err(ModelError::ValidationError(
-                "order must be >= 1".to_string(),
-            ));
+            return Err(ModelError::ValidationError("order must be >= 1".to_string()));
         }
         Ok(Self {
             order,
@@ -750,9 +714,7 @@ mod tests {
         model.fit(training_data());
 
         // "fish" is OOV, mapped to <UNK>. P(<UNK> | the) = 0
-        let score = model
-            .score("fish".into(), Some(vec!["the".into()]))
-            .unwrap();
+        let score = model.score("fish".into(), Some(vec!["the".into()])).unwrap();
         assert_eq!(score, 0.0);
     }
 
@@ -775,18 +737,12 @@ mod tests {
 
         // For in-vocabulary words, score and unmasked_score should be the same
         let s1 = model.score("cat".into(), Some(vec!["the".into()])).unwrap();
-        let s2 = model
-            .unmasked_score("cat".into(), Some(vec!["the".into()]))
-            .unwrap();
+        let s2 = model.unmasked_score("cat".into(), Some(vec!["the".into()])).unwrap();
         assert!((s1 - s2).abs() < 1e-9);
 
         // For OOV words, score maps to <UNK> but unmasked_score doesn't
-        let s1 = model
-            .score("fish".into(), Some(vec!["the".into()]))
-            .unwrap();
-        let s2 = model
-            .unmasked_score("fish".into(), Some(vec!["the".into()]))
-            .unwrap();
+        let s1 = model.score("fish".into(), Some(vec!["the".into()])).unwrap();
+        let s2 = model.unmasked_score("fish".into(), Some(vec!["the".into()])).unwrap();
         // Both are 0 in MLE (neither <UNK> nor "fish" follows "the")
         assert_eq!(s1, 0.0);
         assert_eq!(s2, 0.0);
@@ -798,9 +754,7 @@ mod tests {
         model.fit(training_data());
 
         // With Lidstone smoothing, unseen n-grams get nonzero probability
-        let score = model
-            .score("fish".into(), Some(vec!["the".into()]))
-            .unwrap();
+        let score = model.score("fish".into(), Some(vec!["the".into()])).unwrap();
         assert!(score > 0.0);
     }
 
@@ -846,9 +800,7 @@ mod tests {
         model.fit(training_data());
 
         let score = model.score("cat".into(), Some(vec!["the".into()])).unwrap();
-        let logscore = model
-            .logscore("cat".into(), Some(vec!["the".into()]))
-            .unwrap();
+        let logscore = model.logscore("cat".into(), Some(vec!["the".into()])).unwrap();
         assert!((logscore - score.log2()).abs() < 1e-9);
     }
 
@@ -857,9 +809,7 @@ mod tests {
         let mut model = MLE::new(2).unwrap();
         model.fit(training_data());
 
-        let logscore = model
-            .logscore("fish".into(), Some(vec!["the".into()]))
-            .unwrap();
+        let logscore = model.logscore("fish".into(), Some(vec!["the".into()])).unwrap();
         assert!(logscore.is_infinite() && logscore.is_sign_negative());
     }
 
@@ -893,9 +843,7 @@ mod tests {
         let mut model = MLE::new(2).unwrap();
         model.fit(training_data());
 
-        let result = model
-            .generate(2, Some(vec!["the".into()]), Some(42))
-            .unwrap();
+        let result = model.generate(2, Some(vec!["the".into()]), Some(42)).unwrap();
         assert!(!result.is_empty());
     }
 
@@ -914,9 +862,7 @@ mod tests {
 
         // These should give the same result since bigram only uses last 1 context word
         let s1 = model.score("cat".into(), Some(vec!["the".into()])).unwrap();
-        let s2 = model
-            .score("cat".into(), Some(vec!["blah".into(), "the".into()]))
-            .unwrap();
+        let s2 = model.score("cat".into(), Some(vec!["blah".into(), "the".into()])).unwrap();
         assert!((s1 - s2).abs() < 1e-9);
     }
 
@@ -939,9 +885,7 @@ mod tests {
 
         // Verify scores match
         let s1 = model.score("cat".into(), Some(vec!["the".into()])).unwrap();
-        let s2 = loaded
-            .score("cat".into(), Some(vec!["the".into()]))
-            .unwrap();
+        let s2 = loaded.score("cat".into(), Some(vec!["the".into()])).unwrap();
         assert!((s1 - s2).abs() < 1e-9);
     }
 
@@ -960,9 +904,7 @@ mod tests {
         loaded.load_from_path(path_str).unwrap();
 
         let s1 = model.score("cat".into(), Some(vec!["the".into()])).unwrap();
-        let s2 = loaded
-            .score("cat".into(), Some(vec!["the".into()]))
-            .unwrap();
+        let s2 = loaded.score("cat".into(), Some(vec!["the".into()])).unwrap();
         assert!((s1 - s2).abs() < 1e-9);
     }
 
@@ -981,9 +923,7 @@ mod tests {
         loaded.load_from_path(path_str).unwrap();
 
         let s1 = model.score("cat".into(), Some(vec!["the".into()])).unwrap();
-        let s2 = loaded
-            .score("cat".into(), Some(vec!["the".into()]))
-            .unwrap();
+        let s2 = loaded.score("cat".into(), Some(vec!["the".into()])).unwrap();
         assert!((s1 - s2).abs() < 1e-9);
     }
 

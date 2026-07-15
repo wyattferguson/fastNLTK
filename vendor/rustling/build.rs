@@ -41,11 +41,7 @@ fn main() {
                 .arg(&schema_path)
                 .status()
                 .expect("flatc invocation failed");
-            assert!(
-                status.success(),
-                "flatc failed for {}",
-                schema_path.display()
-            );
+            assert!(status.success(), "flatc failed for {}", schema_path.display());
         } else {
             // Fall back to pre-generated file committed in the repository.
             let fallback_path = manifest_dir.join(fallback_rel);

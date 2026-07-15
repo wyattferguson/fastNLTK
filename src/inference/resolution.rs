@@ -12,7 +12,7 @@ struct Clause {
 
 impl Clause {
     #[allow(dead_code)]
-    fn empty() -> Self {
+    const fn empty() -> Self {
         Self { literals: vec![] }
     }
     fn is_empty(&self) -> bool {
@@ -32,7 +32,7 @@ pub struct ResolutionProver {
 impl ResolutionProver {
     #[new]
     #[pyo3(signature = (max_iterations=1000))]
-    fn new(max_iterations: usize) -> Self {
+    const fn new(max_iterations: usize) -> Self {
         Self { max_iterations }
     }
 

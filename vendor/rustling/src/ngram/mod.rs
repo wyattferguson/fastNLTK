@@ -107,10 +107,7 @@ pub trait BaseNgrams: Sized + Clone {
         self.validate_order(order)?;
         let pairs = self.counts().all_counts();
         match order {
-            Some(k) => Ok(pairs
-                .into_iter()
-                .filter(|(ngram, _)| ngram.len() == k)
-                .collect()),
+            Some(k) => Ok(pairs.into_iter().filter(|(ngram, _)| ngram.len() == k).collect()),
             None => Ok(pairs),
         }
     }
@@ -143,23 +140,14 @@ pub trait BaseNgrams: Sized + Clone {
 
     /// Return all n-grams (without counts).
     fn all_ngrams(&self) -> Vec<Vec<String>> {
-        self.counts()
-            .all_counts()
-            .into_iter()
-            .map(|(ngram, _)| ngram)
-            .collect()
+        self.counts().all_counts().into_iter().map(|(ngram, _)| ngram).collect()
     }
 
     /// Return a string representation.
     fn repr_string(&self) -> String {
         let total: u64 = self.totals().iter().sum();
         if self.min_order() == self.order() {
-            format!(
-                "Ngrams(n={}, unique={}, total={})",
-                self.order(),
-                self.counts().len(),
-                total
-            )
+            format!("Ngrams(n={}, unique={}, total={})", self.order(), self.counts().len(), total)
         } else {
             format!(
                 "Ngrams(n={}, min_n={}, unique={}, total={})",
@@ -268,12 +256,7 @@ impl BaseNgrams for Ngrams {
         counts: CountTrie<String>,
         totals: Vec<u64>,
     ) -> Self {
-        Self {
-            order,
-            min_order,
-            counts,
-            totals,
-        }
+        Self { order, min_order, counts, totals }
     }
 }
 
@@ -290,22 +273,13 @@ impl Ngrams {
         }
         let min_order = min_n.unwrap_or(n);
         if min_order < 1 {
-            return Err(ModelError::ValidationError(
-                "min_n must be >= 1".to_string(),
-            ));
+            return Err(ModelError::ValidationError("min_n must be >= 1".to_string()));
         }
         if min_order > n {
-            return Err(ModelError::ValidationError(
-                "min_n must be <= n".to_string(),
-            ));
+            return Err(ModelError::ValidationError("min_n must be <= n".to_string()));
         }
         let num_orders = n - min_order + 1;
-        Ok(Self {
-            order: n,
-            min_order,
-            counts: CountTrie::new(),
-            totals: vec![0u64; num_orders],
-        })
+        Ok(Self { order: n, min_order, counts: CountTrie::new(), totals: vec![0u64; num_orders] })
     }
 }
 
@@ -375,13 +349,7 @@ mod tests {
     #[test]
     fn test_count_bigrams() {
         let mut counter = Ngrams::new(2, None).unwrap();
-        counter.count(vec![
-            "the".into(),
-            "cat".into(),
-            "sat".into(),
-            "the".into(),
-            "cat".into(),
-        ]);
+        counter.count(vec!["the".into(), "cat".into(), "sat".into(), "the".into(), "cat".into()]);
 
         assert_eq!(counter.get(vec!["the".into(), "cat".into()]), 2);
         assert_eq!(counter.get(vec!["cat".into(), "sat".into()]), 1);
@@ -401,10 +369,8 @@ mod tests {
     #[test]
     fn test_count_seqs() {
         let mut counter = Ngrams::new(1, None).unwrap();
-        counter.count_seqs(vec![
-            vec!["the".into(), "cat".into()],
-            vec!["the".into(), "dog".into()],
-        ]);
+        counter
+            .count_seqs(vec![vec!["the".into(), "cat".into()], vec!["the".into(), "dog".into()]]);
 
         assert_eq!(counter.get(vec!["the".into()]), 2);
         assert_eq!(counter.get(vec!["cat".into()]), 1);

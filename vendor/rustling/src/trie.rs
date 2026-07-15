@@ -62,10 +62,7 @@ pub struct TrieNode<K: Eq + Hash + Clone, V> {
 
 impl<K: Eq + Hash + Clone, V> Default for TrieNode<K, V> {
     fn default() -> Self {
-        Self {
-            children: HashMap::new(),
-            terminal: None,
-        }
+        Self { children: HashMap::new(), terminal: None }
     }
 }
 
@@ -115,10 +112,7 @@ impl<K: Eq + Hash + Clone, V> Default for Trie<K, V> {
 impl<K: Eq + Hash + Clone, V> Trie<K, V> {
     /// Create a new empty trie.
     pub fn new() -> Self {
-        Self {
-            root: TrieNode::new(),
-            len: 0,
-        }
+        Self { root: TrieNode::new(), len: 0 }
     }
 
     /// Insert a sequence with the given terminal value.
@@ -404,11 +398,7 @@ impl<K: Eq + Hash + Clone> CountTrie<K> {
         I: IntoIterator<Item = K>,
     {
         match self.inner.get_node(context) {
-            Some(node) => node
-                .children
-                .values()
-                .filter_map(|child| child.terminal)
-                .sum(),
+            Some(node) => node.children.values().filter_map(|child| child.terminal).sum(),
             None => 0,
         }
     }
@@ -640,10 +630,7 @@ mod tests {
     #[test]
     fn test_count_trie_get_count_missing() {
         let trie: CountTrie<String> = CountTrie::new();
-        assert_eq!(
-            trie.get_count(["the", "cat"].iter().map(|s| s.to_string())),
-            0
-        );
+        assert_eq!(trie.get_count(["the", "cat"].iter().map(|s| s.to_string())), 0);
     }
 
     #[test]
@@ -656,10 +643,7 @@ mod tests {
         trie.increment(["the", "dog"].iter().map(|s| s.to_string()));
 
         // Children of "the" should sum to 3
-        assert_eq!(
-            trie.children_count_sum(std::iter::once("the".to_string())),
-            3
-        );
+        assert_eq!(trie.children_count_sum(std::iter::once("the".to_string())), 3);
 
         // Children of root should sum to 0 (root's child "the" has no terminal,
         // because we never incremented just ["the"])

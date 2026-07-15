@@ -18,7 +18,7 @@ pub struct DiscourseThread {
 #[pymethods]
 impl DiscourseThread {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self { drss: Vec::new(), all_referents: Vec::new() }
     }
 

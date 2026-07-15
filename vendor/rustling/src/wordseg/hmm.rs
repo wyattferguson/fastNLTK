@@ -57,14 +57,10 @@ pub trait BaseHiddenMarkovModelSegmenter: Sized + Clone {
         }
 
         // Build sequences (chars as strings) and labels (BMES tags).
-        let mut sequences: Vec<Vec<String>> = filtered
-            .iter()
-            .map(|s| s.iter().map(|(c, _)| c.to_string()).collect())
-            .collect();
-        let mut labels: Vec<Vec<String>> = filtered
-            .iter()
-            .map(|s| s.iter().map(|(_, l)| l.to_string()).collect())
-            .collect();
+        let mut sequences: Vec<Vec<String>> =
+            filtered.iter().map(|s| s.iter().map(|(c, _)| c.to_string()).collect()).collect();
+        let mut labels: Vec<Vec<String>> =
+            filtered.iter().map(|s| s.iter().map(|(_, l)| l.to_string()).collect()).collect();
 
         // Ensure all 4 BMES labels are present so that fit_labeled always
         // discovers exactly N_STATES states with the correct alphabetical
@@ -124,18 +120,11 @@ pub trait BaseHiddenMarkovModelSegmenter: Sized + Clone {
     /// Returns one log-likelihood per sentence using the Forward algorithm.
     fn score(&self, sents: Vec<Vec<String>>) -> Result<Vec<f64>, ModelError> {
         if !self.hmm().fitted() {
-            return Err(ModelError::ValidationError(
-                "Model has not been fitted yet.".to_string(),
-            ));
+            return Err(ModelError::ValidationError("Model has not been fitted yet.".to_string()));
         }
         let sequences: Vec<Vec<String>> = sents
             .iter()
-            .map(|sent| {
-                sent.iter()
-                    .flat_map(|w| w.chars())
-                    .map(|c| c.to_string())
-                    .collect()
-            })
+            .map(|sent| sent.iter().flat_map(|w| w.chars()).map(|c| c.to_string()).collect())
             .collect();
         self.hmm().score(sequences)
     }
@@ -262,14 +251,7 @@ mod tests {
         vec![
             vec!["你好".into(), "世界".into()],
             vec!["我".into(), "喜歡".into(), "你".into()],
-            vec![
-                "他".into(),
-                "是".into(),
-                "一".into(),
-                "個".into(),
-                "好".into(),
-                "人".into(),
-            ],
+            vec!["他".into(), "是".into(), "一".into(), "個".into(), "好".into(), "人".into()],
         ]
     }
 
@@ -392,10 +374,7 @@ mod tests {
         s2.fit_segmented(data);
         s2.fit_unsegmented(unseg);
 
-        assert_eq!(
-            s1.predict(vec!["你好世界".into()]),
-            s2.predict(vec!["你好世界".into()])
-        );
+        assert_eq!(s1.predict(vec!["你好世界".into()]), s2.predict(vec!["你好世界".into()]));
     }
 
     #[test]
@@ -444,13 +423,9 @@ mod tests {
         let mut segmenter = HiddenMarkovModelSegmenter::new(None, None, None, None, None);
         segmenter.fit_segmented(training_data());
         // Training-data segmentation.
-        let good = segmenter
-            .score(vec![vec!["你好".into(), "世界".into()]])
-            .unwrap()[0];
+        let good = segmenter.score(vec![vec!["你好".into(), "世界".into()]]).unwrap()[0];
         // Arbitrary segmentation of the same characters.
-        let bad = segmenter
-            .score(vec![vec!["你".into(), "好世".into(), "界".into()]])
-            .unwrap()[0];
+        let bad = segmenter.score(vec![vec!["你".into(), "好世".into(), "界".into()]]).unwrap()[0];
         // Both should be finite (Forward algorithm sums over all state paths,
         // so the score depends on the character sequence, not the segmentation).
         assert!(good.is_finite());

@@ -35,7 +35,7 @@ pub struct LancasterStemmer;
 #[pymethods]
 impl LancasterStemmer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 

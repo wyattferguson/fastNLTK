@@ -11,7 +11,8 @@ from nltk.chunk import (
     conllstr2tree,
     conlltags2tree,
     tree2conllstr,
-    tree2conlltags,)
+    tree2conlltags,
+)
 
 from fastnltk._rust import RegexpParser as _RustRegexpParser
 
@@ -32,6 +33,7 @@ __all__ = [
 
 class RegexpParser:
     """Rust-accelerated RegexpParser for chunk grammar matching."""
+
     def __init__(self, grammar):
         self._impl = _RustRegexpParser(grammar)
 

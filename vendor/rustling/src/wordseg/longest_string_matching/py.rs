@@ -23,9 +23,7 @@ impl BaseLongestStringMatching for PyLongestStringMatching {
         self.inner.trie_mut()
     }
     fn from_parts(max_word_length: usize, trie: Trie<char, ()>) -> Self {
-        Self {
-            inner: LongestStringMatching::from_parts(max_word_length, trie),
-        }
+        Self { inner: LongestStringMatching::from_parts(max_word_length, trie) }
     }
 }
 
@@ -44,9 +42,7 @@ impl PyLongestStringMatching {
     #[new]
     #[pyo3(signature = (*, max_word_length))]
     fn new(max_word_length: usize) -> PyResult<Self> {
-        LongestStringMatching::new(max_word_length)
-            .map(|inner| Self { inner })
-            .map_err(PyErr::from)
+        LongestStringMatching::new(max_word_length).map(|inner| Self { inner }).map_err(PyErr::from)
     }
 
     /// Train the model with the input segmented sentences.

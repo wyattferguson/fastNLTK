@@ -20,7 +20,7 @@ pub struct TextTilingTokenizer {
 impl TextTilingTokenizer {
     #[new]
     #[pyo3(signature = (w=20, k=10, demo_mode=false))]
-    fn new(w: usize, k: usize, demo_mode: bool) -> Self {
+    const fn new(w: usize, k: usize, demo_mode: bool) -> Self {
         Self { w, k, demo_mode }
     }
 

@@ -17,10 +17,7 @@ pub trait BaseRandomSegmenter: Sized + Clone {
 
     /// Segment the given unsegmented sentences.
     fn predict(&self, sent_strs: Vec<String>) -> Vec<Vec<String>> {
-        sent_strs
-            .into_iter()
-            .map(|sent_str| self.predict_sent(&sent_str))
-            .collect()
+        sent_strs.into_iter().map(|sent_str| self.predict_sent(&sent_str)).collect()
     }
 
     /// Segment a single unsegmented sentence randomly.
@@ -36,9 +33,8 @@ pub trait BaseRandomSegmenter: Sized + Clone {
             return vec![];
         }
 
-        let segment_or_not: Vec<bool> = (0..chars.len().saturating_sub(1))
-            .map(|_| self.prob() > rng.random::<f64>())
-            .collect();
+        let segment_or_not: Vec<bool> =
+            (0..chars.len().saturating_sub(1)).map(|_| self.prob() > rng.random::<f64>()).collect();
 
         let boundaries: Vec<usize> = segment_or_not
             .iter()
@@ -100,10 +96,7 @@ impl RandomSegmenter {
     ///   two symbols.
     pub fn new(prob: f64) -> Result<Self, ModelError> {
         if !(0.0..1.0).contains(&prob) {
-            return Err(ModelError::ValidationError(format!(
-                "prob must be from [0, 1): {}",
-                prob
-            )));
+            return Err(ModelError::ValidationError(format!("prob must be from [0, 1): {}", prob)));
         }
         Ok(Self { prob })
     }

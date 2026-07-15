@@ -55,10 +55,7 @@ impl PyInterval {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "Interval(xmin={}, xmax={}, text={:?})",
-            self.0.xmin, self.0.xmax, self.0.text,
-        )
+        format!("Interval(xmin={}, xmax={}, text={:?})", self.0.xmin, self.0.xmax, self.0.text,)
     }
 
     fn __eq__(&self, other: &PyInterval) -> bool {
@@ -150,10 +147,7 @@ impl PyIntervalTier {
     /// Intervals in this tier.
     #[getter]
     fn intervals(&self) -> Vec<PyInterval> {
-        self.intervals
-            .iter()
-            .map(|i| PyInterval(i.clone()))
-            .collect()
+        self.intervals.iter().map(|i| PyInterval(i.clone())).collect()
     }
 
     /// Tier class: always ``"IntervalTier"``.
@@ -163,11 +157,7 @@ impl PyIntervalTier {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "IntervalTier(name={:?}, intervals={})",
-            self.name,
-            self.intervals.len(),
-        )
+        format!("IntervalTier(name={:?}, intervals={})", self.name, self.intervals.len(),)
     }
 
     fn __eq__(&self, other: &PyIntervalTier) -> bool {
@@ -234,11 +224,7 @@ impl PyTextTier {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "TextTier(name={:?}, points={})",
-            self.name,
-            self.points.len(),
-        )
+        format!("TextTier(name={:?}, points={})", self.name, self.points.len(),)
     }
 
     fn __eq__(&self, other: &PyTextTier) -> bool {
@@ -264,12 +250,7 @@ impl PyTextTier {
 
 fn tier_to_py<'py>(py: Python<'py>, tier: &TextGridTier) -> Bound<'py, PyAny> {
     match tier {
-        TextGridTier::IntervalTier {
-            name,
-            xmin,
-            xmax,
-            intervals,
-        } => {
+        TextGridTier::IntervalTier { name, xmin, xmax, intervals } => {
             let obj = PyIntervalTier {
                 name: name.clone(),
                 xmin: *xmin,
@@ -278,18 +259,9 @@ fn tier_to_py<'py>(py: Python<'py>, tier: &TextGridTier) -> Bound<'py, PyAny> {
             };
             Bound::new(py, obj).unwrap().into_any()
         }
-        TextGridTier::TextTier {
-            name,
-            xmin,
-            xmax,
-            points,
-        } => {
-            let obj = PyTextTier {
-                name: name.clone(),
-                xmin: *xmin,
-                xmax: *xmax,
-                points: points.clone(),
-            };
+        TextGridTier::TextTier { name, xmin, xmax, points } => {
+            let obj =
+                PyTextTier { name: name.clone(), xmin: *xmin, xmax: *xmax, points: points.clone() };
             Bound::new(py, obj).unwrap().into_any()
         }
     }
@@ -314,9 +286,7 @@ impl BaseTextGrid for PyTextGrid {
         self.inner.files_mut()
     }
     fn from_files(files: VecDeque<TextGridFile>) -> Self {
-        Self {
-            inner: TextGrid::from_files(files),
-        }
+        Self { inner: TextGrid::from_files(files) }
     }
 }
 
@@ -354,10 +324,8 @@ impl PyTextGrid {
     #[pyo3(name = "from_files")]
     #[pyo3(signature = (paths, *, parallel=true))]
     fn read_files(_cls: &Bound<'_, PyType>, paths: Vec<PathBuf>, parallel: bool) -> PyResult<Self> {
-        let paths: Vec<String> = paths
-            .into_iter()
-            .map(pathbuf_to_string)
-            .collect::<PyResult<_>>()?;
+        let paths: Vec<String> =
+            paths.into_iter().map(pathbuf_to_string).collect::<PyResult<_>>()?;
         let tg = TextGrid::read_files(&paths, parallel).map_err(textgrid_error_to_pyerr)?;
         Ok(Self { inner: tg })
     }
@@ -495,9 +463,7 @@ impl PyTextGrid {
     #[pyo3(name = "to_chat")]
     #[pyo3(signature = (*, participants=None))]
     fn py_to_chat(&self, participants: Option<Vec<String>>) -> crate::chat::PyChat {
-        crate::chat::PyChat {
-            inner: self.to_chat_obj(participants.as_deref()),
-        }
+        crate::chat::PyChat { inner: self.to_chat_obj(participants.as_deref()) }
     }
 
     /// Write CHAT (.cha) files to a directory.
@@ -510,11 +476,10 @@ impl PyTextGrid {
         filenames: Option<Vec<String>>,
     ) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_chat_files(&dir_path, participants.as_deref(), filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_chat_files(&dir_path, participants.as_deref(), filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Return EAF XML strings, one per file.
@@ -526,9 +491,7 @@ impl PyTextGrid {
     /// Convert to an ELAN object.
     #[pyo3(name = "to_elan")]
     fn py_to_elan(&self) -> crate::elan::PyElan {
-        crate::elan::PyElan {
-            inner: self.to_elan(),
-        }
+        crate::elan::PyElan { inner: self.to_elan() }
     }
 
     /// Write ELAN (.eaf) files to a directory.
@@ -536,11 +499,10 @@ impl PyTextGrid {
     #[pyo3(signature = (dir_path, /, *, filenames=None))]
     fn write_elan(&self, dir_path: PathBuf, filenames: Option<Vec<String>>) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_elan_files(&dir_path, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_elan_files(&dir_path, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Return SRT format strings, one per file.
@@ -554,9 +516,7 @@ impl PyTextGrid {
     #[pyo3(name = "to_srt")]
     #[pyo3(signature = (*, participants=None))]
     fn py_to_srt(&self, participants: Option<Vec<String>>) -> crate::srt::PySrt {
-        crate::srt::PySrt {
-            inner: self.to_srt(participants.as_deref()),
-        }
+        crate::srt::PySrt { inner: self.to_srt(participants.as_deref()) }
     }
 
     /// Write SRT (.srt) files to a directory.
@@ -569,11 +529,10 @@ impl PyTextGrid {
         filenames: Option<Vec<String>>,
     ) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_srt_files(&dir_path, participants.as_deref(), filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_srt_files(&dir_path, participants.as_deref(), filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Write TextGrid files to a directory.
@@ -616,9 +575,9 @@ impl PyTextGrid {
     fn pop_back(&mut self) -> PyResult<PyTextGrid> {
         match self.files_mut().pop_back() {
             Some(file) => Ok(Self::from_files(VecDeque::from(vec![file]))),
-            None => Err(pyo3::exceptions::PyIndexError::new_err(
-                "pop from an empty TextGrid reader",
-            )),
+            None => {
+                Err(pyo3::exceptions::PyIndexError::new_err("pop from an empty TextGrid reader"))
+            }
         }
     }
 
@@ -627,9 +586,9 @@ impl PyTextGrid {
     fn pop_front(&mut self) -> PyResult<PyTextGrid> {
         match self.files_mut().pop_front() {
             Some(file) => Ok(Self::from_files(VecDeque::from(vec![file]))),
-            None => Err(pyo3::exceptions::PyIndexError::new_err(
-                "pop from an empty TextGrid reader",
-            )),
+            None => {
+                Err(pyo3::exceptions::PyIndexError::new_err("pop from an empty TextGrid reader"))
+            }
         }
     }
 
@@ -650,10 +609,7 @@ impl PyTextGrid {
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> TextGridIter {
-        TextGridIter {
-            inner: slf.files().clone(),
-            index: 0,
-        }
+        TextGridIter { inner: slf.files().clone(), index: 0 }
     }
 
     fn __getitem__(&self, index: &Bound<'_, PyAny>) -> PyResult<PyTextGrid> {
@@ -661,13 +617,9 @@ impl PyTextGrid {
             let len = self.files().len() as isize;
             let idx = if i < 0 { len + i } else { i };
             if idx < 0 || idx >= len {
-                return Err(pyo3::exceptions::PyIndexError::new_err(
-                    "index out of range",
-                ));
+                return Err(pyo3::exceptions::PyIndexError::new_err("index out of range"));
             }
-            return Ok(Self::from_files(VecDeque::from(vec![
-                self.files()[idx as usize].clone(),
-            ])));
+            return Ok(Self::from_files(VecDeque::from(vec![self.files()[idx as usize].clone()])));
         }
         if let Ok(slice) = index.cast::<PySlice>() {
             let indices = slice.indices(self.files().len() as isize)?;
@@ -679,9 +631,7 @@ impl PyTextGrid {
             }
             return Ok(Self::from_files(result));
         }
-        Err(pyo3::exceptions::PyTypeError::new_err(
-            "indices must be integers or slices",
-        ))
+        Err(pyo3::exceptions::PyTypeError::new_err("indices must be integers or slices"))
     }
 
     fn __bool__(&self) -> bool {
@@ -740,9 +690,7 @@ impl TextGridIter {
         if self.index < self.inner.len() {
             let file = self.inner[self.index].clone();
             self.index += 1;
-            Some(PyTextGrid {
-                inner: TextGrid::from_files(VecDeque::from(vec![file])),
-            })
+            Some(PyTextGrid { inner: TextGrid::from_files(VecDeque::from(vec![file])) })
         } else {
             None
         }

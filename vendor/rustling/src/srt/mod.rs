@@ -135,9 +135,8 @@ mod reader {
         if parts.len() != 3 {
             return Err(SrtError::Parse(format!("Invalid time format: {s}")));
         }
-        let hours: i64 = parts[0]
-            .parse()
-            .map_err(|_| SrtError::Parse(format!("Invalid hours in time: {s}")))?;
+        let hours: i64 =
+            parts[0].parse().map_err(|_| SrtError::Parse(format!("Invalid hours in time: {s}")))?;
         let minutes: i64 = parts[1]
             .parse()
             .map_err(|_| SrtError::Parse(format!("Invalid minutes in time: {s}")))?;
@@ -223,12 +222,7 @@ mod reader {
                 continue;
             }
 
-            blocks.push(SrtBlock {
-                index,
-                text,
-                start_ms,
-                end_ms,
-            });
+            blocks.push(SrtBlock { index, text, start_ms, end_ms });
         }
 
         Ok(SrtFile { file_path, blocks })
@@ -249,10 +243,7 @@ mod reader {
         if parallel {
             #[cfg(feature = "parallel")]
             {
-                pairs
-                    .into_par_iter()
-                    .map(parse_one)
-                    .collect::<Result<Vec<_>, _>>()
+                pairs.into_par_iter().map(parse_one).collect::<Result<Vec<_>, _>>()
             }
             #[cfg(not(feature = "parallel"))]
             {
@@ -353,9 +344,7 @@ mod reader {
                 }
             }
 
-            (0..self.files().len())
-                .map(|i| format!("{:04}{target_ext}", i + 1))
-                .collect()
+            (0..self.files().len()).map(|i| format!("{:04}{target_ext}", i + 1)).collect()
         }
 
         /// Write SRT files to a directory.
@@ -396,10 +385,7 @@ mod reader {
 
         /// Return CHAT format strings (one per file) for CHAT export.
         fn to_chat_strings(&self) -> Vec<String> {
-            self.files()
-                .iter()
-                .map(super::chat_writer::srt_file_to_chat_str)
-                .collect()
+            self.files().iter().map(super::chat_writer::srt_file_to_chat_str).collect()
         }
 
         /// Convert to a [`Chat`](crate::chat::Chat) object.
@@ -460,10 +446,7 @@ mod reader {
 
         /// Return EAF XML strings (one per file) for ELAN export.
         fn to_elan_strings(&self) -> Vec<String> {
-            self.files()
-                .iter()
-                .map(super::elan_writer::srt_file_to_eaf_xml)
-                .collect()
+            self.files().iter().map(super::elan_writer::srt_file_to_eaf_xml).collect()
         }
 
         /// Convert to an [`Elan`](crate::elan::Elan) object.
@@ -523,10 +506,7 @@ mod reader {
 
         /// Return TextGrid format strings (one per file) for TextGrid export.
         fn to_textgrid_strings(&self) -> Vec<String> {
-            self.files()
-                .iter()
-                .map(super::textgrid_writer::srt_file_to_textgrid_str)
-                .collect()
+            self.files().iter().map(super::textgrid_writer::srt_file_to_textgrid_str).collect()
         }
 
         /// Convert to a [`TextGrid`](crate::textgrid::TextGrid) object.
@@ -608,9 +588,7 @@ mod reader {
     impl Srt {
         /// Construct from a Vec of [`SrtFile`] entries.
         pub fn from_srt_files(files: Vec<SrtFile>) -> Self {
-            Self {
-                files: VecDeque::from(files),
-            }
+            Self { files: VecDeque::from(files) }
         }
 
         /// Append data from another Srt.
@@ -627,16 +605,12 @@ mod reader {
 
         /// Remove and return the last file as a new Srt.
         pub fn pop_back(&mut self) -> Option<Srt> {
-            self.files
-                .pop_back()
-                .map(|f| Srt::from_files(VecDeque::from(vec![f])))
+            self.files.pop_back().map(|f| Srt::from_files(VecDeque::from(vec![f])))
         }
 
         /// Remove and return the first file as a new Srt.
         pub fn pop_front(&mut self) -> Option<Srt> {
-            self.files
-                .pop_front()
-                .map(|f| Srt::from_files(VecDeque::from(vec![f])))
+            self.files.pop_front().map(|f| Srt::from_files(VecDeque::from(vec![f])))
         }
 
         /// Parse SRT data from in-memory strings.
@@ -645,11 +619,8 @@ mod reader {
             ids: Option<Vec<String>>,
             parallel: bool,
         ) -> Result<Self, SrtError> {
-            let ids = ids.unwrap_or_else(|| {
-                strs.iter()
-                    .map(|_| uuid::Uuid::new_v4().to_string())
-                    .collect()
-            });
+            let ids = ids
+                .unwrap_or_else(|| strs.iter().map(|_| uuid::Uuid::new_v4().to_string()).collect());
             assert_eq!(
                 strs.len(),
                 ids.len(),
@@ -676,10 +647,7 @@ mod reader {
             parallel: bool,
         ) -> Result<Self, SrtError> {
             let mut paths: Vec<String> = Vec::new();
-            for entry in walkdir::WalkDir::new(path)
-                .into_iter()
-                .filter_map(|e| e.ok())
-            {
+            for entry in walkdir::WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
                 if entry.file_type().is_file() {
                     let file_path = entry.path().to_string_lossy().to_string();
                     if file_path.ends_with(extension) {
@@ -710,11 +678,7 @@ mod reader {
                 .filter_map(|i| {
                     let entry = archive.by_index(i).ok()?;
                     let name = entry.name().to_string();
-                    if name.ends_with(extension) && !entry.is_dir() {
-                        Some(name)
-                    } else {
-                        None
-                    }
+                    if name.ends_with(extension) && !entry.is_dir() { Some(name) } else { None }
                 })
                 .collect();
             entry_names.sort();
@@ -808,10 +772,7 @@ mod reader {
 
             let b1 = &file.blocks[0];
             assert_eq!(b1.index, 1);
-            assert_eq!(
-                b1.text,
-                "Senator, we're making\nour final approach into Coruscant."
-            );
+            assert_eq!(b1.text, "Senator, we're making\nour final approach into Coruscant.");
             assert_eq!(b1.start_ms, 136612); // 2*60000 + 16*1000 + 612
             assert_eq!(b1.end_ms, 139376); // 2*60000 + 19*1000 + 376
 
@@ -947,8 +908,7 @@ mod reader {
             .unwrap();
             let dir = tempfile::tempdir().unwrap();
             let out_dir = dir.path().join("output");
-            srt.write_srt_files(out_dir.to_str().unwrap(), None)
-                .unwrap();
+            srt.write_srt_files(out_dir.to_str().unwrap(), None).unwrap();
             let content = std::fs::read_to_string(out_dir.join("test.srt")).unwrap();
             let file2 = parse_srt_str(&content, "test.srt".to_string()).unwrap();
             assert_eq!(srt.files()[0].blocks, file2.blocks);

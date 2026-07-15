@@ -112,9 +112,7 @@ pub(crate) fn save_hmm_flatbuffers<W: Write>(
             let entries_fb = builder.create_vector(&entries);
             fbs::FeatureVocab::create(
                 &mut builder,
-                &fbs::FeatureVocabArgs {
-                    entries: Some(entries_fb),
-                },
+                &fbs::FeatureVocabArgs { entries: Some(entries_fb) },
             )
         })
         .collect();
@@ -126,18 +124,12 @@ pub(crate) fn save_hmm_flatbuffers<W: Write>(
         .map(|feature_em| {
             let n_states = feature_em.len() as u32;
             let vocab_size = feature_em.first().map(|s| s.len()).unwrap_or(0) as u32;
-            let flat: Vec<f32> = feature_em
-                .iter()
-                .flat_map(|row| row.iter().map(|&x| x as f32))
-                .collect();
+            let flat: Vec<f32> =
+                feature_em.iter().flat_map(|row| row.iter().map(|&x| x as f32)).collect();
             let values_fb = builder.create_vector(&flat);
             fbs::EmissionMatrix::create(
                 &mut builder,
-                &fbs::EmissionMatrixArgs {
-                    n_states,
-                    vocab_size,
-                    values: Some(values_fb),
-                },
+                &fbs::EmissionMatrixArgs { n_states, vocab_size, values: Some(values_fb) },
             )
         })
         .collect();
@@ -145,11 +137,8 @@ pub(crate) fn save_hmm_flatbuffers<W: Write>(
     // Simple vectors.
     let log_initial_f32: Vec<f32> = data.log_initial.iter().map(|&x| x as f32).collect();
     let log_initial_fb = builder.create_vector(&log_initial_f32);
-    let flat_transition: Vec<f32> = data
-        .log_transition
-        .iter()
-        .flat_map(|row| row.iter().map(|&x| x as f32))
-        .collect();
+    let flat_transition: Vec<f32> =
+        data.log_transition.iter().flat_map(|row| row.iter().map(|&x| x as f32)).collect();
     let log_transition_fb = builder.create_vector(&flat_transition);
     let state_labels_fb = data.state_labels.map(|labels| {
         let strs: Vec<_> = labels.iter().map(|s| builder.create_string(s)).collect();
@@ -208,14 +197,11 @@ pub(crate) fn load_hmm_flatbuffers(
     let log_initial: Vec<f64> = model.log_initial().iter().map(|x| x as f64).collect();
 
     let log_transition_flat: Vec<f64> = model.log_transition().iter().map(|x| x as f64).collect();
-    let log_transition: Vec<Vec<f64>> = log_transition_flat
-        .chunks(n_states)
-        .map(|c: &[f64]| c.to_vec())
-        .collect();
+    let log_transition: Vec<Vec<f64>> =
+        log_transition_flat.chunks(n_states).map(|c: &[f64]| c.to_vec()).collect();
 
-    let state_labels: Option<Vec<String>> = model
-        .state_labels()
-        .map(|sl| sl.iter().map(|s| s.to_owned()).collect());
+    let state_labels: Option<Vec<String>> =
+        model.state_labels().map(|sl| sl.iter().map(|s| s.to_owned()).collect());
 
     let fb_vocabs = model.feature_vocabs();
     if fb_vocabs.len() != n_features {
@@ -250,10 +236,7 @@ pub(crate) fn load_hmm_flatbuffers(
             if vs == 0 {
                 vec![Vec::new(); ns]
             } else {
-                flat.chunks(vs)
-                    .take(ns)
-                    .map(|r: &[f64]| r.to_vec())
-                    .collect()
+                flat.chunks(vs).take(ns).map(|r: &[f64]| r.to_vec()).collect()
             }
         })
         .collect();
@@ -291,12 +274,7 @@ pub(crate) struct ViterbiBuffers {
 
 impl ViterbiBuffers {
     fn new() -> Self {
-        Self {
-            viterbi: Vec::new(),
-            backptr: Vec::new(),
-            frame_emit: Vec::new(),
-            path: Vec::new(),
-        }
+        Self { viterbi: Vec::new(), backptr: Vec::new(), frame_emit: Vec::new(), path: Vec::new() }
     }
 }
 
@@ -590,13 +568,7 @@ pub trait BaseHiddenMarkovModel: Sized + Clone + Sync {
     fn unknown_log_probs(&self) -> Vec<f64> {
         self.feature_vocabs()
             .iter()
-            .map(|v| {
-                if v.is_empty() {
-                    0.0
-                } else {
-                    -(v.len() as f64).ln()
-                }
-            })
+            .map(|v| if v.is_empty() { 0.0 } else { -(v.len() as f64).ln() })
             .collect()
     }
 
@@ -647,23 +619,16 @@ pub trait BaseHiddenMarkovModel: Sized + Clone + Sync {
         #[cfg(feature = "parallel")]
         let encoded_sequences: Vec<Vec<Vec<Option<usize>>>> = {
             use rayon::prelude::*;
-            sequences
-                .par_iter()
-                .with_min_len(16)
-                .map(|seq| self.encode_sequence(seq))
-                .collect()
+            sequences.par_iter().with_min_len(16).map(|seq| self.encode_sequence(seq)).collect()
         };
         #[cfg(not(feature = "parallel"))]
-        let encoded_sequences: Vec<Vec<Vec<Option<usize>>>> = sequences
-            .iter()
-            .map(|seq| self.encode_sequence(seq))
-            .collect();
+        let encoded_sequences: Vec<Vec<Vec<Option<usize>>>> =
+            sequences.iter().map(|seq| self.encode_sequence(seq)).collect();
 
         let unknown_lp = self.unknown_log_probs();
 
-        let vocab_sizes: Vec<usize> = (0..n_features)
-            .map(|f| self.feature_vocabs()[f].len())
-            .collect();
+        let vocab_sizes: Vec<usize> =
+            (0..n_features).map(|f| self.feature_vocabs()[f].len()).collect();
 
         let mut prev_log_likelihood = f64::NEG_INFINITY;
 
@@ -841,10 +806,7 @@ pub trait BaseHiddenMarkovModel: Sized + Clone + Sync {
         let n_states = self.n_states();
 
         for f in 0..n_features {
-            let vocab_size = self.feature_log_emissions()[f]
-                .first()
-                .map(|r| r.len())
-                .unwrap_or(0);
+            let vocab_size = self.feature_log_emissions()[f].first().map(|r| r.len()).unwrap_or(0);
             if vocab_size == 0 {
                 continue;
             }
@@ -852,10 +814,7 @@ pub trait BaseHiddenMarkovModel: Sized + Clone + Sync {
             // Find the row minimum for each state.
             let row_mins: Vec<f64> = (0..n_states)
                 .map(|i| {
-                    self.feature_log_emissions()[f][i]
-                        .iter()
-                        .cloned()
-                        .fold(f64::INFINITY, f64::min)
+                    self.feature_log_emissions()[f][i].iter().cloned().fold(f64::INFINITY, f64::min)
                 })
                 .collect();
 
@@ -958,11 +917,8 @@ pub trait BaseHiddenMarkovModel: Sized + Clone + Sync {
         }
         let label_list: Vec<String> = label_set.into_iter().collect();
         let n_states = label_list.len();
-        let label_to_idx: FxHashMap<String, usize> = label_list
-            .iter()
-            .enumerate()
-            .map(|(i, l)| (l.clone(), i))
-            .collect();
+        let label_to_idx: FxHashMap<String, usize> =
+            label_list.iter().enumerate().map(|(i, l)| (l.clone(), i)).collect();
 
         // Auto-set n_states and store state labels.
         self.set_n_states(n_states);
@@ -992,12 +948,10 @@ pub trait BaseHiddenMarkovModel: Sized + Clone + Sync {
         }
 
         // Count emission frequencies (Lidstone smoothing: start all at gamma).
-        let vocab_sizes: Vec<usize> = (0..n_features)
-            .map(|f| self.feature_vocabs()[f].len())
-            .collect();
-        let mut emission_counts: Vec<Vec<Vec<f64>>> = (0..n_features)
-            .map(|f| vec![vec![self.gamma(); vocab_sizes[f]]; n_states])
-            .collect();
+        let vocab_sizes: Vec<usize> =
+            (0..n_features).map(|f| self.feature_vocabs()[f].len()).collect();
+        let mut emission_counts: Vec<Vec<Vec<f64>>> =
+            (0..n_features).map(|f| vec![vec![self.gamma(); vocab_sizes[f]]; n_states]).collect();
 
         for (seq, lab) in &pairs {
             let obs: Vec<&str> = seq.iter().map(|s| s.as_str()).collect();
@@ -1014,10 +968,7 @@ pub trait BaseHiddenMarkovModel: Sized + Clone + Sync {
 
         // Normalize initial to log-probabilities.
         let initial_total: f64 = initial_counts.iter().sum();
-        *self.log_initial_mut() = initial_counts
-            .iter()
-            .map(|c| (c / initial_total).ln())
-            .collect();
+        *self.log_initial_mut() = initial_counts.iter().map(|c| (c / initial_total).ln()).collect();
 
         // Normalize transition to log-probabilities.
         let mut log_transition = vec![vec![0.0; n_states]; n_states];
@@ -1081,9 +1032,7 @@ pub trait BaseHiddenMarkovModel: Sized + Clone + Sync {
     /// Decode with Viterbi (batch).
     fn predict(&self, sequences: Vec<Vec<String>>) -> Result<Vec<Vec<usize>>, ModelError> {
         if !self.fitted() {
-            return Err(ModelError::ValidationError(
-                "Model has not been fitted yet.".to_string(),
-            ));
+            return Err(ModelError::ValidationError("Model has not been fitted yet.".to_string()));
         }
         let n_states = self.n_states();
         let n_features = self.features().templates.len();
@@ -1129,19 +1078,14 @@ pub trait BaseHiddenMarkovModel: Sized + Clone + Sync {
         {
             let mut enc_buf = Vec::new();
             let mut vbufs = ViterbiBuffers::new();
-            Ok(sequences
-                .iter()
-                .map(|obs| predict_one(obs, &mut enc_buf, &mut vbufs))
-                .collect())
+            Ok(sequences.iter().map(|obs| predict_one(obs, &mut enc_buf, &mut vbufs)).collect())
         }
     }
 
     /// Compute log-likelihood with Forward algorithm (batch).
     fn score(&self, sequences: Vec<Vec<String>>) -> Result<Vec<f64>, ModelError> {
         if !self.fitted() {
-            return Err(ModelError::ValidationError(
-                "Model has not been fitted yet.".to_string(),
-            ));
+            return Err(ModelError::ValidationError("Model has not been fitted yet.".to_string()));
         }
         let n = self.n_states();
         let unknown_lp = self.unknown_log_probs();
@@ -1174,11 +1118,7 @@ pub trait BaseHiddenMarkovModel: Sized + Clone + Sync {
         #[cfg(feature = "parallel")]
         {
             use rayon::prelude::*;
-            Ok(sequences
-                .par_iter()
-                .with_min_len(16)
-                .map(score_one)
-                .collect())
+            Ok(sequences.par_iter().with_min_len(16).map(score_one).collect())
         }
         #[cfg(not(feature = "parallel"))]
         {
@@ -1336,10 +1276,7 @@ impl HiddenMarkovModel {
             )));
         }
         if n_iter < 1 {
-            return Err(ModelError::ValidationError(format!(
-                "n_iter must be >= 1: {}",
-                n_iter
-            )));
+            return Err(ModelError::ValidationError(format!("n_iter must be >= 1: {}", n_iter)));
         }
         if tolerance < 0.0 {
             return Err(ModelError::ValidationError(format!(
@@ -1348,10 +1285,7 @@ impl HiddenMarkovModel {
             )));
         }
         if gamma <= 0.0 {
-            return Err(ModelError::ValidationError(format!(
-                "gamma must be > 0: {}",
-                gamma
-            )));
+            return Err(ModelError::ValidationError(format!("gamma must be > 0: {}", gamma)));
         }
         let templates = features.unwrap_or_else(default_tagger_hmm_features);
         validate_templates(&templates, false)?;
@@ -1466,9 +1400,7 @@ mod tests {
         ];
 
         let mut hmm_laplace = HiddenMarkovModel::new(1, 10, 1e-6, 1.0, Some(42), None).unwrap();
-        hmm_laplace
-            .fit(sequences.clone(), Some(labels.clone()))
-            .unwrap();
+        hmm_laplace.fit(sequences.clone(), Some(labels.clone())).unwrap();
 
         let mut hmm_small = HiddenMarkovModel::new(1, 10, 1e-6, 0.01, Some(42), None).unwrap();
         hmm_small.fit(sequences, Some(labels)).unwrap();
@@ -1505,9 +1437,7 @@ mod tests {
     fn test_fit_and_predict() {
         let mut hmm = HiddenMarkovModel::new(2, 10, 1e-6, 1.0, Some(42), None).unwrap();
         hmm.fit(toy_sequences(), None).unwrap();
-        let paths = hmm
-            .predict(vec![vec!["a".into(), "b".into(), "a".into()]])
-            .unwrap();
+        let paths = hmm.predict(vec![vec!["a".into(), "b".into(), "a".into()]]).unwrap();
         assert_eq!(paths.len(), 1);
         assert_eq!(paths[0].len(), 3);
         assert!(paths[0].iter().all(|&s| s < 2));
@@ -1525,9 +1455,7 @@ mod tests {
     fn test_score_returns_finite() {
         let mut hmm = HiddenMarkovModel::new(2, 10, 1e-6, 1.0, Some(42), None).unwrap();
         hmm.fit(toy_sequences(), None).unwrap();
-        let scores = hmm
-            .score(vec![vec!["a".into(), "b".into(), "a".into()]])
-            .unwrap();
+        let scores = hmm.score(vec![vec!["a".into(), "b".into(), "a".into()]]).unwrap();
         assert_eq!(scores.len(), 1);
         assert!(scores[0].is_finite());
         assert!(scores[0] < 0.0);
@@ -1548,10 +1476,7 @@ mod tests {
         let mut hmm2 = HiddenMarkovModel::new(2, 10, 1e-6, 1.0, Some(42), None).unwrap();
         hmm2.fit(toy_sequences(), None).unwrap();
         let obs: Vec<Vec<String>> = vec![vec!["a".into(), "b".into()]];
-        assert_eq!(
-            hmm1.predict(obs.clone()).unwrap(),
-            hmm2.predict(obs.clone()).unwrap()
-        );
+        assert_eq!(hmm1.predict(obs.clone()).unwrap(), hmm2.predict(obs.clone()).unwrap());
         assert_eq!(hmm1.score(obs.clone()).unwrap(), hmm2.score(obs).unwrap());
     }
 
@@ -1567,11 +1492,7 @@ mod tests {
     fn test_score_unknown_obs() {
         let mut hmm = HiddenMarkovModel::new(2, 10, 1e-6, 1.0, Some(42), None).unwrap();
         hmm.fit(toy_sequences(), None).unwrap();
-        assert!(
-            hmm.score(vec![vec!["a".into(), "c".into(), "b".into()]])
-                .unwrap()[0]
-                .is_finite()
-        );
+        assert!(hmm.score(vec![vec!["a".into(), "c".into(), "b".into()]]).unwrap()[0].is_finite());
     }
 
     #[test]
@@ -1588,17 +1509,13 @@ mod tests {
     fn test_convergence() {
         let mut hmm_1 = HiddenMarkovModel::new(2, 1, 0.0, 1.0, Some(42), None).unwrap();
         hmm_1.fit(toy_sequences(), None).unwrap();
-        let score_1: f64 = toy_sequences()
-            .iter()
-            .map(|seq| hmm_1.score(vec![seq.clone()]).unwrap()[0])
-            .sum();
+        let score_1: f64 =
+            toy_sequences().iter().map(|seq| hmm_1.score(vec![seq.clone()]).unwrap()[0]).sum();
 
         let mut hmm_many = HiddenMarkovModel::new(2, 50, 0.0, 1.0, Some(42), None).unwrap();
         hmm_many.fit(toy_sequences(), None).unwrap();
-        let score_many: f64 = toy_sequences()
-            .iter()
-            .map(|seq| hmm_many.score(vec![seq.clone()]).unwrap()[0])
-            .sum();
+        let score_many: f64 =
+            toy_sequences().iter().map(|seq| hmm_many.score(vec![seq.clone()]).unwrap()[0]).sum();
 
         assert!(score_many >= score_1 - 1e-6);
     }
@@ -1607,10 +1524,7 @@ mod tests {
     fn test_single_state() {
         let mut hmm = HiddenMarkovModel::new(1, 10, 1e-6, 1.0, Some(42), None).unwrap();
         hmm.fit(toy_sequences(), None).unwrap();
-        assert_eq!(
-            hmm.predict(vec![vec!["a".into(), "b".into()]]).unwrap()[0],
-            vec![0, 0]
-        );
+        assert_eq!(hmm.predict(vec![vec!["a".into(), "b".into()]]).unwrap()[0], vec![0, 0]);
     }
 
     #[test]
@@ -1628,10 +1542,7 @@ mod tests {
         assert!(loaded.fitted);
 
         let obs: Vec<Vec<String>> = vec![vec!["a".into(), "b".into(), "a".into()]];
-        assert_eq!(
-            hmm.predict(obs.clone()).unwrap(),
-            loaded.predict(obs).unwrap()
-        );
+        assert_eq!(hmm.predict(obs.clone()).unwrap(), loaded.predict(obs).unwrap());
     }
 
     #[test]
@@ -1658,21 +1569,13 @@ mod tests {
     #[test]
     fn test_fit_labeled_basic() {
         let mut hmm = HiddenMarkovModel::new(1, 10, 1e-6, 1.0, Some(42), None).unwrap();
-        let sequences = vec![
-            vec!["a".into(), "b".into(), "a".into()],
-            vec!["b".into(), "a".into()],
-        ];
-        let labels = vec![
-            vec!["X".into(), "Y".into(), "X".into()],
-            vec!["Y".into(), "X".into()],
-        ];
+        let sequences =
+            vec![vec!["a".into(), "b".into(), "a".into()], vec!["b".into(), "a".into()]];
+        let labels = vec![vec!["X".into(), "Y".into(), "X".into()], vec!["Y".into(), "X".into()]];
         hmm.fit(sequences, Some(labels)).unwrap();
         assert!(hmm.fitted());
         assert_eq!(hmm.n_states(), 2);
-        assert_eq!(
-            hmm.state_labels(),
-            &Some(vec!["X".to_string(), "Y".to_string()])
-        );
+        assert_eq!(hmm.state_labels(), &Some(vec!["X".to_string(), "Y".to_string()]));
     }
 
     #[test]
@@ -1703,9 +1606,7 @@ mod tests {
             vec!["Y".into(), "X".into(), "Y".into(), "Y".into()],
         ];
         hmm.fit(sequences, Some(labels)).unwrap();
-        let paths = hmm
-            .predict(vec![vec!["a".into(), "b".into(), "a".into()]])
-            .unwrap();
+        let paths = hmm.predict(vec![vec!["a".into(), "b".into(), "a".into()]]).unwrap();
         assert_eq!(paths[0].len(), 3);
         assert!(paths[0].iter().all(|&s| s < 2));
     }
@@ -1724,14 +1625,9 @@ mod tests {
     #[test]
     fn test_fit_labeled_save_and_load() {
         let mut hmm = HiddenMarkovModel::new(1, 10, 1e-6, 1.0, Some(42), None).unwrap();
-        let sequences = vec![
-            vec!["a".into(), "b".into(), "a".into()],
-            vec!["b".into(), "a".into()],
-        ];
-        let labels = vec![
-            vec!["X".into(), "Y".into(), "X".into()],
-            vec!["Y".into(), "X".into()],
-        ];
+        let sequences =
+            vec![vec!["a".into(), "b".into(), "a".into()], vec!["b".into(), "a".into()]];
+        let labels = vec![vec!["X".into(), "Y".into(), "X".into()], vec!["Y".into(), "X".into()]];
         hmm.fit(sequences, Some(labels)).unwrap();
 
         let dir = tempfile::tempdir().unwrap();
@@ -1742,16 +1638,10 @@ mod tests {
         let mut loaded = HiddenMarkovModel::new(2, 10, 1e-6, 1.0, None, None).unwrap();
         loaded.load_from_path(path_str).unwrap();
         assert!(loaded.fitted());
-        assert_eq!(
-            loaded.state_labels(),
-            &Some(vec!["X".to_string(), "Y".to_string()])
-        );
+        assert_eq!(loaded.state_labels(), &Some(vec!["X".to_string(), "Y".to_string()]));
 
         let obs = vec![vec!["a".into(), "b".into(), "a".into()]];
-        assert_eq!(
-            hmm.predict(obs.clone()).unwrap(),
-            loaded.predict(obs).unwrap()
-        );
+        assert_eq!(hmm.predict(obs.clone()).unwrap(), loaded.predict(obs).unwrap());
     }
 
     // --- Batch predict/score tests ---
@@ -1761,10 +1651,7 @@ mod tests {
         let mut hmm = HiddenMarkovModel::new(2, 10, 1e-6, 1.0, Some(42), None).unwrap();
         hmm.fit(toy_sequences(), None).unwrap();
         let paths = hmm
-            .predict(vec![
-                vec!["a".into(), "b".into()],
-                vec!["b".into(), "a".into(), "b".into()],
-            ])
+            .predict(vec![vec!["a".into(), "b".into()], vec!["b".into(), "a".into(), "b".into()]])
             .unwrap();
         assert_eq!(paths.len(), 2);
         assert_eq!(paths[0].len(), 2);
@@ -1776,10 +1663,7 @@ mod tests {
         let mut hmm = HiddenMarkovModel::new(2, 10, 1e-6, 1.0, Some(42), None).unwrap();
         hmm.fit(toy_sequences(), None).unwrap();
         let scores = hmm
-            .score(vec![
-                vec!["a".into(), "b".into()],
-                vec!["b".into(), "a".into(), "b".into()],
-            ])
+            .score(vec![vec!["a".into(), "b".into()], vec!["b".into(), "a".into(), "b".into()]])
             .unwrap();
         assert_eq!(scores.len(), 2);
         assert!(scores[0].is_finite());
@@ -1807,19 +1691,13 @@ mod tests {
     #[test]
     fn test_semi_supervised_preserves_state_labels() {
         let mut hmm = supervised_fit_hmm();
-        assert_eq!(
-            hmm.state_labels(),
-            &Some(vec!["X".to_string(), "Y".to_string()])
-        );
+        assert_eq!(hmm.state_labels(), &Some(vec!["X".to_string(), "Y".to_string()]));
         let unlabeled = vec![
             vec!["a".into(), "b".into(), "a".into()],
             vec!["b".into(), "b".into(), "a".into()],
         ];
         hmm.fit(unlabeled, None).unwrap();
-        assert_eq!(
-            hmm.state_labels(),
-            &Some(vec!["X".to_string(), "Y".to_string()])
-        );
+        assert_eq!(hmm.state_labels(), &Some(vec!["X".to_string(), "Y".to_string()]));
     }
 
     #[test]
@@ -1849,9 +1727,7 @@ mod tests {
         ];
         hmm.fit(unlabeled, None).unwrap();
 
-        let paths = hmm
-            .predict(vec![vec!["a".into(), "b".into(), "a".into()]])
-            .unwrap();
+        let paths = hmm.predict(vec![vec!["a".into(), "b".into(), "a".into()]]).unwrap();
         assert_eq!(paths.len(), 1);
         assert_eq!(paths[0].len(), 3);
         assert!(paths[0].iter().all(|&s| s < 2));
@@ -1886,9 +1762,7 @@ mod tests {
         // A fresh (not fitted) model should behave exactly as before.
         let mut hmm = HiddenMarkovModel::new(2, 10, 1e-6, 1.0, Some(42), None).unwrap();
         hmm.fit(toy_sequences(), None).unwrap();
-        let paths = hmm
-            .predict(vec![vec!["a".into(), "b".into(), "a".into()]])
-            .unwrap();
+        let paths = hmm.predict(vec![vec!["a".into(), "b".into(), "a".into()]]).unwrap();
         assert_eq!(paths.len(), 1);
         assert_eq!(paths[0].len(), 3);
         assert!(hmm.state_labels().is_none());
@@ -1901,10 +1775,8 @@ mod tests {
         let emission_cols_before: usize = hmm.feature_log_emissions[0][0].len();
 
         // Unsupervised fit with same vocab (no new items).
-        let unlabeled = vec![
-            vec!["a".into(), "b".into(), "a".into()],
-            vec!["b".into(), "b".into()],
-        ];
+        let unlabeled =
+            vec![vec!["a".into(), "b".into(), "a".into()], vec!["b".into(), "b".into()]];
         hmm.fit(unlabeled, None).unwrap();
 
         assert_eq!(hmm.feature_vocabs[0].len(), vocab_before);

@@ -30,7 +30,7 @@ impl DefaultTagger {
         if total == 0 {
             return 0.0;
         }
-        let correct = tagged_sentences.iter().flatten().filter(|(_, t)| t == &self.tag).count();
+        let correct = tagged_sentences.iter().flatten().filter(|(_, t)| t == self.tag).count();
         correct as f64 / total as f64
     }
 }

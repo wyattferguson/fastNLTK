@@ -102,10 +102,7 @@ mod tests {
     #[test]
     fn words_to_bmes_multi_char_word() {
         let result = words_to_bmes(&s(&["hello"]));
-        assert_eq!(
-            result,
-            vec![('h', "B"), ('e', "M"), ('l', "M"), ('l', "M"), ('o', "E"),]
-        );
+        assert_eq!(result, vec![('h', "B"), ('e', "M"), ('l', "M"), ('l', "M"), ('o', "E"),]);
     }
 
     #[test]

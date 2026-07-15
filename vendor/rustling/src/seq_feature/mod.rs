@@ -41,10 +41,7 @@ pub fn first_char(s: &str) -> &str {
 /// Get the final character of a string, or an empty string if empty.
 #[inline]
 pub fn final_char(s: &str) -> &str {
-    s.chars()
-        .next_back()
-        .map(|c| &s[s.len() - c.len_utf8()..])
-        .unwrap_or("")
+    s.chars().next_back().map(|c| &s[s.len() - c.len_utf8()..]).unwrap_or("")
 }
 
 // ---------------------------------------------------------------------------
@@ -84,11 +81,7 @@ pub struct SeqFeatureTemplate {
 impl SeqFeatureTemplate {
     /// Create an observation feature template with a transform.
     pub fn obs(positions: &[i32], transform: SeqTransform) -> Self {
-        Self {
-            kind: SeqFeatureKind::Obs,
-            positions: positions.to_vec(),
-            transform,
-        }
+        Self { kind: SeqFeatureKind::Obs, positions: positions.to_vec(), transform }
     }
 
     /// Create an observation feature template with identity transform.
@@ -123,10 +116,7 @@ impl SeqFeatureConfig {
     /// Build a config from a list of templates.
     pub fn new(templates: Vec<SeqFeatureTemplate>) -> Self {
         let obs_only = templates.iter().all(|t| !t.is_label());
-        Self {
-            templates,
-            obs_only,
-        }
+        Self { templates, obs_only }
     }
 }
 
@@ -199,9 +189,7 @@ impl Default for FeatureBuffer {
 
 impl FeatureBuffer {
     pub fn new() -> Self {
-        Self {
-            features: Vec::with_capacity(16),
-        }
+        Self { features: Vec::with_capacity(16) }
     }
 
     pub fn clear(&mut self) {
@@ -237,12 +225,8 @@ pub fn extract_features(
     for template in &config.templates {
         match template.kind {
             SeqFeatureKind::Obs => {
-                let positions_str = template
-                    .positions
-                    .iter()
-                    .map(|p| p.to_string())
-                    .collect::<Vec<_>>()
-                    .join(",");
+                let positions_str =
+                    template.positions.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(",");
                 let tsuf = transform_suffix(&template.transform);
 
                 if template.positions.len() == 1 {
@@ -267,12 +251,8 @@ pub fn extract_features(
                 }
             }
             SeqFeatureKind::Label => {
-                let positions_str = template
-                    .positions
-                    .iter()
-                    .map(|p| p.to_string())
-                    .collect::<Vec<_>>()
-                    .join(",");
+                let positions_str =
+                    template.positions.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(",");
 
                 if template.positions.len() == 1 {
                     let val = resolve_label(labels, i, template.positions[0]);
@@ -303,21 +283,16 @@ pub fn extract_observation(
     i: usize,
 ) -> String {
     if template.positions.len() == 1 {
-        apply_transform(
-            resolve_obs(observations, i, template.positions[0]),
-            &template.transform,
-        )
-        .to_string()
+        apply_transform(resolve_obs(observations, i, template.positions[0]), &template.transform)
+            .to_string()
     } else {
         let mut result = String::new();
         for (idx, &pos) in template.positions.iter().enumerate() {
             if idx > 0 {
                 result.push(' ');
             }
-            result.push_str(apply_transform(
-                resolve_obs(observations, i, pos),
-                &template.transform,
-            ));
+            result
+                .push_str(apply_transform(resolve_obs(observations, i, pos), &template.transform));
         }
         result
     }
@@ -341,10 +316,8 @@ pub fn extract_observation_cow<'a>(
             if idx > 0 {
                 result.push(' ');
             }
-            result.push_str(apply_transform(
-                resolve_obs(observations, i, pos),
-                &template.transform,
-            ));
+            result
+                .push_str(apply_transform(resolve_obs(observations, i, pos), &template.transform));
         }
         Cow::Owned(result)
     }

@@ -1,6 +1,6 @@
 //! Perceptron tagger — averaged perceptron POS tagging.
 //!
-//! Uses u64 feature IDs (FxHash of component strings) to eliminate
+//! Uses u64 feature IDs (`FxHash` of component strings) to eliminate
 //! all per-feature String allocation during inference.
 //! Fast path: tagdict lookup for common words avoids feature extraction.
 
@@ -13,7 +13,7 @@ use rustc_hash::FxHasher;
 use smol_str::SmolStr;
 
 /// Hash a 2-component feature (prefix + value).
-/// Writes bytes directly via Hasher::write, avoiding any String allocation.
+/// Writes bytes directly via `Hasher::write`, avoiding any String allocation.
 /// Consistent with hashing the concatenated string during model load.
 #[inline]
 fn hash2(a: &str, b: &str) -> u64 {
@@ -48,7 +48,11 @@ pub struct PerceptronTagger {
 impl PerceptronTagger {
     #[new]
     fn new() -> PyResult<Self> {
-        Ok(Self { weights: FxHashMap::default(), tagdict: FxHashMap::default(), classes: Vec::new() })
+        Ok(Self {
+            weights: FxHashMap::default(),
+            tagdict: FxHashMap::default(),
+            classes: Vec::new(),
+        })
     }
 
     /// Load weights from Python dicts (from NLTK pickle).
@@ -234,7 +238,7 @@ fn collect_feature_ids(
     if word.contains('-') {
         out.push(hash2("i has_hyphen", ""));
     }
-    if word.chars().any(|c| c.is_uppercase()) {
+    if word.chars().any(char::is_uppercase) {
         out.push(hash2("i has_upper", ""));
     }
     if clen > 0 && chars.iter().all(|&c| c.is_uppercase() && c.is_alphabetic()) {

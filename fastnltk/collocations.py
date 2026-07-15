@@ -4,8 +4,13 @@ import nltk.collocations as _nltk_collocations
 
 from fastnltk._rust import (
     BigramCollocationFinder as _RustBigramCollocationFinder,
+)
+from fastnltk._rust import (
     QuadgramCollocationFinder as _RustQuadgramCollocationFinder,
-    TrigramCollocationFinder as _RustTrigramCollocationFinder,)
+)
+from fastnltk._rust import (
+    TrigramCollocationFinder as _RustTrigramCollocationFinder,
+)
 
 __all__ = [
     "BigramCollocationFinder",
@@ -16,6 +21,7 @@ __all__ = [
 
 class BigramCollocationFinder:
     """Bigram collocation finder — Rust-accelerated."""
+
     def __init__(self, word_fd, ngram_fd):
         self._word_fd = word_fd
         self._ngram_fd = ngram_fd
@@ -32,14 +38,24 @@ class BigramCollocationFinder:
     def score_ngrams(self, score_fn):
         if self._impl:
             name = getattr(score_fn, "__name__", str(score_fn)).lower()
-            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            m = {
+                "raw_freq": "raw_freq",
+                "pmi": "pmi",
+                "chi_sq": "chi_sq",
+                "likelihood_ratio": "likelihood_ratio",
+            }
             return self._impl.score_ngrams(m.get(name, "raw_freq"))
         return []
 
     def nbest(self, score_fn, n):
         if self._impl:
             name = getattr(score_fn, "__name__", str(score_fn)).lower()
-            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            m = {
+                "raw_freq": "raw_freq",
+                "pmi": "pmi",
+                "chi_sq": "chi_sq",
+                "likelihood_ratio": "likelihood_ratio",
+            }
             return self._impl.nbest(m.get(name, "raw_freq"), n)
         return []
 
@@ -53,6 +69,7 @@ class BigramCollocationFinder:
 
 class TrigramCollocationFinder:
     """Trigram collocation finder — Rust-accelerated."""
+
     def __init__(self, word_fd, ngram_fd):
         self._word_fd = word_fd
         self._ngram_fd = ngram_fd
@@ -67,14 +84,24 @@ class TrigramCollocationFinder:
     def score_ngrams(self, score_fn):
         if self._impl:
             name = getattr(score_fn, "__name__", str(score_fn)).lower()
-            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            m = {
+                "raw_freq": "raw_freq",
+                "pmi": "pmi",
+                "chi_sq": "chi_sq",
+                "likelihood_ratio": "likelihood_ratio",
+            }
             return self._impl.score_ngrams(m.get(name, "raw_freq"))
         return []
 
     def nbest(self, score_fn, n):
         if self._impl:
             name = getattr(score_fn, "__name__", str(score_fn)).lower()
-            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            m = {
+                "raw_freq": "raw_freq",
+                "pmi": "pmi",
+                "chi_sq": "chi_sq",
+                "likelihood_ratio": "likelihood_ratio",
+            }
             return self._impl.nbest(m.get(name, "raw_freq"), n)
         return []
 
@@ -88,6 +115,7 @@ class TrigramCollocationFinder:
 
 class QuadgramCollocationFinder:
     """Quadgram collocation finder — Rust-accelerated."""
+
     def __init__(self, word_fd, ngram_fd):
         self._word_fd = word_fd
         self._ngram_fd = ngram_fd
@@ -102,14 +130,24 @@ class QuadgramCollocationFinder:
     def score_ngrams(self, score_fn):
         if self._impl:
             name = getattr(score_fn, "__name__", str(score_fn)).lower()
-            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            m = {
+                "raw_freq": "raw_freq",
+                "pmi": "pmi",
+                "chi_sq": "chi_sq",
+                "likelihood_ratio": "likelihood_ratio",
+            }
             return self._impl.score_ngrams(m.get(name, "raw_freq"))
         return []
 
     def nbest(self, score_fn, n):
         if self._impl:
             name = getattr(score_fn, "__name__", str(score_fn)).lower()
-            m = {"raw_freq": "raw_freq", "pmi": "pmi", "chi_sq": "chi_sq", "likelihood_ratio": "likelihood_ratio"}
+            m = {
+                "raw_freq": "raw_freq",
+                "pmi": "pmi",
+                "chi_sq": "chi_sq",
+                "likelihood_ratio": "likelihood_ratio",
+            }
             return self._impl.nbest(m.get(name, "raw_freq"), n)
         return []
 

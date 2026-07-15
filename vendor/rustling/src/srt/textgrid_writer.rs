@@ -53,18 +53,8 @@ mod tests {
         let file = SrtFile {
             file_path: "test.srt".to_string(),
             blocks: vec![
-                SrtBlock {
-                    index: 1,
-                    text: "Hello world.".to_string(),
-                    start_ms: 0,
-                    end_ms: 1500,
-                },
-                SrtBlock {
-                    index: 2,
-                    text: "Goodbye.".to_string(),
-                    start_ms: 2000,
-                    end_ms: 3500,
-                },
+                SrtBlock { index: 1, text: "Hello world.".to_string(), start_ms: 0, end_ms: 1500 },
+                SrtBlock { index: 2, text: "Goodbye.".to_string(), start_ms: 2000, end_ms: 3500 },
             ],
         };
         let tg_str = srt_file_to_textgrid_str(&file);
@@ -112,10 +102,7 @@ mod tests {
 
     #[test]
     fn test_empty() {
-        let file = SrtFile {
-            file_path: "test.srt".to_string(),
-            blocks: vec![],
-        };
+        let file = SrtFile { file_path: "test.srt".to_string(), blocks: vec![] };
         let tg_str = srt_file_to_textgrid_str(&file);
         assert!(tg_str.contains("intervals: size = 0"));
     }

@@ -8,7 +8,7 @@ use memchr::memchr3;
 use pyo3::prelude::*;
 
 /// Characters that Treebank detaches from adjacent words.
-fn is_punct(c: char) -> bool {
+const fn is_punct(c: char) -> bool {
     matches!(c, '(' | ')' | '[' | ']' | '{' | '}' | '<' | '>' | ':' | ';' | ',' | '.' | '?' | '!')
 }
 
@@ -31,18 +31,15 @@ fn find_contraction(word: &str) -> Option<(usize, usize)> {
     // n't: before ends with 'n', after starts with 't'
     if !after_bytes.is_empty() && after_bytes[0] == b't' {
         let rest = &after_bytes[1..];
-        if rest.is_empty() || !rest[0].is_ascii_alphabetic() {
-            if before.ends_with('n') {
-                let stem_end = ap_pos - 1; // split at 'n', i.e. split at start of 'n'
-                return Some((stem_end, ap_pos + 2)); // "n't" = 3 bytes from ap_pos-1 to ap_pos+2 inclusive
-            }
+        if (rest.is_empty() || !rest[0].is_ascii_alphabetic()) && before.ends_with('n') {
+            let stem_end = ap_pos - 1; // split at 'n', i.e. split at start of 'n'
+            return Some((stem_end, ap_pos + 2)); // "n't" = 3 bytes from ap_pos-1 to ap_pos+2 inclusive
         }
     }
 
     // Word-final suffixes: 'll, 're, 've, 'm, 'd, 's
-    let suffix_map: &[(&[u8], usize)] = &[
-        (b"ll", 3), (b"re", 3), (b"ve", 3), (b"m", 2), (b"d", 2), (b"s", 2),
-    ];
+    let suffix_map: &[(&[u8], usize)] =
+        &[(b"ll", 3), (b"re", 3), (b"ve", 3), (b"m", 2), (b"d", 2), (b"s", 2)];
     for (suffix, total_len) in suffix_map {
         if after_bytes.starts_with(suffix) {
             let rest = &after_bytes[*total_len - 1..];
@@ -160,6 +157,7 @@ fn flush_subword(
 ///
 /// Returns `(tokens, byte_spans)`. Spans reference the original `text`.
 /// First pass uses SIMD memchr3 for whitespace boundary detection.
+#[must_use]
 pub fn tokenize_treebank(text: &str) -> (Vec<String>, Vec<(usize, usize)>) {
     let mut tokens: Vec<String> = Vec::new();
     let mut spans: Vec<(usize, usize)> = Vec::new();
@@ -172,28 +170,25 @@ pub fn tokenize_treebank(text: &str) -> (Vec<String>, Vec<(usize, usize)>) {
             start += 1;
             continue;
         }
-        match memchr3(b' ', b'\t', b'\n', &bytes[start..]) {
-            Some(rel) => {
-                let mut abs = start + rel;
-                // Exclude trailing \r before \n from the token
-                if abs > start && bytes[abs - 1] == b'\r' {
-                    abs -= 1;
-                }
-                if abs > start {
-                    split_word(&text[start..abs], start, &mut tokens, &mut spans);
-                }
-                start = abs + 1;
-                // Skip consecutive ASCII whitespace
-                while start < bytes.len() && bytes[start].is_ascii_whitespace() {
-                    start += 1;
-                }
+        if let Some(rel) = memchr3(b' ', b'\t', b'\n', &bytes[start..]) {
+            let mut abs = start + rel;
+            // Exclude trailing \r before \n from the token
+            if abs > start && bytes[abs - 1] == b'\r' {
+                abs -= 1;
             }
-            None => {
-                if start < bytes.len() {
-                    split_word(&text[start..], start, &mut tokens, &mut spans);
-                }
-                break;
+            if abs > start {
+                split_word(&text[start..abs], start, &mut tokens, &mut spans);
             }
+            start = abs + 1;
+            // Skip consecutive ASCII whitespace
+            while start < bytes.len() && bytes[start].is_ascii_whitespace() {
+                start += 1;
+            }
+        } else {
+            if start < bytes.len() {
+                split_word(&text[start..], start, &mut tokens, &mut spans);
+            }
+            break;
         }
     }
 
@@ -209,7 +204,7 @@ pub struct TreebankWordTokenizer;
 #[pymethods]
 impl TreebankWordTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -231,7 +226,7 @@ pub struct TreebankWordDetokenizer;
 #[pymethods]
 impl TreebankWordDetokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 

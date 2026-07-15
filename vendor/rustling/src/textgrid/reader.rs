@@ -164,9 +164,7 @@ pub struct TextGridFile {
 fn extract_quoted_string(s: &str) -> Result<String, TextGridError> {
     let s = s.trim();
     if !s.starts_with('"') {
-        return Err(TextGridError::Parse(format!(
-            "Expected quoted string, got: {s:?}"
-        )));
+        return Err(TextGridError::Parse(format!("Expected quoted string, got: {s:?}")));
     }
     // Find the closing quote. Inner quotes are doubled ("").
     let bytes = s.as_bytes();
@@ -187,23 +185,17 @@ fn extract_quoted_string(s: &str) -> Result<String, TextGridError> {
             i += 1;
         }
     }
-    Err(TextGridError::Parse(format!(
-        "Unterminated quoted string: {s:?}"
-    )))
+    Err(TextGridError::Parse(format!("Unterminated quoted string: {s:?}")))
 }
 
 /// Parse a floating-point value from a string, trimming whitespace.
 fn parse_float(s: &str) -> Result<f64, TextGridError> {
-    s.trim()
-        .parse::<f64>()
-        .map_err(|_| TextGridError::Parse(format!("Invalid number: {s:?}")))
+    s.trim().parse::<f64>().map_err(|_| TextGridError::Parse(format!("Invalid number: {s:?}")))
 }
 
 /// Parse an integer value from a string, trimming whitespace.
 fn parse_int(s: &str) -> Result<usize, TextGridError> {
-    s.trim()
-        .parse::<usize>()
-        .map_err(|_| TextGridError::Parse(format!("Invalid integer: {s:?}")))
+    s.trim().parse::<usize>().map_err(|_| TextGridError::Parse(format!("Invalid integer: {s:?}")))
 }
 
 /// Extract the value part after `=` in a line like `key = value`.
@@ -237,9 +229,7 @@ fn parse_text_format(
     // xmin
     let xmin = parse_float(
         value_after_eq(
-            lines
-                .get(idx)
-                .ok_or_else(|| TextGridError::Parse("Missing xmin".to_string()))?,
+            lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing xmin".to_string()))?,
         )
         .ok_or_else(|| TextGridError::Parse("Missing xmin value".to_string()))?,
     )?;
@@ -248,9 +238,7 @@ fn parse_text_format(
     // xmax
     let xmax = parse_float(
         value_after_eq(
-            lines
-                .get(idx)
-                .ok_or_else(|| TextGridError::Parse("Missing xmax".to_string()))?,
+            lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing xmax".to_string()))?,
         )
         .ok_or_else(|| TextGridError::Parse("Missing xmax value".to_string()))?,
     )?;
@@ -260,9 +248,8 @@ fn parse_text_format(
     idx += 1;
 
     // size = N
-    let size_line = lines
-        .get(idx)
-        .ok_or_else(|| TextGridError::Parse("Missing size line".to_string()))?;
+    let size_line =
+        lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing size line".to_string()))?;
     let num_tiers = parse_int(
         value_after_eq(size_line)
             .ok_or_else(|| TextGridError::Parse("Missing size value".to_string()))?,
@@ -286,18 +273,16 @@ fn parse_text_format(
         }
 
         // class = "IntervalTier" or "TextTier"
-        let class_line = lines
-            .get(idx)
-            .ok_or_else(|| TextGridError::Parse("Missing class line".to_string()))?;
+        let class_line =
+            lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing class line".to_string()))?;
         let class_val = value_after_eq(class_line)
             .ok_or_else(|| TextGridError::Parse("Missing class value".to_string()))?;
         let class_str = extract_quoted_string(class_val)?;
         idx += 1;
 
         // name = "..."
-        let name_line = lines
-            .get(idx)
-            .ok_or_else(|| TextGridError::Parse("Missing name line".to_string()))?;
+        let name_line =
+            lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing name line".to_string()))?;
         let name_val = value_after_eq(name_line)
             .ok_or_else(|| TextGridError::Parse("Missing name value".to_string()))?;
         let name = extract_quoted_string(name_val)?;
@@ -380,11 +365,7 @@ fn parse_text_format(
                     let text = extract_quoted_string(text_val)?;
                     idx += 1;
 
-                    intervals.push(Interval {
-                        xmin: ixmin,
-                        xmax: ixmax,
-                        text,
-                    });
+                    intervals.push(Interval { xmin: ixmin, xmax: ixmax, text });
                 }
 
                 tiers.push(TextGridTier::IntervalTier {
@@ -448,20 +429,12 @@ fn parse_text_format(
                 });
             }
             other => {
-                return Err(TextGridError::Parse(format!(
-                    "Unknown tier class: {other:?}"
-                )));
+                return Err(TextGridError::Parse(format!("Unknown tier class: {other:?}")));
             }
         }
     }
 
-    Ok(TextGridFile {
-        file_path,
-        xmin,
-        xmax,
-        tiers,
-        raw_text,
-    })
+    Ok(TextGridFile { file_path, xmin, xmax, tiers, raw_text })
 }
 
 // ---------------------------------------------------------------------------
@@ -488,17 +461,13 @@ fn parse_short_text_format(
 
     // xmin
     let xmin = parse_float(
-        lines
-            .get(idx)
-            .ok_or_else(|| TextGridError::Parse("Missing xmin".to_string()))?,
+        lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing xmin".to_string()))?,
     )?;
     idx += 1;
 
     // xmax
     let xmax = parse_float(
-        lines
-            .get(idx)
-            .ok_or_else(|| TextGridError::Parse("Missing xmax".to_string()))?,
+        lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing xmax".to_string()))?,
     )?;
     idx += 1;
 
@@ -507,9 +476,7 @@ fn parse_short_text_format(
 
     // number of tiers
     let num_tiers = parse_int(
-        lines
-            .get(idx)
-            .ok_or_else(|| TextGridError::Parse("Missing tier count".to_string()))?,
+        lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing tier count".to_string()))?,
     )?;
     idx += 1;
 
@@ -518,33 +485,25 @@ fn parse_short_text_format(
     for _ in 0..num_tiers {
         // class
         let class_str = extract_quoted_string(
-            lines
-                .get(idx)
-                .ok_or_else(|| TextGridError::Parse("Missing tier class".to_string()))?,
+            lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing tier class".to_string()))?,
         )?;
         idx += 1;
 
         // name
         let name = extract_quoted_string(
-            lines
-                .get(idx)
-                .ok_or_else(|| TextGridError::Parse("Missing tier name".to_string()))?,
+            lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing tier name".to_string()))?,
         )?;
         idx += 1;
 
         // tier xmin
         let tier_xmin = parse_float(
-            lines
-                .get(idx)
-                .ok_or_else(|| TextGridError::Parse("Missing tier xmin".to_string()))?,
+            lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing tier xmin".to_string()))?,
         )?;
         idx += 1;
 
         // tier xmax
         let tier_xmax = parse_float(
-            lines
-                .get(idx)
-                .ok_or_else(|| TextGridError::Parse("Missing tier xmax".to_string()))?,
+            lines.get(idx).ok_or_else(|| TextGridError::Parse("Missing tier xmax".to_string()))?,
         )?;
         idx += 1;
 
@@ -573,11 +532,7 @@ fn parse_short_text_format(
                     })?)?;
                     idx += 1;
 
-                    intervals.push(Interval {
-                        xmin: ixmin,
-                        xmax: ixmax,
-                        text,
-                    });
+                    intervals.push(Interval { xmin: ixmin, xmax: ixmax, text });
                 }
 
                 tiers.push(TextGridTier::IntervalTier {
@@ -619,20 +574,12 @@ fn parse_short_text_format(
                 });
             }
             other => {
-                return Err(TextGridError::Parse(format!(
-                    "Unknown tier class: {other:?}"
-                )));
+                return Err(TextGridError::Parse(format!("Unknown tier class: {other:?}")));
             }
         }
     }
 
-    Ok(TextGridFile {
-        file_path,
-        xmin,
-        xmax,
-        tiers,
-        raw_text,
-    })
+    Ok(TextGridFile { file_path, xmin, xmax, tiers, raw_text })
 }
 
 // ---------------------------------------------------------------------------
@@ -688,10 +635,7 @@ fn parse_textgrid_strs(
     if parallel {
         #[cfg(feature = "parallel")]
         {
-            pairs
-                .into_par_iter()
-                .map(parse_one)
-                .collect::<Result<Vec<_>, _>>()
+            pairs.into_par_iter().map(parse_one).collect::<Result<Vec<_>, _>>()
         }
         #[cfg(not(feature = "parallel"))]
         {
@@ -738,17 +682,9 @@ pub fn serialize_textgrid_file(file: &TextGridFile) -> String {
     for (i, tier) in file.tiers.iter().enumerate() {
         out.push_str(&format!("    item [{}]:\n", i + 1));
         match tier {
-            TextGridTier::IntervalTier {
-                name,
-                xmin,
-                xmax,
-                intervals,
-            } => {
+            TextGridTier::IntervalTier { name, xmin, xmax, intervals } => {
                 out.push_str("        class = \"IntervalTier\"\n");
-                out.push_str(&format!(
-                    "        name = \"{}\"\n",
-                    escape_textgrid_string(name)
-                ));
+                out.push_str(&format!("        name = \"{}\"\n", escape_textgrid_string(name)));
                 out.push_str(&format!("        xmin = {xmin}\n"));
                 out.push_str(&format!("        xmax = {xmax}\n"));
                 out.push_str(&format!("        intervals: size = {}\n", intervals.len()));
@@ -762,17 +698,9 @@ pub fn serialize_textgrid_file(file: &TextGridFile) -> String {
                     ));
                 }
             }
-            TextGridTier::TextTier {
-                name,
-                xmin,
-                xmax,
-                points,
-            } => {
+            TextGridTier::TextTier { name, xmin, xmax, points } => {
                 out.push_str("        class = \"TextTier\"\n");
-                out.push_str(&format!(
-                    "        name = \"{}\"\n",
-                    escape_textgrid_string(name)
-                ));
+                out.push_str(&format!("        name = \"{}\"\n", escape_textgrid_string(name)));
                 out.push_str(&format!("        xmin = {xmin}\n"));
                 out.push_str(&format!("        xmax = {xmax}\n"));
                 out.push_str(&format!("        points: size = {}\n", points.len()));
@@ -822,10 +750,7 @@ pub trait BaseTextGrid: Sized {
 
     /// Return tiers grouped by file.
     fn tiers_by_file(&self) -> Vec<Vec<&TextGridTier>> {
-        self.files()
-            .iter()
-            .map(|f| f.tiers.iter().collect())
-            .collect()
+        self.files().iter().map(|f| f.tiers.iter().collect()).collect()
     }
 
     /// Return TextGrid strings, one per file.
@@ -856,9 +781,7 @@ pub trait BaseTextGrid: Sized {
             }
         }
 
-        (0..self.files().len())
-            .map(|i| format!("{:04}{target_ext}", i + 1))
-            .collect()
+        (0..self.files().len()).map(|i| format!("{:04}{target_ext}", i + 1)).collect()
     }
 
     /// Write TextGrid files to a directory.
@@ -964,10 +887,7 @@ pub trait BaseTextGrid: Sized {
 
     /// Return EAF XML strings (one per file) for ELAN export.
     fn to_elan_strings(&self) -> Vec<String> {
-        self.files()
-            .iter()
-            .map(super::elan_writer::textgrid_file_to_eaf_xml)
-            .collect()
+        self.files().iter().map(super::elan_writer::textgrid_file_to_eaf_xml).collect()
     }
 
     /// Convert to an [`Elan`](crate::elan::Elan) object.
@@ -1113,9 +1033,7 @@ impl BaseTextGrid for TextGrid {
 impl TextGrid {
     /// Construct from a Vec of [`TextGridFile`] entries.
     pub fn from_textgrid_files(files: Vec<TextGridFile>) -> Self {
-        Self {
-            files: VecDeque::from(files),
-        }
+        Self { files: VecDeque::from(files) }
     }
 
     /// Append data from another TextGrid.
@@ -1132,16 +1050,12 @@ impl TextGrid {
 
     /// Remove and return the last file as a new TextGrid.
     pub fn pop_back(&mut self) -> Option<TextGrid> {
-        self.files
-            .pop_back()
-            .map(|f| TextGrid::from_files(VecDeque::from(vec![f])))
+        self.files.pop_back().map(|f| TextGrid::from_files(VecDeque::from(vec![f])))
     }
 
     /// Remove and return the first file as a new TextGrid.
     pub fn pop_front(&mut self) -> Option<TextGrid> {
-        self.files
-            .pop_front()
-            .map(|f| TextGrid::from_files(VecDeque::from(vec![f])))
+        self.files.pop_front().map(|f| TextGrid::from_files(VecDeque::from(vec![f])))
     }
 
     /// Parse TextGrid data from in-memory strings.
@@ -1150,11 +1064,8 @@ impl TextGrid {
         ids: Option<Vec<String>>,
         parallel: bool,
     ) -> Result<Self, TextGridError> {
-        let ids = ids.unwrap_or_else(|| {
-            strs.iter()
-                .map(|_| uuid::Uuid::new_v4().to_string())
-                .collect()
-        });
+        let ids =
+            ids.unwrap_or_else(|| strs.iter().map(|_| uuid::Uuid::new_v4().to_string()).collect());
         assert_eq!(
             strs.len(),
             ids.len(),
@@ -1181,10 +1092,7 @@ impl TextGrid {
         parallel: bool,
     ) -> Result<Self, TextGridError> {
         let mut paths: Vec<String> = Vec::new();
-        for entry in walkdir::WalkDir::new(path)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
+        for entry in walkdir::WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
             if entry.file_type().is_file() {
                 let file_path = entry.path().to_string_lossy().to_string();
                 if file_path.ends_with(extension) {
@@ -1215,11 +1123,7 @@ impl TextGrid {
             .filter_map(|i| {
                 let entry = archive.by_index(i).ok()?;
                 let name = entry.name().to_string();
-                if name.ends_with(extension) && !entry.is_dir() {
-                    Some(name)
-                } else {
-                    None
-                }
+                if name.ends_with(extension) && !entry.is_dir() { Some(name) } else { None }
             })
             .collect();
         entry_names.sort();
@@ -1355,12 +1259,7 @@ mod tests {
         assert_eq!(file.tiers.len(), 2);
 
         match &file.tiers[0] {
-            TextGridTier::IntervalTier {
-                name,
-                xmin,
-                xmax,
-                intervals,
-            } => {
+            TextGridTier::IntervalTier { name, xmin, xmax, intervals } => {
                 assert_eq!(name, "words");
                 assert_eq!(*xmin, 0.0);
                 assert_eq!(*xmax, 2.3);
@@ -1376,12 +1275,7 @@ mod tests {
         }
 
         match &file.tiers[1] {
-            TextGridTier::TextTier {
-                name,
-                xmin,
-                xmax,
-                points,
-            } => {
+            TextGridTier::TextTier { name, xmin, xmax, points } => {
                 assert_eq!(name, "events");
                 assert_eq!(*xmin, 0.0);
                 assert_eq!(*xmax, 2.3);
@@ -1568,14 +1462,8 @@ mod tests {
     #[test]
     fn test_textgrid_base_trait() {
         let tg = TextGrid::from_strs(
-            vec![
-                sample_text_format().to_string(),
-                sample_short_text_format().to_string(),
-            ],
-            Some(vec![
-                "file1.TextGrid".to_string(),
-                "file2.TextGrid".to_string(),
-            ]),
+            vec![sample_text_format().to_string(), sample_short_text_format().to_string()],
+            Some(vec!["file1.TextGrid".to_string(), "file2.TextGrid".to_string()]),
             false,
         )
         .unwrap();
@@ -1652,19 +1540,14 @@ mod tests {
     #[test]
     fn test_write_files_validation() {
         let tg = TextGrid::from_strs(
-            vec![
-                sample_text_format().to_string(),
-                sample_short_text_format().to_string(),
-            ],
+            vec![sample_text_format().to_string(), sample_short_text_format().to_string()],
             Some(vec!["f1.TextGrid".to_string(), "f2.TextGrid".to_string()]),
             false,
         )
         .unwrap();
         let dir = tempfile::tempdir().unwrap();
-        let result = tg.write_files(
-            dir.path().to_str().unwrap(),
-            Some(vec!["only_one.TextGrid".to_string()]),
-        );
+        let result = tg
+            .write_files(dir.path().to_str().unwrap(), Some(vec!["only_one.TextGrid".to_string()]));
         assert!(matches!(result, Err(WriteError::Validation(_))));
     }
 

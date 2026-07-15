@@ -42,25 +42,14 @@ pub(crate) fn elan_file_to_srt_str(file: &ElanFile, participants: Option<&[Strin
                 (Some(s), Some(e)) => (s, e),
                 _ => continue,
             };
-            let text = if multi {
-                format!("{}: {}", tier.id, ann.value)
-            } else {
-                ann.value.clone()
-            };
-            entries.push(SrtEntry {
-                text,
-                start_ms: start,
-                end_ms: end,
-            });
+            let text =
+                if multi { format!("{}: {}", tier.id, ann.value) } else { ann.value.clone() };
+            entries.push(SrtEntry { text, start_ms: start, end_ms: end });
         }
     }
 
     // 3. Sort by start time, then end time.
-    entries.sort_by(|a, b| {
-        a.start_ms
-            .cmp(&b.start_ms)
-            .then_with(|| a.end_ms.cmp(&b.end_ms))
-    });
+    entries.sort_by(|a, b| a.start_ms.cmp(&b.start_ms).then_with(|| a.end_ms.cmp(&b.end_ms)));
 
     // 4. Generate SRT output.
     let mut output = String::with_capacity(4096);
@@ -112,11 +101,7 @@ mod tests {
     }
 
     fn make_elan_file(tiers: Vec<Tier>) -> ElanFile {
-        ElanFile {
-            file_path: "test.eaf".to_string(),
-            tiers,
-            raw_xml: String::new(),
-        }
+        ElanFile { file_path: "test.eaf".to_string(), tiers, raw_xml: String::new() }
     }
 
     #[test]
@@ -160,16 +145,8 @@ mod tests {
     #[test]
     fn test_explicit_participants() {
         let file = make_elan_file(vec![
-            make_main_tier(
-                "Speaker1",
-                "Alice",
-                vec![make_alignable_ann("a1", 0, 1000, "hello")],
-            ),
-            make_main_tier(
-                "CHI",
-                "Target_Child",
-                vec![make_alignable_ann("a2", 1000, 2000, "hi")],
-            ),
+            make_main_tier("Speaker1", "Alice", vec![make_alignable_ann("a1", 0, 1000, "hello")]),
+            make_main_tier("CHI", "Target_Child", vec![make_alignable_ann("a2", 1000, 2000, "hi")]),
         ]);
         let participants = vec!["Speaker1".to_string()];
         let srt = elan_file_to_srt_str(&file, Some(&participants));
@@ -222,16 +199,8 @@ mod tests {
     #[test]
     fn test_auto_detect_skips_non_3char() {
         let file = make_elan_file(vec![
-            make_main_tier(
-                "Speaker1",
-                "Alice",
-                vec![make_alignable_ann("a1", 0, 1000, "hello")],
-            ),
-            make_main_tier(
-                "CHI",
-                "Target_Child",
-                vec![make_alignable_ann("a2", 1000, 2000, "hi")],
-            ),
+            make_main_tier("Speaker1", "Alice", vec![make_alignable_ann("a1", 0, 1000, "hello")]),
+            make_main_tier("CHI", "Target_Child", vec![make_alignable_ann("a2", 1000, 2000, "hi")]),
         ]);
         let srt = elan_file_to_srt_str(&file, None);
 

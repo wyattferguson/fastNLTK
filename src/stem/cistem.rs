@@ -7,7 +7,7 @@ pub struct Cistem;
 #[pymethods]
 impl Cistem {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 

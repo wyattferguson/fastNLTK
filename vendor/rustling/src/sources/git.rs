@@ -35,10 +35,7 @@ pub fn resolve_git(
     }
 
     // Check that git is available.
-    Command::new("git")
-        .arg("--version")
-        .output()
-        .map_err(|_| SourceError::GitNotFound)?;
+    Command::new("git").arg("--version").output().map_err(|_| SourceError::GitNotFound)?;
 
     let depth = depth.unwrap_or(1);
 
@@ -67,9 +64,7 @@ pub fn resolve_git(
             .map_err(|e| SourceError::Io(format!("Failed to run git checkout: {e}")))?;
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(SourceError::Git(format!(
-                "git checkout {rev} failed: {stderr}"
-            )));
+            return Err(SourceError::Git(format!("git checkout {rev} failed: {stderr}")));
         }
     } else {
         // For branches/tags or default: shallow clone with --branch if specified.
@@ -80,9 +75,8 @@ pub fn resolve_git(
         }
         cmd.arg(url).arg(&local_path);
 
-        let output = cmd
-            .output()
-            .map_err(|e| SourceError::Io(format!("Failed to run git clone: {e}")))?;
+        let output =
+            cmd.output().map_err(|e| SourceError::Io(format!("Failed to run git clone: {e}")))?;
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             return Err(SourceError::Git(format!("git clone failed: {stderr}")));

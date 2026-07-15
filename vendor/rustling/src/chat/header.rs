@@ -230,11 +230,7 @@ pub(crate) fn split_header_line(line: &str) -> (&str, Option<&str>) {
     if let Some(colon_pos) = rest.find(':') {
         let name = &rest[..colon_pos];
         let value = rest[colon_pos + 1..].trim_start_matches('\t').trim();
-        if value.is_empty() {
-            (name, None)
-        } else {
-            (name, Some(value))
-        }
+        if value.is_empty() { (name, None) } else { (name, Some(value)) }
     } else {
         (rest.trim(), None)
     }
@@ -252,45 +248,22 @@ pub(crate) fn parse_age(s: &str) -> Option<Age> {
     let years: u32 = years_str.parse().ok()?;
 
     if rest.is_empty() {
-        return Some(Age {
-            years,
-            months: None,
-            days: None,
-        });
+        return Some(Age { years, months: None, days: None });
     }
 
-    let (months_str, days_str) = if let Some((m, d)) = rest.split_once('.') {
-        (m, d)
-    } else {
-        (rest, "")
-    };
+    let (months_str, days_str) =
+        if let Some((m, d)) = rest.split_once('.') { (m, d) } else { (rest, "") };
 
-    let months = if months_str.is_empty() {
-        None
-    } else {
-        Some(months_str.parse().ok()?)
-    };
+    let months = if months_str.is_empty() { None } else { Some(months_str.parse().ok()?) };
 
-    let days = if days_str.is_empty() {
-        None
-    } else {
-        Some(days_str.parse().ok()?)
-    };
+    let days = if days_str.is_empty() { None } else { Some(days_str.parse().ok()?) };
 
-    Some(Age {
-        years,
-        months,
-        days,
-    })
+    Some(Age { years, months, days })
 }
 
 /// Parse @Languages line value: "eng, zho" -> vec!["eng", "zho"]
 pub(crate) fn parse_languages(value: &str) -> Vec<String> {
-    value
-        .split(',')
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .collect()
+    value.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect()
 }
 
 /// Parse @Participants line value into (code, name, role) tuples.
@@ -311,11 +284,7 @@ pub(crate) fn parse_participants(value: &str) -> Vec<(String, String, String)> {
                 }
                 _ => {
                     // CODE Name Role (name may have underscores)
-                    Some((
-                        parts[0].to_string(),
-                        parts[1].to_string(),
-                        parts[2..].join(" "),
-                    ))
+                    Some((parts[0].to_string(), parts[1].to_string(), parts[2..].join(" ")))
                 }
             }
         })
@@ -352,11 +321,7 @@ pub(crate) fn parse_id(value: &str) -> Option<(String, IdFields)> {
     let opt = |idx: usize| -> Option<String> {
         fields.get(idx).and_then(|s| {
             let trimmed = s.trim();
-            if trimmed.is_empty() {
-                None
-            } else {
-                Some(trimmed.to_string())
-            }
+            if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
         })
     };
 
@@ -391,35 +356,19 @@ pub(crate) fn parse_media(value: &str) -> Media {
 /// Classify and parse a changeable header into a ChangeableHeader variant.
 pub(crate) fn parse_changeable(name: &str, value: Option<&str>) -> Option<ChangeableHeader> {
     match name {
-        "Activities" => Some(ChangeableHeader::Activities {
-            value: value.unwrap_or("").to_string(),
-        }),
-        "Bck" => Some(ChangeableHeader::Bck {
-            value: value.unwrap_or("").to_string(),
-        }),
-        "Bg" => Some(ChangeableHeader::Bg {
-            value: value.map(|v| v.to_string()),
-        }),
+        "Activities" => {
+            Some(ChangeableHeader::Activities { value: value.unwrap_or("").to_string() })
+        }
+        "Bck" => Some(ChangeableHeader::Bck { value: value.unwrap_or("").to_string() }),
+        "Bg" => Some(ChangeableHeader::Bg { value: value.map(|v| v.to_string()) }),
         "Blank" => Some(ChangeableHeader::Blank {}),
-        "Comment" => Some(ChangeableHeader::Comment {
-            value: value.unwrap_or("").to_string(),
-        }),
-        "Date" => Some(ChangeableHeader::Date {
-            value: value.unwrap_or("").to_string(),
-        }),
-        "Eg" => Some(ChangeableHeader::Eg {
-            value: value.map(|v| v.to_string()),
-        }),
-        "G" => Some(ChangeableHeader::G {
-            value: value.map(|v| v.to_string()),
-        }),
+        "Comment" => Some(ChangeableHeader::Comment { value: value.unwrap_or("").to_string() }),
+        "Date" => Some(ChangeableHeader::Date { value: value.unwrap_or("").to_string() }),
+        "Eg" => Some(ChangeableHeader::Eg { value: value.map(|v| v.to_string()) }),
+        "G" => Some(ChangeableHeader::G { value: value.map(|v| v.to_string()) }),
         "New Episode" => Some(ChangeableHeader::NewEpisode {}),
-        "Page" => Some(ChangeableHeader::Page {
-            value: value.unwrap_or("").to_string(),
-        }),
-        "Situation" => Some(ChangeableHeader::Situation {
-            value: value.unwrap_or("").to_string(),
-        }),
+        "Page" => Some(ChangeableHeader::Page { value: value.unwrap_or("").to_string() }),
+        "Situation" => Some(ChangeableHeader::Situation { value: value.unwrap_or("").to_string() }),
         _ => None,
     }
 }
@@ -565,10 +514,7 @@ pub(crate) fn parse_file_headers(lines: &[String]) -> (Headers, usize, Vec<ChatE
             }
             "Comment" => {
                 let v = value.unwrap_or("").to_string();
-                headers
-                    .comments
-                    .get_or_insert_with(Vec::new)
-                    .push(v.clone());
+                headers.comments.get_or_insert_with(Vec::new).push(v.clone());
                 initial_events.push(ChatEvent::Header(ChangeableHeader::Comment { value: v }));
             }
             _ if is_changeable(name) => {
@@ -686,10 +632,7 @@ mod tests {
     fn test_parse_participants_basic() {
         let parts = parse_participants("CHI Mark Target_Child, MOT Mary Mother");
         assert_eq!(parts.len(), 2);
-        assert_eq!(
-            parts[0],
-            ("CHI".into(), "Mark".into(), "Target_Child".into())
-        );
+        assert_eq!(parts[0], ("CHI".into(), "Mark".into(), "Target_Child".into()));
         assert_eq!(parts[1], ("MOT".into(), "Mary".into(), "Mother".into()));
     }
 
@@ -851,14 +794,8 @@ mod tests {
         ];
         let (headers, _, _) = parse_file_headers(&lines);
 
-        assert_eq!(
-            headers.participants[0].birth.as_deref(),
-            Some("28-JUN-2001")
-        );
-        assert_eq!(
-            headers.participants[0].birthplace.as_deref(),
-            Some("Pittsburgh, PA")
-        );
+        assert_eq!(headers.participants[0].birth.as_deref(), Some("28-JUN-2001"));
+        assert_eq!(headers.participants[0].birthplace.as_deref(), Some("Pittsburgh, PA"));
         assert_eq!(headers.participants[0].l1.as_deref(), Some("eng"));
     }
 

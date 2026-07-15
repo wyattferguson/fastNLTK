@@ -3,7 +3,7 @@
 use pyo3::prelude::*;
 
 /// Language name mapping: `whatlang::Lang` → NLTK-style name (lowercase).
-fn lang_name(lang: whatlang::Lang) -> &'static str {
+const fn lang_name(lang: whatlang::Lang) -> &'static str {
     match lang {
         whatlang::Lang::Eng => "english",
         whatlang::Lang::Fra => "french",
@@ -51,7 +51,7 @@ pub struct TextCat;
 #[pymethods]
 impl TextCat {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 

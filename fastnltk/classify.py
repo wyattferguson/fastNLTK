@@ -10,8 +10,13 @@ from nltk.classify.util import accuracy, apply_features, log_likelihood
 
 from fastnltk._rust import (
     MaxentClassifier as _RustMaxentClassifier,
+)
+from fastnltk._rust import (
     NaiveBayesClassifier as _RustNaiveBayesClassifier,
-    TextCat as _RustTextCat,)
+)
+from fastnltk._rust import (
+    TextCat as _RustTextCat,
+)
 
 __all__ = [
     "NaiveBayesClassifier",
@@ -28,6 +33,7 @@ __all__ = [
 
 class TextCat:
     """Language detection — Rust-accelerated via whatlang."""
+
     def __init__(self):
         self._impl = _RustTextCat()
 
@@ -44,6 +50,7 @@ class TextCat:
 
 class MaxentClassifier:
     """Maximum Entropy classifier — Rust-accelerated GIS training."""
+
     def __init__(self):
         self._impl = None  # set by train()
 
@@ -70,6 +77,7 @@ class MaxentClassifier:
 
 class NaiveBayesClassifier:
     """Naive Bayes classifier — Rust-accelerated."""
+
     def __init__(self):
         self._impl = None  # set by train()
 
@@ -95,9 +103,11 @@ class NaiveBayesClassifier:
 
 class PositiveNaiveBayesClassifier:
     """Positive Naive Bayes for positive + unlabeled data."""
+
     @staticmethod
     def train(positive_featuresets, unlabeled_featuresets):
         from fastnltk.classify import NaiveBayesClassifier
+
         labeled = [(feats, "pos") for feats in positive_featuresets] + [
             (feats, "neg") for feats in unlabeled_featuresets
         ]

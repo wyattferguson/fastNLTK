@@ -10,18 +10,14 @@ const ZIP_MAGIC: &[u8] = &[0x50, 0x4B, 0x03, 0x04];
 
 /// Download a file from a URL using curl.
 fn download(url: &str, dest: &PathBuf) -> Result<(), SourceError> {
-    let output = Command::new("curl")
-        .args(["-fsSL", "-o"])
-        .arg(dest)
-        .arg(url)
-        .output()
-        .map_err(|e| SourceError::Http(format!("Failed to run curl (is it installed?): {e}")))?;
+    let output =
+        Command::new("curl").args(["-fsSL", "-o"]).arg(dest).arg(url).output().map_err(|e| {
+            SourceError::Http(format!("Failed to run curl (is it installed?): {e}"))
+        })?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(SourceError::Http(format!(
-            "curl failed for {url}: {stderr}"
-        )));
+        return Err(SourceError::Http(format!("curl failed for {url}: {stderr}")));
     }
     Ok(())
 }

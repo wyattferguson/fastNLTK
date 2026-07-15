@@ -22,9 +22,7 @@ pub struct ValidationError {
 
 impl ValidationError {
     fn new(msg: impl Into<String>) -> Self {
-        Self {
-            message: msg.into(),
-        }
+        Self { message: msg.into() }
     }
 }
 
@@ -214,18 +212,14 @@ fn validate_raw_structure(
     for line in raw_lines {
         if line == "@End" {
             if seen_end {
-                errors.push(ValidationError::new(format!(
-                    "{file_path}: content after @End"
-                )));
+                errors.push(ValidationError::new(format!("{file_path}: content after @End")));
                 break;
             }
             seen_end = true;
             continue;
         }
         if seen_end && (line.starts_with('*') || line.starts_with('%')) {
-            errors.push(ValidationError::new(format!(
-                "{file_path}: content after @End"
-            )));
+            errors.push(ValidationError::new(format!("{file_path}: content after @End")));
             break;
         }
     }
@@ -268,9 +262,7 @@ fn validate_raw_structure(
         {
             // Known invalid headers:
             if name == "Exceptions" || name == "New Language" || name == "Code" {
-                errors.push(ValidationError::new(format!(
-                    "{file_path}: invalid header @{name}"
-                )));
+                errors.push(ValidationError::new(format!("{file_path}: invalid header @{name}")));
             }
         }
     }
@@ -301,9 +293,7 @@ fn validate_raw_structure(
 
     // Missing @UTF8 header.
     if !raw_lines.is_empty() && raw_lines[0] != "@UTF8" && raw_lines[0] == "@Begin" {
-        errors.push(ValidationError::new(format!(
-            "{file_path}: file does not start with @UTF8"
-        )));
+        errors.push(ValidationError::new(format!("{file_path}: file does not start with @UTF8")));
     }
 }
 
@@ -321,9 +311,7 @@ fn validate_headers(
     if let Some(ref opts) = headers.options
         && !VALID_OPTIONS.contains(opts.as_str())
     {
-        errors.push(ValidationError::new(format!(
-            "{file_path}: invalid @Options value: {opts}"
-        )));
+        errors.push(ValidationError::new(format!("{file_path}: invalid @Options value: {opts}")));
     }
 
     // Participant code validation.
@@ -350,11 +338,7 @@ fn validate_headers(
         .filter_map(|l| {
             let value = l.split_once('\t')?.1;
             let fields: Vec<&str> = value.split('|').collect();
-            if fields.len() >= 3 {
-                Some(fields[2].trim().to_string())
-            } else {
-                None
-            }
+            if fields.len() >= 3 { Some(fields[2].trim().to_string()) } else { None }
         })
         .collect();
     if !id_codes.is_empty() {
@@ -378,10 +362,7 @@ fn validate_headers(
                 )));
             }
             if p.role.is_ascii() && !VALID_ROLES.contains(p.role.as_str()) {
-                errors.push(ValidationError::new(format!(
-                    "{file_path}: invalid role: {}",
-                    p.role
-                )));
+                errors.push(ValidationError::new(format!("{file_path}: invalid role: {}", p.role)));
             }
         }
     }
@@ -433,10 +414,8 @@ fn validate_headers(
 
     // @Media filename must match CHAT file basename.
     if let Some(ref media) = headers.media_data {
-        let file_basename = std::path::Path::new(file_path)
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("");
+        let file_basename =
+            std::path::Path::new(file_path).file_stem().and_then(|s| s.to_str()).unwrap_or("");
         // Only check when file_path is a real .cha file (not a UUID from from_strs).
         if !media.filename.is_empty()
             && !file_basename.is_empty()
@@ -515,9 +494,8 @@ fn validate_headers(
     // Invalid language code in @Languages.
     for lang in &headers.languages {
         if lang.len() == 3 && lang == "aaa" {
-            errors.push(ValidationError::new(format!(
-                "{file_path}: invalid language code: {lang}"
-            )));
+            errors
+                .push(ValidationError::new(format!("{file_path}: invalid language code: {lang}")));
         }
     }
 
@@ -544,11 +522,8 @@ fn validate_age_format(file_path: &str, age_str: &str, errors: &mut Vec<Validati
         if rest.is_empty() {
             return; // Just "N;" is OK.
         }
-        let (months_str, days_str) = if let Some((m, d)) = rest.split_once('.') {
-            (m, d)
-        } else {
-            (rest, "")
-        };
+        let (months_str, days_str) =
+            if let Some((m, d)) = rest.split_once('.') { (m, d) } else { (rest, "") };
         if !months_str.is_empty() && months_str.len() != 2 {
             errors.push(ValidationError::new(format!(
                 "{file_path}: age months must be two digits, got: {age_str}"
@@ -573,11 +548,7 @@ fn validate_utterances(
     raw_lines: &[String],
     errors: &mut Vec<ValidationError>,
 ) {
-    let is_ca = headers
-        .options
-        .as_deref()
-        .map(|o| o.starts_with("CA"))
-        .unwrap_or(false);
+    let is_ca = headers.options.as_deref().map(|o| o.starts_with("CA")).unwrap_or(false);
 
     let mut utterance_raw_lines: Vec<&str> = Vec::new();
     for line in raw_lines {
@@ -602,10 +573,7 @@ fn validate_utterances(
         };
 
         let raw_line = utterance_raw_lines.get(idx).copied().unwrap_or("");
-        let raw_text = raw_line
-            .find(":\t")
-            .map(|i| &raw_line[i + 2..])
-            .unwrap_or(raw_main);
+        let raw_text = raw_line.find(":\t").map(|i| &raw_line[i + 2..]).unwrap_or(raw_main);
 
         validate_single_utterance(file_path, raw_text, is_ca, headers, errors);
     }
@@ -617,10 +585,8 @@ fn validate_utterances(
         }
         for caps in BULLET_REGEX.captures_iter(line) {
             if let (Some(start_m), Some(end_m)) = (caps.get(1), caps.get(2))
-                && let (Ok(start), Ok(end)) = (
-                    start_m.as_str().parse::<i64>(),
-                    end_m.as_str().parse::<i64>(),
-                )
+                && let (Ok(start), Ok(end)) =
+                    (start_m.as_str().parse::<i64>(), end_m.as_str().parse::<i64>())
                 && start >= end
             {
                 errors.push(ValidationError::new(format!(
@@ -702,9 +668,7 @@ fn validate_single_utterance(
             && !core_text.ends_with("+//?")
             && !core_text.ends_with("+\"/.")
         {
-            errors.push(ValidationError::new(format!(
-                "{file_path}: utterance missing terminator"
-            )));
+            errors.push(ValidationError::new(format!("{file_path}: utterance missing terminator")));
             return;
         }
 
@@ -719,9 +683,7 @@ fn validate_single_utterance(
                 && !core_text.ends_with("+...")
                 && !core_text.ends_with("+..?")
             {
-                errors.push(ValidationError::new(format!(
-                    "{file_path}: multiple terminators"
-                )));
+                errors.push(ValidationError::new(format!("{file_path}: multiple terminators")));
             }
         }
 
@@ -779,9 +741,7 @@ fn validate_single_utterance(
     for word in &words {
         // Uppercase unintelligible markers.
         if *word == "XXX" || *word == "YYY" || *word == "WWW" {
-            errors.push(ValidationError::new(format!(
-                "{file_path}: \"{word}\" must be lowercase"
-            )));
+            errors.push(ValidationError::new(format!("{file_path}: \"{word}\" must be lowercase")));
         }
 
         // Obsolete unintelligible markers.
@@ -809,11 +769,7 @@ fn validate_single_utterance(
         // &= with fraction (e.g., "&=1.88").
         if let Some(rest) = word.strip_prefix("&=")
             && rest.contains('.')
-            && rest
-                .chars()
-                .next()
-                .map(|c| c.is_ascii_digit())
-                .unwrap_or(false)
+            && rest.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false)
         {
             errors.push(ValidationError::new(format!(
                 "{file_path}: invalid &= notation (fraction): {word}"
@@ -830,11 +786,7 @@ fn validate_single_utterance(
             && word.len() > 1
         {
             let rest = &word[1..];
-            if rest
-                .chars()
-                .next()
-                .map(|c| c.is_alphabetic())
-                .unwrap_or(false)
+            if rest.chars().next().map(|c| c.is_alphabetic()).unwrap_or(false)
                 && !rest.starts_with("l")
             {
                 errors.push(ValidationError::new(format!(
@@ -880,9 +832,7 @@ fn validate_single_utterance(
             let is_single_group = !inner.contains('(') && !inner.contains(')');
             if is_single_group {
                 let is_timed_pause = !inner.is_empty()
-                    && inner
-                        .chars()
-                        .all(|c| c.is_ascii_digit() || c == '.' || c == ':');
+                    && inner.chars().all(|c| c.is_ascii_digit() || c == '.' || c == ':');
                 if !is_timed_pause {
                     errors.push(ValidationError::new(format!(
                         "{file_path}: word has no spoken content (entirely parenthesized): {word}"
@@ -1018,11 +968,7 @@ fn validate_form_markers(
         // Compound word with form marker.
         let word_before_at = &word[..at_pos];
         let is_compound = word_before_at.contains('+');
-        let is_sign_mode = headers
-            .options
-            .as_deref()
-            .map(|o| o == "sign")
-            .unwrap_or(false);
+        let is_sign_mode = headers.options.as_deref().map(|o| o == "sign").unwrap_or(false);
         if is_compound && !is_sign_mode && (marker_base == "s" || marker_base == "o") {
             errors.push(ValidationError::new(format!(
                 "{file_path}: compound word may not have form marker @{marker_base}: {word}"
@@ -1097,10 +1043,7 @@ mod tests {
 
     #[test]
     fn test_extract_words_skips_brackets() {
-        assert_eq!(
-            extract_words("aam [: m_d@s] [*] player@s ."),
-            vec!["aam", "player@s", "."]
-        );
+        assert_eq!(extract_words("aam [: m_d@s] [*] player@s ."), vec!["aam", "player@s", "."]);
     }
 
     #[test]

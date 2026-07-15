@@ -145,10 +145,7 @@ impl Participant {
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "Participant(code='{}', name='{}', role='{}')",
-            self.code, self.name, self.role
-        )
+        format!("Participant(code='{}', name='{}', role='{}')", self.code, self.name, self.role)
     }
 
     fn __eq__(&self, other: &Participant) -> bool {

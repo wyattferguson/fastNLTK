@@ -53,10 +53,7 @@ pub(crate) fn chat_file_to_eaf_xml(file: &ChatFile) -> String {
         }
 
         let tiers = utt.tiers.as_ref();
-        let main_text = tiers
-            .and_then(|t| t.get(&participant))
-            .cloned()
-            .unwrap_or_default();
+        let main_text = tiers.and_then(|t| t.get(&participant)).cloned().unwrap_or_default();
 
         let mut deps = Vec::new();
         if let Some(tiers) = tiers {
@@ -147,10 +144,8 @@ pub(crate) fn chat_file_to_eaf_xml(file: &ChatFile) -> String {
 
     // Main tiers (one per participant, alignable).
     for participant in &participants {
-        let display_name = participant_names
-            .get(participant.as_str())
-            .copied()
-            .unwrap_or(participant.as_str());
+        let display_name =
+            participant_names.get(participant.as_str()).copied().unwrap_or(participant.as_str());
         xml.push_str(&format!(
             "    <TIER TIER_ID=\"{}\" LINGUISTIC_TYPE_REF=\"default-lt\" PARTICIPANT=\"{}\">\n",
             xml_escape(participant),
@@ -283,11 +278,7 @@ mod tests {
     }
 
     fn make_participant(code: &str, name: &str) -> Participant {
-        Participant {
-            code: code.to_string(),
-            name: name.to_string(),
-            ..Default::default()
-        }
+        Participant { code: code.to_string(), name: name.to_string(), ..Default::default() }
     }
 
     fn make_chat_file(events: Vec<Utterance>) -> ChatFile {
@@ -318,10 +309,7 @@ mod tests {
             "CHI",
             "more cookie .",
             Some((0, 2000)),
-            vec![
-                ("%mor", "qn|more n|cookie ."),
-                ("%gra", "1|2|QUANT 2|0|INCROOT 3|2|PUNCT"),
-            ],
+            vec![("%mor", "qn|more n|cookie ."), ("%gra", "1|2|QUANT 2|0|INCROOT 3|2|PUNCT")],
         );
         let mot_utt = make_utterance(
             "MOT",
@@ -329,10 +317,7 @@ mod tests {
             Some((2500, 5000)),
             vec![
                 ("%mor", "mod|do pro:per|you v|want qn|more n|cookie-PL ?"),
-                (
-                    "%gra",
-                    "1|3|AUX 2|3|SUBJ 3|0|ROOT 4|5|QUANT 5|3|OBJ 6|3|PUNCT",
-                ),
+                ("%gra", "1|3|AUX 2|3|SUBJ 3|0|ROOT 4|5|QUANT 5|3|OBJ 6|3|PUNCT"),
             ],
         );
         let file = make_chat_file(vec![chi_utt, mot_utt]);

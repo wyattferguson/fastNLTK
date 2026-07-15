@@ -14,7 +14,7 @@ pub struct SpaceTokenizer;
 #[pymethods]
 impl SpaceTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -53,16 +53,13 @@ fn tokenize_space(text: &str) -> Vec<String> {
     let mut tokens = Vec::new();
     let mut start = 0;
     while start < bytes.len() {
-        match memchr::memchr(b' ', &bytes[start..]) {
-            Some(rel) => {
-                let abs = start + rel;
-                tokens.push(text[start..abs].to_string());
-                start = abs + 1;
-            }
-            None => {
-                tokens.push(text[start..].to_string());
-                break;
-            }
+        if let Some(rel) = memchr::memchr(b' ', &bytes[start..]) {
+            let abs = start + rel;
+            tokens.push(text[start..abs].to_string());
+            start = abs + 1;
+        } else {
+            tokens.push(text[start..].to_string());
+            break;
         }
     }
     tokens
@@ -77,7 +74,7 @@ pub struct TabTokenizer;
 #[pymethods]
 impl TabTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -113,7 +110,7 @@ pub struct LineTokenizer;
 #[pymethods]
 impl LineTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -149,7 +146,7 @@ pub struct CharTokenizer;
 #[pymethods]
 impl CharTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 

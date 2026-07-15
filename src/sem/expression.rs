@@ -74,7 +74,8 @@ impl fmt::Display for Expression {
 }
 
 #[inline]
-pub fn is_atomic(expr: &Expression) -> bool {
+#[must_use]
+pub const fn is_atomic(expr: &Expression) -> bool {
     matches!(expr, Expression::Constant(_, _) | Expression::Variable(_, _))
 }
 
@@ -119,6 +120,7 @@ impl Expression {
     }
 }
 
+#[must_use]
 pub fn var_name(var: &Expression) -> String {
     match var {
         Expression::Variable(name, _) => name.clone(),
@@ -126,6 +128,7 @@ pub fn var_name(var: &Expression) -> String {
     }
 }
 
+#[must_use]
 pub fn binder_type(expr: &Expression) -> Option<Type> {
     match expr {
         Expression::Variable(_, t) => t.clone(),
@@ -133,6 +136,7 @@ pub fn binder_type(expr: &Expression) -> Option<Type> {
     }
 }
 
+#[must_use]
 pub fn fresh_var(base: &str, avoid: &[String]) -> String {
     let mut i = 0;
     loop {

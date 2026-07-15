@@ -1,8 +1,8 @@
 //! `TnT` — Trigram 'n Tags, integer-tag-ID Viterbi.
 //!
 //! Stores transition counts in flat Vec<Vec<u64>> arrays indexed by
-//! u16 tag ID instead of HashMap<(SmolStr, ...), u64>.  Eliminates
-//! SmolStr::new() + clone() calls in the O(N x T^2) Viterbi loop.
+//! u16 tag ID instead of `HashMap`<(`SmolStr`, ...), u64>.  Eliminates
+//! `SmolStr::new()` + `clone()` calls in the O(N x T^2) Viterbi loop.
 
 use hashbrown::{HashMap, HashSet};
 use pyo3::prelude::*;
@@ -17,17 +17,17 @@ pub struct TnT {
     /// Tag name → ID lookup (built during train).
     tag_id: FxHashMap<SmolStr, u16>,
     known_words: HashSet<SmolStr>,
-    /// uni_counts[tag_id] = count.
+    /// `uni_counts`[`tag_id`] = count.
     uni_counts: Vec<u64>,
-    /// Pre-computed sum of all uni_counts.
+    /// Pre-computed sum of all `uni_counts`.
     uni_total: u64,
-    /// bi_counts[t1_id][t2_id] = count.
+    /// `bi_counts`[`t1_id`][t2_id] = count.
     bi_counts: Vec<Vec<u64>>,
-    /// Pre-computed sum per row: bi_totals[t1_id] = sum(bi_counts[t1_id][*]).
+    /// Pre-computed sum per row: `bi_totals`[t1_id] = `sum(bi_counts`[t1_id][*]).
     bi_totals: Vec<u64>,
-    /// tri_counts[t1_id][t2_id][t3_id] = count.
+    /// `tri_counts`[`t1_id`][t2_id][`t3_id`] = count.
     tri_counts: Vec<Vec<Vec<u64>>>,
-    /// emission_counts[tag_id][normalized_word] = count.
+    /// `emission_counts`[`tag_id`][normalized_word] = count.
     emission_counts: Vec<HashMap<SmolStr, u64>>,
     total_words: u64,
 }
@@ -54,7 +54,7 @@ impl TnT {
         if total == 0 {
             return self.tag_prob(t2);
         }
-        (count as f64 + 0.5) / (0.5 * self.tags.len() as f64 + total as f64)
+        (count as f64 + 0.5) / 0.5f64.mul_add(self.tags.len() as f64, total as f64)
     }
 
     /// Trigram transition probability with linear interpolation.
@@ -68,7 +68,7 @@ impl TnT {
         let lambda = 0.5;
         let tri_prob = (tri as f64 + lambda) / (bi as f64 + lambda * self.tags.len() as f64);
         let bi_prob = self.trans_prob(t2, t3);
-        lambda * tri_prob + (1.0 - lambda) * bi_prob
+        (1.0 - lambda).mul_add(bi_prob, lambda * tri_prob)
     }
 
     /// Emission probability for tag→word.
@@ -130,11 +130,8 @@ impl TnT {
         // Build tag→ID mapping
         let mut tag_list: Vec<SmolStr> = tag_set.into_iter().collect();
         tag_list.sort();
-        let tag_id: FxHashMap<SmolStr, u16> = tag_list
-            .iter()
-            .enumerate()
-            .map(|(i, t)| (t.clone(), i as u16))
-            .collect();
+        let tag_id: FxHashMap<SmolStr, u16> =
+            tag_list.iter().enumerate().map(|(i, t)| (t.clone(), i as u16)).collect();
         let t = tag_list.len();
 
         self.tags = tag_list;
@@ -150,7 +147,8 @@ impl TnT {
             if sentence.is_empty() {
                 continue;
             }
-            let mut tag_ids: Vec<u16> = vec![self.tid(&SmolStr::new_inline("<S>")), self.tid(&SmolStr::new_inline("<S>"))];
+            let mut tag_ids: Vec<u16> =
+                vec![self.tid(&SmolStr::new_inline("<S>")), self.tid(&SmolStr::new_inline("<S>"))];
 
             for (word, tag) in sentence {
                 let t_id = self.tid(&SmolStr::new(tag));
@@ -188,7 +186,7 @@ impl TnT {
         }
 
         // Pre-compute word SmolStrs
-        let word_smols: Vec<SmolStr> = words.iter().map(|w| SmolStr::new(w)).collect();
+        let word_smols: Vec<SmolStr> = words.iter().map(SmolStr::new).collect();
         let start_id = self.tid(&SmolStr::new_inline("<S>"));
         let end_id = self.tid(&SmolStr::new_inline("<E>"));
 

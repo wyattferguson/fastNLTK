@@ -37,12 +37,7 @@ impl PySrtBlock {
     #[new]
     #[pyo3(signature = (*, index, line, time_marks))]
     fn new(index: usize, line: String, time_marks: (i64, i64)) -> Self {
-        Self(SrtBlock {
-            index,
-            text: line,
-            start_ms: time_marks.0,
-            end_ms: time_marks.1,
-        })
+        Self(SrtBlock { index, text: line, start_ms: time_marks.0, end_ms: time_marks.1 })
     }
 
     /// 1-based sequence number from the SRT file.
@@ -103,9 +98,7 @@ impl BaseSrt for PySrt {
         self.inner.files_mut()
     }
     fn from_files(files: VecDeque<SrtFile>) -> Self {
-        Self {
-            inner: Srt::from_files(files),
-        }
+        Self { inner: Srt::from_files(files) }
     }
 }
 
@@ -143,10 +136,8 @@ impl PySrt {
     #[pyo3(name = "from_files")]
     #[pyo3(signature = (paths, *, parallel=true))]
     fn read_files(_cls: &Bound<'_, PyType>, paths: Vec<PathBuf>, parallel: bool) -> PyResult<Self> {
-        let paths: Vec<String> = paths
-            .into_iter()
-            .map(pathbuf_to_string)
-            .collect::<PyResult<_>>()?;
+        let paths: Vec<String> =
+            paths.into_iter().map(pathbuf_to_string).collect::<PyResult<_>>()?;
         let srt = Srt::read_files(&paths, parallel).map_err(srt_error_to_pyerr)?;
         Ok(Self { inner: srt })
     }
@@ -199,17 +190,9 @@ impl PySrt {
         force_download: bool,
         parallel: bool,
     ) -> PyResult<Self> {
-        let srt = Srt::from_git(
-            url,
-            rev,
-            depth,
-            r#match,
-            extension,
-            cache_dir,
-            force_download,
-            parallel,
-        )
-        .map_err(srt_error_to_pyerr)?;
+        let srt =
+            Srt::from_git(url, rev, depth, r#match, extension, cache_dir, force_download, parallel)
+                .map_err(srt_error_to_pyerr)?;
         Ok(Self { inner: srt })
     }
 
@@ -247,11 +230,7 @@ impl PySrt {
 
     /// Return all subtitle blocks across all files as a flat list.
     fn utterances(&self) -> Vec<PySrtBlock> {
-        self.files()
-            .iter()
-            .flat_map(|f| &f.blocks)
-            .map(|b| PySrtBlock(b.clone()))
-            .collect()
+        self.files().iter().flat_map(|f| &f.blocks).map(|b| PySrtBlock(b.clone())).collect()
     }
 
     // -----------------------------------------------------------------------
@@ -273,9 +252,7 @@ impl PySrt {
     /// Convert to a CHAT object.
     #[pyo3(name = "to_chat")]
     fn py_to_chat(&self) -> crate::chat::PyChat {
-        crate::chat::PyChat {
-            inner: self.to_chat_obj(),
-        }
+        crate::chat::PyChat { inner: self.to_chat_obj() }
     }
 
     /// Write CHAT (.cha) files to a directory.
@@ -283,11 +260,10 @@ impl PySrt {
     #[pyo3(signature = (dir_path, /, *, filenames=None))]
     fn write_chat(&self, dir_path: PathBuf, filenames: Option<Vec<String>>) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_chat_files(&dir_path, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_chat_files(&dir_path, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Return EAF XML strings, one per file.
@@ -299,9 +275,7 @@ impl PySrt {
     /// Convert to an ELAN object.
     #[pyo3(name = "to_elan")]
     fn py_to_elan(&self) -> crate::elan::PyElan {
-        crate::elan::PyElan {
-            inner: self.to_elan(),
-        }
+        crate::elan::PyElan { inner: self.to_elan() }
     }
 
     /// Write ELAN (.eaf) files to a directory.
@@ -309,11 +283,10 @@ impl PySrt {
     #[pyo3(signature = (dir_path, /, *, filenames=None))]
     fn write_elan(&self, dir_path: PathBuf, filenames: Option<Vec<String>>) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_elan_files(&dir_path, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_elan_files(&dir_path, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Return TextGrid format strings, one per file.
@@ -325,9 +298,7 @@ impl PySrt {
     /// Convert to a TextGrid object.
     #[pyo3(name = "to_textgrid")]
     fn py_to_textgrid(&self) -> crate::textgrid::PyTextGrid {
-        crate::textgrid::PyTextGrid {
-            inner: self.to_textgrid(),
-        }
+        crate::textgrid::PyTextGrid { inner: self.to_textgrid() }
     }
 
     /// Write TextGrid (.TextGrid) files to a directory.
@@ -335,11 +306,10 @@ impl PySrt {
     #[pyo3(signature = (dir_path, /, *, filenames=None))]
     fn write_textgrid(&self, dir_path: PathBuf, filenames: Option<Vec<String>>) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_textgrid_files(&dir_path, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_textgrid_files(&dir_path, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     /// Write SRT files to a directory.
@@ -347,11 +317,10 @@ impl PySrt {
     #[pyo3(signature = (dir_path, /, *, filenames=None))]
     fn write(&self, dir_path: PathBuf, filenames: Option<Vec<String>>) -> PyResult<()> {
         let dir_path = pathbuf_to_string(dir_path)?;
-        self.write_srt_files(&dir_path, filenames)
-            .map_err(|e| match e {
-                WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
-                WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
-            })
+        self.write_srt_files(&dir_path, filenames).map_err(|e| match e {
+            WriteError::Validation(msg) => pyo3::exceptions::PyValueError::new_err(msg),
+            WriteError::Io(err) => pyo3::exceptions::PyIOError::new_err(err.to_string()),
+        })
     }
 
     // -----------------------------------------------------------------------
@@ -383,9 +352,7 @@ impl PySrt {
     fn pop_back(&mut self) -> PyResult<PySrt> {
         match self.files_mut().pop_back() {
             Some(file) => Ok(Self::from_files(VecDeque::from(vec![file]))),
-            None => Err(pyo3::exceptions::PyIndexError::new_err(
-                "pop from an empty SRT reader",
-            )),
+            None => Err(pyo3::exceptions::PyIndexError::new_err("pop from an empty SRT reader")),
         }
     }
 
@@ -394,9 +361,7 @@ impl PySrt {
     fn pop_front(&mut self) -> PyResult<PySrt> {
         match self.files_mut().pop_front() {
             Some(file) => Ok(Self::from_files(VecDeque::from(vec![file]))),
-            None => Err(pyo3::exceptions::PyIndexError::new_err(
-                "pop from an empty SRT reader",
-            )),
+            None => Err(pyo3::exceptions::PyIndexError::new_err("pop from an empty SRT reader")),
         }
     }
 
@@ -417,10 +382,7 @@ impl PySrt {
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> SrtIter {
-        SrtIter {
-            inner: slf.files().clone(),
-            index: 0,
-        }
+        SrtIter { inner: slf.files().clone(), index: 0 }
     }
 
     fn __getitem__(&self, index: &Bound<'_, PyAny>) -> PyResult<PySrt> {
@@ -428,13 +390,9 @@ impl PySrt {
             let len = self.files().len() as isize;
             let idx = if i < 0 { len + i } else { i };
             if idx < 0 || idx >= len {
-                return Err(pyo3::exceptions::PyIndexError::new_err(
-                    "index out of range",
-                ));
+                return Err(pyo3::exceptions::PyIndexError::new_err("index out of range"));
             }
-            return Ok(Self::from_files(VecDeque::from(vec![
-                self.files()[idx as usize].clone(),
-            ])));
+            return Ok(Self::from_files(VecDeque::from(vec![self.files()[idx as usize].clone()])));
         }
         if let Ok(slice) = index.cast::<PySlice>() {
             let indices = slice.indices(self.files().len() as isize)?;
@@ -446,9 +404,7 @@ impl PySrt {
             }
             return Ok(Self::from_files(result));
         }
-        Err(pyo3::exceptions::PyTypeError::new_err(
-            "indices must be integers or slices",
-        ))
+        Err(pyo3::exceptions::PyTypeError::new_err("indices must be integers or slices"))
     }
 
     fn __bool__(&self) -> bool {
@@ -513,9 +469,7 @@ impl SrtIter {
         if self.index < self.inner.len() {
             let file = self.inner[self.index].clone();
             self.index += 1;
-            Some(PySrt {
-                inner: Srt::from_files(VecDeque::from(vec![file])),
-            })
+            Some(PySrt { inner: Srt::from_files(VecDeque::from(vec![file])) })
         } else {
             None
         }

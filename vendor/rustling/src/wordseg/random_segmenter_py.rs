@@ -14,9 +14,7 @@ impl BaseRandomSegmenter for PyRandomSegmenter {
         self.inner.prob()
     }
     fn from_prob(prob: f64) -> Self {
-        Self {
-            inner: RandomSegmenter::from_prob(prob),
-        }
+        Self { inner: RandomSegmenter::from_prob(prob) }
     }
 }
 
@@ -35,9 +33,7 @@ impl PyRandomSegmenter {
     #[new]
     #[pyo3(signature = (*, prob))]
     fn new(prob: f64) -> PyResult<Self> {
-        RandomSegmenter::new(prob)
-            .map(|inner| Self { inner })
-            .map_err(PyErr::from)
+        RandomSegmenter::new(prob).map(|inner| Self { inner }).map_err(PyErr::from)
     }
 
     /// Segment the given unsegmented sentences.

@@ -6,20 +6,46 @@ import nltk.stem as _nltk_stem
 
 from fastnltk._rust import (
     ARLSTem as _RustARLSTem,
+)
+from fastnltk._rust import (
     ARLSTem2 as _RustARLSTem2,
+)
+from fastnltk._rust import (
     Cistem as _RustCistem,
+)
+from fastnltk._rust import (
     ISRIStemmer as _RustISRIStemmer,
+)
+from fastnltk._rust import (
     LancasterStemmer as _RustLancasterStemmer,
+)
+from fastnltk._rust import (
     PorterStemmer as _RustPorterStemmer,
+)
+from fastnltk._rust import (
     RegexpStemmer as _RustRegexpStemmer,
+)
+from fastnltk._rust import (
     RSLPStemmer as _RustRSLPStemmer,
+)
+from fastnltk._rust import (
     SnowballStemmer as _RustSnowballStemmer,
-    WordNetLemmatizer as _RustWordNetLemmatizer,)
+)
+from fastnltk._rust import (
+    WordNetLemmatizer as _RustWordNetLemmatizer,
+)
 
 __all__ = [
-    "SnowballStemmer", "PorterStemmer", "LancasterStemmer", "RegexpStemmer",
-    "ISRIStemmer", "Cistem", "RSLPStemmer", "WordNetLemmatizer",
-    "ARLSTem", "ARLSTem2",
+    "SnowballStemmer",
+    "PorterStemmer",
+    "LancasterStemmer",
+    "RegexpStemmer",
+    "ISRIStemmer",
+    "Cistem",
+    "RSLPStemmer",
+    "WordNetLemmatizer",
+    "ARLSTem",
+    "ARLSTem2",
 ]
 
 
@@ -86,6 +112,7 @@ class RSLPStemmer:
 
 class WordNetLemmatizer:
     """WordNet lemmatizer — Rust-accelerated morphy algorithm."""
+
     def __init__(self):
         self._impl = _RustWordNetLemmatizer()
 
@@ -95,6 +122,7 @@ class WordNetLemmatizer:
 
 class ARLSTem:
     """Arabic stemmer — Rust-accelerated."""
+
     def __init__(self):
         self._impl = _RustARLSTem()
 
@@ -104,6 +132,7 @@ class ARLSTem:
 
 class ARLSTem2:
     """Arabic stemmer v2 — Rust-accelerated."""
+
     def __init__(self):
         self._impl = _RustARLSTem2()
 

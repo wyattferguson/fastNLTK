@@ -9,9 +9,7 @@ use std::hash::{Hash, Hasher};
 
 /// Escape HTML special characters in text content.
 fn html_escape(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
+    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
 }
 
 // ---------------------------------------------------------------------------
@@ -180,14 +178,9 @@ impl Utterance {
 
         // Row: participant + words
         html.push_str("<tr>");
-        html.push_str(&format!(
-            "<th style=\"{th_style}\">*{}:</th>",
-            html_escape(participant)
-        ));
+        html.push_str(&format!("<th style=\"{th_style}\">*{}:</th>", html_escape(participant)));
         if n_tokens == 0 {
-            html.push_str(&format!(
-                "<td style=\"{td_style}\" colspan=\"{n_cols}\"></td>"
-            ));
+            html.push_str(&format!("<td style=\"{td_style}\" colspan=\"{n_cols}\"></td>"));
         } else {
             for token in tokens {
                 html.push_str(&format!(
@@ -201,10 +194,7 @@ impl Utterance {
         // Row: %mor (reconstructed from token fields)
         if has_mor {
             html.push_str("<tr>");
-            html.push_str(&format!(
-                "<th style=\"{th_style}\">{}:</th>",
-                html_escape(mor_tier)
-            ));
+            html.push_str(&format!("<th style=\"{th_style}\">{}:</th>", html_escape(mor_tier)));
             for token in tokens {
                 let cell = match (&token.pos, &token.mor) {
                     (Some(pos), Some(mor)) if !pos.is_empty() => {
@@ -223,10 +213,7 @@ impl Utterance {
         // Row: %gra (reconstructed from token fields)
         if has_gra {
             html.push_str("<tr>");
-            html.push_str(&format!(
-                "<th style=\"{th_style}\">{}:</th>",
-                html_escape(gra_tier)
-            ));
+            html.push_str(&format!("<th style=\"{th_style}\">{}:</th>", html_escape(gra_tier)));
             for token in tokens {
                 let cell = match &token.gra {
                     Some(g) => format!("{}|{}|{}", g.dep, g.head, html_escape(&g.rel)),
@@ -240,10 +227,7 @@ impl Utterance {
         // Rows: other tiers (sorted alphabetically)
         for (tier_name, tier_value) in &other_tiers {
             html.push_str("<tr>");
-            html.push_str(&format!(
-                "<th style=\"{th_style}\">{}:</th>",
-                html_escape(tier_name)
-            ));
+            html.push_str(&format!("<th style=\"{th_style}\">{}:</th>", html_escape(tier_name)));
             html.push_str(&format!(
                 "<td style=\"{td_style}\" colspan=\"{n_cols}\">{}</td>",
                 html_escape(tier_value)
@@ -372,11 +356,7 @@ impl Utterance {
 
         // Participant row
         if n_tokens == 0 {
-            lines.push(format!(
-                "{:<width$}",
-                participant_label,
-                width = label_width
-            ));
+            lines.push(format!("{:<width$}", participant_label, width = label_width));
         } else {
             lines.push(format_row(&participant_label, &participant_cells));
         }
@@ -394,11 +374,7 @@ impl Utterance {
         // Other tiers (full-width, not column-aligned)
         for (tier_name, tier_value) in &other_tiers {
             let label = format!("{tier_name}:");
-            lines.push(format!(
-                "{:<width$}  {tier_value}",
-                label,
-                width = label_width
-            ));
+            lines.push(format!("{:<width$}  {tier_value}", label, width = label_width));
         }
 
         // Time marks footer
@@ -537,31 +513,19 @@ mod tests {
                     word: "I".to_string(),
                     pos: Some("pro".to_string()),
                     mor: Some("I".to_string()),
-                    gra: Some(Gra {
-                        dep: 1,
-                        head: 2,
-                        rel: "SUBJ".to_string(),
-                    }),
+                    gra: Some(Gra { dep: 1, head: 2, rel: "SUBJ".to_string() }),
                 },
                 Token {
                     word: "want".to_string(),
                     pos: Some("v".to_string()),
                     mor: Some("want".to_string()),
-                    gra: Some(Gra {
-                        dep: 2,
-                        head: 0,
-                        rel: "ROOT".to_string(),
-                    }),
+                    gra: Some(Gra { dep: 2, head: 0, rel: "ROOT".to_string() }),
                 },
                 Token {
                     word: "cookie".to_string(),
                     pos: Some("n".to_string()),
                     mor: Some("cookie".to_string()),
-                    gra: Some(Gra {
-                        dep: 3,
-                        head: 2,
-                        rel: "OBJ".to_string(),
-                    }),
+                    gra: Some(Gra { dep: 3, head: 2, rel: "OBJ".to_string() }),
                 },
             ]),
             time_marks: None,
@@ -586,18 +550,8 @@ mod tests {
         let utt = Utterance {
             participant: Some("CHI".to_string()),
             tokens: Some(vec![
-                Token {
-                    word: "hello".to_string(),
-                    pos: None,
-                    mor: None,
-                    gra: None,
-                },
-                Token {
-                    word: "world".to_string(),
-                    pos: None,
-                    mor: None,
-                    gra: None,
-                },
+                Token { word: "hello".to_string(), pos: None, mor: None, gra: None },
+                Token { word: "world".to_string(), pos: None, mor: None, gra: None },
             ]),
             time_marks: None,
             tiers: Some(HashMap::new()),
@@ -617,12 +571,7 @@ mod tests {
     fn test_to_str_time_marks() {
         let utt = Utterance {
             participant: Some("CHI".to_string()),
-            tokens: Some(vec![Token {
-                word: "hi".to_string(),
-                pos: None,
-                mor: None,
-                gra: None,
-            }]),
+            tokens: Some(vec![Token { word: "hi".to_string(), pos: None, mor: None, gra: None }]),
             time_marks: Some((0, 1500)),
             tiers: Some(HashMap::new()),
             changeable_header: None,
@@ -684,21 +633,13 @@ mod tests {
                     word: "I".to_string(),
                     pos: Some("pro".to_string()),
                     mor: Some("I".to_string()),
-                    gra: Some(Gra {
-                        dep: 1,
-                        head: 2,
-                        rel: "SUBJ".to_string(),
-                    }),
+                    gra: Some(Gra { dep: 1, head: 2, rel: "SUBJ".to_string() }),
                 },
                 Token {
                     word: "go".to_string(),
                     pos: Some("v".to_string()),
                     mor: Some("go".to_string()),
-                    gra: Some(Gra {
-                        dep: 2,
-                        head: 0,
-                        rel: "ROOT".to_string(),
-                    }),
+                    gra: Some(Gra { dep: 2, head: 0, rel: "ROOT".to_string() }),
                 },
             ]),
             time_marks: None,
@@ -758,24 +699,9 @@ mod tests {
         let utt = Utterance {
             participant: Some("CHI".to_string()),
             tokens: Some(vec![
-                Token {
-                    word: "I".to_string(),
-                    pos: None,
-                    mor: None,
-                    gra: None,
-                },
-                Token {
-                    word: "want".to_string(),
-                    pos: None,
-                    mor: None,
-                    gra: None,
-                },
-                Token {
-                    word: "cookie".to_string(),
-                    pos: None,
-                    mor: None,
-                    gra: None,
-                },
+                Token { word: "I".to_string(), pos: None, mor: None, gra: None },
+                Token { word: "want".to_string(), pos: None, mor: None, gra: None },
+                Token { word: "cookie".to_string(), pos: None, mor: None, gra: None },
             ]),
             time_marks: None,
             tiers: None,
@@ -806,24 +732,9 @@ mod tests {
         let utt = Utterance {
             participant: Some("CHI".to_string()),
             tokens: Some(vec![
-                Token {
-                    word: "hello".to_string(),
-                    pos: None,
-                    mor: None,
-                    gra: None,
-                },
-                Token {
-                    word: "".to_string(),
-                    pos: None,
-                    mor: None,
-                    gra: None,
-                },
-                Token {
-                    word: "world".to_string(),
-                    pos: None,
-                    mor: None,
-                    gra: None,
-                },
+                Token { word: "hello".to_string(), pos: None, mor: None, gra: None },
+                Token { word: "".to_string(), pos: None, mor: None, gra: None },
+                Token { word: "world".to_string(), pos: None, mor: None, gra: None },
             ]),
             time_marks: None,
             tiers: None,
@@ -856,10 +767,7 @@ mod tests {
         let mut tiers = HashMap::new();
         tiers.insert("CHI".to_string(), "I want cookie .".to_string());
         tiers.insert("%mor".to_string(), "pro|I v|want n|cookie .".to_string());
-        tiers.insert(
-            "%gra".to_string(),
-            "1|2|SUBJ 2|0|ROOT 3|2|OBJ 4|2|PUNCT".to_string(),
-        );
+        tiers.insert("%gra".to_string(), "1|2|SUBJ 2|0|ROOT 3|2|OBJ 4|2|PUNCT".to_string());
         let utt = Utterance {
             participant: Some("CHI".to_string()),
             tokens: Some(vec![]),

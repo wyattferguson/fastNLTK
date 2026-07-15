@@ -8,18 +8,43 @@ import nltk.metrics as _nltk_metrics
 
 from fastnltk._rust import (
     BigramAssocMeasures as _RustBigramAssocMeasures,
+)
+from fastnltk._rust import (
     alpha as _rust_alpha,
+)
+from fastnltk._rust import (
     binary_distance as _rust_binary_distance,
+)
+from fastnltk._rust import (
     dice_similarity as _rust_dice_similarity,
+)
+from fastnltk._rust import (
     edit_distance as _rust_edit_distance_fn,
+)
+from fastnltk._rust import (
     jaccard_distance as _rust_jaccard_distance,
+)
+from fastnltk._rust import (
     jaro_similarity as _rust_jaro_similarity,
+)
+from fastnltk._rust import (
     jaro_winkler_similarity as _rust_jaro_winkler_similarity,
+)
+from fastnltk._rust import (
     kappa as _rust_kappa,
+)
+from fastnltk._rust import (
     pi as _rust_pi,
+)
+from fastnltk._rust import (
     pk as _rust_pk,
+)
+from fastnltk._rust import (
     spearman as _rust_spearman,
-    windowdiff as _rust_windowdiff,)
+)
+from fastnltk._rust import (
+    windowdiff as _rust_windowdiff,
+)
 
 # NLTK re-exports for API compatibility
 try:
@@ -29,7 +54,8 @@ try:
         TrigramAssocMeasures,
         f_measure,
         precision,
-        recall,)
+        recall,
+    )
 except ImportError:
     ConfusionMatrix = getattr(_nltk_metrics, "ConfusionMatrix", None)
     TrigramAssocMeasures = getattr(_nltk_metrics, "TrigramAssocMeasures", None)
@@ -42,7 +68,8 @@ try:
     from nltk.metrics.distance import (
         custom_distance,
         interval_distance,
-        masi_distance,)
+        masi_distance,
+    )
 except ImportError:
     masi_distance = interval_distance = custom_distance = None
 

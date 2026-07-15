@@ -1,6 +1,6 @@
 //! Drop-in Rust-accelerated replacement for NLTK.
 
-#![allow(deprecated)]  // PyO3 0.29: FromPyObject for Clone #[pyclass]
+#![allow(deprecated)] // PyO3 0.29: FromPyObject for Clone #[pyclass]
 
 // System allocator on Linux aarch64 (manylinux GCC too old for
 // -Wdate-time injected by cc crate into libmimalloc-sys).

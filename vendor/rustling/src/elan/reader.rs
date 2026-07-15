@@ -215,12 +215,7 @@ pub fn parse_eaf_str(content: &str, file_path: String) -> Result<ElanFile, ElanE
     // Build time slot map: TIME_SLOT_ID -> millisecond value.
     let time_slot_map: HashMap<String, i64> = doc
         .time_order
-        .map(|to| {
-            to.time_slots
-                .into_iter()
-                .filter_map(|ts| ts.value.map(|v| (ts.id, v)))
-                .collect()
-        })
+        .map(|to| to.time_slots.into_iter().filter_map(|ts| ts.value.map(|v| (ts.id, v))).collect())
         .unwrap_or_default();
 
     // First pass: collect all alignable annotation IDs -> (start_time, end_time).
@@ -298,21 +293,14 @@ pub fn parse_eaf_str(content: &str, file_path: String) -> Result<ElanFile, ElanE
     let mut children_map: HashMap<String, Vec<String>> = HashMap::new();
     for tier in &tiers {
         if let Some(ref parent_id) = tier.parent_id {
-            children_map
-                .entry(parent_id.clone())
-                .or_default()
-                .push(tier.id.clone());
+            children_map.entry(parent_id.clone()).or_default().push(tier.id.clone());
         }
     }
     for tier in &mut tiers {
         tier.child_ids = children_map.remove(&tier.id);
     }
 
-    Ok(ElanFile {
-        file_path,
-        tiers,
-        raw_xml: content.to_string(),
-    })
+    Ok(ElanFile { file_path, tiers, raw_xml: content.to_string() })
 }
 
 // ---------------------------------------------------------------------------
@@ -331,10 +319,7 @@ fn parse_eaf_strs(
     if parallel {
         #[cfg(feature = "parallel")]
         {
-            pairs
-                .into_par_iter()
-                .map(parse_one)
-                .collect::<Result<Vec<_>, _>>()
+            pairs.into_par_iter().map(parse_one).collect::<Result<Vec<_>, _>>()
         }
         #[cfg(not(feature = "parallel"))]
         {
@@ -388,10 +373,7 @@ pub trait BaseElan: Sized {
 
     /// Return tiers grouped by file.
     fn tiers_by_file(&self) -> Vec<Vec<&Tier>> {
-        self.files()
-            .iter()
-            .map(|f| f.tiers.iter().collect())
-            .collect()
+        self.files().iter().map(|f| f.tiers.iter().collect()).collect()
     }
 
     /// Return EAF XML strings, one per file.
@@ -422,9 +404,7 @@ pub trait BaseElan: Sized {
             }
         }
 
-        (0..self.files().len())
-            .map(|i| format!("{:04}{target_ext}", i + 1))
-            .collect()
+        (0..self.files().len()).map(|i| format!("{:04}{target_ext}", i + 1)).collect()
     }
 
     /// Write ELAN (.eaf) files to a directory.
@@ -595,10 +575,7 @@ pub trait BaseElan: Sized {
 
     /// Return TextGrid format strings (one per file) for TextGrid export.
     fn to_textgrid_strings(&self) -> Vec<String> {
-        self.files()
-            .iter()
-            .map(super::textgrid_writer::elan_file_to_textgrid_str)
-            .collect()
+        self.files().iter().map(super::textgrid_writer::elan_file_to_textgrid_str).collect()
     }
 
     /// Convert to a [`TextGrid`](crate::textgrid::TextGrid) object.
@@ -692,9 +669,7 @@ impl BaseElan for Elan {
 impl Elan {
     /// Construct from a Vec of [`ElanFile`] entries.
     pub fn from_elan_files(files: Vec<ElanFile>) -> Self {
-        Self {
-            files: VecDeque::from(files),
-        }
+        Self { files: VecDeque::from(files) }
     }
 
     /// Append data from another Elan.
@@ -711,16 +686,12 @@ impl Elan {
 
     /// Remove and return the last file as a new Elan.
     pub fn pop_back(&mut self) -> Option<Elan> {
-        self.files
-            .pop_back()
-            .map(|f| Elan::from_files(VecDeque::from(vec![f])))
+        self.files.pop_back().map(|f| Elan::from_files(VecDeque::from(vec![f])))
     }
 
     /// Remove and return the first file as a new Elan.
     pub fn pop_front(&mut self) -> Option<Elan> {
-        self.files
-            .pop_front()
-            .map(|f| Elan::from_files(VecDeque::from(vec![f])))
+        self.files.pop_front().map(|f| Elan::from_files(VecDeque::from(vec![f])))
     }
 
     /// Parse ELAN data from in-memory strings.
@@ -729,11 +700,8 @@ impl Elan {
         ids: Option<Vec<String>>,
         parallel: bool,
     ) -> Result<Self, ElanError> {
-        let ids = ids.unwrap_or_else(|| {
-            strs.iter()
-                .map(|_| uuid::Uuid::new_v4().to_string())
-                .collect()
-        });
+        let ids =
+            ids.unwrap_or_else(|| strs.iter().map(|_| uuid::Uuid::new_v4().to_string()).collect());
         assert_eq!(
             strs.len(),
             ids.len(),
@@ -760,10 +728,7 @@ impl Elan {
         parallel: bool,
     ) -> Result<Self, ElanError> {
         let mut paths: Vec<String> = Vec::new();
-        for entry in walkdir::WalkDir::new(path)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
+        for entry in walkdir::WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
             if entry.file_type().is_file() {
                 let file_path = entry.path().to_string_lossy().to_string();
                 if file_path.ends_with(extension) {
@@ -794,11 +759,7 @@ impl Elan {
             .filter_map(|i| {
                 let entry = archive.by_index(i).ok()?;
                 let name = entry.name().to_string();
-                if name.ends_with(extension) && !entry.is_dir() {
-                    Some(name)
-                } else {
-                    None
-                }
+                if name.ends_with(extension) && !entry.is_dir() { Some(name) } else { None }
             })
             .collect();
         entry_names.sort();
@@ -1173,10 +1134,8 @@ mod tests {
         )
         .unwrap();
         let dir = tempfile::tempdir().unwrap();
-        let result = elan.write_files(
-            dir.path().to_str().unwrap(),
-            Some(vec!["only_one.eaf".to_string()]),
-        );
+        let result =
+            elan.write_files(dir.path().to_str().unwrap(), Some(vec!["only_one.eaf".to_string()]));
         assert!(matches!(result, Err(WriteError::Validation(_))));
     }
 }

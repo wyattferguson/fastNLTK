@@ -40,9 +40,7 @@ impl BaseNgrams for PyNgrams {
         counts: CountTrie<String>,
         totals: Vec<u64>,
     ) -> Self {
-        Self {
-            inner: Ngrams::from_parts(order, min_order, counts, totals),
-        }
+        Self { inner: Ngrams::from_parts(order, min_order, counts, totals) }
     }
 }
 
@@ -66,9 +64,7 @@ impl PyNgrams {
     #[new]
     #[pyo3(signature = (n, *, min_n=None))]
     fn new(n: usize, min_n: Option<usize>) -> PyResult<Self> {
-        Ngrams::new(n, min_n)
-            .map(|inner| Self { inner })
-            .map_err(PyErr::from)
+        Ngrams::new(n, min_n).map(|inner| Self { inner }).map_err(PyErr::from)
     }
 
     /// Count n-grams from a single sequence.
@@ -172,8 +168,7 @@ impl PyNgrams {
     #[pyo3(signature = (*, order=None))]
     fn to_counter(&self, py: Python<'_>, order: Option<usize>) -> PyResult<Py<PyAny>> {
         let effective_order = order.unwrap_or(self.order());
-        self.validate_order(Some(effective_order))
-            .map_err(PyErr::from)?;
+        self.validate_order(Some(effective_order)).map_err(PyErr::from)?;
         let counter_type = py.import("collections")?.getattr("Counter")?;
         let dict = PyDict::new(py);
         for (ngram, count) in self.counts().all_counts() {

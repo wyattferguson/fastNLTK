@@ -38,6 +38,7 @@ enum WordToken {
 
 /// Fast word tokenizer using Logos DFA lexer.
 #[pyfunction(name = "logos_word_tokenize", signature = (text))]
+#[must_use]
 pub fn logos_word_tokenize_py(text: &str) -> Vec<String> {
     let mut tokens = Vec::with_capacity(text.len() / 5);
     let mut lex = WordToken::lexer(text);

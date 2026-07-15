@@ -22,7 +22,7 @@ pub struct TableauProver {
 impl TableauProver {
     #[new]
     #[pyo3(signature = (max_depth=200))]
-    fn new(max_depth: usize) -> Self {
+    const fn new(max_depth: usize) -> Self {
         Self { max_depth }
     }
 
@@ -132,7 +132,7 @@ impl TableauProver {
     }
 }
 
-fn is_literal_simple(f: &Formula) -> bool {
+const fn is_literal_simple(f: &Formula) -> bool {
     matches!(
         f,
         Formula::Atom(_, _)

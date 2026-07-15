@@ -39,10 +39,7 @@ pub(crate) fn textgrid_file_to_srt_str(
     // 2. Collect entries.
     let mut entries: Vec<SrtEntry> = Vec::new();
     for tier in &file.tiers {
-        if let TextGridTier::IntervalTier {
-            name, intervals, ..
-        } = tier
-        {
+        if let TextGridTier::IntervalTier { name, intervals, .. } = tier {
             if !main_tier_names.contains(&name.as_str()) {
                 continue;
             }
@@ -57,21 +54,13 @@ pub(crate) fn textgrid_file_to_srt_str(
                 } else {
                     interval.text.clone()
                 };
-                entries.push(SrtEntry {
-                    text,
-                    start_ms,
-                    end_ms,
-                });
+                entries.push(SrtEntry { text, start_ms, end_ms });
             }
         }
     }
 
     // 3. Sort by start time, then end time.
-    entries.sort_by(|a, b| {
-        a.start_ms
-            .cmp(&b.start_ms)
-            .then_with(|| a.end_ms.cmp(&b.end_ms))
-    });
+    entries.sort_by(|a, b| a.start_ms.cmp(&b.start_ms).then_with(|| a.end_ms.cmp(&b.end_ms)));
 
     // 4. Generate SRT output.
     let mut output = String::with_capacity(4096);
@@ -102,12 +91,7 @@ mod tests {
 
     fn make_interval_tier(name: &str, intervals: Vec<Interval>) -> TextGridTier {
         let xmax = intervals.last().map(|i| i.xmax).unwrap_or(0.0);
-        TextGridTier::IntervalTier {
-            name: name.to_string(),
-            xmin: 0.0,
-            xmax,
-            intervals,
-        }
+        TextGridTier::IntervalTier { name: name.to_string(), xmin: 0.0, xmax, intervals }
     }
 
     fn make_textgrid_file(tiers: Vec<TextGridTier>) -> TextGridFile {
@@ -125,16 +109,8 @@ mod tests {
         let file = make_textgrid_file(vec![make_interval_tier(
             "CHI",
             vec![
-                Interval {
-                    xmin: 0.0,
-                    xmax: 1.5,
-                    text: "hello world .".to_string(),
-                },
-                Interval {
-                    xmin: 2.0,
-                    xmax: 3.5,
-                    text: "goodbye .".to_string(),
-                },
+                Interval { xmin: 0.0, xmax: 1.5, text: "hello world .".to_string() },
+                Interval { xmin: 2.0, xmax: 3.5, text: "goodbye .".to_string() },
             ],
         )]);
         let srt = textgrid_file_to_srt_str(&file, None);
@@ -150,19 +126,11 @@ mod tests {
         let file = make_textgrid_file(vec![
             make_interval_tier(
                 "CHI",
-                vec![Interval {
-                    xmin: 0.0,
-                    xmax: 2.0,
-                    text: "more cookie .".to_string(),
-                }],
+                vec![Interval { xmin: 0.0, xmax: 2.0, text: "more cookie .".to_string() }],
             ),
             make_interval_tier(
                 "MOT",
-                vec![Interval {
-                    xmin: 2.5,
-                    xmax: 4.0,
-                    text: "want more ?".to_string(),
-                }],
+                vec![Interval { xmin: 2.5, xmax: 4.0, text: "want more ?".to_string() }],
             ),
         ]);
         let srt = textgrid_file_to_srt_str(&file, None);
@@ -176,19 +144,11 @@ mod tests {
         let file = make_textgrid_file(vec![
             make_interval_tier(
                 "Speaker1",
-                vec![Interval {
-                    xmin: 0.0,
-                    xmax: 1.0,
-                    text: "hello".to_string(),
-                }],
+                vec![Interval { xmin: 0.0, xmax: 1.0, text: "hello".to_string() }],
             ),
             make_interval_tier(
                 "CHI",
-                vec![Interval {
-                    xmin: 1.0,
-                    xmax: 2.0,
-                    text: "hi".to_string(),
-                }],
+                vec![Interval { xmin: 1.0, xmax: 2.0, text: "hi".to_string() }],
             ),
         ]);
         let participants = vec!["Speaker1".to_string()];

@@ -7,7 +7,7 @@ pub struct ISRIStemmer;
 #[pymethods]
 impl ISRIStemmer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 

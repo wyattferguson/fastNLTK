@@ -60,10 +60,7 @@ use std::io::Write;
 // FlatBuffers generated code (produced by build.rs from src/perceptron_pos_tagger/model.fbs).
 #[allow(dead_code, unused_imports, clippy::all)]
 mod generated {
-    include!(concat!(
-        env!("OUT_DIR"),
-        "/perceptron_pos_tagger/model_generated.rs"
-    ));
+    include!(concat!(env!("OUT_DIR"), "/perceptron_pos_tagger/model_generated.rs"));
 }
 
 /// An averaged perceptron.
@@ -122,18 +119,10 @@ impl PerceptronModel {
         }
 
         for f in features {
-            let truth_weight = self
-                .weights
-                .get(f)
-                .and_then(|w| w.get(truth))
-                .copied()
-                .unwrap_or(0.0);
-            let guess_weight = self
-                .weights
-                .get(f)
-                .and_then(|w| w.get(guess))
-                .copied()
-                .unwrap_or(0.0);
+            let truth_weight =
+                self.weights.get(f).and_then(|w| w.get(truth)).copied().unwrap_or(0.0);
+            let guess_weight =
+                self.weights.get(f).and_then(|w| w.get(guess)).copied().unwrap_or(0.0);
 
             self.upd_feat(truth, f, truth_weight, 1.0);
             self.upd_feat(guess, f, guess_weight, -1.0);
@@ -146,10 +135,7 @@ impl PerceptronModel {
         let total = self.totals.entry(param.clone()).or_insert(0.0);
         *total += (self.i - tstamp) as f64 * w;
         self.tstamps.insert(param.clone(), self.i);
-        self.weights
-            .entry(f.to_string())
-            .or_default()
-            .insert(c.to_string(), w + v);
+        self.weights.entry(f.to_string()).or_default().insert(c.to_string(), w + v);
     }
 
     pub(crate) fn average_weights(&mut self) {
@@ -234,11 +220,7 @@ pub trait BaseTagger: Sized + Clone + Sync {
         #[cfg(feature = "parallel")]
         {
             use rayon::prelude::*;
-            sequences
-                .par_iter()
-                .with_min_len(16)
-                .map(predict_one)
-                .collect()
+            sequences.par_iter().with_min_len(16).map(predict_one).collect()
         }
         #[cfg(not(feature = "parallel"))]
         {
@@ -321,11 +303,7 @@ pub trait BaseTagger: Sized + Clone + Sync {
 
         for (words, sent_tags) in sequences.iter().zip(tags.iter()) {
             for (word, tag) in words.iter().zip(sent_tags.iter()) {
-                *counts
-                    .entry(word.clone())
-                    .or_default()
-                    .entry(tag.clone())
-                    .or_insert(0) += 1;
+                *counts.entry(word.clone()).or_default().entry(tag.clone()).or_insert(0) += 1;
                 self.classes_mut().insert(tag.clone());
             }
         }
@@ -378,10 +356,7 @@ pub(crate) fn save_perceptron_flatbuffers<T: BaseTagger, W: Write>(
                     let class_name_fb = builder.create_string(class_name);
                     fbs::ClassWeight::create(
                         &mut builder,
-                        &fbs::ClassWeightArgs {
-                            class_name: Some(class_name_fb),
-                            weight,
-                        },
+                        &fbs::ClassWeightArgs { class_name: Some(class_name_fb), weight },
                     )
                 })
                 .collect();
@@ -407,14 +382,10 @@ pub(crate) fn save_perceptron_flatbuffers<T: BaseTagger, W: Write>(
     // Build tagdict as parallel sorted key/value arrays.
     let mut tagdict_pairs: Vec<(&String, &String)> = tagger.tagdict_ref().iter().collect();
     tagdict_pairs.sort_by_key(|(k, _)| *k);
-    let tagdict_keys_str: Vec<_> = tagdict_pairs
-        .iter()
-        .map(|(k, _)| builder.create_string(k))
-        .collect();
-    let tagdict_vals_str: Vec<_> = tagdict_pairs
-        .iter()
-        .map(|(_, v)| builder.create_string(v))
-        .collect();
+    let tagdict_keys_str: Vec<_> =
+        tagdict_pairs.iter().map(|(k, _)| builder.create_string(k)).collect();
+    let tagdict_vals_str: Vec<_> =
+        tagdict_pairs.iter().map(|(_, v)| builder.create_string(v)).collect();
     let tagdict_keys_fb = builder.create_vector(&tagdict_keys_str);
     let tagdict_vals_fb = builder.create_vector(&tagdict_vals_str);
 
@@ -472,11 +443,8 @@ pub(crate) fn load_perceptron_flatbuffers<T: BaseTagger>(
     // Load tagdict.
     let keys = model.tagdict_keys();
     let vals = model.tagdict_values();
-    let tagdict: FxHashMap<String, String> = keys
-        .iter()
-        .zip(vals.iter())
-        .map(|(k, v)| (k.to_owned(), v.to_owned()))
-        .collect();
+    let tagdict: FxHashMap<String, String> =
+        keys.iter().zip(vals.iter()).map(|(k, v)| (k.to_owned(), v.to_owned())).collect();
     *tagger.tagdict_mut() = tagdict;
 
     Ok(())
@@ -600,11 +568,7 @@ mod tests {
 
         assert!(!tagger.classes.is_empty());
 
-        let words = vec![vec![
-            "I".to_string(),
-            "love".to_string(),
-            "cats".to_string(),
-        ]];
+        let words = vec![vec!["I".to_string(), "love".to_string(), "cats".to_string()]];
         let result = tagger.predict(words);
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].len(), 3);
