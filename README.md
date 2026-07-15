@@ -238,7 +238,19 @@ See [CITATION.cff](CITATION.cff) for software citation metadata.
 @software{fastnltk2025,
   author = {Ferguson, Wyatt},
   title = {fastNLTK: Drop-in Rust-accelerated replacement for NLTK},
-  year = {2025},
-  url = {https://github.com/fastnltk/fastnltk}
+  year = {2026},
+  url = {https://github.com/wyattferguson/fastnltk}
 }
 ```
+
+## Contact + Support
+
+Created by [Wyatt Ferguson](https://github.com/wyattferguson)
+
+For any questions or comments heres how you can reach me:
+
+**:octopus: Follow me on [Github @wyattferguson](https://github.com/wyattferguson)**
+
+**:mailbox_with_mail: Email me at [wyattxdev@duck.com](wyattxdev@duck.com)**
+
+**:tropical_drink: Follow on [BlueSky @wyattf](https://wyattf.bsky.social)**

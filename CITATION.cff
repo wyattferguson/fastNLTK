@@ -4,13 +4,12 @@ title: "fastNLTK: Drop-in Rust-accelerated replacement for NLTK"
 authors:
   - family-names: Ferguson
     given-names: Wyatt
-    orcid: "https://orcid.org/0009-0008-1975-4583"
-year: 2025
+year: 2026
 version: 0.4.0
 doi: 10.5281/zenodo.14927802
-date-released: 2025-07-03
-url: "https://github.com/fastnltk/fastnltk"
-repository-code: "https://github.com/fastnltk/fastnltk"
+date-released: 2026-07-15
+url: "https://github.com/wyattferguson/fastnltk"
+repository-code: "https://github.com/wyattferguson/fastnltk"
 license: Apache-2.0
 keywords:
   - nlp
