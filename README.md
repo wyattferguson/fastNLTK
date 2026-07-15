@@ -138,7 +138,7 @@ Requires Python 3.8+ and an existing NLTK data installation.
 ### From source
 
 ```bash
-git clone https://github.com/your/fastnltk
+git clone https://github.com/fastnltk/fastnltk
 cd fastnltk
 pip install maturin
 maturin develop --release   # Development install
@@ -162,7 +162,7 @@ testing, and PR workflow.
 
 ```bash
 # Clone and build
-git clone https://github.com/your/fastnltk
+git clone https://github.com/fastnltk/fastnltk
 cd fastnltk
 pip install -e ".[dev]"
 maturin develop --release

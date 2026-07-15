@@ -10,44 +10,18 @@ import nltk.tokenize as _nltk_tokenize
 
 from fastnltk._rust import (
     BlanklineTokenizer as _RustBlanklineTokenizer,
-)
-from fastnltk._rust import (
     CharTokenizer as _RustCharTokenizer,
-)
-from fastnltk._rust import (
     LineTokenizer as _RustLineTokenizer,
-)
-from fastnltk._rust import (
     MWETokenizer as _RustMWETokenizer,
-)
-from fastnltk._rust import (
     PunktSentenceTokenizer as _RustPunktSentenceTokenizer,
-)
-from fastnltk._rust import (
     RegexpTokenizer as _RustRegexpTokenizer,
-)
-from fastnltk._rust import (
     SExprTokenizer as _RustSExprTokenizer,
-)
-from fastnltk._rust import (
     SpaceTokenizer as _RustSpaceTokenizer,
-)
-from fastnltk._rust import (
     TabTokenizer as _RustTabTokenizer,
-)
-from fastnltk._rust import (
     TextTilingTokenizer as _RustTextTilingTokenizer,
-)
-from fastnltk._rust import (
     ToktokTokenizer as _RustToktokTokenizer,
-)
-from fastnltk._rust import (
     TreebankWordDetokenizer as _RustTreebankWordDetokenizer,
-)
-from fastnltk._rust import (
     TreebankWordTokenizer as _RustTreebankWordTokenizer,
-)
-from fastnltk._rust import (
     TweetTokenizer as _RustTweetTokenizer,
 )
 from fastnltk._rust import (
