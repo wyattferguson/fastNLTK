@@ -2,19 +2,37 @@
 fastnltk.data — Drop-in replacement for nltk.data.
 
 Resolves and loads NLTK data files (models, corpora, tokenizers, taggers).
+find() uses Rust-accelerated path resolution.
 """
 
 import pickle as _pickle
 
 from nltk.data import *  # noqa: F403
-from nltk.data import find as _find
+
+from fastnltk._rust import find as _rust_find
+
+
+def find(resource_name, paths=None):
+    """Find an NLTK resource file by name — Rust-accelerated path resolution.
+
+    Searches standard nltk_data directories (NLTK_DATA env, ~/nltk_data,
+    /usr/share/nltk_data, etc.) for the given resource.
+    """
+    try:
+        return _rust_find(resource_name)
+    except LookupError:
+        # Fall back to NLTK for broader search paths (sys.path, etc.)
+        from nltk.data import find as _nltk_find
+
+        return _nltk_find(resource_name, paths)
+
 
 # ── Rust model loading helpers ───────────────────────────
 
 
 def load_punkt_model(language="english"):
     """Load a Punkt tokenizer model from nltk_data and return as dict."""
-    path = _find(f"tokenizers/punkt/{language}.pickle")
+    path = find(f"tokenizers/punkt/{language}.pickle")
     with open(path, "rb") as f:
         return _pickle.load(f)
 
@@ -23,7 +41,7 @@ def load_perceptron_tagger():
     """Load averaged perceptron tagger weights from nltk_data."""
     import os as _os
 
-    path = _find("taggers/averaged_perceptron_tagger/")
+    path = find("taggers/averaged_perceptron_tagger/")
     weights = {}
     for fname in ["weights.pickle", "tagdict.pickle", "classes.pickle"]:
         fpath = _os.path.join(path, fname)

@@ -79,6 +79,7 @@ static RULES: &[LancasterRule] = &[
     ("isation", "i", 2),
     ("ization", "i", 2),
     ("ment", "m", -1),
+    ("yz", "ys", 1),
     ("ity", "i", -1),
     // ---- continuation class 2 ----
     ("al", "a", 3),
@@ -100,6 +101,7 @@ static RULES: &[LancasterRule] = &[
     ("ive", "i", -1),
     ("ize", "i", -1),
     ("ic", "i", -1),
+    ("iz", "", 2),
     ("ity", "i", -1),
     // ---- continuation class 3 ----
     ("al", "a", 4),
@@ -159,11 +161,11 @@ static RULES: &[LancasterRule] = &[
 fn class_rules(cont_class: i32) -> &'static [LancasterRule] {
     match cont_class {
         0 => &RULES[0..24],
-        1 => &RULES[24..49],
-        2 => &RULES[49..69],
-        3 => &RULES[69..84],
-        4 => &RULES[84..99],
-        5 => &RULES[99..113],
+        1 => &RULES[24..50],
+        2 => &RULES[50..71],
+        3 => &RULES[71..86],
+        4 => &RULES[86..101],
+        5 => &RULES[101..115],
         _ => &[],
     }
 }

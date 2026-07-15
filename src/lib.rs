@@ -47,6 +47,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // ── Stemming ─────────────────────────────────────────
     stem::register_module(m)?;
 
+    // ── Data ───────────────────────────────────────────
+    data::register_module(m)?;
+
     // ── Tagging ──────────────────────────────────────────
     tag::register_module(m)?;
 

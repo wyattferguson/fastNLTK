@@ -12,7 +12,7 @@ import pickle
 import tempfile
 
 import nltk.tag as _nltk_tag
-from nltk.data import find
+from fastnltk.data import find
 from nltk.tag import (
     BrillTagger,
     BrillTaggerTrainer,
