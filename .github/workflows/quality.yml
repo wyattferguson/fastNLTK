@@ -26,14 +26,17 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-python@v6
+        id: setup-python
         with:
           python-version: "3.12"
       - name: Install Python dev headers (needed by PyO3 for linking test binary)
         run: |
           pyver=$(python -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}-dev')")
           sudo apt-get update && sudo apt-get install -y "$pyver"
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ steps.setup-python.outputs.python-version }}
       # Standard: deny correctness+suspicious+perf, warn style+complexity
       # pedantic+nursery are informational (no CI gate)
       - run: cargo clippy --all-targets -- -D clippy::correctness -D clippy::suspicious -D clippy::perf -W clippy::style -W clippy::complexity
@@ -53,14 +56,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-python@v6
+        id: setup-python
         with:
           python-version: "3.12"
       - name: Install Python dev headers (needed by PyO3 for linking test binary)
         run: |
           pyver=$(python -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}-dev')")
           sudo apt-get update && sudo apt-get install -y "$pyver"
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ steps.setup-python.outputs.python-version }}
       - name: Run tests
         run: cargo test
         env:
