@@ -52,44 +52,45 @@ tokens = nltk.word_tokenize("Hello, world!")
 
 ## Performance
 
-**12 benchmarks** across core tokenize/tag/stem/sent operations. **Geometric mean 15.4×** vs NLTK
-(v0.4.0). [Full results →](BENCHMARKS.md)
+**61 benchmarks** across all 17 modules. **Geometric mean 7.6×** vs NLTK (44 compared benchmarks).
+[Full results →](BENCHMARKS.md)
 
 | Operation | NLTK (ms) | fastNLTK (ms) | Speedup | Optimization |
 |---|---|---|---|---|
-| **TnT.tag** (3 w) | 1.460 | **0.001** | **1447×** | Integer-ID Viterbi |
-| **word_tokenize** (10K w) | 4.96 | **0.07** | **68.8×** | Single-pass char scanner |
-| **pos_tag_sents** (4 sents) | 4.26 | **0.08** | **53.0×** | Rayon parallel + u64 IDs |
-| **pos_tag** (1000 w) | 21.36 | **0.85** | **25.3×** | u64 feature IDs |
-| **TreebankWordTokenizer** (50K w) | 8.52 | **0.38** | **22.4×** | O(n) scan + SIMD |
-| **sent_tokenize** (10K w) | 1.13 | **0.05** | **21.3×** | Byte-level sentence scan |
-| **TweetTokenizer** (1 tweet) | 0.011 | **0.001** | **16.6×** | LazyLock regexes |
-| **PorterStemmer** (2000 w) | 15.26 | **1.73** | **8.8×** | Pure Rust Snowball |
-| **WordPunctTokenizer** (50K w) | 1.14 | **0.26** | **4.5×** | Char scanner |
-| **span_tokenize** (50K w) | 1.58 | **0.53** | **3.0×** | O(n) inline capture |
-| **RegexpTokenizer \\S+** (50K w) | 0.71 | **0.28** | **2.5×** | SIMD memchr3 |
+| **windowdiff** | 2.47 | **0.01** | **168×** | Pure algorithmic port |
+| **edit_distance** | 2.44 | **0.02** | **152×** | Damerau-Levenshtein in Rust |
+| **pk** (segmentation) | 2.20 | **0.02** | **93×** | Segmentation metric in Rust |
+| **TreebankWordDetokenizer** | 6.96 | **0.20** | **35×** | Single-pass undo |
+| **PunktSentenceTokenizer** | 14.56 | **0.43** | **34×** | Byte-level sentence scan |
+| **Expression.fromstring** | 17.45 | **0.58** | **30×** | FOL expression parser |
+| **PerceptronTagger** | 17.64 | **0.66** | **27×** | u64 feature IDs, no String alloc |
+| **CFG.from_string** | 0.05 | **0.002** | **26×** | Grammar parser in Rust |
+| **TweetTokenizer** | 85.44 | **3.51** | **24×** | LazyLock regexes |
+| **LancasterStemmer** | 33.86 | **2.01** | **17×** | Full 124-rule NLTK port |
+| **TreebankWordTokenizer** | 42.56 | **2.54** | **17×** | O(n) scan + SIMD memchr3 |
 
 ### Module leaderboard
 
-| Module | Best Speedup | Engine |
-| -------------------------------------------------------------- | ------------ | -------------------------------------------------------------- |
-| [tag](BENCHMARKS.md) | **1482×** | u64 feature IDs, integer-ID Viterbi, FxHashMap |
-| [classify](BENCHMARKS.md) | **339×** | Maxent GIS training in Rust |
-| [metrics](BENCHMARKS.md) | **168×** | Pure algorithmic port, zero Python overhead |
-| [tokenize](BENCHMARKS.md) | **94×** | SIMD memchr3 + single-pass char scanner |
-| [sentiment](BENCHMARKS.md) | **38×** | VADER in Rust, no regex re-compilation |
-| [sem](BENCHMARKS.md) | **28×** | Expression parser in Rust |
-| [parse](BENCHMARKS.md) | **26×** | Earley + CFG parsing |
-| [collocations](BENCHMARKS.md) | **23×** | FastMap ngram frequency counting |
-| [translate](BENCHMARKS.md) | **9×** | BLEU in Rust |
-| [tree](BENCHMARKS.md) | **9×** | Tree parser in Rust |
-| [chunk](BENCHMARKS.md) | **7×** | Regexp chunk parser |
-| [probability](BENCHMARKS.md) | **6×** | FreqDist, ConditionalFreqDist, prob dists |
-| [cluster](BENCHMARKS.md) | **4×** | K-means Lloyd's algorithm |
-| [chat](BENCHMARKS.md) | **3×** | Eliza chatbot |
-| [ccg](BENCHMARKS.md) | **2×** | CCG category parsing |
-| [lm](BENCHMARKS.md) | — | MLE, Lidstone, Laplace, KneserNey, WittenBell ¹ |
-| [inference](BENCHMARKS.md) | — | Tableau, Resolution, Discourse ¹ |
+| Module | Geo Mean | Best Single | Engine |
+|--------|----------|-------------|--------|
+| [metrics](BENCHMARKS.md) | **133×** | 168× (windowdiff) | Pure algorithmic port |
+| [parse](BENCHMARKS.md) | **24×** | 26× (CFG) | Earley + CFG in Rust |
+| [sem](BENCHMARKS.md) | **30×** | 30× | FOL expression parser |
+| [collocations](BENCHMARKS.md) | **13×** | 17× (Quadgram) | FastMap ngram counting |
+| [tree](BENCHMARKS.md) | **10×** | 10× | Bracket parser in Rust |
+| [translate](BENCHMARKS.md) | **8×** | 8× (BLEU) | BLEU in Rust |
+| [stem](BENCHMARKS.md) | **8×** | 17× (Lancaster) | 124-rule NLTK port |
+| [chunk](BENCHMARKS.md) | **8×** | 8× | Regexp chunk parser |
+| [tokenize](BENCHMARKS.md) | **5×** | 35× (Detokenizer) | SIMD memchr3 + char scanner |
+| [classify](BENCHMARKS.md) | **5×** | 8× (NaiveBayes) | Maxent GIS training |
+| [tag](BENCHMARKS.md) | **4×** | 27× (Perceptron) | u64 IDs, integer Viterbi |
+| [probability](BENCHMARKS.md) | **3×** | 4× (FreqDist) | FreqDist/ConditionalFreqDist |
+| [chat](BENCHMARKS.md) | **3×** | 3× | Eliza chatbot |
+| [ccg](BENCHMARKS.md) | **2×** | 2× | CCG category parsing |
+| [lm](BENCHMARKS.md) | — | — | MLE, Lidstone, Laplace, KneserNey, WittenBell ¹ |
+| [inference](BENCHMARKS.md) | — | — | Tableau, Resolution, Discourse ¹ |
+
+¹ fastNLTK-only — NLTK has no equivalent benchmarks.
 
 [Full benchmark details →](BENCHMARKS.md)
 
@@ -194,7 +195,7 @@ pip install -e ".[dev]"
 maturin develop --release
 
 # Run tests
-cargo test                       # 283 Rust tests
+cargo test                       # 312 Rust tests
 pytest tests/                     # 257 Python tests
 
 # Quality checks

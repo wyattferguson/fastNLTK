@@ -1,0 +1,795 @@
+{
+  "timestamp": "2026-07-15T20:39:17Z",
+  "git_hash": "96e179d+debug",
+  "results": [
+    {
+      "name": "ToktokTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 18.71114999994461,
+      "fast_ms": 4.747100000258797,
+      "speedup": 3.9415959214940774,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "MWETokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "words": 18000
+      },
+      "nltk_ms": 1.165099999980157,
+      "fast_ms": 1.1853000000883185,
+      "speedup": 0.9829579008633625,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "RegexpTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 4.611050000221439,
+      "fast_ms": 3.859800000100222,
+      "speedup": 1.1946344370438133,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "SpaceTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 1.0572500000307627,
+      "fast_ms": 2.695650000077876,
+      "speedup": 0.3922059614565019,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "TreebankWordTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 42.56279999935941,
+      "fast_ms": 2.535900000111724,
+      "speedup": 16.784100318421164,
+      "fast_only_ms": 0.0,
+      "iterations": 15,
+      "version": ""
+    },
+    {
+      "name": "TweetTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 85.43539999936911,
+      "fast_ms": 3.510399999868241,
+      "speedup": 24.337796263267954,
+      "fast_only_ms": 0.0,
+      "iterations": 15,
+      "version": ""
+    },
+    {
+      "name": "SExprTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 4000
+      },
+      "nltk_ms": 0.3444499998295214,
+      "fast_ms": 0.011999999969702912,
+      "speedup": 28.70416672493117,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "PunktSentenceTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 14.563499999894702,
+      "fast_ms": 0.42859999939537374,
+      "speedup": 33.979234765374336,
+      "fast_only_ms": 0.0,
+      "iterations": 15,
+      "version": ""
+    },
+    {
+      "name": "TreebankWordDetokenizer.detokenize",
+      "group": "tokenize",
+      "params": {
+        "tokens": 5000
+      },
+      "nltk_ms": 6.958599999506987,
+      "fast_ms": 0.20025000003442983,
+      "speedup": 34.749563037755635,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "TabTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 0.07945000015752157,
+      "fast_ms": 0.02700000004551839,
+      "speedup": 2.942592593465907,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "LineTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 0.24420000045211054,
+      "fast_ms": 0.16330000016751,
+      "speedup": 1.4954072271991112,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "WhitespaceTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 4.49609999986933,
+      "fast_ms": 1.5210500000648608,
+      "speedup": 2.95591860864377,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "WordPunctTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 5.853699999534001,
+      "fast_ms": 1.775449999513512,
+      "speedup": 3.297023290511117,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "BlanklineTokenizer.tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 2.240549999896757,
+      "fast_ms": 0.17134999961854191,
+      "speedup": 13.075868134722223,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "logos_word_tokenize",
+      "group": "tokenize",
+      "params": {
+        "chars": 200000
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 1.8453500001669454,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "SnowballStemmer.stem",
+      "group": "stem",
+      "params": {
+        "words": 10000
+      },
+      "nltk_ms": 22.181950000231154,
+      "fast_ms": 1.9136000000798958,
+      "speedup": 11.591738084921102,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "PorterStemmer.stem",
+      "group": "stem",
+      "params": {
+        "words": 10000
+      },
+      "nltk_ms": 43.97499999959109,
+      "fast_ms": 6.848150000223541,
+      "speedup": 6.421442287063752,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "LancasterStemmer.stem",
+      "group": "stem",
+      "params": {
+        "words": 10000
+      },
+      "nltk_ms": 33.85789999992994,
+      "fast_ms": 2.0089499998903193,
+      "speedup": 16.853530452116004,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "ARLSTem.stem",
+      "group": "stem",
+      "params": {
+        "words": 1500
+      },
+      "nltk_ms": 1.6953999997895153,
+      "fast_ms": 0.4450000001270382,
+      "speedup": 3.8098876388887954,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "ISRIStemmer.stem",
+      "group": "stem",
+      "params": {
+        "words": 1500
+      },
+      "nltk_ms": 2.027049999924202,
+      "fast_ms": 0.27635000014925026,
+      "speedup": 7.335082318905153,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "RSLPStemmer.stem",
+      "group": "stem",
+      "params": {
+        "words": 2000
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.18420000014884863,
+      "iterations": 50,
+      "version": ""
+    },
+    {
+      "name": "RegexpStemmer.stem",
+      "group": "stem",
+      "params": {
+        "words": 3000
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.4301000003579247,
+      "iterations": 50,
+      "version": ""
+    },
+    {
+      "name": "PerceptronTagger.tag",
+      "group": "tag",
+      "params": {
+        "sentences": 100
+      },
+      "nltk_ms": 17.641899999944144,
+      "fast_ms": 0.6607000004805741,
+      "speedup": 26.701831371442314,
+      "fast_only_ms": 0.0,
+      "iterations": 5,
+      "version": ""
+    },
+    {
+      "name": "TnT.tag",
+      "group": "tag",
+      "params": {
+        "words": 996
+      },
+      "nltk_ms": 1.0497000002942514,
+      "fast_ms": 0.21220000053290278,
+      "speedup": 4.946748339576416,
+      "fast_only_ms": 0.0,
+      "iterations": 15,
+      "version": ""
+    },
+    {
+      "name": "DefaultTagger.tag",
+      "group": "tag",
+      "params": {
+        "words": 10000
+      },
+      "nltk_ms": 1.3064999998277926,
+      "fast_ms": 1.113599999825965,
+      "speedup": 1.1732219827873334,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "UnigramTagger.tag",
+      "group": "tag",
+      "params": {
+        "words": 10000
+      },
+      "nltk_ms": 1.6693999996277853,
+      "fast_ms": 1.008700000056706,
+      "speedup": 1.6550014866005125,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "BigramTagger.tag",
+      "group": "tag",
+      "params": {
+        "words": 10000
+      },
+      "nltk_ms": 2.915250000114611,
+      "fast_ms": 0.9943999998540676,
+      "speedup": 2.931667337633182,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "TrigramTagger.tag",
+      "group": "tag",
+      "params": {
+        "words": 10200
+      },
+      "nltk_ms": 3.063900000142894,
+      "fast_ms": 1.0400500000287138,
+      "speedup": 2.9459160617838616,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "RegexpTagger.tag",
+      "group": "tag",
+      "params": {
+        "words": 10000
+      },
+      "nltk_ms": 10.509950000141544,
+      "fast_ms": 1.1549500004548463,
+      "speedup": 9.099917741895736,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "NaiveBayesClassifier.train",
+      "group": "classify",
+      "params": {
+        "instances": 2000
+      },
+      "nltk_ms": 6.609500000195112,
+      "fast_ms": 1.950450000094861,
+      "speedup": 3.388705170536879,
+      "fast_only_ms": 0.0,
+      "iterations": 10,
+      "version": ""
+    },
+    {
+      "name": "NaiveBayesClassifier.classify",
+      "group": "classify",
+      "params": {
+        "features": 5
+      },
+      "nltk_ms": 0.0057999995988211595,
+      "fast_ms": 0.0006999998731771484,
+      "speedup": 8.285715213770272,
+      "fast_only_ms": 0.0,
+      "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "TextCat.guess_language",
+      "group": "classify",
+      "params": {
+        "texts": 100
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 4.201649999686197,
+      "iterations": 50,
+      "version": ""
+    },
+    {
+      "name": "FreqDist.update",
+      "group": "probability",
+      "params": {
+        "samples": 100000
+      },
+      "nltk_ms": 19.403700000111712,
+      "fast_ms": 4.980600000635604,
+      "speedup": 3.8958559204986325,
+      "fast_only_ms": 0.0,
+      "iterations": 15,
+      "version": ""
+    },
+    {
+      "name": "ConditionalFreqDist.inc",
+      "group": "probability",
+      "params": {
+        "samples": 20000
+      },
+      "nltk_ms": 5.039200000283017,
+      "fast_ms": 2.6366000001871726,
+      "speedup": 1.9112493362380656,
+      "fast_only_ms": 0.0,
+      "iterations": 15,
+      "version": ""
+    },
+    {
+      "name": "LaplaceProbDist.prob",
+      "group": "probability",
+      "params": {
+        "bins": 3
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.00039999940781854093,
+      "iterations": 500,
+      "version": ""
+    },
+    {
+      "name": "MLEProbDist.prob",
+      "group": "probability",
+      "params": {
+        "bins": 3
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.00039999940781854093,
+      "iterations": 500,
+      "version": ""
+    },
+    {
+      "name": "BigramCollocationFinder.from_words",
+      "group": "collocations",
+      "params": {
+        "words": 50000
+      },
+      "nltk_ms": 62.93009999990318,
+      "fast_ms": 7.299799999600509,
+      "speedup": 8.620797830536057,
+      "fast_only_ms": 0.0,
+      "iterations": 15,
+      "version": ""
+    },
+    {
+      "name": "TrigramCollocationFinder.from_words",
+      "group": "collocations",
+      "params": {
+        "words": 20000
+      },
+      "nltk_ms": 56.00770000000921,
+      "fast_ms": 4.058999999870139,
+      "speedup": 13.798398620793566,
+      "fast_only_ms": 0.0,
+      "iterations": 5,
+      "version": ""
+    },
+    {
+      "name": "QuadgramCollocationFinder.from_words",
+      "group": "collocations",
+      "params": {
+        "words": 20000
+      },
+      "nltk_ms": 95.44499999992695,
+      "fast_ms": 5.730900000344263,
+      "speedup": 16.654452179272614,
+      "fast_only_ms": 0.0,
+      "iterations": 5,
+      "version": ""
+    },
+    {
+      "name": "windowdiff",
+      "group": "metrics",
+      "params": {
+        "chars": 12000
+      },
+      "nltk_ms": 2.474549999988085,
+      "fast_ms": 0.014700000065204222,
+      "speedup": 168.33673394638225,
+      "fast_only_ms": 0.0,
+      "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "pk",
+      "group": "metrics",
+      "params": {
+        "chars": 12000
+      },
+      "nltk_ms": 2.196899999944435,
+      "fast_ms": 0.023749999400024535,
+      "speedup": 92.50105496601256,
+      "fast_only_ms": 0.0,
+      "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "edit_distance",
+      "group": "metrics",
+      "params": {
+        "chars": 100
+      },
+      "nltk_ms": 2.443450000100711,
+      "fast_ms": 0.01609999981155852,
+      "speedup": 151.76708252794563,
+      "fast_only_ms": 0.0,
+      "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "BigramAssocMeasures",
+      "group": "metrics",
+      "params": {
+        "calls": 3
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.0002999995558639057,
+      "iterations": 500,
+      "version": ""
+    },
+    {
+      "name": "MLE.score",
+      "group": "lm",
+      "params": {
+        "queries": 1000
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.23005000048215152,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "Lidstone.score",
+      "group": "lm",
+      "params": {
+        "queries": 1000
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.2117000003636349,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "Laplace.score",
+      "group": "lm",
+      "params": {
+        "queries": 1000
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.19640000027720816,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "StupidBackoff.score",
+      "group": "lm",
+      "params": {
+        "queries": 1000
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.15500000063184416,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "KneserNeyInterpolated.score",
+      "group": "lm",
+      "params": {
+        "queries": 1000
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.17090000028474606,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "WittenBellInterpolated.score",
+      "group": "lm",
+      "params": {
+        "queries": 1000
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.1809000000321248,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "CCG from_string",
+      "group": "ccg",
+      "params": {
+        "parses": 3500
+      },
+      "nltk_ms": 0.7631499997842184,
+      "fast_ms": 0.37040000006527407,
+      "speedup": 2.060340171840528,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "RegexpParser.parse",
+      "group": "chunk",
+      "params": {
+        "tokens": 1800
+      },
+      "nltk_ms": 1.8169999998463027,
+      "fast_ms": 0.2293000002282497,
+      "speedup": 7.924116868895008,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "EarleyChartParser.parse",
+      "group": "parse",
+      "params": {
+        "sentences": 30
+      },
+      "nltk_ms": 6.652850000136823,
+      "fast_ms": 0.31680000029155053,
+      "speedup": 21.00015780938831,
+      "fast_only_ms": 0.0,
+      "iterations": 15,
+      "version": ""
+    },
+    {
+      "name": "CFG.from_string",
+      "group": "parse",
+      "params": {
+        "rules": 9
+      },
+      "nltk_ms": 0.0526500002706598,
+      "fast_ms": 0.00199999976757681,
+      "speedup": 26.325003194600512,
+      "fast_only_ms": 0.0,
+      "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "bleu",
+      "group": "translate",
+      "params": {
+        "tokens": 6
+      },
+      "nltk_ms": 0.030900000183464726,
+      "fast_ms": 0.0036999999792897142,
+      "speedup": 8.351351447682054,
+      "fast_only_ms": 0.0,
+      "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "Chat.respond",
+      "group": "chat",
+      "params": {},
+      "nltk_ms": 0.0006000000212225132,
+      "fast_ms": 0.00019999970390927047,
+      "speedup": 3.0000045474802413,
+      "fast_only_ms": 0.0,
+      "iterations": 100,
+      "version": ""
+    },
+    {
+      "name": "Tree.from_string",
+      "group": "tree",
+      "params": {
+        "trees": 300
+      },
+      "nltk_ms": 3.226599999834434,
+      "fast_ms": 0.3301500005363778,
+      "speedup": 9.773133407821724,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "Expression.fromstring",
+      "group": "sem",
+      "params": {
+        "formulas": 500
+      },
+      "nltk_ms": 17.448650000005728,
+      "fast_ms": 0.5808999999317166,
+      "speedup": 30.037269757370932,
+      "fast_only_ms": 0.0,
+      "iterations": 30,
+      "version": ""
+    },
+    {
+      "name": "TableauProver.prove",
+      "group": "inference",
+      "params": {
+        "formula": "P | ~P"
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.0006000000212225132,
+      "iterations": 50,
+      "version": ""
+    },
+    {
+      "name": "ResolutionProver.prove",
+      "group": "inference",
+      "params": {
+        "formula": "P | ~P"
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.0006999998731771484,
+      "iterations": 50,
+      "version": ""
+    },
+    {
+      "name": "DiscourseThread.answer_question",
+      "group": "inference",
+      "params": {},
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 0.0018000000636675395,
+      "iterations": 50,
+      "version": ""
+    },
+    {
+      "name": "DefaultReasoner.extensions",
+      "group": "inference",
+      "params": {
+        "rules": 10
+      },
+      "nltk_ms": 0.0,
+      "fast_ms": 0.0,
+      "speedup": 0.0,
+      "fast_only_ms": 4.386950000025536,
+      "iterations": 50,
+      "version": ""
+    }
+  ]
+}
