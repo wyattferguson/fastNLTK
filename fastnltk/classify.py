@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 fastnltk.classify — Drop-in replacement for nltk.classify.
 """
@@ -7,14 +9,9 @@ from nltk.classify import ClassifierI, DecisionTreeClassifier
 from nltk.classify.util import accuracy, apply_features, log_likelihood
 
 from fastnltk._rust import (
-    MaxentClassifier as _RustMaxentClassifier,
-)
-from fastnltk._rust import (
-    NaiveBayesClassifier as _RustNaiveBayesClassifier,
-)
-from fastnltk._rust import (
-    TextCat as _RustTextCat,
-)
+    MaxentClassifier as _RustMaxentClassifier,,
+    NaiveBayesClassifier as _RustNaiveBayesClassifier,,
+    TextCat as _RustTextCat,)
 
 __all__ = [
     "NaiveBayesClassifier",
@@ -58,10 +55,10 @@ class MaxentClassifier:
         inst._impl.train(labeled_featuresets, max_iter, sigma)
         return inst
 
-    def classify(self, features):
+    def classify(self, features: dict) -> str:
         return self._impl.classify(features)
 
-    def labels(self):
+    def labels(self) -> list[str]:
         return self._impl.labels()
 
     def prob_classify(self, features):
@@ -83,10 +80,10 @@ class NaiveBayesClassifier:
         inst._impl.train(labeled_featuresets)
         return inst
 
-    def classify(self, features):
+    def classify(self, features: dict) -> str:
         return self._impl.classify(features)
 
-    def labels(self):
+    def labels(self) -> list[str]:
         return self._impl.labels()
 
     def prob_classify(self, features):

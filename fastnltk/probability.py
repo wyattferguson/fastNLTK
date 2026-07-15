@@ -15,11 +15,8 @@ from nltk.probability import (
 )
 
 from fastnltk._rust import (
-    ConditionalFreqDist as _RustConditionalFreqDist,
-)
-from fastnltk._rust import (
-    FreqDist as _RustFreqDist,
-)
+    ConditionalFreqDist as _RustConditionalFreqDist,,
+    FreqDist as _RustFreqDist,)
 
 __all__ = [
     "FreqDist",

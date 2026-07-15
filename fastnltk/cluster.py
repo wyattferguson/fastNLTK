@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 fastnltk.cluster — Drop-in replacement for nltk.cluster.
 
@@ -24,5 +26,5 @@ class KMeansClusterer:
     def centroids(self):
         return self._impl.centroids()
 
-    def labels(self):
+    def labels(self) -> list[str]:
         return self._impl.labels()

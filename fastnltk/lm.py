@@ -14,23 +14,12 @@ from nltk.lm.preprocessing import (
 from nltk.lm.util import log_base2
 
 from fastnltk._rust import (
-    MLE as _RustMLE,
-)
-from fastnltk._rust import (
-    KneserNeyInterpolated as _RustKneserNeyInterpolated,
-)
-from fastnltk._rust import (
-    Laplace as _RustLaplace,
-)
-from fastnltk._rust import (
-    Lidstone as _RustLidstone,
-)
-from fastnltk._rust import (
-    StupidBackoff as _RustStupidBackoff,
-)
-from fastnltk._rust import (
-    WittenBellInterpolated as _RustWittenBellInterpolated,
-)
+    MLE as _RustMLE,,
+    KneserNeyInterpolated as _RustKneserNeyInterpolated,,
+    Laplace as _RustLaplace,,
+    Lidstone as _RustLidstone,,
+    StupidBackoff as _RustStupidBackoff,,
+    WittenBellInterpolated as _RustWittenBellInterpolated,)
 
 __all__ = [
     "MLE", "Lidstone", "Laplace",

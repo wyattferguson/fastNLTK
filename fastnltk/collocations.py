@@ -3,14 +3,9 @@
 import nltk.collocations as _nltk_collocations
 
 from fastnltk._rust import (
-    BigramCollocationFinder as _RustBigramCollocationFinder,
-)
-from fastnltk._rust import (
-    QuadgramCollocationFinder as _RustQuadgramCollocationFinder,
-)
-from fastnltk._rust import (
-    TrigramCollocationFinder as _RustTrigramCollocationFinder,
-)
+    BigramCollocationFinder as _RustBigramCollocationFinder,,
+    QuadgramCollocationFinder as _RustQuadgramCollocationFinder,,
+    TrigramCollocationFinder as _RustTrigramCollocationFinder,)
 
 __all__ = [
     "BigramCollocationFinder",

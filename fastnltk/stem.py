@@ -1,37 +1,20 @@
+from __future__ import annotations
+
 """fastnltk.stem — Drop-in replacement for nltk.stem."""
 
 import nltk.stem as _nltk_stem
 
 from fastnltk._rust import (
-    ARLSTem as _RustARLSTem,
-)
-from fastnltk._rust import (
-    ARLSTem2 as _RustARLSTem2,
-)
-from fastnltk._rust import (
-    Cistem as _RustCistem,
-)
-from fastnltk._rust import (
-    ISRIStemmer as _RustISRIStemmer,
-)
-from fastnltk._rust import (
-    LancasterStemmer as _RustLancasterStemmer,
-)
-from fastnltk._rust import (
-    PorterStemmer as _RustPorterStemmer,
-)
-from fastnltk._rust import (
-    RegexpStemmer as _RustRegexpStemmer,
-)
-from fastnltk._rust import (
-    RSLPStemmer as _RustRSLPStemmer,
-)
-from fastnltk._rust import (
-    SnowballStemmer as _RustSnowballStemmer,
-)
-from fastnltk._rust import (
-    WordNetLemmatizer as _RustWordNetLemmatizer,
-)
+    ARLSTem as _RustARLSTem,,
+    ARLSTem2 as _RustARLSTem2,,
+    Cistem as _RustCistem,,
+    ISRIStemmer as _RustISRIStemmer,,
+    LancasterStemmer as _RustLancasterStemmer,,
+    PorterStemmer as _RustPorterStemmer,,
+    RegexpStemmer as _RustRegexpStemmer,,
+    RSLPStemmer as _RustRSLPStemmer,,
+    SnowballStemmer as _RustSnowballStemmer,,
+    WordNetLemmatizer as _RustWordNetLemmatizer,)
 
 __all__ = [
     "SnowballStemmer", "PorterStemmer", "LancasterStemmer", "RegexpStemmer",
@@ -45,7 +28,7 @@ class SnowballStemmer:
         self._impl = _RustSnowballStemmer(language)
         self._language = language
 
-    def stem(self, word):
+    def stem(self, word: str) -> str:
         return self._impl.stem(word)
 
     @property
@@ -57,7 +40,7 @@ class PorterStemmer:
     def __init__(self):
         self._impl = _RustPorterStemmer()
 
-    def stem(self, word):
+    def stem(self, word: str) -> str:
         return self._impl.stem(word)
 
 
@@ -65,7 +48,7 @@ class LancasterStemmer:
     def __init__(self):
         self._impl = _RustLancasterStemmer()
 
-    def stem(self, word):
+    def stem(self, word: str) -> str:
         return self._impl.stem(word)
 
 
@@ -73,7 +56,7 @@ class RegexpStemmer:
     def __init__(self, min_length=0):
         self._impl = _RustRegexpStemmer(min_length)
 
-    def stem(self, word):
+    def stem(self, word: str) -> str:
         return self._impl.stem(word)
 
 
@@ -81,7 +64,7 @@ class ISRIStemmer:
     def __init__(self):
         self._impl = _RustISRIStemmer()
 
-    def stem(self, word):
+    def stem(self, word: str) -> str:
         return self._impl.stem(word)
 
 
@@ -89,7 +72,7 @@ class Cistem:
     def __init__(self):
         self._impl = _RustCistem()
 
-    def stem(self, word):
+    def stem(self, word: str) -> str:
         return self._impl.stem(word)
 
 
@@ -97,7 +80,7 @@ class RSLPStemmer:
     def __init__(self):
         self._impl = _RustRSLPStemmer()
 
-    def stem(self, word):
+    def stem(self, word: str) -> str:
         return self._impl.stem(word)
 
 
@@ -115,7 +98,7 @@ class ARLSTem:
     def __init__(self):
         self._impl = _RustARLSTem()
 
-    def stem(self, word):
+    def stem(self, word: str) -> str:
         return self._impl.stem(word)
 
 
@@ -124,7 +107,7 @@ class ARLSTem2:
     def __init__(self):
         self._impl = _RustARLSTem2()
 
-    def stem(self, word):
+    def stem(self, word: str) -> str:
         return self._impl.stem(word)
 
 
