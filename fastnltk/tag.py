@@ -233,7 +233,7 @@ class AffixTagger:
     """Affix (suffix/prefix) tagger — Rust-accelerated."""
 
     def __init__(self, affix_len=3, use_suffix=True, backoff=None):
-        self._impl = _RustAffixTagger(affix_len, use_suffix, backoff)
+        self._impl = _RustAffixTagger(affix_len, use_suffix)
 
     def train(self, sentences: list[list[str]]) -> None:
         self._impl.train(sentences)
