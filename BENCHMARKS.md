@@ -154,6 +154,19 @@ Individual results may vary.
 | | PlaintextCorpusReader.sents | — | 0.14 | — ¹ |
 | | PlaintextCorpusReader.raw | — | 0.03 | — ¹ |
 | | PlaintextCorpusReader.fileids | — | 0.0001 | — ¹ |
+| | PlaintextCorpusReader.word_count | — | 0.07 | — ¹ |
+| | PlaintextCorpusReader.sent_count | — | 0.10 | — ¹ |
+| **ccg** | | | | |
+| | `Category.is_primitive` | — | 0.00003 | **1.2×** |
+| **lm** | | | | |
+| | `StupidBackoff.fit` | — | 0.001 | **3.5×** |
+| | `StupidBackoff.score` (warm) | — | 0.0002 | — ¹ |
+| **metrics** | | | | |
+| | `BigramAssocMeasures.pmi` | — | 0.0004 | **1.9×** |
+| **probability** | | | | |
+| | `ConditionalFreqDist.conditions` | — | 0.0001 | **1.4×** |
+| **tag** | | | | |
+| | `UnigramTagger.train` | — | 0.0008 | **0.4×** |
 
 ¹ fastNLTK-only — no NLTK comparison available.
 
