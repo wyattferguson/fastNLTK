@@ -34,9 +34,7 @@ jobs:
 
       - name: Install QEMU (aarch64 cross-compile)
         if: matrix.target == 'aarch64'
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq qemu-user-static binfmt-support
+        run: docker run --rm --privileged tonistiigi/binfmt --install arm64
 
       - uses: actions/setup-python@v6
         with:
