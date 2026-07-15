@@ -39,7 +39,7 @@ rustc-hash = "2"
 once_cell = "1"
 parking_lot = "0.12"
 rand = "0.10"
-mimalloc = "0.1"
+mimalloc = { version = "0.1", optional = true }
 smol_str = "0.3"
 bumpalo = "3"
 logos = "0.16"
@@ -55,9 +55,10 @@ whatlang = "0.18"
 nltk-metrics = "0.4"
 
 [features]
-default = ["parallel", "extension-module"]
+default = ["parallel", "extension-module", "mimalloc"]
 extension-module = ["pyo3/extension-module"]
 parallel = ["rayon", "rustling/parallel"]
+mimalloc = ["dep:mimalloc"]
 
 [profile.release]
 lto = "fat"

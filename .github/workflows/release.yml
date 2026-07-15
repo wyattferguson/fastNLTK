@@ -46,18 +46,6 @@ jobs:
           args: --release --locked --compatibility pypi --out dist
           manylinux: auto
           sccache: true
-          # aarch64 Linux cross-compilation needs the manylinux_2_28-cross
-          # container which includes aarch64-unknown-linux-gnu-gcc for C deps
-          # (zstd-sys, libmimalloc-sys).  The default `auto` container for
-          # aarch64 on x64 uses manylinux2014-cross; 2_28 has better tooling.
-          container: ${{ matrix.target == 'aarch64' && 'ghcr.io/rust-cross/manylinux_2_28-cross:aarch64' || '' }}
-          # The cc crate detects host GCC's supported flags and passes
-          # -Werror=date-time to the target cross-compiler, but the older
-          # crosstool-ng-built aarch64 GCC in the manylinux container
-          # doesn't know -Wdate-time.  Disable default cc flags so it
-          # stops injecting -Werror=date-time.
-          before-script-linux: |
-            export CRATE_CC_NO_DEFAULTS=1
 
       - name: Upload wheel
         uses: actions/upload-artifact@v6
