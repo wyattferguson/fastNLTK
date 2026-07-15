@@ -64,11 +64,32 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_ed() {
         assert!((compute_edit_distance("cat", "car", 1, false) as f64 - 1.0).abs() < 0.001);
         assert!((compute_edit_distance("kitten", "sitting", 1, false) as f64 - 3.0).abs() < 0.001);
         assert!((compute_edit_distance("", "a", 1, false) as f64 - 1.0).abs() < 0.001);
         assert!((compute_edit_distance("ab", "ba", 1, true) as f64 - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_ed_same() {
+        assert_eq!(compute_edit_distance("hello", "hello", 1, false), 0);
+        assert_eq!(compute_edit_distance("", "", 1, false), 0);
+    }
+
+    #[test]
+    fn test_ed_substitution_cost() {
+        let d1 = compute_edit_distance("cat", "car", 2, false);
+        assert_eq!(d1, 2); // cost=2 for substitution
+    }
+
+    #[test]
+    fn test_ed_transposition() {
+        let d = compute_edit_distance("ab", "ba", 1, true);
+        assert_eq!(d, 1); // transposition costs 1
+        let d2 = compute_edit_distance("ab", "ba", 1, false);
+        assert_eq!(d2, 2); // without transposition: substitute a->b, b->a = 2
     }
 }

@@ -46,14 +46,11 @@ fn dirs_data_dir() -> Option<PathBuf> {
 
 #[cfg(windows)]
 fn dirs_data_dir() -> Option<PathBuf> {
-    std::env::var("USERPROFILE")
-        .or_else(|_| std::env::var("HOME"))
-        .ok()
-        .map(|home| {
-            let mut p = PathBuf::from(home);
-            p.push("nltk_data");
-            p
-        })
+    std::env::var("USERPROFILE").or_else(|_| std::env::var("HOME")).ok().map(|home| {
+        let mut p = PathBuf::from(home);
+        p.push("nltk_data");
+        p
+    })
 }
 
 /// Find an NLTK resource file by name.
