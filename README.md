@@ -3,12 +3,10 @@
   <p><strong>Drop-in Rust-accelerated replacement for NLTK.</strong><br>
    <em>Same API. Same data. 5–50× faster.</em></p>
 
-[![CI](https://github.com/your/fastnltk/actions/workflows/quality.yml/badge.svg)](https://github.com/your/fastnltk/actions)
 [![PyPI version](https://img.shields.io/pypi/v/fastnltk.svg)](https://pypi.org/project/fastnltk/)
 [![Python](https://img.shields.io/pypi/pyversions/fastnltk.svg)](https://pypi.org/project/fastnltk/)
 [![Rust](https://img.shields.io/badge/rust-1.80%2B-blue)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![codecov](https://img.shields.io/codecov/c/github/your/fastnltk)](https://codecov.io/gh/your/fastnltk)
 
 </div>
 
