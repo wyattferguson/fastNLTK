@@ -118,9 +118,27 @@ def sent_tokenize(text: str, language: str = "english") -> list[str]:
 
 
 def word_tokenize(text: str, language: str = "english", preserve_line: bool = False) -> list[str]:
-    """Word tokenization (Rust-accelerated)."""
+    """Word tokenization (Rust-accelerated).
+
+    Matches NLTK's behavior: first segment into sentences using the trained
+    Punkt model (via Python-level sent_tokenize), then tokenize each sentence
+    with the Rust Treebank tokenizer.
+    """
     try:
-        return _rust_word_tokenize(text, language, preserve_line)
+        if preserve_line:
+            # When preserve_line is True, tokenize each line independently
+            # without sentence segmentation
+            return _rust_word_tokenize(text, language, preserve_line)
+        else:
+            # Use Python-level sent_tokenize (which loads the Punkt model)
+            # to get correct abbreviation handling, then tokenize each
+            # sentence with the Rust Treebank tokenizer
+            sentences = sent_tokenize(text, language)
+            _tb = _RustTreebankWordTokenizer()
+            tokens = []
+            for sent in sentences:
+                tokens.extend(_tb.tokenize(sent))
+            return tokens
     except (ValueError, LookupError):
         return _nltk_tokenize.word_tokenize(text, language, preserve_line)
 

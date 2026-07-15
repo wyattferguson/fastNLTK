@@ -9,7 +9,24 @@ use pyo3::prelude::*;
 
 /// Characters that Treebank detaches from adjacent words.
 const fn is_punct(c: char) -> bool {
-    matches!(c, '(' | ')' | '[' | ']' | '{' | '}' | '<' | '>' | ':' | ';' | ',' | '.' | '?' | '!')
+    matches!(
+        c,
+        '(' | ')' | '[' | ']' | '{' | '}' | '<' | '>' | ':' | ';' | ',' | '?' | '!' | '@'
+    )
+}
+
+/// NLTK splits trailing periods at end-of-text but keeps internal periods.
+fn is_trailing_period(word: &str) -> bool {
+    // NLTK's pattern: `([^\.])(\.)([\]\)}">\']*)\s*$` — a period
+    // at end of text that is NOT preceded by another period.
+    if word.is_empty() || !word.ends_with('.') {
+        return false;
+    }
+    // Don't split bare period, double period, or ellipsis
+    if word == "." || word == ".." || word.ends_with("...") {
+        return false;
+    }
+    true
 }
 
 /// Split a word at a contraction boundary.
@@ -67,6 +84,23 @@ fn split_word(
     tokens: &mut Vec<String>,
     spans: &mut Vec<(usize, usize)>,
 ) {
+    // Handle ellipsis (... ) first — before fast path, since periods are no longer
+    // in is_punct and NLTK treats ... as a single token
+    if word.contains("...") {
+        if let Some(dot_pos) = word.find("...") {
+            if dot_pos > 0 {
+                flush_subword(word, offset, &mut 0, dot_pos, tokens, spans);
+            }
+            tokens.push("...".to_string());
+            spans.push((offset + dot_pos, offset + dot_pos + 3));
+            let rest = &word[dot_pos + 3..];
+            if !rest.is_empty() {
+                split_word(rest, offset + dot_pos + 3, tokens, spans);
+            }
+            return;
+        }
+    }
+
     // Fast path: most words have no punctuation or contractions, no double-hyphen
     if !word.contains(|c: char| is_punct(c) || c == '\'' || word.contains("--")) {
         tokens.push(word.to_string());
@@ -88,6 +122,8 @@ fn split_word(
         }
         return;
     }
+
+
 
     // Scan word for punctuation splits
     let mut start = 0;
@@ -189,6 +225,25 @@ pub fn tokenize_treebank(text: &str) -> (Vec<String>, Vec<(usize, usize)>) {
                 split_word(&text[start..], start, &mut tokens, &mut spans);
             }
             break;
+        }
+    }
+
+    // NLTK-compatible trailing period handling:
+    // Only split the FINAL period at end-of-text, matching NLTK's
+    // `([^\\.])(\\.)([\\]\\)}>\"\']*)\s*$` pattern.
+    if tokens.len() > 0 && spans.len() > 0 {
+        let last_idx = tokens.len() - 1;
+        let last_tok = &tokens[last_idx];
+        if is_trailing_period(last_tok) {
+            let (last_start, last_end) = spans[last_idx];
+            let stem_len = last_tok.len() - 1;
+            let stem_end = last_start + stem_len;
+            // Replace last token with stem
+            tokens[last_idx] = last_tok[..stem_len].to_string();
+            spans[last_idx] = (last_start, stem_end);
+            // Add period token
+            tokens.push(".".to_string());
+            spans.push((stem_end, last_end));
         }
     }
 

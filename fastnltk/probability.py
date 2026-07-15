@@ -39,7 +39,10 @@ class FreqDist:
     """Frequency distribution — Rust-accelerated."""
 
     def __init__(self, samples=None):
-        self._impl = _RustFreqDist(samples or [])
+        if isinstance(samples, str):
+            self._impl = _RustFreqDist(list(samples))
+        else:
+            self._impl = _RustFreqDist(samples or [])
 
     def N(self):
         return self._impl.N()
@@ -106,7 +109,11 @@ class ConditionalFreqDist:
         self._impl = _RustConditionalFreqDist()
 
     def __getitem__(self, condition):
-        return self._impl.__getitem__(condition)
+        result = self._impl.__getitem__(condition)
+        if result is None:
+            result = _RustFreqDist([])
+            self._impl.__setitem__(condition, result)
+        return result
 
     def conditions(self):
         return self._impl.conditions()
