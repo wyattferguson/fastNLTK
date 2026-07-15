@@ -7,6 +7,7 @@ use std::sync::LazyLock;
 #[pyclass(name = "ToktokTokenizer", module = "fastnltk._rust")]
 pub struct ToktokTokenizer;
 
+static NUM_COMMA_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(\d),(\d)").unwrap());
 static TOKTOK_SUBS: LazyLock<Vec<(Regex, String)>> = LazyLock::new(build_subs);
 
 fn mk_re(p: &str) -> Regex {
@@ -27,7 +28,9 @@ impl ToktokTokenizer {
     #[pyo3(signature = (text, return_str=false))]
     fn tokenize(&self, text: &str, return_str: bool) -> Vec<String> {
         let subs = &*TOKTOK_SUBS;
-        let mut s: Cow<str> = Cow::Borrowed(text);
+        // Protect digit-comma-digit patterns (e.g. "525,600") before punctuation splitting
+        let protected = NUM_COMMA_RE.replace_all(text, "$1\u{0001}$2");
+        let mut s: Cow<str> = Cow::Owned(protected.into_owned());
         for (re, replacement) in subs {
             if let Cow::Borrowed(inner) = s {
                 if re.is_match(inner) {
@@ -49,7 +52,9 @@ impl ToktokTokenizer {
         let parts: Vec<&str> = t.split_whitespace().collect();
         let mut out = Vec::with_capacity(parts.len());
         for p in parts {
-            out.push(SmolStr::new(p).to_string());
+            // Restore digit-comma-digit placeholders
+            let restored = p.replace('\u{0001}', ",");
+            out.push(restored);
         }
         out
     }
