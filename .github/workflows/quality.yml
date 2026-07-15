@@ -37,9 +37,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ steps.setup-python.outputs.python-version }}
+      # Build without extension-module: test binaries need libpython symbols
       # Standard: deny correctness+suspicious+perf, warn style+complexity
       # pedantic+nursery are informational (no CI gate)
-      - run: cargo clippy --all-targets -- -D clippy::correctness -D clippy::suspicious -D clippy::perf -W clippy::style -W clippy::complexity
+      - run: cargo clippy --all-targets --no-default-features --features parallel -- -D clippy::correctness -D clippy::suspicious -D clippy::perf -W clippy::style -W clippy::complexity
         env:
           PYO3_PYTHON: python
 
@@ -67,8 +68,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ steps.setup-python.outputs.python-version }}
+      # Build without extension-module: test binaries need libpython symbols.
+      # extension-module tells PyO3 to skip linking libpython (loaded at runtime by Python),
+      # but cargo test produces a standalone binary that must link Python symbols.
       - name: Run tests
-        run: cargo test
+        run: cargo test --no-default-features --features parallel
         env:
           PYO3_PYTHON: python
 
