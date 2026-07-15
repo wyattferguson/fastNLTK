@@ -146,6 +146,14 @@ Individual results may vary.
 | | DefaultReasoner.extensions | — | 7.7461 | — |
 | **cluster** | | | | |
 | | KMeansClusterer.cluster | 23.64 | 5.94 | **4×** |
+| **drt** | | | | |
+| | parse_drs (simple) | — | 0.0005 | **77×** ¹ |
+| | parse_drs + drs_to_fol | — | 0.0014 | — ¹ |
+| **corpus** | | | | |
+| | PlaintextCorpusReader.words | — | 0.10 | — ¹ |
+| | PlaintextCorpusReader.sents | — | 0.14 | — ¹ |
+| | PlaintextCorpusReader.raw | — | 0.03 | — ¹ |
+| | PlaintextCorpusReader.fileids | — | 0.0001 | — ¹ |
 
 ¹ fastNLTK-only — no NLTK comparison available.
 
