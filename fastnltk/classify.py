@@ -9,8 +9,8 @@ from nltk.classify import ClassifierI, DecisionTreeClassifier
 from nltk.classify.util import accuracy, apply_features, log_likelihood
 
 from fastnltk._rust import (
-    MaxentClassifier as _RustMaxentClassifier,,
-    NaiveBayesClassifier as _RustNaiveBayesClassifier,,
+    MaxentClassifier as _RustMaxentClassifier,
+    NaiveBayesClassifier as _RustNaiveBayesClassifier,
     TextCat as _RustTextCat,)
 
 __all__ = [

@@ -51,6 +51,16 @@ test-rust:  ## Run Rust tests
 .PHONY: test-all
 test-all: test test-rust  ## Run all tests
 
+.PHONY: bench
+bench: build-prod  ## Run benchmarks (comparison against nltk)
+	$(PYTHON) -m pytest benchmarks/ --benchmark-only --benchmark-sort=name 2>/dev/null \
+	  || echo "No benchmarks/ directory or no benchmark tests found"
+
+.PHONY: bench-compare
+bench-compare: build-prod  ## Run benchmarks with comparison
+	$(PYTHON) -m pytest benchmarks/ --benchmark-compare --benchmark-sort=name 2>/dev/null \
+	  || echo "No benchmarks/ directory found"
+
 .PHONY: clean
 clean:  ## Remove build artifacts
 	rm -rf `find . -name __pycache__`

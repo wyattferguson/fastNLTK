@@ -11,8 +11,7 @@ from nltk.chunk import (
     conllstr2tree,
     conlltags2tree,
     tree2conllstr,
-    tree2conlltags,
-)
+    tree2conlltags,)
 
 from fastnltk._rust import RegexpParser as _RustRegexpParser
 

@@ -24,17 +24,16 @@ from nltk.tag import (
     NgramTagger,
     SequentialBackoffTagger,
     TaggerI,
-    map_tag,
-)
+    map_tag,)
 
 from fastnltk._rust import (
-    AffixTagger as _RustAffixTagger,,
-    BigramTagger as _RustBigramTagger,,
-    DefaultTagger as _RustDefaultTagger,,
-    PerceptronTagger as _RustPerceptronTagger,,
-    RegexpTagger as _RustRegexpTagger,,
-    TnT as _RustTnT,,
-    TrigramTagger as _RustTrigramTagger,,
+    AffixTagger as _RustAffixTagger,
+    BigramTagger as _RustBigramTagger,
+    DefaultTagger as _RustDefaultTagger,
+    PerceptronTagger as _RustPerceptronTagger,
+    RegexpTagger as _RustRegexpTagger,
+    TnT as _RustTnT,
+    TrigramTagger as _RustTrigramTagger,
     UnigramTagger as _RustUnigramTagger,)
 
 

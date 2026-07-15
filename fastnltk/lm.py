@@ -9,16 +9,15 @@ from nltk.lm.preprocessing import (
     everygrams,
     pad_both_ends,
     pad_sequence,
-    padded_everygrams,
-)
+    padded_everygrams,)
 from nltk.lm.util import log_base2
 
 from fastnltk._rust import (
-    MLE as _RustMLE,,
-    KneserNeyInterpolated as _RustKneserNeyInterpolated,,
-    Laplace as _RustLaplace,,
-    Lidstone as _RustLidstone,,
-    StupidBackoff as _RustStupidBackoff,,
+    MLE as _RustMLE,
+    KneserNeyInterpolated as _RustKneserNeyInterpolated,
+    Laplace as _RustLaplace,
+    Lidstone as _RustLidstone,
+    StupidBackoff as _RustStupidBackoff,
     WittenBellInterpolated as _RustWittenBellInterpolated,)
 
 __all__ = [

@@ -26,8 +26,7 @@ from fastnltk._rust import (
     TweetTokenizer as _RustTweetTokenizer,
     WhitespaceTokenizer as _RustWhitespaceTokenizer,
     WordPunctTokenizer as _RustWordPunctTokenizer,
-    word_tokenize as _rust_word_tokenize,
-)
+    word_tokenize as _rust_word_tokenize,)
 
 __all__ = [
     "sent_tokenize",
@@ -215,7 +214,7 @@ class TweetTokenizer:
         preserve_case: bool = True,
         reduce_len: bool = False,
         strip_handles: bool = False,
-    ) -> None:
+) -> None:
         self._impl = _RustTweetTokenizer(preserve_case, reduce_len, strip_handles)
 
     def tokenize(self, text: str) -> List[str]:

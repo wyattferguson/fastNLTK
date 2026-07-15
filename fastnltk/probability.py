@@ -11,11 +11,10 @@ from nltk.probability import (
     MLEProbDist,
     ProbDistI,
     SimpleGoodTuringProbDist,
-    WittenBellProbDist,
-)
+    WittenBellProbDist,)
 
 from fastnltk._rust import (
-    ConditionalFreqDist as _RustConditionalFreqDist,,
+    ConditionalFreqDist as _RustConditionalFreqDist,
     FreqDist as _RustFreqDist,)
 
 __all__ = [

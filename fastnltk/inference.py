@@ -19,5 +19,4 @@ from nltk.inference import (  # noqa: F401
     ResolutionProver,
     ResolutionProverCommand,
     TableauProver,
-    TableauProverCommand,
-)
+    TableauProverCommand,)

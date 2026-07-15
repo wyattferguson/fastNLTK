@@ -5,15 +5,15 @@ from __future__ import annotations
 import nltk.stem as _nltk_stem
 
 from fastnltk._rust import (
-    ARLSTem as _RustARLSTem,,
-    ARLSTem2 as _RustARLSTem2,,
-    Cistem as _RustCistem,,
-    ISRIStemmer as _RustISRIStemmer,,
-    LancasterStemmer as _RustLancasterStemmer,,
-    PorterStemmer as _RustPorterStemmer,,
-    RegexpStemmer as _RustRegexpStemmer,,
-    RSLPStemmer as _RustRSLPStemmer,,
-    SnowballStemmer as _RustSnowballStemmer,,
+    ARLSTem as _RustARLSTem,
+    ARLSTem2 as _RustARLSTem2,
+    Cistem as _RustCistem,
+    ISRIStemmer as _RustISRIStemmer,
+    LancasterStemmer as _RustLancasterStemmer,
+    PorterStemmer as _RustPorterStemmer,
+    RegexpStemmer as _RustRegexpStemmer,
+    RSLPStemmer as _RustRSLPStemmer,
+    SnowballStemmer as _RustSnowballStemmer,
     WordNetLemmatizer as _RustWordNetLemmatizer,)
 
 __all__ = [
