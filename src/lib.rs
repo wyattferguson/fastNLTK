@@ -29,14 +29,14 @@
 // PyO3 0.29 deprecates auto-FromPyObject for Clone #[pyclass]; opt-in/out deferred to 0.30
 #![allow(deprecated)]
 
-// mimalloc as global allocator when available (x86_64 Linux/macOS/Windows).
-// aarch64 uses the system allocator to avoid C cross-compilation issues with
-// libmimalloc-sys (older aarch64 GCC doesn't support -Wdate-time used by
-// the cc crate defaults).
-#[cfg(feature = "mimalloc")]
+// mimalloc as global allocator on all platforms except Linux aarch64.
+// The manylinux cross-compilation container ships an older crosstool-ng
+// GCC that doesn't support -Wdate-time, which the cc crate default flags
+// inject.  On those targets we fall back to the system allocator.
+#[cfg(not(all(target_arch = "aarch64", target_os = "linux")))]
 use mimalloc::MiMalloc;
 
-#[cfg(feature = "mimalloc")]
+#[cfg(not(all(target_arch = "aarch64", target_os = "linux")))]
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 

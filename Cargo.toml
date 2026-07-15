@@ -39,7 +39,6 @@ rustc-hash = "2"
 once_cell = "1"
 parking_lot = "0.12"
 rand = "0.10"
-mimalloc = { version = "0.1", optional = true }
 smol_str = "0.3"
 bumpalo = "3"
 logos = "0.16"
@@ -54,11 +53,17 @@ rayon = { version = "1", optional = true }
 whatlang = "0.18"
 nltk-metrics = "0.4"
 
+# mimalloc as global allocator — skipped on Linux aarch64 where the
+# manylinux container's old crosstool-ng-built GCC in the cross container
+# doesn't support the -Wdate-time flag that the cc crate injects by default.
+# macOS aarch64 (native clang) is unaffected.
+[target.'cfg(not(all(target_arch = "aarch64", target_os = "linux")))'.dependencies]
+mimalloc = "0.1"
+
 [features]
-default = ["parallel", "extension-module", "mimalloc"]
+default = ["parallel", "extension-module"]
 extension-module = ["pyo3/extension-module"]
 parallel = ["rayon", "rustling/parallel"]
-mimalloc = ["dep:mimalloc"]
 
 [profile.release]
 lto = "fat"
