@@ -100,88 +100,82 @@ pub fn parse_category(s: &str) -> Option<Category> {
     parse_inner(s).map(|(kind, _)| Category::new(kind))
 }
 
-fn parse_inner(s: &str) -> Option<(CategoryKind, usize)> {
-    let s = s.trim();
-    if s.is_empty() {
-        return None;
-    }
-
-    // Check for parentheses
-    if s.starts_with('(') {
-        let mut depth = 1;
-        let mut i = 1;
-        while i < s.len() && depth > 0 {
-            if s.as_bytes()[i] == b'(' {
-                depth += 1;
-            } else if s.as_bytes()[i] == b')' {
+fn find_matching_paren(bytes: &[u8]) -> Option<usize> {
+    let mut depth = 1u32;
+    for (i, &b) in bytes.iter().enumerate().skip(1) {
+        match b {
+            b'(' => depth += 1,
+            b')' => {
                 depth -= 1;
-            }
-            i += 1;
-        }
-        if depth == 0 {
-            // Parse inner expression
-            let inner = &s[1..i - 1];
-            if let Some((kind, _used)) = parse_inner(inner) {
-                // Check if there's a / or \ after
-                let rest = &s[i..].trim();
-                if rest.is_empty() {
-                    return Some((kind, i));
+                if depth == 0 {
+                    return Some(i);
                 }
-                if let Some(dir) = rest.chars().next() {
-                    if dir == '/' || dir == '\\' {
-                        let after = &rest[1..].trim();
-                        if let Some((arg_kind, _)) = parse_inner(after) {
-                            let total = i + 1 + (rest.len() - after.len());
-                            return Some((
-                                CategoryKind::Functional {
-                                    result: Box::new(kind),
-                                    argument: Box::new(arg_kind),
-                                    is_forward: dir == '/',
-                                },
-                                total,
-                            ));
-                        }
-                    }
-                }
-                return Some((kind, i));
             }
+            _ => {}
         }
+    }
+    None
+}
+
+fn parse_inner(s: &str) -> Option<(CategoryKind, usize)> {
+    let bytes = s.as_bytes();
+    if bytes.is_empty() {
         return None;
     }
 
-    // Find / or \
-    let mut slash_pos = None;
-    for (i, c) in s.char_indices() {
-        if c == '/' || c == '\\' {
-            slash_pos = Some((i, c));
-            break;
+    // Parenthesized sub-expression
+    if bytes[0] == b'(' {
+        let close = find_matching_paren(bytes)?;
+        let kind = parse_inner(&s[1..close])?.0;
+        let after = &s[close + 1..];
+        if after.is_empty() {
+            return Some((kind, close + 1));
         }
+        let rest = after.trim_start();
+        if rest.is_empty() {
+            return Some((kind, close + 1));
+        }
+        let rbytes = rest.as_bytes();
+        if rbytes[0] == b'/' || rbytes[0] == b'\\' {
+            let tail = rest[1..].trim_start();
+            let arg_kind = parse_inner(tail)?.0;
+            return Some((
+                CategoryKind::Functional {
+                    result: Box::new(kind),
+                    argument: Box::new(arg_kind),
+                    is_forward: rbytes[0] == b'/',
+                },
+                close + 1 + 1 + (rest.len() - tail.len()),
+            ));
+        }
+        return Some((kind, close + 1));
     }
 
-    if let Some((pos, dir)) = slash_pos {
-        let left = &s[..pos];
-        let right = &s[pos + 1..];
-        if let Some(result) = parse_inner(left) {
-            if let Some((arg_kind, _)) = parse_inner(right) {
-                return Some((
-                    CategoryKind::Functional {
-                        result: Box::new(result.0),
-                        argument: Box::new(arg_kind),
-                        is_forward: dir == '/',
-                    },
-                    s.len(),
-                ));
-            }
+    // Scan for first / or \ (byte-level — CCG input is ASCII)
+    match bytes.iter().position(|&b| b == b'/' || b == b'\\') {
+        Some(pos) => {
+            let left = &s[..pos];
+            let right = s[pos + 1..].trim_start();
+            let result = parse_inner(left)?;
+            let arg_kind = parse_inner(right)?.0;
+            Some((
+                CategoryKind::Functional {
+                    result: Box::new(result.0),
+                    argument: Box::new(arg_kind),
+                    is_forward: bytes[pos] == b'/',
+                },
+                s.len(),
+            ))
         }
-        None
-    } else {
-        // Primitive category
-        let label: String =
-            s.chars().take_while(|c| c.is_alphabetic() || c.is_ascii_punctuation()).collect();
-        if label.is_empty() {
-            None
-        } else {
-            Some((CategoryKind::Primitive(label.clone()), label.len()))
+        None => {
+            // Primitive category — ASCII alphabetic label
+            let label_len =
+                bytes.iter().position(|&b| !b.is_ascii_alphabetic()).unwrap_or(bytes.len());
+            if label_len == 0 {
+                return None;
+            }
+            let label = s[..label_len].to_string();
+            Some((CategoryKind::Primitive(label), label_len))
         }
     }
 }
