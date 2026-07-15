@@ -8,9 +8,7 @@ use std::collections::HashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
-// ═══════════════════════════════════════════════════════════
 // PerceptronTagger
-// ═══════════════════════════════════════════════════════════
 
 /// Averaged perceptron POS tagger — Rust implementation.
 ///
@@ -90,9 +88,7 @@ impl PerceptronTagger {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Implementation
-// ═══════════════════════════════════════════════════════════
 
 impl PerceptronTagger {
     /// Tag a single sentence.
@@ -250,9 +246,7 @@ impl PerceptronTagger {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Word shape
-// ═══════════════════════════════════════════════════════════
 
 /// Compute the shape of a word (capitalization pattern).
 /// e.g., "Hello" → "Xxxxx", "NLP" → "XXX", "hello" → "xxxx"
@@ -272,9 +266,7 @@ fn word_shape(word: &str) -> String {
     shape
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

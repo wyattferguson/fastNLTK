@@ -7,9 +7,7 @@
 
 use pyo3::prelude::*;
 
-// ═══════════════════════════════════════════════════════════
 // PorterStemmer
-// ═══════════════════════════════════════════════════════════
 
 /// Porter stemmer implementation.
 #[pyclass(name = "PorterStemmer", module = "fastnltk._rust")]
@@ -227,9 +225,7 @@ fn porter_stem(word: &str) -> String {
     w.into_iter().collect()
 }
 
-// ═══════════════════════════════════════════════════════════
 // Helper functions
-// ═══════════════════════════════════════════════════════════
 
 /// Check if slice ends with given suffix
 fn ends_with(s: &[char], suffix: &str) -> bool {
@@ -330,9 +326,7 @@ fn is_short_word(_s: &[char], _len: usize) -> bool {
     false // simplified
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

@@ -12,9 +12,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList, PyTuple};
 
-// ═══════════════════════════════════════════════════════════
 // NaiveBayesClassifier
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "NaiveBayesClassifier", module = "fastnltk._rust")]
 #[derive(Clone)]
@@ -221,9 +219,7 @@ impl NaiveBayesClassifier {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Internal methods
-// ═══════════════════════════════════════════════════════════
 
 impl NaiveBayesClassifier {
     fn extract_feature_vector(&self, features_dict: &Bound<'_, PyDict>) -> PyResult<Vec<String>> {
@@ -271,9 +267,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

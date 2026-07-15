@@ -10,9 +10,7 @@ use std::collections::HashMap;
 use pyo3::prelude::*;
 use unicode_segmentation::UnicodeSegmentation;
 
-// ═══════════════════════════════════════════════════════════
 // VADER Lexicon (built-in subset of common English words)
-// ═══════════════════════════════════════════════════════════
 static DEFAULT_LEXICON: phf::Map<&'static str, f64> = phf_map! {
     "love" => 3.2,
     "wonderful" => 2.8,
@@ -104,9 +102,7 @@ static NEGATORS: &[&str] = &[
     "cannot",
 ];
 
-// ═══════════════════════════════════════════════════════════
 // SentimentIntensityAnalyzer
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "SentimentIntensityAnalyzer", module = "fastnltk._rust")]
 pub struct SentimentIntensityAnalyzer {

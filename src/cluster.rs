@@ -7,9 +7,7 @@ use pyo3::prelude::*;
 
 use crate::error::FastNltkError;
 
-// ═══════════════════════════════════════════════════════════
 // KMeansClusterer
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "KMeansClusterer", module = "fastnltk._rust")]
 pub struct KMeansClusterer {
@@ -145,9 +143,7 @@ impl KMeansClusterer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Distance functions
-// ═══════════════════════════════════════════════════════════
 
 #[inline]
 fn euclidean_sq(a: &[f64], b: &[f64]) -> f64 {
@@ -159,18 +155,14 @@ fn euclidean_sq(a: &[f64], b: &[f64]) -> f64 {
     sum
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<KMeansClusterer>()?;
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

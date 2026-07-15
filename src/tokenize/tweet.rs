@@ -27,9 +27,7 @@ fn build_patterns() -> (Regex, Regex, Regex, Regex) {
     (main_re, url_re, emoticon_re, phone_re)
 }
 
-// ═══════════════════════════════════════════════════════════
 // TweetTokenizer
-// ═══════════════════════════════════════════════════════════
 
 /// Tokenizer for Twitter/text messages.
 #[pyclass(name = "TweetTokenizer", module = "fastnltk._rust")]
@@ -98,9 +96,7 @@ fn reduce_repeated(s: &str) -> String {
     result
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

@@ -9,9 +9,7 @@ use hashbrown::HashSet;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyFrozenSet, PySet};
 
-// ═══════════════════════════════════════════════════════════
 // Parameter types matching NLTK's PunktParameters
-// ═══════════════════════════════════════════════════════════
 
 #[derive(Clone, Debug)]
 pub struct PunktParams {
@@ -50,9 +48,7 @@ impl PunktParams {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // PunktSentenceTokenizer
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "PunktSentenceTokenizer", module = "fastnltk._rust")]
 pub struct PunktSentenceTokenizer {
@@ -131,9 +127,7 @@ impl PunktSentenceTokenizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Implementation: Three-pass sentence boundary detection
-// ═══════════════════════════════════════════════════════════
 
 impl PunktSentenceTokenizer {
     fn tokenize_simple_sentences(text: &str) -> Vec<(usize, usize)> {
@@ -311,9 +305,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

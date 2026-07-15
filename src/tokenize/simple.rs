@@ -5,9 +5,7 @@
 
 use pyo3::prelude::*;
 
-// ═══════════════════════════════════════════════════════════
 // SpaceTokenizer
-// ═══════════════════════════════════════════════════════════
 
 /// Tokenize a string by splitting on whitespace.
 ///
@@ -58,9 +56,7 @@ fn tokenize_space(text: &str) -> Vec<String> {
     tokens
 }
 
-// ═══════════════════════════════════════════════════════════
 // TabTokenizer
-// ═══════════════════════════════════════════════════════════
 
 /// Tokenize a string by splitting on tabs.
 #[pyclass(name = "TabTokenizer", module = "fastnltk._rust")]
@@ -96,9 +92,7 @@ impl TabTokenizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // LineTokenizer
-// ═══════════════════════════════════════════════════════════
 
 /// Tokenize a string by splitting on newlines.
 #[pyclass(name = "LineTokenizer", module = "fastnltk._rust")]
@@ -134,9 +128,7 @@ impl LineTokenizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // CharTokenizer
-// ═══════════════════════════════════════════════════════════
 
 /// Tokenize a string into individual characters.
 #[pyclass(name = "CharTokenizer", module = "fastnltk._rust")]
@@ -158,9 +150,7 @@ impl CharTokenizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

@@ -12,9 +12,7 @@ use pyo3::prelude::*;
 
 use crate::tokenize::{self};
 
-// ═══════════════════════════════════════════════════════════
 // PlaintextCorpusReader
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "PlaintextCorpusReader", module = "fastnltk._rust")]
 pub struct PlaintextCorpusReader {
@@ -123,9 +121,7 @@ impl PlaintextCorpusReader {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PlaintextCorpusReader>()?;

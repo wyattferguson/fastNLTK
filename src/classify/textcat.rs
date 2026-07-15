@@ -46,9 +46,7 @@ fn lang_name(lang: whatlang::Lang) -> &'static str {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // TextCat — Python-facing class
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "TextCat", module = "fastnltk._rust")]
 pub struct TextCat;
@@ -117,9 +115,7 @@ impl TextCat {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<TextCat>()?;

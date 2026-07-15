@@ -11,9 +11,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
-// ═══════════════════════════════════════════════════════════
 // CollocationFinderBase
-// ═══════════════════════════════════════════════════════════
 
 /// Internal collocation finder state shared by Bigram/Trigram/Quadgram.
 struct CollocationData {
@@ -141,9 +139,7 @@ impl CollocationData {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // BigramCollocationFinder
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "BigramCollocationFinder", module = "fastnltk._rust")]
 pub struct BigramCollocationFinder {
@@ -178,9 +174,7 @@ impl BigramCollocationFinder {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // TrigramCollocationFinder
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "TrigramCollocationFinder", module = "fastnltk._rust")]
 pub struct TrigramCollocationFinder {
@@ -215,9 +209,7 @@ impl TrigramCollocationFinder {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // QuadgramCollocationFinder
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "QuadgramCollocationFinder", module = "fastnltk._rust")]
 pub struct QuadgramCollocationFinder {

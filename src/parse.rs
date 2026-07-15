@@ -12,9 +12,7 @@ use pyo3::prelude::*;
 
 use crate::error::FastNltkError;
 
-// ═══════════════════════════════════════════════════════════
 // CFG — Context-Free Grammar
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "CFG", module = "fastnltk._rust")]
 #[derive(Clone)]
@@ -159,9 +157,7 @@ impl CFG {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // EarleyChartParser
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "EarleyChartParser", module = "fastnltk._rust")]
 pub struct EarleyChartParser;
@@ -240,9 +236,7 @@ impl EarleyChartParser {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Earley state and operations
-// ═══════════════════════════════════════════════════════════
 
 #[derive(Clone, Debug)]
 struct EarleyState {
@@ -333,9 +327,7 @@ fn complete(chart: &mut [Vec<EarleyState>], pos: usize, lhs: &str, _grammar: &CF
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<CFG>()?;
@@ -343,9 +335,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

@@ -9,9 +9,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use regex::Regex;
 
-// ═══════════════════════════════════════════════════════════
 // Tag pattern: compiles a <tag_pattern> to a Regex
-// ═══════════════════════════════════════════════════════════
 
 /// Compile a single tag pattern like `<DT>`, `<JJ?>`, `<NN.*>` into a regex.
 /// The pattern is applied to just the tag string.
@@ -74,9 +72,7 @@ fn parse_tag_sequence(pattern: &str) -> Result<Vec<Regex>, String> {
     Ok(regexes)
 }
 
-// ═══════════════════════════════════════════════════════════
 // ChunkRule: find tag sequences matching a pattern, mark as chunk
-// ═══════════════════════════════════════════════════════════
 
 /// Apply a chunk rule to a sequence of tags. Modifies IOB tags in-place.
 #[allow(clippy::needless_pass_by_ref_mut)]
@@ -107,9 +103,7 @@ fn apply_chunk_rule(tag_patterns: &[Regex], tags: &mut [&str], iob: &mut [&str])
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // RegexpParser: parse grammar string, apply rules
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "RegexpParser", module = "fastnltk._rust")]
 #[derive(Clone)]
@@ -190,18 +184,14 @@ impl RegexpParser {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RegexpParser>()?;
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

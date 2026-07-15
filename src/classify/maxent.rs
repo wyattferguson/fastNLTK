@@ -10,9 +10,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList, PyTuple};
 
-// ═══════════════════════════════════════════════════════════
 // Feature encoding
-// ═══════════════════════════════════════════════════════════
 
 type FeatureVector = Vec<(String, f64)>;
 
@@ -34,9 +32,7 @@ fn extract_features(features_dict: &Bound<'_, PyDict>) -> PyResult<FeatureVector
     Ok(features)
 }
 
-// ═══════════════════════════════════════════════════════════
 // MaxentClassifier
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "MaxentClassifier", module = "fastnltk._rust")]
 #[derive(Clone)]
@@ -315,9 +311,7 @@ impl MaxentClassifier {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 #[allow(clippy::items_after_test_module)]
@@ -340,9 +334,7 @@ mod tests {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<MaxentClassifier>()?;

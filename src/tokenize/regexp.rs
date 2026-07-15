@@ -8,9 +8,7 @@ use smol_str::SmolStr;
 
 use crate::util::regex_cache;
 
-// ═══════════════════════════════════════════════════════════
 // RegexpTokenizer
-// ═══════════════════════════════════════════════════════════
 
 /// Tokenize a string using a regular expression pattern.
 ///
@@ -65,9 +63,7 @@ impl RegexpTokenizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // WhitespaceTokenizer
-// ═══════════════════════════════════════════════════════════
 
 /// Tokenize on whitespace.
 #[pyclass(name = "WhitespaceTokenizer", module = "fastnltk._rust")]
@@ -103,9 +99,7 @@ impl WhitespaceTokenizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // WordPunctTokenizer
-// ═══════════════════════════════════════════════════════════
 
 /// Tokenize into sequences of alphabetic and non-alphabetic characters.
 #[pyclass(name = "WordPunctTokenizer", module = "fastnltk._rust")]
@@ -131,9 +125,7 @@ impl WordPunctTokenizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // BlanklineTokenizer
-// ═══════════════════════════════════════════════════════════
 
 /// Tokenize on blank lines (empty lines or lines with only whitespace).
 #[pyclass(name = "BlanklineTokenizer", module = "fastnltk._rust")]
@@ -169,9 +161,7 @@ impl BlanklineTokenizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {
