@@ -4,34 +4,45 @@
 //! all per-feature String allocation during inference.
 //! Fast path: tagdict lookup for common words avoids feature extraction.
 
-use std::hash::Hasher;
-
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use rustc_hash::FxHashMap;
-use rustc_hash::FxHasher;
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
 
+/// FxHash algorithm constant (same as rustc-hash).
+const FXHASH_K: u64 = 6_364_136_223_846_793_005;
+
+/// Deterministic FxHash of a single byte slice.
+/// rustc-hash v2 randomizes `FxHasher::default()`, breaking model
+/// weights — we use our own deterministic implementation instead.
+#[inline]
+fn fxhash_bytes(bytes: &[u8]) -> u64 {
+    bytes.iter().fold(0u64, |hash, &b| hash.wrapping_mul(FXHASH_K).wrapping_add(b as u64))
+}
+
 /// Hash a 2-component feature (prefix + value).
-/// Writes bytes directly via `Hasher::write`, avoiding any String allocation.
+/// Writes bytes directly, avoiding any String allocation.
 /// Consistent with hashing the concatenated string during model load.
 #[inline]
 fn hash2(a: &str, b: &str) -> u64 {
-    let mut h = FxHasher::default();
-    h.write(a.as_bytes());
-    h.write(b.as_bytes());
-    h.finish()
+    let mut hash = 0u64;
+    for &byte in a.as_bytes() { hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64); }
+    for &byte in b.as_bytes() { hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64); }
+    hash
 }
 
-/// Hash a 3-component feature.
+/// Hash a 3-component feature. NLTK format: "a b c" (space-separated).
+/// Both a and b should include trailing spaces; c appended with space prefix.
 #[inline]
 fn hash3(a: &str, b: &str, c: &str) -> u64 {
-    let mut h = FxHasher::default();
-    h.write(a.as_bytes());
-    h.write(b.as_bytes());
-    h.write(c.as_bytes());
-    h.finish()
+    let mut hash = 0u64;
+    for &byte in a.as_bytes() { hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64); }
+    for &byte in b.as_bytes() { hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64); }
+    // Space separator before third component (NLTK space-joins all parts)
+    hash = hash.wrapping_mul(FXHASH_K).wrapping_add(b' ' as u64);
+    for &byte in c.as_bytes() { hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64); }
+    hash
 }
 
 #[pyclass(name = "PerceptronTagger", module = "fastnltk._rust")]
@@ -69,10 +80,8 @@ impl PerceptronTagger {
             for (feat_key, tags_dict) in wd.iter() {
                 let feat_key: String = feat_key.extract()?;
                 let tags_dict = tags_dict.cast::<PyDict>()?;
-                // Hash the full key string via write (consistent with hash2)
-                let mut h = FxHasher::default();
-                h.write(feat_key.as_bytes());
-                let feat_id = h.finish();
+                // Hash the full key string (consistent with hash2)
+                let feat_id = fxhash_bytes(feat_key.as_bytes());
 
                 let mut tag_weights = FxHashMap::default();
                 for (tag, weight) in tags_dict.iter() {
@@ -194,8 +203,8 @@ impl PerceptronTagger {
     }
 }
 
-/// Collect feature integer IDs for a word in context.
-/// No String allocation — hashes feature components directly.
+/// Collect feature integer IDs matching NLTK's `_get_features` exactly.
+/// NLTK format: `' '.join((name,) + args)` — space-separated components.
 fn collect_feature_ids(
     word: &str,
     i: usize,
@@ -203,93 +212,66 @@ fn collect_feature_ids(
     prev_tags: &[SmolStr],
     out: &mut Vec<u64>,
 ) {
+    // NLTK: add("i word", context[i])
     out.push(hash2("i word ", word));
 
-    let shape = word_shape(word);
-    out.push(hash2("i shape ", &shape));
+    // NLTK: add("i suffix", word[-3:]) — last 3 chars
+    let suffix = if word.len() >= 3 { &word[word.len() - 3..] } else { word };
+    out.push(hash2("i suffix ", suffix));
 
-    let chars: Vec<char> = word.chars().collect();
-    let clen = chars.len();
-
-    if clen >= 1 {
-        out.push(hash2("i pref1 ", &chars[0].to_string()));
-        out.push(hash2("i suffix ", &chars[clen - 1].to_string()));
-    }
-    if clen >= 2 {
-        let p2: String = chars[..2].iter().collect();
-        out.push(hash2("i pref2 ", &p2));
-        let s2: String = chars[clen - 2..].iter().collect();
-        out.push(hash2("i suff2 ", &s2));
-    }
-    if clen >= 3 {
-        let p3: String = chars[..3].iter().collect();
-        out.push(hash2("i pref3 ", &p3));
-        let s3: String = chars[clen - 3..].iter().collect();
-        out.push(hash2("i suff3 ", &s3));
+    // NLTK: add("i pref1", word[0])
+    if let Some(c) = word.chars().next() {
+        let mut buf = [0u8; 4];
+        let s = c.encode_utf8(&mut buf);
+        out.push(hash2("i pref1 ", s));
     }
 
-    // Previous word
-    if i > 0 {
-        let pw = &tokens[i - 1];
-        out.push(hash2("i-1 word ", pw));
-        let ps = word_shape(pw);
-        out.push(hash2("i-1 shape ", &ps));
-        let pchars: Vec<char> = pw.chars().collect();
-        if pchars.len() >= 2 {
-            let s: String = pchars[pchars.len() - 2..].iter().collect();
-            out.push(hash2("i-1 suff2 ", &s));
-        }
-        if pchars.len() >= 3 {
-            let s: String = pchars[pchars.len() - 3..].iter().collect();
-            out.push(hash2("i-1 suff3 ", &s));
-        }
-    }
-
-    // Next word
-    if i + 1 < tokens.len() {
-        let nw = &tokens[i + 1];
-        out.push(hash2("i+1 word ", nw));
-        let ns = word_shape(nw);
-        out.push(hash2("i+1 shape ", &ns));
-    }
-
-    // Previous tags
+    // NLTK: add("i-1 tag", prev)
+    // NLTK: add("i-2 tag", prev2)
+    // NLTK: add("i tag+i-2 tag", prev, prev2)
+    // NLTK: add("i-1 tag+i word", prev, context[i])
     if let Some(tag) = prev_tags.last() {
         out.push(hash2("i-1 tag ", tag.as_str()));
         if prev_tags.len() >= 2 {
             let t2 = &prev_tags[prev_tags.len() - 2];
             out.push(hash2("i-2 tag ", t2.as_str()));
-            out.push(hash3("i-1 tag+tag ", t2.as_str(), tag.as_str()));
+            // NLTK: add("i tag+i-2 tag", prev, prev2) → "i tag+i-2 tag prev prev2"
+            out.push(hash3("i tag+i-2 tag ", tag.as_str(), t2.as_str()));
         }
+        // NLTK: add("i-1 tag+i word", prev, context[i]) → "i-1 tag+i word prev word"
+        out.push(hash3("i-1 tag+i word ", tag.as_str(), word));
     }
 
-    // Shape flags
-    if word.contains('-') {
-        out.push(hash2("i has_hyphen", ""));
+    // NLTK: add("i-1 word", context[i - 1])
+    if i > 0 {
+        let pw = &tokens[i - 1];
+        out.push(hash2("i-1 word ", pw));
+        // NLTK: add("i-1 suffix", context[i-1][-3:])
+        let prev_suffix = if pw.len() >= 3 { &pw[pw.len() - 3..] } else { pw.as_str() };
+        out.push(hash2("i-1 suffix ", prev_suffix));
     }
-    if word.chars().any(char::is_uppercase) {
-        out.push(hash2("i has_upper", ""));
-    }
-    if clen > 0 && chars.iter().all(|&c| c.is_uppercase() && c.is_alphabetic()) {
-        out.push(hash2("i all_upper", ""));
-    }
-}
 
-/// Compute the shape of a word (capitalization pattern).
-fn word_shape(word: &str) -> String {
-    let mut shape = String::with_capacity(word.len());
-    for c in word.chars() {
-        if c.is_uppercase() {
-            shape.push('X');
-        } else if c.is_lowercase() {
-            shape.push('x');
-        } else if c.is_numeric() {
-            shape.push('d');
-        } else {
-            shape.push(c);
-        }
+    // NLTK: add("i-2 word", context[i - 2])
+    if i > 1 {
+        out.push(hash2("i-2 word ", &tokens[i - 2]));
     }
-    shape
+
+    // NLTK: add("i+1 word", context[i + 1])
+    if i + 1 < tokens.len() {
+        let nw = &tokens[i + 1];
+        out.push(hash2("i+1 word ", nw));
+        // NLTK: add("i+1 suffix", context[i+1][-3:])
+        let next_suffix = if nw.len() >= 3 { &nw[nw.len() - 3..] } else { nw.as_str() };
+        out.push(hash2("i+1 suffix ", next_suffix));
+    }
+
+    // NLTK: add("i+2 word", context[i + 2])
+    if i + 2 < tokens.len() {
+        out.push(hash2("i+2 word ", &tokens[i + 2]));
+    }
+
+    // NLTK: add("bias")
+    out.push(fxhash_bytes(b"bias"));
 }
 
 // Tests
@@ -356,5 +338,22 @@ mod tests {
         assert_eq!(h1, h2);
         let h3 = hash2("i word ", "cat");
         assert_ne!(h1, h3);
+    }
+
+    #[test]
+    fn test_hash_equivalent_to_full_key() {
+        // Verify hash2("i word ", "believe") == fxhash_bytes("i word believe")
+        assert_eq!(hash2("i word ", "believe"), fxhash_bytes(b"i word believe"),
+            "hash2 vs fxhash_bytes mismatch");
+        // Verify hash2("i+1 word ", "how") == fxhash_bytes("i+1 word how")
+        assert_eq!(hash2("i+1 word ", "how"), fxhash_bytes(b"i+1 word how"));
+        // Verify hash2("i suffix ", "e") == fxhash_bytes("i suffix e")
+        assert_eq!(hash2("i suffix ", "e"), fxhash_bytes(b"i suffix e"));
+        // Verify hash2 == model-load style
+        assert_eq!(hash2("i-1 word ", "the"), fxhash_bytes(b"i-1 word the"));
+        // Verify hash3 == combined with space separator
+        // NLTK format: "i-1 tag+tag DT NN" (space before each component)
+        assert_eq!(hash3("i-1 tag+tag ", "DT", "NN"),
+            fxhash_bytes(b"i-1 tag+tag DT NN"));
     }
 }
