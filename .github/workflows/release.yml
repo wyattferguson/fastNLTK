@@ -10,7 +10,10 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # ── Build wheels (x86_64 Linux, macOS, Windows) ──────────
+  # ── Build wheels (matrix across OS + arch) ───────────────
+  # Uses PyO3/maturin-action which handles cross-compilation
+  # for all targets via manylinux docker containers internally.
+  # See https://github.com/PyO3/maturin-action
   build:
     name: Build wheel (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
@@ -20,6 +23,8 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64
+          - os: ubuntu-latest
+            target: aarch64
           - os: macos-latest
             target: x86_64
           - os: macos-latest
@@ -46,42 +51,6 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: wheel-${{ matrix.target }}
-          path: dist/*.whl
-          if-no-files-found: error
-
-  # ── Build Linux aarch64 (inside manylinux cross container) ─
-  # Uses a cross-compilation container (x86_64 image) — no QEMU/Docker needed.
-  build-linux-aarch64:
-    name: Build wheel (aarch64-unknown-linux-gnu)
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/rust-cross/manylinux_2_28-cross:aarch64
-      options: --user root
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Install Rust & aarch64 cross-compiler
-        run: |
-          # Rust
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          rustup target add aarch64-unknown-linux-gnu
-
-          # aarch64 cross-compiler (manylinux_2_28 = CentOS 7 / AlmaLinux 8)
-          yum install -y gcc-aarch64-linux-gnu
-
-      - name: Install maturin
-        run: pip install maturin
-
-      - name: Build wheel
-        run: maturin build --release --locked --compatibility pypi --out dist --target aarch64-unknown-linux-gnu
-        env:
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
-
-      - name: Upload wheel
-        uses: actions/upload-artifact@v6
-        with:
-          name: wheel-aarch64
           path: dist/*.whl
           if-no-files-found: error
 
@@ -112,7 +81,7 @@ jobs:
   # ── Publish to PyPI ──────────────────────────────────────
   publish:
     name: Publish to PyPI
-    needs: [build, build-linux-aarch64, sdist]
+    needs: [build, sdist]
     runs-on: ubuntu-latest
     permissions:
       id-token: write   # Trusted Publishing via OIDC
