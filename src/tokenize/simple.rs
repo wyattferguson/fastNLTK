@@ -22,17 +22,12 @@ impl SpaceTokenizer {
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
+        // NLTK's SpaceTokenizer uses re.split(r"\s+", s)
+        // which produces empty strings for consecutive whitespace.
         if text.is_empty() {
             return vec![String::new()];
         }
-        let mut tokens = Vec::new();
-        let mut last_end = 0;
-        for m in WS_RE.find_iter(text) {
-            tokens.push(text[last_end..m.start()].to_string());
-            last_end = m.end();
-        }
-        tokens.push(text[last_end..].to_string());
-        tokens
+        WS_RE.split(text).map(String::from).collect()
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
@@ -97,7 +92,11 @@ impl LineTokenizer {
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        text.lines().map(String::from).collect()
+        // NLTK default: blanklines='discard', remove lines with only whitespace
+        text.lines()
+            .filter(|l| !l.trim().is_empty())
+            .map(String::from)
+            .collect()
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {

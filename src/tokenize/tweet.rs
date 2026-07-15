@@ -12,7 +12,7 @@ static _PHONE_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?:(?:\+?1[ \.-]?)?\(?\d{3}\)?[ \.-]?\d{3}[ \.-]?\d{4})").unwrap()
 });
 static MAIN_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"https?://[^\s<>\[\]{}|\\^`]+|www\.[^\s<>\[\]{}|\\^`]+|[\#@]?\w+(?:'\w+)?|[<>]?[:;=8][\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\]|[\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\][:;=8][<>]?|\S").unwrap()
+    Regex::new(r"https?://[^\s<>\[\]{}|\\^`]+|www\.[^\s<>\[\]{}|\\^`]+|[\w.]+@[\w.]+\.[a-z]{2,}|\d+\.\d+|[\#@]?\w+(?:'\w+)?|[<>]?[:;=8][\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\]|[\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\][:;=8][<>]?|\S").unwrap()
 });
 
 #[pyclass(name = "TweetTokenizer", module = "fastnltk._rust")]

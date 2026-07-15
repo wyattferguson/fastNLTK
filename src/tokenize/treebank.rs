@@ -250,6 +250,35 @@ pub fn tokenize_treebank(text: &str) -> (Vec<String>, Vec<(usize, usize)>) {
     (tokens, spans)
 }
 
+/// Convert byte-based spans to character-based spans for Python compatibility.
+fn byte_spans_to_char_spans(text: &str, byte_spans: &[(usize, usize)]) -> Vec<(usize, usize)> {
+    // Build lookup: byte_pos -> char_pos
+    // For "Caf\u00e9" (5 bytes, 4 chars): byte_to_char[0..5] = [0, 1, 2, 3, 3]
+    let mut byte_to_char = vec![0usize; text.len()];
+    for (char_pos, (byte_pos, ch)) in text.char_indices().enumerate() {
+        for b in byte_pos..byte_pos + ch.len_utf8() {
+            if b < byte_to_char.len() {
+                byte_to_char[b] = char_pos;
+            }
+        }
+    }
+
+    byte_spans
+        .iter()
+        .map(|&(s, e)| {
+            let cs = if s < byte_to_char.len() { byte_to_char[s] } else { text.chars().count() };
+            let ce = if e > 0 && e - 1 < byte_to_char.len() {
+                byte_to_char[e - 1] + 1
+            } else if e < byte_to_char.len() {
+                byte_to_char[e]
+            } else {
+                text.chars().count()
+            };
+            (cs, ce)
+        })
+        .collect()
+}
+
 // ── PyO3 wrappers ────────────────────────────────────
 
 /// `TreebankWordTokenizer` — Penn Treebank tokenization.
@@ -270,7 +299,8 @@ impl TreebankWordTokenizer {
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
         let (_, spans) = tokenize_treebank(text);
-        spans
+        // Convert byte spans to character spans for Python compatibility
+        byte_spans_to_char_spans(text, &spans)
     }
 }
 

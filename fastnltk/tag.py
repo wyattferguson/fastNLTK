@@ -206,11 +206,49 @@ class DefaultTagger:
 class UnigramTagger:
     """Unigram tagger — Rust-accelerated lookup."""
 
-    def __init__(self, backoff=None):
+    def __init__(self, train=None, backoff=None):
         self._impl = _RustUnigramTagger(backoff)
+        if train is not None:
+            self._impl.train(train)
 
     def train(self, sentences: list[list[str]]) -> None:
         self._impl.train(sentences)
+
+    def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
+        return self._impl.tag(tokens)
+
+    def tag_sents(self, sentences: list[list[str]]) -> list[list[tuple[str, str]]]:
+        return self._impl.tag_sents(sentences)
+
+    def evaluate(self, gold: list[list[str]]) -> float:
+        return self._impl.evaluate(gold)
+
+
+class BigramTagger:
+    """Bigram tagger — Rust-accelerated lookup."""
+
+    def __init__(self, train=None, backoff=None):
+        self._impl = _RustBigramTagger(backoff)
+        if train is not None:
+            self._impl.train(train)
+
+    def train(self, sentences: list[list[str]]) -> None:
+        self._impl.train(sentences)
+
+    def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
+        return self._impl.tag(tokens)
+
+    def tag_sents(self, sentences: list[list[str]]) -> list[list[tuple[str, str]]]:
+        return self._impl.tag_sents(sentences)
+
+
+class TrigramTagger:
+    """Trigram tagger — Rust-accelerated lookup."""
+
+    def __init__(self, train=None, backoff=None):
+        self._impl = _RustTrigramTagger(backoff)
+        if train is not None:
+            self._impl.train(train)
 
     def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
         return self._impl.tag(tokens)
@@ -257,8 +295,10 @@ class TrigramTagger:
 class AffixTagger:
     """Affix (suffix/prefix) tagger — Rust-accelerated."""
 
-    def __init__(self, affix_len=3, use_suffix=True, backoff=None):
+    def __init__(self, affix_len=3, use_suffix=True, train=None, backoff=None):
         self._impl = _RustAffixTagger(affix_len, use_suffix)
+        if train is not None:
+            self._impl.train(train)
 
     def train(self, sentences: list[list[str]]) -> None:
         self._impl.train(sentences)

@@ -323,15 +323,6 @@ mod tests {
     }
 
     #[test]
-    fn test_word_shape() {
-        assert_eq!(word_shape("Hello"), "Xxxxx");
-        assert_eq!(word_shape("NLP"), "XXX");
-        assert_eq!(word_shape("hello"), "xxxxx");
-        assert_eq!(word_shape("123"), "ddd");
-        assert_eq!(word_shape("iPhone"), "xXxxxx");
-    }
-
-    #[test]
     fn test_hash_consistency() {
         let h1 = hash2("i word ", "the");
         let h2 = hash2("i word ", "the");

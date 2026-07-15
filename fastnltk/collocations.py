@@ -31,9 +31,21 @@ class BigramCollocationFinder:
     def from_words(cls, words, window_size=2):
         inst = cls.__new__(cls)
         inst._impl = _RustBigramCollocationFinder.from_words(words, window_size)
-        inst._word_fd = None
-        inst._ngram_fd = None
+        # Build Python-side word/ngram freq dicts for NLTK compat
+        from collections import Counter
+        inst._word_fd = Counter(words)
+        inst._ngram_fd = Counter()
+        for i in range(len(words) - window_size + 1):
+            inst._ngram_fd[tuple(words[i:i+window_size])] += 1
         return inst
+
+    @property
+    def word_fd(self):
+        return self._word_fd
+
+    @property
+    def ngram_fd(self):
+        return self._ngram_fd
 
     def score_ngrams(self, score_fn):
         if self._impl:
@@ -79,7 +91,20 @@ class TrigramCollocationFinder:
     def from_words(cls, words, window_size=3):
         inst = cls.__new__(cls)
         inst._impl = _RustTrigramCollocationFinder.from_words(words, window_size)
+        from collections import Counter
+        inst._word_fd = Counter(words)
+        inst._ngram_fd = Counter()
+        for i in range(len(words) - window_size + 1):
+            inst._ngram_fd[tuple(words[i:i+window_size])] += 1
         return inst
+
+    @property
+    def word_fd(self):
+        return self._word_fd
+
+    @property
+    def ngram_fd(self):
+        return self._ngram_fd
 
     def score_ngrams(self, score_fn):
         if self._impl:
@@ -125,7 +150,20 @@ class QuadgramCollocationFinder:
     def from_words(cls, words, window_size=4):
         inst = cls.__new__(cls)
         inst._impl = _RustQuadgramCollocationFinder.from_words(words, window_size)
+        from collections import Counter
+        inst._word_fd = Counter(words)
+        inst._ngram_fd = Counter()
+        for i in range(len(words) - window_size + 1):
+            inst._ngram_fd[tuple(words[i:i+window_size])] += 1
         return inst
+
+    @property
+    def word_fd(self):
+        return self._word_fd
+
+    @property
+    def ngram_fd(self):
+        return self._ngram_fd
 
     def score_ngrams(self, score_fn):
         if self._impl:

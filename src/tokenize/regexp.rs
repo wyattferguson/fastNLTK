@@ -299,25 +299,11 @@ impl BlanklineTokenizer {
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        let mut paragraphs = Vec::new();
-        let mut current = String::new();
-        for line in text.lines() {
-            if line.trim().is_empty() {
-                if !current.is_empty() {
-                    paragraphs.push(current.trim().to_string());
-                    current = String::new();
-                }
-            } else {
-                if !current.is_empty() {
-                    current.push(' ');
-                }
-                current.push_str(line.trim());
-            }
-        }
-        if !current.is_empty() {
-            paragraphs.push(current.trim().to_string());
-        }
-        paragraphs
+        // NLTK: split on blank lines (\n\n+), keep content between intact
+        text.split("\n\n")
+            .map(|b| b.trim().to_string())
+            .filter(|b| !b.is_empty())
+            .collect()
     }
 }
 
