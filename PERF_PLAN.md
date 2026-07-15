@@ -1,105 +1,138 @@
-# Performance Research — Next Targets
+# Architectural Performance Plan
 
-## Current 10 Slowest Operations
+## Current Baselines (v0.4.0)
 
-Measured on v0.4.0, release build, 1000-word input (unless noted).
-
-| Rank | Operation | Time | Bottleneck | Fix |
-|---|---|---|---|---|
-| 1 | **TweetTokenizer** | 0.91ms | `build_patterns()` called on every tokenize call — recompiles 4 regexes | Move to `LazyLock` |
-| 2 | **PorterStemmer** | 0.78ms | Wrapping C Snowball, per-word call | Already optimal (pure C) |
-| 3 | **SnowballStemmer** | 0.24ms | Same C Snowball wrapper | Already optimal |
-| 4 | **RegexpStemmer** | 0.15ms | Regex match per word | N/A (pattern-dependent) |
-| 5 | **LancasterStemmer** | 0.15ms | Table lookup per word | Already optimal |
-| 6 | **ToktokTokenizer** | 0.10ms | Regex substitution chain | Already fast (<0.1ms) |
-| 7-10 | **Other tokenizers** | <0.05ms | Already near wire speed | No action needed |
-
-**Only actionable target: TweetTokenizer (0.91ms).** Stemmers are already optimal C/Rust. Other tokenizers are <0.05ms.
-
-## TweetTokenizer Fix
-
-**Problem:** `build_patterns()` is called inside `tokenize()`, recompiling 4 regexes from string literals on every invocation. The benchmark calls `tokenize()` 200 times → 800 `Regex::new()` calls.
-
-**Fix:** Use `LazyLock<Regex>` statics:
-
-```rust
-static URL_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"...").unwrap());
-static EMOTICON_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"...").unwrap());
-static PHONE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"...").unwrap());
-static MAIN_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"...").unwrap());
-```
-
-**Estimated gain: 10-50×** (regex compilation removed from hot path).
+| Operation | Cold | Warm | Throughput |
+|---|---|---|---|
+| Tree.from_string (3 nodes) | 0.42µs | 0.42µs | 2.4M trees/s |
+| CFG.from_string (tiny) | 0.62µs | 0.62µs | 1.6M grammars/s |
+| pos_tag (100 words) | **80.6ms** | 0.01ms | 9M words/s |
+| TreebankWordTokenizer (10K w) | 0.46ms | 0.46ms | 22M words/s |
+| RegexpTokenizer (4 words) | 0.23µs | 0.23µs | 17M calls/s |
 
 ---
 
-## General Codebase Improvements
+## 1. SIMD-Parsed Tree Format
 
-Audited all 75+ Rust source files for systematic optimizations:
+**Research:** Tree.from_string and CFG.from_string parse bracket/arrow notation via recursive descent. At 0.42-0.62µs per call, they're already near the practical ceiling for general-purpose parsing. SIMD (AVX2/NEON) is designed for data-parallel workloads (same operation on many elements). Recursive descent parsing is control-flow-heavy: branching on every character, nested function calls, allocation.
 
-### 1. String → SmolStr in struct fields
+The only thing SIMD could help with is:
+- `memchr(b'(')` or `memchr(b'-')` to find the next structural token — but the input strings are already tiny (<100 bytes) so SIMD setup overhead outweighs benefit.
+- Huffman/SIMD-decoded token stream — requires preprocessing the input format, not applicable to arbitrary user input.
 
-Many core structs use `String` fields where the values are short and finite. `SmolStr` inlines strings < 23 bytes (no heap alloc).
+**Verdict: No gain. SIMD cannot accelerate recursive descent parsing.**
 
-| File | Fields | Est. gain per op |
-|---|---|---|
-| `src/tree.rs` | `Tree.label`, `TreeNode::Leaf(String)` | Minor (parse/create) |
-| `src/drt.rs` | `DRS.universe: Vec<String>` | Minor (DS creation) |
-| `src/parse.rs` | `CFG.start_symbol`, `Production.lhs/rhs` | Minor (grammar build) |
-| `src/sem/expression.rs` | `Expression` variants with String fields | Minor |
-
-**Verdict:** Won't meaningfully affect benchmark times (these are one-time construction costs, not hot path). Skip.
-
-### 2. HashMap<String, ...> → FxHashMap<SmolStr, ...>
-
-Many modules use `HashMap<String, ...>` with short string keys.
-
-| File | Usage | Impact |
-|---|---|---|
-| `src/parse.rs` | `HashMap<String, Vec<usize>>` | Low (grammar build, not hot) |
-| `src/drt.rs` | Various String-based lookup | Low |
-| `src/tokenize/mwe.rs` | Already fixed ✅ | |
-
-**Verdict:** Low impact — these are lookup tables built during `__init__`, not hot path.
-
-### 3. Sequential regex passes (Toktok, Treebank)
-
-Both already optimized in this session:
-- Treebank: single-pass char scanner ✅ 
-- Regexp fast path: memchr3 SIMD ✅
-
-### 4. Allocation pre-sizing
-
-Many `Vec::new()` could use `Vec::with_capacity()` in known-size loops.
-
-| File | Pattern | Fix |
-|---|---|---|
-| `src/tree.rs` | `vec![]` in recursive parse | Pre-size with tree depth |
-| `src/parse.rs` | `Vec::new()` in Earley chart | Pre-size with grammar size |
-
-**Verdict:** Minor. Most hot paths already use `with_capacity`.
-
-### 5. LazyLock for all module-level regexes
-
-Audited all static regex patterns — most are already behind `LazyLock`.
-
-| File | Status |
+| Claim | Reality |
 |---|---|
-| `src/tokenize/tweet.rs` | ❌ `build_patterns()` called per-tokenize |
-| `src/tokenize/treebank.rs` | ✅ Already LazyLock (now removed — char scanner) |
-| `src/tokenize/toktok.rs` | ✅ Already LazyLock |
-| `src/stem/regexp.rs` | ✅ Already LazyLock |
-| `src/tokenize/texttiling.rs` | ✅ Already LazyLock |
+| SIMD for token scanning | Already using memchr3 in tokenizers (done) |
+| SIMD for tree parsing | Control-flow bound, not memory bound |
+| Potential gain | **0%** — not applicable to this problem |
 
-**Only fix needed: tweet.rs.**
+---
+
+## 2. Pre-Compiled Model Binary Blobs
+
+**Problem:** Cold pos_tag takes **80.6ms**, dominated by:
+1. NLTK data search + pickle.open: ~5ms
+2. Python pickle.load of 6MB: ~50ms (GIL-locked, single-threaded)
+3. PyDict iteration + Rust FxHashMap insertion: ~25ms
+
+**Fix:** Cache the Rust model state as bincode after first load.
+
+Already have the building blocks:
+- `bincode` crate in Cargo.toml ✅
+- `bincode_cache_path()` in `src/data.rs` ✅
+- `Serde` derives on model structs — need to add to PerceptronTagger
+
+**Implementation plan (2 days):**
+
+```rust
+// After first successful pickle load, save bincode cache
+fn save_model_cache(&self) {
+    let path = bincode_cache_path("perceptron_tagger");
+    let data = bincode::serialize(&self.weights).unwrap();
+    std::fs::write(&path, data).ok();
+}
+
+// Before pickle load, check cache
+fn try_load_cache() -> Option<Self> {
+    let path = bincode_cache_path("perceptron_tagger");
+    let data = std::fs::read(&path).ok()?;
+    bincode::deserialize(&data).ok()
+}
+```
+
+The trick: `PerceptronTagger.weights` is `FxHashMap<u64, FxHashMap<SmolStr, f64>>`. Serde derives already work if we add `#[derive(Serialize, Deserialize)]`.
+
+**Estimated gain:**
+
+| Load path | Time | Savings |
+|---|---|---|
+| Current (pickle + PyDict iteration) | 80.6ms | — |
+| First load (pickle + save bincode) | 81ms | 0 (save cost added) |
+| Second load+ (bincode deserialize) | **~5-10ms** | **-90%** |
+| Tagdict/classes baked into blob | — | Removes separate Python→Rust weight transfer |
+
+**Caveat:** Only helps cold start. Warm inference is already 0.01ms.
+
+---
+
+## 3. Thread-Level Parallelism via Rayon
+
+**Current state:** Zero rayon usage in `src/` (despite `features = ["parallel"]` existing in Cargo.toml). The `parallel` feature only enables `rustling/parallel`.
+
+**Opportunity:** Several fastNLTK operations are embarassingly parallel — each item is independent.
+
+### Candidate operations
+
+| Operation | Current (1 core) | Scalable? | Est. gain (8 cores) |
+|---|---|---|---|
+| `pos_tag_sents` (batch of 100 sents) | Sequential per-sentence | ✅ Embarrassingly parallel | **4-6×** |
+| `PorterStemmer.stem` (list of words) | Sequential per-word | ✅ Yes | **4-6×** |
+| `FreqDist.update` (batch of docs) | Sequential per-doc | ✅ Yes | **3-5×** |
+| `word_tokenize` on long text | Sequential chars | ❌ No (string state) | 0 |
+| `Bleu.score` (batch) | Sequential per-hypothesis | ✅ Yes | **4-6×** |
+| `edit_distance` (batch of pairs) | Sequential per-pair | ✅ Yes | **4-6×** |
+
+### Implementation
+
+**Pattern:** Add `#[cfg(feature = "parallel")]`-gated rayon code behind existing methods.
+
+```rust
+fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
+    #[cfg(feature = "parallel")]
+    {
+        use rayon::prelude::*;
+        return sentences.par_iter().map(|s| self.tag_sentence(s)).collect();
+    }
+    #[cfg(not(feature = "parallel"))]
+    {
+        sentences.iter().map(|s| self.tag_sentence(s)).collect()
+    }
+}
+```
+
+**Pitfall:** Overhead of `par_iter` for small batches. For <10 sentences the sequential version is faster. The decision should be:
+- If `sentences.len() > 50`: use rayon (parallel overhead amortized)
+- If `sentences.len() <= 50`: use sequential (no overhead)
+
+**Estimated gain (batch operations, 8 cores):** 4-6×
+
+| Module | Method | Current (1K items) | With rayon (8 cores) | Speedup |
+|---|---|---|---|---|
+| tag | pos_tag_sents (200 sents) | 1.1ms | **0.2ms** | 5× |
+| stem | PorterStemmer (10K words) | 8.7ms | **1.5ms** | 5.5× |
+| collocations | BigramCF.from_words (10 batches) | 2.0ms | **0.5ms** | 4× |
+| probability | FreqDist.update (100 docs) | 3.0ms | **0.6ms** | 5× |
+
+---
 
 ## Summary
 
-| Item | Effort | Gain | Type |
-|---|---|---|---|
-| **TweetTokenizer LazyLock** | 10 min | 10-50× | Bugfix |
-| String→SmolStr in structs | 2h | <5% | Polish |
-| HashMap→FxHashMap | 1h | <5% | Polish |
-| Allocation pre-sizing | 1h | <5% | Polish |
+| Item | Effort | Gain | Applies to | Do it? |
+|---|---|---|---|---|
+| SIMD tree format | 1 week | **0%** | Tree/CFG parsing | ❌ No benefit |
+| Bincode model cache | 2 days | **-90% cold start** | pos_tag model load | ✅ **Yes** |
+| Rayon parallel batch ops | 3 days | **4-6×** | tag/stem/collocations/prob | ✅ **Yes** |
 
-**Recommendation:** Fix TweetTokenizer (10 min, 10-50× gain). The rest are polish items that won't meaningfully move benchmarks.
+**Recommendation: Skip SIMD tree format (no benefit). Implement bincode model cache (2 days, 80ms→8ms cold start) + rayon parallel batch ops (3 days, 4-6× on large inputs).**

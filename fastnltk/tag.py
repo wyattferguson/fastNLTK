@@ -9,6 +9,7 @@ All taggers are Rust-accelerated via the compiled `_rust` extension.
 import functools
 import os
 import pickle
+import tempfile
 
 import nltk.tag as _nltk_tag
 from nltk.data import find
@@ -50,13 +51,36 @@ from fastnltk._rust import (
 )
 
 
+def _bincode_cache_path(resource_name: str) -> str:
+    """Compute deterministic bincode cache path."""
+    sanitized = resource_name.replace("/", "_").replace(".", "_")
+    return os.path.join(tempfile.gettempdir(), "fastnltk_cache", f"{sanitized}.bin")
+
 def _load_tagger_model(tagger):
-    """Load NLTK perceptron tagger weights into Rust tagger."""
+    """Load NLTK perceptron tagger weights into Rust tagger, with bincode cache."""
+    cache_path = _bincode_cache_path("perceptron_tagger")
+
+    # Try bincode cache first (fast path: skip pickle)
+    if os.path.exists(cache_path):
+        try:
+            tagger.load_from_cache(cache_path)
+            return
+        except Exception:
+            pass
+
+    # Fall back to NLTK pickle
     path = find("taggers/averaged_perceptron_tagger/")
     pickle_path = os.path.join(str(path), "averaged_perceptron_tagger.pickle")
     with open(pickle_path, "rb") as f:
         model_data = pickle.load(f)
     tagger.load(model_data[0], model_data[1], sorted(model_data[2]))
+
+    # Save bincode cache for next time
+    try:
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        tagger.save_cache(cache_path)
+    except Exception:
+        pass
 
 
 __all__ = [

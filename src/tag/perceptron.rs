@@ -10,6 +10,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use rustc_hash::FxHashMap;
 use rustc_hash::FxHasher;
+use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
 
 /// Hash a 2-component feature (prefix + value).
@@ -34,7 +35,7 @@ fn hash3(a: &str, b: &str, c: &str) -> u64 {
 }
 
 #[pyclass(name = "PerceptronTagger", module = "fastnltk._rust")]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PerceptronTagger {
     /// Feature weights keyed by u64 hash of feature name string.
     weights: FxHashMap<u64, FxHashMap<SmolStr, f64>>,
@@ -105,7 +106,35 @@ impl PerceptronTagger {
     }
 
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
+        #[cfg(feature = "parallel")]
+        {
+            use rayon::prelude::*;
+            return sentences.par_iter().map(|s| self.tag_sentence(s)).collect();
+        }
+        #[cfg(not(feature = "parallel"))]
         sentences.iter().map(|s| self.tag_sentence(s)).collect()
+    }
+
+    /// Save tagger state to a bincode cache file.
+    fn save_cache(&self, path: &str) -> PyResult<()> {
+        let bytes = bincode::serde::encode_to_vec(self, bincode::config::standard())
+            .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
+        std::fs::write(path, bytes)
+            .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Load tagger state from a bincode cache file into self.
+    fn load_from_cache(&mut self, path: &str) -> PyResult<()> {
+        let bytes = std::fs::read(path)
+            .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
+        let (tagger, _): (PerceptronTagger, usize) =
+            bincode::serde::decode_from_slice(&bytes, bincode::config::standard())
+                .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+        self.weights = tagger.weights;
+        self.tagdict = tagger.tagdict;
+        self.classes = tagger.classes;
+        Ok(())
     }
 }
 

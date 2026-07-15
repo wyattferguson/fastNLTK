@@ -65,6 +65,12 @@ impl UnigramTagger {
             .collect()
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
+        #[cfg(feature = "parallel")]
+        {
+            use rayon::prelude::*;
+            return sentences.into_par_iter().map(|s| self.tag(s)).collect();
+        }
+        #[cfg(not(feature = "parallel"))]
         sentences.into_iter().map(|s| self.tag(s)).collect()
     }
     fn evaluate(&self, sentences: &Bound<'_, PyList>) -> f64 {
@@ -180,6 +186,12 @@ impl BigramTagger {
         out
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
+        #[cfg(feature = "parallel")]
+        {
+            use rayon::prelude::*;
+            return sentences.into_par_iter().map(|s| self.tag(s)).collect();
+        }
+        #[cfg(not(feature = "parallel"))]
         sentences.into_iter().map(|s| self.tag(s)).collect()
     }
     fn evaluate(&self, sentences: &Bound<'_, PyList>) -> f64 {
@@ -276,6 +288,12 @@ impl TrigramTagger {
         out
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
+        #[cfg(feature = "parallel")]
+        {
+            use rayon::prelude::*;
+            return sentences.into_par_iter().map(|s| self.tag(s)).collect();
+        }
+        #[cfg(not(feature = "parallel"))]
         sentences.into_iter().map(|s| self.tag(s)).collect()
     }
     fn evaluate(&self, sentences: &Bound<'_, PyList>) -> f64 {
@@ -359,6 +377,12 @@ impl AffixTagger {
         out
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
+        #[cfg(feature = "parallel")]
+        {
+            use rayon::prelude::*;
+            return sentences.into_par_iter().map(|s| self.tag(s)).collect();
+        }
+        #[cfg(not(feature = "parallel"))]
         sentences.into_iter().map(|s| self.tag(s)).collect()
     }
     fn evaluate(&self, sentences: &Bound<'_, PyList>) -> f64 {
@@ -416,6 +440,12 @@ impl RegexpTagger {
             .collect()
     }
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
+        #[cfg(feature = "parallel")]
+        {
+            use rayon::prelude::*;
+            return sentences.into_par_iter().map(|s| self.tag(s)).collect();
+        }
+        #[cfg(not(feature = "parallel"))]
         sentences.into_iter().map(|s| self.tag(s)).collect()
     }
     fn evaluate(&self, sentences: &Bound<'_, PyList>) -> f64 {
