@@ -36,4 +36,17 @@ mod tests {
         let st = RegexpStemmer::new(0);
         assert_eq!(st.stem("cats"), "cat");
     }
+
+    #[test]
+    fn test_regexp_empty() {
+        let st = RegexpStemmer::new(0);
+        assert_eq!(st.stem(""), "");
+    }
+
+    #[test]
+    fn test_regexp_min_length() {
+        let st = RegexpStemmer::new(5);
+        assert_eq!(st.stem("cat"), "cat"); // too short
+        assert_eq!(st.stem("running"), "runn"); // long enough
+    }
 }

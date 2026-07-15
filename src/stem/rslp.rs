@@ -47,4 +47,16 @@ mod tests {
         let r = st.stem("casas");
         assert!(r.len() <= "casas".len());
     }
+
+    #[test]
+    fn test_rslp_empty() {
+        let st = RSLPStemmer::new();
+        assert_eq!(st.stem(""), "");
+    }
+
+    #[test]
+    fn test_rslp_short() {
+        let st = RSLPStemmer::new();
+        assert_eq!(st.stem("a"), "a");
+    }
 }

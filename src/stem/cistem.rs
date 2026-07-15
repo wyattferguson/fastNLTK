@@ -33,10 +33,31 @@ impl Cistem {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_cistem_runs() {
         let st = Cistem::new();
         let r = st.stem("laufen");
         assert!(r.len() <= "laufen".len());
+    }
+
+    #[test]
+    fn test_cistem_empty() {
+        let st = Cistem::new();
+        assert_eq!(st.stem(""), "");
+    }
+
+    #[test]
+    fn test_cistem_short() {
+        let st = Cistem::new();
+        assert_eq!(st.stem("ab"), "ab");
+        assert_eq!(st.stem("der"), "der");
+    }
+
+    #[test]
+    fn test_cistem_ge_prefix() {
+        let st = Cistem::new();
+        let result = st.stem("gelaufen");
+        assert!(!result.starts_with("ge"));
     }
 }

@@ -324,7 +324,21 @@ mod tests {
     #[test]
     fn test_features_empty() {
         let classifier = MaxentClassifier::new();
-        // An empty feature vector should return empty scores
+        let scores = classifier.compute_scores(&Vec::new());
+        assert!(scores.is_empty());
+    }
+
+    #[test]
+    fn test_new_has_no_labels() {
+        pyo3::Python::initialize();
+        let classifier = MaxentClassifier::new();
+        assert_eq!(classifier.labels().len(), 0);
+    }
+
+    #[test]
+    fn test_empty_scores() {
+        pyo3::Python::initialize();
+        let classifier = MaxentClassifier::new();
         let scores = classifier.compute_scores(&Vec::new());
         assert!(scores.is_empty());
     }

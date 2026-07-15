@@ -50,4 +50,10 @@ mod tests {
         let r = st.stem("ktb");
         assert!(!r.is_empty());
     }
+
+    #[test]
+    fn test_isri_empty() {
+        let st = ISRIStemmer::new();
+        assert_eq!(st.stem(""), "");
+    }
 }
