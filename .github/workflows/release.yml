@@ -60,13 +60,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install Rust
+      - name: Install Rust & aarch64 cross-compiler
         run: |
+          # Rust
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          rustup target add aarch64-unknown-linux-gnu
 
-      - name: Add aarch64 target
-        run: rustup target add aarch64-unknown-linux-gnu
+          # aarch64 cross-compiler (manylinux_2_28 = CentOS 7 / AlmaLinux 8)
+          yum install -y gcc-aarch64-linux-gnu
 
       - name: Install maturin
         run: pip install maturin
