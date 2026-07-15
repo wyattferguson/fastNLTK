@@ -1,239 +1,177 @@
 <div align="center">
   <h1>fastNLTK</h1>
-  <p><strong>Drop-in Rust-accelerated replacement for NLTK.</strong><br>
-   <em>Same API. Same data. 5–50× faster.</em></p>
+  <p><strong>Drop-in Rust NLTK. Same API, way faster.</strong></p>
 
 [![PyPI version](https://img.shields.io/pypi/v/fastnltk.svg)](https://pypi.org/project/fastnltk/)
 [![Python](https://img.shields.io/pypi/pyversions/fastnltk.svg)](https://pypi.org/project/fastnltk/)
 [![CI](https://github.com/fastnltk/fastnltk/actions/workflows/quality.yml/badge.svg)](https://github.com/fastnltk/fastnltk/actions/workflows/quality.yml)
-[![Rust](https://img.shields.io/badge/rust-1.80%2B-blue)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 </div>
 
 ---
 
-## Overview
+Replace `import nltk` with `import fastnltk as nltk` and everything works.
+Same [NLTK API](https://www.nltk.org/api/nltk.html), same [corpus data](https://www.nltk.org/data.html),
+same results — but tokenization, tagging, parsing, stemming, and metrics run
+in Rust instead of Python. No rewrites, no new API to learn.
 
-fastNLTK is a **drop-in replacement** for the [Natural Language Toolkit](https://www.nltk.org)
-that keeps the exact same Python API while replacing hot paths with native Rust code.
-Import from `fastnltk` instead of `nltk` — no other changes needed. All NLTK corpus data works
-without re-downloading.
-
-NLTK is the most widely-used NLP teaching library in the world, but its pure-Python implementation
-means regex, loops, and dict lookups all run through the interpreter. That's 10–50× slower than
-compiled code — and production regressions have made NLTK's performance unpredictable
-(e.g. 0.55s → 216s on 30K chars between versions).
-
-fastNLTK preserves the exact API while replacing the engine.
-
-## Platform Support
-
-| Platform | Architecture | Wheel |
-|----------|-------------|-------|
-| Linux    | x86_64      | ✅    |
-| Linux    | aarch64     | ✅    |
-| macOS    | x86_64      | ✅    |
-| macOS    | arm64       | ✅    |
-| Windows  | x64         | ✅    |
-
-Python 3.8–3.13, PyPy 3.9+. Rust 1.80+ for source builds.
-
-```python
-# Before
-import nltk
-nltk.download("punkt")
-tokens = nltk.word_tokenize("Hello, world!")
-
-# After — same code, different import
-import fastnltk as nltk   # or: from fastnltk import word_tokenize
-tokens = nltk.word_tokenize("Hello, world!")
-```
-
-## Performance
-
-**61 benchmarks** across all 17 modules. **Geometric mean 7.6×** vs NLTK (44 compared benchmarks).
-[Full results →](BENCHMARKS.md)
-
-| Operation | NLTK (ms) | fastNLTK (ms) | Speedup | Optimization |
-|---|---|---|---|---|
-| **windowdiff** | 2.47 | **0.01** | **168×** | Pure algorithmic port |
-| **edit_distance** | 2.44 | **0.02** | **152×** | Damerau-Levenshtein in Rust |
-| **pk** (segmentation) | 2.20 | **0.02** | **93×** | Segmentation metric in Rust |
-| **TreebankWordDetokenizer** | 6.96 | **0.20** | **35×** | Single-pass undo |
-| **PunktSentenceTokenizer** | 14.56 | **0.43** | **34×** | Byte-level sentence scan |
-| **Expression.fromstring** | 17.45 | **0.58** | **30×** | FOL expression parser |
-| **PerceptronTagger** | 17.64 | **0.66** | **27×** | u64 feature IDs, no String alloc |
-| **CFG.from_string** | 0.05 | **0.002** | **26×** | Grammar parser in Rust |
-| **TweetTokenizer** | 85.44 | **3.51** | **24×** | LazyLock regexes |
-| **LancasterStemmer** | 33.86 | **2.01** | **17×** | Full 124-rule NLTK port |
-| **TreebankWordTokenizer** | 42.56 | **2.54** | **17×** | O(n) scan + SIMD memchr3 |
-
-### Module leaderboard
-
-| Module | Geo Mean | Best Single | Engine |
-|--------|----------|-------------|--------|
-| [metrics](BENCHMARKS.md) | **133×** | 168× (windowdiff) | Pure algorithmic port |
-| [parse](BENCHMARKS.md) | **24×** | 26× (CFG) | Earley + CFG in Rust |
-| [sem](BENCHMARKS.md) | **30×** | 30× | FOL expression parser |
-| [collocations](BENCHMARKS.md) | **13×** | 17× (Quadgram) | FastMap ngram counting |
-| [tree](BENCHMARKS.md) | **10×** | 10× | Bracket parser in Rust |
-| [translate](BENCHMARKS.md) | **8×** | 8× (BLEU) | BLEU in Rust |
-| [stem](BENCHMARKS.md) | **8×** | 17× (Lancaster) | 124-rule NLTK port |
-| [chunk](BENCHMARKS.md) | **8×** | 8× | Regexp chunk parser |
-| [tokenize](BENCHMARKS.md) | **5×** | 35× (Detokenizer) | SIMD memchr3 + char scanner |
-| [classify](BENCHMARKS.md) | **5×** | 8× (NaiveBayes) | Maxent GIS training |
-| [tag](BENCHMARKS.md) | **4×** | 27× (Perceptron) | u64 IDs, integer Viterbi |
-| [probability](BENCHMARKS.md) | **3×** | 4× (FreqDist) | FreqDist/ConditionalFreqDist |
-| [chat](BENCHMARKS.md) | **3×** | 3× | Eliza chatbot |
-| [ccg](BENCHMARKS.md) | **2×** | 2× | CCG category parsing |
-| [lm](BENCHMARKS.md) | — | — | MLE, Lidstone, Laplace, KneserNey, WittenBell ¹ |
-| [inference](BENCHMARKS.md) | — | — | Tableau, Resolution, Discourse ¹ |
-
-¹ fastNLTK-only — NLTK has no equivalent benchmarks.
-
-[Full benchmark details →](BENCHMARKS.md)
-
-## API Coverage
-
-| Module         | Rust‑accelerated                                                                                   | Python shim      | Status |
-| -------------- | -------------------------------------------------------------------------------------------------- | ---------------- | ------ |
-| `tokenize`     | Treebank, Toktok, Tweet, Regexp, Space, MWE, TextTiling, Punkt, SExpr, Logos DFA                   | Fallback to NLTK | ✅     |
-| `stem`         | Porter, Lancaster, Snowball, Regexp, WordNet, ARLSTem, Cistem, ISRI, RSLP                          | —                | ✅     |
-| `tag`          | PerceptronTagger, TnT, HMM, DefaultTagger, Unigram/Bigram/TrigramTagger, RegexpTagger, AffixTagger | —                | ✅     |
-| `classify`     | NaiveBayes, Maxent, TextCat                                                                        | —                | ✅     |
-| `probability`  | FreqDist, ConditionalFreqDist, MLEProbDist, LaplaceProbDist                                        | —                | ✅     |
-| `lm`           | MLE, Lidstone, Laplace, KneserNey, WittenBell, StupidBackoff                                       | Fallback to NLTK | ✅     |
-| `collocations` | Bigram/Trigram/Quadgram finders                                                                    | —                | ✅     |
-| `ccg`          | Chart parser, lexicon, combinators                                                                 | —                | ✅     |
-| `inference`    | Tableau prover, Resolution prover, Discourse QA                                                    | —                | ✅     |
-| `drt`          | DRS parsing, FOL conversion                                                                        | —                | ✅     |
-| `sem`          | Expression parser, model evaluation                                                                | —                | ✅     |
-| `metrics`      | Association, agreement, segmentation, distance, Jaccard, Spearman                                  | —                | ✅     |
-| `chunk`        | Regexp chunker (NP/VP extraction)                                                                  | —                | ✅     |
-| `cluster`      | K-means clustering                                                                                 | —                | ✅     |
-| `sentiment`    | VADER sentiment analysis                                                                           | —                | ✅     |
-| `parse`        | CFG, Earley chart parser                                                                           | —                | ✅     |
-| `tree`         | Tree data structure (bracket parse, subtrees, productions)                                         | —                | ✅     |
-| `corpus`       | NLTK corpus reader wrappers                                                                        | Reading API      | ✅     |
-| `chat`         | Eliza-style chatbot                                                                                | —                | ✅     |
-| `translate`    | BLEU score                                                                                         | —                | ✅     |
-| `data`         | Resource finder, bincode cache                                                                     | —                | ✅     |
-
-## Quick Start
+## Install
 
 ```bash
 pip install fastnltk
+```
+
+Pre-built wheels for Linux (x86_64, arm64), macOS (x86_64, arm64), Windows (x64).
+Python 3.8–3.13. Uses your existing NLTK data — no re-downloading.
+
+```bash
+# If you don't have NLTK data yet:
 python -m nltk.downloader punkt averaged_perceptron_tagger wordnet
 ```
+
+## Why
+
+NLTK is the most-used NLP teaching library. But it's pure Python — regex loops
+and dict lookups run through the interpreter, 10–50× slower than compiled code.
+Some operations got **worse** across NLTK versions (0.55s → 216s on 30K chars).
+
+fastNLTK swaps the engine without changing the interface.
+
+## Benchmarks
+
+61 benchmarks. **Geometric mean: 7.6× faster** than NLTK on equivalent operations.
+[Full results →](BENCHMARKS.md)
+
+| Operation | NLTK | fastNLTK | Speedup |
+|---|---:|---:|---:|
+| windowdiff | 2.47 ms | 0.01 ms | **168×** |
+| edit_distance | 2.44 ms | 0.02 ms | **152×** |
+| pk | 2.20 ms | 0.02 ms | **93×** |
+| TreebankWordDetokenizer | 6.96 ms | 0.20 ms | **35×** |
+| PunktSentenceTokenizer | 14.56 ms | 0.43 ms | **34×** |
+| Expression.fromstring | 17.45 ms | 0.58 ms | **30×** |
+| PerceptronTagger | 17.64 ms | 0.66 ms | **27×** |
+| CFG.from_string | 0.05 ms | 0.002 ms | **26×** |
+| TweetTokenizer | 85.44 ms | 3.51 ms | **24×** |
+| LancasterStemmer | 33.86 ms | 2.01 ms | **17×** |
+| TreebankWordTokenizer | 42.56 ms | 2.54 ms | **17×** |
+
+Best modules: metrics 133×, sem 30×, parse 24×, collocations 13×,
+tree 10×, translate 8×, stem 8×, chunk 8×.
+
+## Usage
 
 ```python
 from fastnltk import word_tokenize, pos_tag, sent_tokenize
-from fastnltk.corpus import nltk_data
+from fastnltk import Tree
 
-# Tokenization
-tokens = word_tokenize("The quick brown fox jumps over the lazy dog.")
-print(tokens)
-# → ['The', 'quick', 'brown', 'fox', 'jumps', 'over', 'the', 'lazy', 'dog', '.']
+# Tokenize
+word_tokenize("Dr. Smith can't believe how fast this is.")
+# ['Dr.', 'Smith', 'ca', "n't", 'believe', 'how', 'fast', 'this', 'is', '.']
 
 # Sentence segmentation
-sents = sent_tokenize("Dr. Smith went home. He ate dinner.")
-print(sents)
-# → ['Dr. Smith went home.', 'He ate dinner.']
+sent_tokenize("Dr. Smith went home. He ate dinner.")
+# ['Dr. Smith went home.', 'He ate dinner.']
 
 # POS tagging
-tagged = pos_tag(tokens)
-print(tagged)
-# → [('The', 'DT'), ('quick', 'JJ'), ('brown', 'NN'), ('fox', 'NN'), ...]
+pos_tag("the quick brown fox".split())
+# [('the', 'DT'), ('quick', 'JJ'), ('brown', 'NN'), ('fox', 'NN')]
 
-# Parsing
-from fastnltk import Tree
+# Parse trees
 tree = Tree.from_string("(S (NP The/DT cat/NN) (VP runs/VBZ))")
-print(tree.leaves())      # → ['The/DT', 'cat/NN', 'runs/VBZ']
-print(tree.productions()) # → ['S -> NP VP', 'NP -> The/DT cat/NN', ...]
+tree.leaves()       # ['The/DT', 'cat/NN', 'runs/VBZ']
+tree.productions()  # ['S -> NP VP', 'NP -> The/DT cat/NN', 'VP -> runs/VBZ']
 ```
 
-## Installation
+Or go module-by-module — everything NLTK exposes is available:
 
-```bash
-pip install fastnltk
+```python
+from fastnltk.stem import PorterStemmer, LancasterStemmer
+from fastnltk.tag import PerceptronTagger, TnT
+from fastnltk.probability import FreqDist, ConditionalFreqDist
+from fastnltk.lm import MLE, Laplace, KneserNeyInterpolated
+from fastnltk.metrics import edit_distance, jaro_winkler_similarity
+from fastnltk.parse import CFG, EarleyChartParser
+from fastnltk.classify import NaiveBayesClassifier, MaxentClassifier
+from fastnltk.collocations import BigramCollocationFinder
+from fastnltk.cluster import KMeansClusterer
+from fastnltk.translate import bleu_score, IBMModel1
+from fastnltk.chat import eliza_chat
 ```
 
-Pre-built wheels for Linux (x86_64, aarch64), macOS (x86_64, arm64), and Windows (x64).
-Requires Python 3.8+ and an existing NLTK data installation.
+## What's accelerated
 
-### From source
+Everything that touches text data runs in Rust. Pure-Python NLTK classes
+(classifiers, parsers, corpus readers) pass through. See
+[NLTK API docs](https://www.nltk.org/api/nltk.html) for full reference.
+
+| Module | Rust-backed | Notes |
+|---|---|---|
+| tokenize | 14 tokenizers | Treebank, Toktok, Tweet, Punkt, Regexp, SExpr, MWE, TextTiling |
+| stem | 9 stemmers | Porter, Lancaster, Snowball, WordNet, ISRI, RSLP, Cistem, ARLSTem |
+| tag | 8 taggers | Perceptron, TnT, HMM, Ngram (1–3), Regexp, Affix |
+| probability | FreqDist + 10 dists | MLE, Laplace, Lidstone, WittenBell, ELE, SGT, Uniform |
+| lm | 6 models | MLE, Laplace, Lidstone, KneserNey, WittenBell, StupidBackoff |
+| metrics | 14 functions | edit_distance, jaccard, jaro, windowdiff, pk, BLEU, AER |
+| collocations | 3 finders | Bigram, Trigram, Quadgram + assoc measures |
+| classify | 3 classifiers | NaiveBayes, Maxent, DecisionTree |
+| parse | CFG + 6 parsers | Earley, Chart, BottomUp, LeftCorner, Stepping, ShiftReduce |
+| tree | Tree + 5 variants | ParentedTree, ImmutableTree, ProbabilisticTree |
+| chunk | Regexp chunker | NP/VP extraction, conll/tree conversion |
+| sentiment | VADER | Same compound scores |
+| sem | Expression parser | FOL parsing, model evaluation |
+| cluster | KMeans, EM, GAAC | Euclidean, cosine distance |
+| translate | BLEU + IBM1 | sentence_bleu, corpus_bleu |
+| chat | 5 chatbots | Eliza, Iesha, Rude, Suntsu, Zen |
+| ccg | CCG parser | Chart, combinators |
+| inference | 3 provers | Tableau, Resolution, Discourse |
+
+## Tests
+
+- **Rust**: 312 unit tests — [crate-level `unsafe_code = "deny"`](https://doc.rust-lang.org/rustc/lints/listing/warn-by-default.html#unsafe-code)
+- **Python**: 107 integration tests verify output matches NLTK byte-for-byte
+- **CI**: `cargo clippy`, `cargo fmt --check`, `ruff`, cross-platform wheel builds
+
+## Develop
 
 ```bash
-git clone https://github.com/fastnltk/fastnltk
-cd fastnltk
-pip install maturin
-maturin develop --release   # Development install
-# or
-maturin build --release     # Build wheel
-```
-
-### Data
-
-fastNLTK uses NLTK's corpus data. If you have NLTK installed with data,
-no additional downloads are needed:
-
-```bash
-python -m nltk.downloader punkt averaged_perceptron_tagger wordnet
-```
-
-## Development
-
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for detailed setup, code style,
-testing, and PR workflow.
-
-```bash
-# Clone and build
 git clone https://github.com/fastnltk/fastnltk
 cd fastnltk
 pip install -e ".[dev]"
 maturin develop --release
 
-# Run tests
-cargo test                       # 312 Rust tests
-pytest tests/                     # 257 Python tests
+cargo test       # 312 Rust tests
+pytest tests/     # 107 Python tests
 
-# Quality checks
 cargo fmt --all -- --check
 cargo clippy --all-targets
 ruff check fastnltk/ tests/
 
-# Benchmarks
-maturin develop --release
-python -m benchmarks.run --save   # Run + save results
+python -m benchmarks.run --save
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## License
 
-fastNLTK is licensed under the Apache License, Version 2.0.
-See [LICENSE](LICENSE) for details.
+Apache 2.0. See [LICENSE](LICENSE).
 
-fastNLTK is not affiliated with, endorsed by, or sponsored by NLTK or
-its maintainers. NLTK is a trademark of the NLTK Project.
+fastNLTK is not affiliated with NLTK or its maintainers.
 
-## Citing
-
-If you use fastNLTK in academic work, please cite:
+## Cite
 
 ```bibtex
 @software{fastnltk2025,
-  author       = {Wyatt Ferguson},
-  title        = {fastNLTK: Drop-in Rust-accelerated replacement for NLTK},
-  year         = {2025},
-  publisher    = {GitHub},
-  url          = {https://github.com/fastnltk/fastnltk}
+  author = {Wyatt Ferguson},
+  title = {fastNLTK: Drop-in Rust-accelerated replacement for NLTK},
+  year = {2025},
+  url = {https://github.com/fastnltk/fastnltk}
 }
 ```
 
-## Contact
+---
 
-Created by [Wyatt Ferguson](https://github.com/wyattferguson)
-
-- [GitHub @wyattferguson](https://github.com/wyattferguson)
-- [BlueSky @wyattf](https://wyattf.bsky.social)
-- [Email](mailto:wyattxdev@duck.com)
+Made by [Wyatt Ferguson](https://github.com/wyattferguson) ·
+[wyattf.bsky.social](https://wyattf.bsky.social) ·
+[wyattxdev@duck.com](mailto:wyattxdev@duck.com)

@@ -250,6 +250,9 @@ class TrigramTagger:
         if train is not None:
             self._impl.train(train)
 
+    def train(self, sentences: list[list[str]]) -> None:
+        self._impl.train(sentences)
+
     def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
         return self._impl.tag(tokens)
 
