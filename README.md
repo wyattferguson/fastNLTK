@@ -39,21 +39,22 @@ tokens = nltk.word_tokenize("Hello, world!")
 
 ## Performance
 
-**11 benchmarks** across core tokenize/tag/stem operations. **Geometric mean 13.5×** vs NLTK
+**12 benchmarks** across core tokenize/tag/stem/sent operations. **Geometric mean 15.4×** vs NLTK
 (v0.4.0). [Full results →](BENCHMARKS.md)
 
 | Operation | NLTK (ms) | fastNLTK (ms) | Speedup | Optimization |
 |---|---|---|---|---|
-| **TnT.tag** (3 w) | 1.46 | **0.001** | **1482×** | Integer IDs + flat arrays |
-| **word_tokenize** (10K w) | 4.56 | **0.07** | **65.2×** | Single-pass char scanner |
-| **sent_tokenize** (10K w) | 1.09 | **0.05** | **22.4×** | Byte-level sentence scan |
-| **pos_tag_sents** (4 sents) | 4.17 | **0.17** | **24.4×** | Batch PyO3 + u64 IDs |
-| **pos_tag** (1000 w) | 21.0 | **0.89** | **23.6×** | u64 feature IDs |
-| **TreebankWordTokenizer** (50K w) | 60.6 | **3.30** | **18.4×** | O(n) scan + SIMD |
-| **PorterStemmer** (2000 w) | 14.9 | **1.74** | **8.6×** | Pure Rust Snowball |
-| **WordPunctTokenizer** (50K w) | 7.76 | **1.72** | **4.5×** | Char scanner |
-| **RegexpTokenizer \\S+** (50K w) | 4.89 | **2.16** | **2.3×** | SIMD memchr3 |
-| **span_tokenize** (50K w) | 11.8 | **4.69** | **2.5×** | O(n) inline capture |
+| **TnT.tag** (3 w) | 1.460 | **0.001** | **1447×** | Integer-ID Viterbi |
+| **word_tokenize** (10K w) | 4.96 | **0.07** | **68.8×** | Single-pass char scanner |
+| **pos_tag_sents** (4 sents) | 4.26 | **0.08** | **53.0×** | Rayon parallel + u64 IDs |
+| **pos_tag** (1000 w) | 21.36 | **0.85** | **25.3×** | u64 feature IDs |
+| **TreebankWordTokenizer** (50K w) | 8.52 | **0.38** | **22.4×** | O(n) scan + SIMD |
+| **sent_tokenize** (10K w) | 1.13 | **0.05** | **21.3×** | Byte-level sentence scan |
+| **TweetTokenizer** (1 tweet) | 0.011 | **0.001** | **16.6×** | LazyLock regexes |
+| **PorterStemmer** (2000 w) | 15.26 | **1.73** | **8.8×** | Pure Rust Snowball |
+| **WordPunctTokenizer** (50K w) | 1.14 | **0.26** | **4.5×** | Char scanner |
+| **span_tokenize** (50K w) | 1.58 | **0.53** | **3.0×** | O(n) inline capture |
+| **RegexpTokenizer \\S+** (50K w) | 0.71 | **0.28** | **2.5×** | SIMD memchr3 |
 
 ### Module leaderboard
 

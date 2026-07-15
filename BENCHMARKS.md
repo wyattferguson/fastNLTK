@@ -1,7 +1,7 @@
 # Benchmarks
 
-> **Last updated:** 2026-07-14 (v0.4.0, release build)
-> **Geometric mean: 13.5× vs NLTK** across 11 tokenize/tag/stem operations.
+> **Last updated:** 2026-07-15 (v0.4.0, release build)
+> **Geometric mean: 15.4× vs NLTK** across 12 tokenize/tag/stem/sent operations.
 >
 > Run benchmarks: `python -c "exec(open('scripts/bench_bottlenecks.py').read())"`
 
@@ -9,21 +9,36 @@
 
 ## v0.4.0 Optimization Results
 
-All measurements on **50K-word English text** (release build, single core).
+All measurements on release build. 50K-word text for tokenizers, 1000 words for taggers.
 
 | Operation | NLTK (ms) | fastNLTK (ms) | Speedup | Key Optimization |
 |---|---|---|---|---|
-| **TnT.tag** (3 words) | 1.46 | **0.001** | **1482×** | Integer-ID Viterbi (flat arrays) |
-| **word_tokenize** (10K w) | 4.56 | **0.07** | **65.2×** | Single-pass Treebank scanner |
-| **pos_tag_sents** (4 sents) | 4.17 | **0.17** | **24.4×** | Batch PyO3 + u64 feature IDs |
-| **pos_tag** (1000 w) | 21.00 | **0.89** | **23.6×** | u64 feature IDs, zero String alloc |
-| **sent_tokenize** (10K w) | 1.09 | **0.05** | **22.4×** | Byte-level sentence boundary scan |
-| **TreebankWordTokenizer** (50K w) | 60.63 | **3.30** | **18.4×** | Single-pass char scanner (was 19-pass regex) |
-| **PorterStemmer** (2000 w) | 14.89 | **1.74** | **8.6×** | Pure Rust Snowball |
-| **WordPunctTokenizer** (50K w) | 7.76 | **1.72** | **4.5×** | Char scanner (replaces regex engine) |
-| **span_tokenize** (50K w) | 11.78 | **4.69** | **2.5×** | O(n) inline span capture (was O(n²)) |
-| **RegexpTokenizer \\S+** (50K w) | 4.89 | **2.16** | **2.3×** | SIMD memchr3 whitespace scan |
-| **Geometric mean** | | | **13.5×** |
+| **TnT.tag** (3 words) | 1.460 | **0.001** | **1447×** | Integer-ID Viterbi (flat arrays) |
+| **word_tokenize** (10K w) | 4.96 | **0.07** | **68.8×** | Single-pass Treebank scanner |
+| **pos_tag_sents** (4 sents) | 4.26 | **0.08** | **53.0×** | Rayon parallel + u64 feature IDs |
+| **pos_tag** (1000 w) | 21.36 | **0.85** | **25.3×** | u64 feature IDs, zero String alloc |
+| **TreebankWordTokenizer** (50K w) | 8.52 | **0.38** | **22.4×** | Single-pass char scanner + SIMD |
+| **sent_tokenize** (10K w) | 1.13 | **0.05** | **21.3×** | Byte-level sentence boundary scan |
+| **TweetTokenizer** (1 tweet) | 0.011 | **0.001** | **16.6×** | LazyLock regexes (was per-call) |
+| **PorterStemmer** (2000 w) | 15.26 | **1.73** | **8.8×** | Pure Rust Snowball |
+| **WordPunctTokenizer** (50K w) | 1.14 | **0.26** | **4.5×** | Char scanner (replaces regex engine) |
+| **span_tokenize** (50K w) | 1.58 | **0.53** | **3.0×** | O(n) inline span capture |
+| **RegexpTokenizer \\S+** (50K w) | 0.71 | **0.28** | **2.5×** | SIMD memchr3 whitespace scan |
+| **Geometric mean** | | | **15.4×** |
+
+### Iterative Improvement History
+
+| Phase | Change | Treebank | Regexp | pos_tag |
+|---|---|---|---|---|
+| Baseline (v0.3.x) | 19-pass regex + String alloc weights | 0.83ms | 0.93ms | 7.65ms |
+| 1 | Single-pass char scanner | **0.60ms** | — | — |
+| 2 | SIMD memchr3 whitespace | **0.47ms** | **0.30ms** | — |
+| 3 | FxHashMap + SmolStr | — | — | **4.88ms** |
+| 4 | u64 feature IDs | — | — | **3.72ms** |
+| 5 | Integer-ID Bigram/Trigram/TnT | — | — | — |
+| 6 | WordPunct char scanner + LazyLock Tweet | — | **0.28ms** | — |
+| 7 | Rayon parallel + bincode cache | — | — | **0.85ms** |
+| **Final** | All optimizations | **0.38ms** | **0.28ms** | **0.85ms** |
 
 ### Iterative Improvements (tokenize + tag only)
 
