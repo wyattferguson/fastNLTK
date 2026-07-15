@@ -45,27 +45,27 @@ tokens = nltk.word_tokenize("Hello, world!")
 (51 NLTK comparison benchmarks, 17 fastNLTK-only). Every function below has an NLTK
 counterpart unless noted in [BENCHMARKS.md](BENCHMARKS.md).
 
-| Module                        | Benchmarks     | Best Speedup | Engine                                      |
-| ----------------------------- | -------------- | ------------ | ------------------------------------------------------------ |
-| [classify](BENCHMARKS.md)     | 4              | **339×**     | Maxent GIS training in Rust                 |
-| [metrics](BENCHMARKS.md)      | 4              | **168×**     | Pure algorithmic port, zero Python overhead |
-| [tokenize](BENCHMARKS.md)     | 16             | **94×**      | Compiled regex + logos lexer                |
-| [tag](BENCHMARKS.md)          | 9              | **73×**      | rustling HMM, hashbrown FastMap lookups     |
-| [sentiment](BENCHMARKS.md)    | 1              | **38×**      | VADER in Rust, no regex re-compilation      |
-| [sem](BENCHMARKS.md)          | 1              | **28×**      | Expression parser in Rust                   |
-| [parse](BENCHMARKS.md)        | 2              | **26×**      | Earley + CFG parsing                        |
-| [collocations](BENCHMARKS.md) | 3              | **23×**      | FastMap ngram frequency counting            |
-| [stem](BENCHMARKS.md)         | 8              | **15×**      | rust-stemmers (Snowball C) + native Rust    |
-| [translate](BENCHMARKS.md)    | 1              | **9×**       | BLEU in Rust                                |
-| [tree](BENCHMARKS.md)         | 1              | **9×**       | Tree parser in Rust                         |
-| [chunk](BENCHMARKS.md)        | 1              | **7×**       | Regexp chunk parser                         |
-| [probability](BENCHMARKS.md)  | 4              | **6×**       | FreqDist, ConditionalFreqDist, prob dists   |
-| [cluster](BENCHMARKS.md)      | 1              | **4×**       | K-means Lloyd's algorithm                   |
-| [chat](BENCHMARKS.md)         | 1              | **3×**       | Eliza chatbot                               |
-| [ccg](BENCHMARKS.md)          | 1              | **2×**       | CCG category parsing                        |
-| lm                            | 6              | —                                           | MLE, Lidstone, Laplace, StupidBackoff, KneserNey, WittenBell ¹ |
-| inference                     | 4              | —                                           | Tableau, Resolution, Discourse, DefaultReasoner ¹              |
-| **Totals**                    | **68**         | **339×**                                    | **geom mean 8.5×** (51 NLTK comparisons, 16 Rust modules)      |
+| Module                        | Benchmarks | Best Speedup | Engine                                                         |
+| ----------------------------- | ---------- | ------------ | -------------------------------------------------------------- |
+| [classify](BENCHMARKS.md)     | 4          | **339×**     | Maxent GIS training in Rust                                    |
+| [metrics](BENCHMARKS.md)      | 4          | **168×**     | Pure algorithmic port, zero Python overhead                    |
+| [tokenize](BENCHMARKS.md)     | 16         | **94×**      | Compiled regex + logos lexer                                   |
+| [tag](BENCHMARKS.md)          | 9          | **73×**      | rustling HMM, hashbrown FastMap lookups                        |
+| [sentiment](BENCHMARKS.md)    | 1          | **38×**      | VADER in Rust, no regex re-compilation                         |
+| [sem](BENCHMARKS.md)          | 1          | **28×**      | Expression parser in Rust                                      |
+| [parse](BENCHMARKS.md)        | 2          | **26×**      | Earley + CFG parsing                                           |
+| [collocations](BENCHMARKS.md) | 3          | **23×**      | FastMap ngram frequency counting                               |
+| [stem](BENCHMARKS.md)         | 8          | **15×**      | rust-stemmers (Snowball C) + native Rust                       |
+| [translate](BENCHMARKS.md)    | 1          | **9×**       | BLEU in Rust                                                   |
+| [tree](BENCHMARKS.md)         | 1          | **9×**       | Tree parser in Rust                                            |
+| [chunk](BENCHMARKS.md)        | 1          | **7×**       | Regexp chunk parser                                            |
+| [probability](BENCHMARKS.md)  | 4          | **6×**       | FreqDist, ConditionalFreqDist, prob dists                      |
+| [cluster](BENCHMARKS.md)      | 1          | **4×**       | K-means Lloyd's algorithm                                      |
+| [chat](BENCHMARKS.md)         | 1          | **3×**       | Eliza chatbot                                                  |
+| [ccg](BENCHMARKS.md)          | 1          | **2×**       | CCG category parsing                                           |
+| lm                            | 6          | —            | MLE, Lidstone, Laplace, StupidBackoff, KneserNey, WittenBell ¹ |
+| inference                     | 4          | —            | Tableau, Resolution, Discourse, DefaultReasoner ¹              |
+| **Totals**                    | **68**     | **339×**     | **geom mean 8.5×** (51 NLTK comparisons, 16 Rust modules)      |
 
 [Full benchmark details →](BENCHMARKS.md)
 
@@ -190,3 +190,19 @@ See [LICENSE](LICENSE) for details.
 
 fastNLTK is not affiliated with, endorsed by, or sponsored by NLTK or
 its maintainers. NLTK is a trademark of the NLTK Project.
+
+## Contact + Support
+
+Created by [Wyatt Ferguson](https://github.com/wyattferguson)
+
+For any questions or comments heres how you can reach me:
+
+**:octopus: Follow me on [Github @wyattferguson](https://github.com/wyattferguson)**
+
+**:mailbox_with_mail: Email me at [wyattxdev@duck.com](wyattxdev@duck.com)**
+
+**:tropical_drink: Follow on [BlueSky @wyattf](https://wyattf.bsky.social)**
+
+If you find this useful and want to tip me a little coffee money:
+
+**:coffee: [Buy Me A Coffee](https://www.buymeacoffee.com/wyattferguson)**
