@@ -105,9 +105,9 @@ pub fn word_tokenize_py(
     }
     let result = py.detach(|| {
         if preserve_line {
-            text.lines().flat_map(treebank::tokenize_treebank).collect()
+            text.lines().flat_map(|l| treebank::tokenize_treebank(l).0).collect()
         } else {
-            treebank::tokenize_treebank(text)
+            treebank::tokenize_treebank(text).0
         }
     });
     Ok(result)

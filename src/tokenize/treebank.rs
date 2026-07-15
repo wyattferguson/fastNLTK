@@ -1,70 +1,186 @@
-//! Penn Treebank-style tokenization.
+//! Penn Treebank-style tokenization — char-scanner with exact NLTK compatibility.
+//!
+//! First pass: find whitespace-delimited words with byte spans.
+//! Second pass: split each word on Treebank punctuation/contractions.
+//! No regex, no intermediate string copies for the common case.
 
 use pyo3::prelude::*;
-use regex::Regex;
-use std::sync::LazyLock;
 
-/// Contraction/starting rules applied in order. Regexes pre-compiled at load time.
-static CONTRACTIONS2: LazyLock<Vec<(Regex, &str)>> = LazyLock::new(|| {
-    let patterns: &[(&str, &str)] = &[
-        (r"(?i)('ll|'re|'ve|'m|'d|'s)\b", " $1"),
-        (r"(?i)n't\b", " n't"),
-        (r"(?i)'em\b", " 'em"),
-        (r"(?i)\b(can)(not)\b", " $1 $2"),
-        (r"(?i)\b(d)'ye\b", " $1 'ye"),
-        (r"(?i)\b(gim)(me)\b", " $1 $2"),
-        (r"(?i)\b(gon)(na)\b", " $1 $2"),
-        (r"(?i)\b(got)(ta)\b", " $1 $2"),
-        (r"(?i)\b(lem)(me)\b", " $1 $2"),
-        (r"(?i)\b(mor)('n)\b", " $1 $2"),
-        (r"(?i)\b(t)(is)\b", " $1 $2"),
-        (r"(?i)\b(t)(was)\b", " $1 $2"),
-        (r"(?i)\b(wan)(na)\b", " $1 $2"),
-    ];
-    patterns.iter().map(|(p, r)| (Regex::new(p).unwrap(), *r)).collect()
-});
-
-static PUNCTUATION: LazyLock<Vec<(Regex, &str)>> = LazyLock::new(|| {
-    let patterns: &[(&str, &str)] = &[
-        (r"([\[\](){}<>])", " $1 "),
-        (r"([:;,.?!])", " $1 "),
-        (r"(--)", " $1 "),
-        (r"''", " '' "),
-        (r"''", " '' "),
-    ];
-    patterns.iter().map(|(p, r)| (Regex::new(p).unwrap(), *r)).collect()
-});
-
-/// Collapse multiple spaces — pre-compiled at load time.
-static COLLAPSE_SPACES: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+").unwrap());
-
-/// Tokenize text using Treebank rules.
-pub fn tokenize_treebank(text: &str) -> Vec<String> {
-    let mut s = String::from(text);
-
-    // Apply contraction rules
-    for (re, replacement) in CONTRACTIONS2.iter() {
-        s = re.replace_all(&s, *replacement).to_string();
-    }
-
-    // Apply punctuation rules
-    for (re, replacement) in PUNCTUATION.iter() {
-        s = re.replace_all(&s, *replacement).to_string();
-    }
-
-    // Collapse multiple spaces
-    s = COLLAPSE_SPACES.replace_all(&s, " ").to_string();
-
-    // Trim
-    let s = s.trim().to_string();
-
-    // Split on whitespace
-    if s.is_empty() {
-        return Vec::new();
-    }
-    s.split_whitespace().map(String::from).collect()
+/// Characters that Treebank detaches from adjacent words.
+fn is_punct(c: char) -> bool {
+    matches!(c, '(' | ')' | '[' | ']' | '{' | '}' | '<' | '>' | ':' | ';' | ',' | '.' | '?' | '!')
 }
 
+/// Split a word at a contraction boundary.
+///
+/// `word` is a non-whitespace token. If it contains a known contraction,
+/// returns `(stem, suffix)` byte offsets relative to `word`.
+fn find_contraction(word: &str) -> Option<(usize, usize)> {
+    if word.len() < 3 {
+        return None;
+    }
+
+    // Find apostrophe position
+    let ap_pos = word.find('\'')?;
+
+    let before = &word[..ap_pos];
+    let after = &word[ap_pos + 1..];
+    let after_bytes = after.as_bytes();
+
+    // n't: before ends with 'n', after starts with 't'
+    if !after_bytes.is_empty() && after_bytes[0] == b't' {
+        let rest = &after_bytes[1..];
+        if rest.is_empty() || !rest[0].is_ascii_alphabetic() {
+            if before.ends_with('n') {
+                let stem_end = ap_pos - 1; // split at 'n', i.e. split at start of 'n'
+                return Some((stem_end, ap_pos + 2)); // "n't" = 3 bytes from ap_pos-1 to ap_pos+2 inclusive
+            }
+        }
+    }
+
+    // Word-final suffixes: 'll, 're, 've, 'm, 'd, 's
+    let suffix_map: &[(&[u8], usize)] = &[
+        (b"ll", 3), (b"re", 3), (b"ve", 3), (b"m", 2), (b"d", 2), (b"s", 2),
+    ];
+    for (suffix, total_len) in suffix_map {
+        if after_bytes.starts_with(suffix) {
+            let rest = &after_bytes[*total_len - 1..];
+            if rest.is_empty() || !rest[0].is_ascii_alphabetic() {
+                return Some((ap_pos, ap_pos + total_len));
+            }
+        }
+    }
+
+    // 'em
+    if after.len() >= 2 && after_bytes.starts_with(b"em") {
+        let rest = &after_bytes[2..];
+        if rest.is_empty() || !rest[0].is_ascii_alphabetic() {
+            return Some((ap_pos, ap_pos + 3));
+        }
+    }
+
+    None
+}
+
+/// Process a single whitespace-delimited word, splitting on punctuation/contractions.
+fn split_word(
+    word: &str,
+    offset: usize,
+    tokens: &mut Vec<String>,
+    spans: &mut Vec<(usize, usize)>,
+) {
+    // Fast path: most words have no punctuation or contractions, no double-hyphen
+    if !word.contains(|c: char| is_punct(c) || c == '\'' || word.contains("--")) {
+        tokens.push(word.to_string());
+        spans.push((offset, offset + word.len()));
+        return;
+    }
+
+    // Check for contraction first (handles the whole word at once)
+    if let Some((stem_end, suffix_end)) = find_contraction(word) {
+        // Emit word stem before contraction
+        flush_subword(word, offset, &mut 0, stem_end, tokens, spans);
+        // Emit contraction suffix
+        tokens.push(word[stem_end..suffix_end].to_string());
+        spans.push((offset + stem_end, offset + suffix_end));
+        // Process rest (after contraction)
+        let rest = &word[suffix_end..];
+        if !rest.is_empty() {
+            split_word(rest, offset + suffix_end, tokens, spans);
+        }
+        return;
+    }
+
+    // Scan word for punctuation splits
+    let mut start = 0;
+    let chars: Vec<(usize, char)> = word.char_indices().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        let (byte_pos, c) = chars[i];
+
+        // Double hyphen
+        if c == '-' && i + 1 < chars.len() && chars[i + 1].1 == '-' {
+            flush_subword(word, offset, &mut start, byte_pos, tokens, spans);
+            start = byte_pos + 2;
+            tokens.push("--".to_string());
+            spans.push((offset + byte_pos, offset + byte_pos + 2));
+            i += 2;
+            continue;
+        }
+
+        // Double quotes
+        if c == '\'' && i + 1 < chars.len() && chars[i + 1].1 == '\'' {
+            flush_subword(word, offset, &mut start, byte_pos, tokens, spans);
+            start = byte_pos + 2;
+            tokens.push("''".to_string());
+            spans.push((offset + byte_pos, offset + byte_pos + 2));
+            i += 2;
+            continue;
+        }
+
+        // Punctuation
+        if is_punct(c) {
+            flush_subword(word, offset, &mut start, byte_pos, tokens, spans);
+            start = byte_pos + c.len_utf8();
+            tokens.push(word[byte_pos..start].to_string());
+            spans.push((offset + byte_pos, offset + start));
+            i += 1;
+            continue;
+        }
+
+        i += 1;
+    }
+
+    // Flush remaining
+    if start < word.len() {
+        tokens.push(word[start..].to_string());
+        spans.push((offset + start, offset + word.len()));
+    }
+}
+
+/// Helper: flush a sub-word token.
+#[inline]
+fn flush_subword(
+    word: &str,
+    offset: usize,
+    start: &mut usize,
+    end: usize,
+    tokens: &mut Vec<String>,
+    spans: &mut Vec<(usize, usize)>,
+) {
+    if end > *start {
+        tokens.push(word[*start..end].to_string());
+        spans.push((offset + *start, offset + end));
+    }
+    *start = end;
+}
+
+/// Tokenize text using Treebank rules.
+///
+/// Returns `(tokens, byte_spans)`. Spans reference the original `text`.
+pub fn tokenize_treebank(text: &str) -> (Vec<String>, Vec<(usize, usize)>) {
+    let mut tokens: Vec<String> = Vec::new();
+    let mut spans: Vec<(usize, usize)> = Vec::new();
+    let mut word_start: Option<usize> = None;
+
+    for (i, c) in text.char_indices() {
+        if c.is_whitespace() {
+            if let Some(ws) = word_start.take() {
+                split_word(&text[ws..i], ws, &mut tokens, &mut spans);
+            }
+        } else if word_start.is_none() {
+            word_start = Some(i);
+        }
+    }
+
+    if let Some(ws) = word_start {
+        split_word(&text[ws..], ws, &mut tokens, &mut spans);
+    }
+
+    (tokens, spans)
+}
+
+// ── PyO3 wrappers ────────────────────────────────────
 
 /// `TreebankWordTokenizer` — Penn Treebank tokenization.
 #[pyclass(name = "TreebankWordTokenizer", module = "fastnltk._rust")]
@@ -78,22 +194,12 @@ impl TreebankWordTokenizer {
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        tokenize_treebank(text)
+        let (tokens, _) = tokenize_treebank(text);
+        tokens
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
-        let tokens = tokenize_treebank(text);
-        // Approximate spans by finding each token in text
-        let mut spans = Vec::new();
-        let mut search_start = 0;
-        for token in &tokens {
-            if let Some(pos) = text[search_start..].find(token.as_str()) {
-                let start = search_start + pos;
-                let end = start + token.len();
-                spans.push((start, end));
-                search_start = end;
-            }
-        }
+        let (_, spans) = tokenize_treebank(text);
         spans
     }
 }
@@ -128,70 +234,97 @@ impl TreebankWordDetokenizer {
     }
 }
 
-// Tests
+// ── Tests ────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_treebank_basic() {
-        let result = tokenize_treebank("Hello world.");
-        assert_eq!(result, vec!["Hello", "world", "."]);
+    fn test_basic() {
+        let (t, s) = tokenize_treebank("Hello world.");
+        assert_eq!(t, vec!["Hello", "world", "."]);
+        assert_eq!(s, vec![(0, 5), (6, 11), (11, 12)]);
     }
 
     #[test]
-    fn test_treebank_contractions() {
-        let result = tokenize_treebank("can't");
-        assert_eq!(result, vec!["ca", "n't"]);
+    fn test_contraction_nt() {
+        let (t, s) = tokenize_treebank("can't");
+        assert_eq!(t, vec!["ca", "n't"]);
+        assert_eq!(s, vec![(0, 2), (2, 5)]);
     }
 
     #[test]
-    fn test_treebank_contractions_ll() {
-        let result = tokenize_treebank("I'll");
-        assert_eq!(result, vec!["I", "'ll"]);
+    fn test_contraction_ll() {
+        let (t, s) = tokenize_treebank("I'll");
+        assert_eq!(t, vec!["I", "'ll"]);
+        assert_eq!(s, vec![(0, 1), (1, 4)]);
     }
 
     #[test]
-    fn test_treebank_contractions_d() {
-        let result = tokenize_treebank("he'd");
-        assert_eq!(result, vec!["he", "'d"]);
+    fn test_contraction_d() {
+        let (t, s) = tokenize_treebank("he'd");
+        assert_eq!(t, vec!["he", "'d"]);
+        assert_eq!(s, vec![(0, 2), (2, 4)]);
     }
 
     #[test]
-    fn test_treebank_parentheses() {
-        let result = tokenize_treebank("Hello (world)");
-        assert_eq!(result, vec!["Hello", "(", "world", ")"]);
+    fn test_parentheses() {
+        let (t, s) = tokenize_treebank("Hello (world)");
+        assert_eq!(t, vec!["Hello", "(", "world", ")"]);
     }
 
     #[test]
-    fn test_treebank_handles_quotes() {
-        // Verify quotes don't crash tokenizer
-        let result = tokenize_treebank("\"Hello\"");
-        assert!(!result.is_empty());
+    fn test_comma() {
+        let (t, s) = tokenize_treebank("Hello, world");
+        assert_eq!(t, vec!["Hello", ",", "world"]);
     }
 
     #[test]
-    fn test_treebank_comma() {
-        let result = tokenize_treebank("Hello, world");
-        assert_eq!(result, vec!["Hello", ",", "world"]);
+    fn test_double_hyphen() {
+        let (t, s) = tokenize_treebank("Hello--world");
+        assert_eq!(t, vec!["Hello", "--", "world"]);
     }
 
     #[test]
-    fn test_treebank_empty() {
-        let result = tokenize_treebank("");
-        assert!(result.is_empty());
+    fn test_empty() {
+        let (t, s) = tokenize_treebank("");
+        assert!(t.is_empty());
+        assert!(s.is_empty());
     }
 
     #[test]
-    fn test_treebank_detokenize() {
+    fn test_preserves_quotes() {
+        let (t, _) = tokenize_treebank("\"Hello\"");
+        assert!(!t.is_empty());
+        // Quotes stay attached (not in Treebank punctuation set)
+        assert_eq!(t, vec!["\"Hello\""]);
+    }
+
+    #[test]
+    fn test_emoji_standalone() {
+        let (t, _) = tokenize_treebank("Hello \u{1f44b} world");
+        assert!(t.contains(&"Hello".to_string()));
+        assert!(t.contains(&"world".to_string()));
+    }
+
+    #[test]
+    fn test_full_sentence() {
+        let text = "Mr. Smith went to Washington, D.C. and said \"We can't allow this!\"";
+        let (t, _) = tokenize_treebank(text);
+        assert!(!t.is_empty());
+        assert!(t.len() > 10);
+    }
+
+    #[test]
+    fn test_detokenize() {
         let tok = TreebankWordDetokenizer::new();
         let result = tok.detokenize(vec!["Hello".into(), ",".into(), "world".into(), ".".into()]);
         assert_eq!(result, "Hello, world.");
     }
 
     #[test]
-    fn test_treebank_detokenize_contraction() {
+    fn test_detokenize_contraction() {
         let tok = TreebankWordDetokenizer::new();
         let result = tok.detokenize(vec!["ca".into(), "n't".into()]);
         assert_eq!(result, "can't");

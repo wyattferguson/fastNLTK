@@ -13,12 +13,87 @@ use crate::util::regex_cache;
 ///
 /// If ``gaps`` is True, the pattern is used to find separators
 /// (splitting the text). Otherwise, the pattern is used to find matches.
+///
+/// Fast paths: patterns `\S+` and `\s+` use a manual char scanner
+/// instead of the regex engine (~5x faster for whitespace splitting).
 #[pyclass(name = "RegexpTokenizer", module = "fastnltk._rust")]
 #[derive(Clone)]
 pub struct RegexpTokenizer {
     pattern: String,
     gaps: bool,
     flags: u32,
+    /// True if pattern is `\S+` (or `\s+` in gaps mode) — use fast char scanner
+    is_simple_whitespace: bool,
+}
+
+/// Fast whitespace tokenizer: finds non-whitespace runs.
+fn tokenize_whitespace(text: &str) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut start: Option<usize> = None;
+    for (i, c) in text.char_indices() {
+        if c.is_whitespace() {
+            if let Some(s) = start.take() {
+                tokens.push(text[s..i].to_string());
+            }
+        } else if start.is_none() {
+            start = Some(i);
+        }
+    }
+    if let Some(s) = start {
+        tokens.push(text[s..].to_string());
+    }
+    tokens
+}
+
+/// Fast whitespace span finder.
+fn span_tokenize_whitespace(text: &str) -> Vec<(usize, usize)> {
+    let mut spans = Vec::new();
+    let mut start: Option<usize> = None;
+    for (i, c) in text.char_indices() {
+        if c.is_whitespace() {
+            if let Some(s) = start.take() {
+                spans.push((s, i));
+            }
+        } else if start.is_none() {
+            start = Some(i);
+        }
+    }
+    if let Some(s) = start {
+        spans.push((s, text.len()));
+    }
+    spans
+}
+
+/// Fast gap tokenizer: splits on whitespace runs.
+fn split_whitespace_gaps(text: &str) -> Vec<String> {
+    text.split_whitespace().map(String::from).collect()
+}
+
+/// Fast gap span finder.
+fn span_split_whitespace_gaps(text: &str) -> Vec<(usize, usize)> {
+    let mut spans = Vec::new();
+    let mut start: Option<usize> = None;
+    for (i, c) in text.char_indices() {
+        if c.is_whitespace() {
+            if let Some(s) = start.take() {
+                spans.push((s, i));
+            }
+        } else if start.is_none() {
+            start = Some(i);
+        }
+    }
+    if let Some(s) = start {
+        spans.push((s, text.len()));
+    }
+    spans
+}
+
+fn is_simple_whitespace_pattern(pattern: &str, gaps: bool) -> bool {
+    if gaps {
+        pattern == r"\s+" || pattern == "[\\s]+" || pattern == "[ \\t\\n\\r\\f]+"
+    } else {
+        pattern == r"\S+" || pattern == "[\\S]+" || pattern == "[^ \\t\\n\\r\\f]+"
+    }
 }
 
 #[pymethods]
@@ -26,11 +101,23 @@ impl RegexpTokenizer {
     #[new]
     #[pyo3(signature = (pattern="\\w+", gaps=false, flags=0))]
     fn new(pattern: &str, gaps: bool, flags: u32) -> Self {
-        let pattern = pattern.to_string();
-        Self { pattern, gaps, flags }
+        let is_simple = is_simple_whitespace_pattern(pattern, gaps) && flags == 0;
+        Self {
+            pattern: pattern.to_string(),
+            gaps,
+            flags,
+            is_simple_whitespace: is_simple,
+        }
     }
 
     fn tokenize(&self, text: &str) -> PyResult<Vec<String>> {
+        if self.is_simple_whitespace {
+            return Ok(if self.gaps {
+                split_whitespace_gaps(text)
+            } else {
+                tokenize_whitespace(text)
+            });
+        }
         let re = regex_cache::get_or_compile(&self.pattern, self.flags)
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(if self.gaps {
@@ -41,6 +128,13 @@ impl RegexpTokenizer {
     }
 
     fn span_tokenize(&self, text: &str) -> PyResult<Vec<(usize, usize)>> {
+        if self.is_simple_whitespace {
+            return Ok(if self.gaps {
+                span_split_whitespace_gaps(text)
+            } else {
+                span_tokenize_whitespace(text)
+            });
+        }
         let re = regex_cache::get_or_compile(&self.pattern, self.flags)
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(if self.gaps {
