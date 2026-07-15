@@ -216,7 +216,7 @@ class TestTag:
         _eq("Trigram", ntag.TrigramTagger(train=TRAIN).tag(["The", "cat"]),
             _ftag.TrigramTagger(train=TRAIN).tag(["The", "cat"]))
 
-    @pytest.mark.xfail(reason="Rust AffixTagger output differs from NLTK")
+    @pytest.mark.xfail(reason="Rust/NLTK AffixTagger train() semantics differ")
     def test_affix(self):
         _eq("Affix", ntag.AffixTagger(train=TRAIN).tag(["The", "cat"]),
             _ftag.AffixTagger(train=TRAIN).tag(["The", "cat"]))
@@ -255,7 +255,6 @@ class TestMetrics:
         for a, b in [("hello", "hello"), ("kitten", "sitting"), ("", "abc")]:
             _eq(f"ed({a},{b})", nltk.edit_distance(a, b), _fmetrics.edit_distance(a, b))
 
-    @pytest.mark.xfail(reason="Rust jaccard_distance expects str, not set")
     def test_jaccard(self):
         for a, b in [(set("abc"), set("abc")), (set("abc"), set("def"))]:
             _eq(f"jacc({a},{b})", nltk.jaccard_distance(a, b), _fmetrics.jaccard_distance(a, b))
@@ -269,12 +268,10 @@ class TestMetrics:
         except ImportError:
             pytest.skip("jaro not importable")
 
-    @pytest.mark.xfail(reason="Rust windowdiff signature mismatch: expects str not list")
     def test_windowdiff(self):
         from nltk.metrics.segmentation import windowdiff as _nwd
         _eq("wd", _nwd([1, 1, 0], [1, 1, 0], 3), _fmetrics.windowdiff([1, 1, 0], [1, 1, 0], 3))
 
-    @pytest.mark.xfail(reason="Rust pk signature mismatch: expects str not list")
     def test_pk(self):
         from nltk.metrics.segmentation import pk as _npk
         _eq("pk", _npk([1, 1, 0], [1, 1, 0], 3), _fmetrics.pk([1, 1, 0], [1, 1, 0], 3))
@@ -291,7 +288,7 @@ class TestProb:
         _eq("FD['l']", fd_n["l"], fd_f["l"])
         _eq("FD keys", set(fd_n.keys()), set(fd_f.keys()))
 
-    @pytest.mark.xfail(reason="Rust ConditionalFreqDist lacks __setitem__")
+    @pytest.mark.xfail(reason="NLTK 3.10 removed FreqDist.inc(); Rust lacks __setitem__")
     def test_cond_freqdist(self):
         n_cfd, f_cfd = nprob.ConditionalFreqDist(), _fprob.ConditionalFreqDist()
         for c, e in [("a", "x"), ("a", "y"), ("b", "x")]:
@@ -308,7 +305,7 @@ class TestProb:
 
 
 class TestLM:
-    @pytest.mark.xfail(reason="Rust LM lacks vocabulary param")
+    @pytest.mark.xfail(reason="Rust LM fit() doesn't auto-build vocabulary from empty")
     def test_mle(self):
         nlm_ = nlm.MLE(order=2)
         flm_ = _flm.MLE(order=2)
@@ -386,11 +383,10 @@ class TestClassify:
 
 
 class TestTranslate:
-    @pytest.mark.xfail(reason="BLEU import path differs in NLTK 3.10")
     def test_bleu(self):
         ref = ["the cat sat on the mat".split()]
         hyp = "the cat sat on the mat".split()
-        assert _ic(nltk.translate.bleu_score.bleu(ref, hyp),
+        assert _ic(nltk.translate.bleu_score.sentence_bleu(ref, hyp),
                    _ftrans.bleu(ref, hyp))
 
 
@@ -421,7 +417,7 @@ class TestChat:
 
 
 class TestChunk:
-    @pytest.mark.xfail(reason="Rust chunk Tree object lacks .append for building")
+    @pytest.mark.xfail(reason="Rust chunker Tree doesn't preserve POS tags")
     def test_regexp_parser(self):
         g = r"NP: {<DT>?<JJ>*<NN>}"
         t = [("The", "DT"), ("fox", "NN")]
@@ -477,10 +473,11 @@ class TestParse:
         fg = _fparse.CFG.from_string(self.GR)
         _eq("CFG.start", str(ng.start()), str(fg.start()))
 
-    @pytest.mark.xfail(reason="Rust EarleyChartParser init signature")
+    @pytest.mark.xfail(reason="Rust Earley only returns success marker, not parse trees")
     def test_earley(self):
-        grammar = nltk.CFG.fromstring(self.GR)
+        grammar_n = nltk.CFG.fromstring(self.GR)
+        grammar_f = _fparse.CFG.from_string(self.GR)
         sent = ["the", "cat", "chased", "the", "dog"]
-        nr = sorted(str(t) for t in nltk.EarleyChartParser(grammar).parse(sent))
-        fr = sorted(str(t) for t in _fparse.EarleyChartParser(grammar).parse(sent))
+        nr = sorted(str(t) for t in nltk.EarleyChartParser(grammar_n).parse(sent))
+        fr = sorted(str(t) for t in _fparse.EarleyChartParser(grammar_f).parse(sent))
         _eq("Earley", nr, fr)

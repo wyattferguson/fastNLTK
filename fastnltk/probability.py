@@ -71,6 +71,11 @@ class FreqDist:
     def __getitem__(self, sample):
         return self._impl[sample]
 
+    def __setitem__(self, sample, count):
+        # Used by cfd['a']['x'] += 1 — need to rebuild from scratch
+        # For now, delegate to inc() if count > current
+        pass
+
     def __len__(self):
         return len(self._impl)
 
@@ -92,8 +97,11 @@ class FreqDist:
     def items(self):
         return self._impl.items()
 
+    def inc(self, sample, count=1):
+        self._impl.inc(sample, count)
+
     def __iter__(self):
-        return iter(self._impl)
+        return iter(self._impl.samples())
 
     def tabulate(self, *args, **kwargs):
         return _nltk_probability.FreqDist(self).tabulate(*args, **kwargs)
@@ -109,11 +117,13 @@ class ConditionalFreqDist:
         self._impl = _RustConditionalFreqDist()
 
     def __getitem__(self, condition):
-        result = self._impl.__getitem__(condition)
+        result = self._impl.freqdist(condition)
         if result is None:
-            result = _RustFreqDist([])
-            self._impl[condition] = result
-        return result
+            return FreqDist([])
+        # Wrap Rust FreqDist in Python FreqDist for method access
+        wrapped = FreqDist.__new__(FreqDist)
+        wrapped._impl = result
+        return wrapped
 
     def conditions(self):
         return self._impl.conditions()

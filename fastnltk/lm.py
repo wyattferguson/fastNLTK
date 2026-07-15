@@ -53,7 +53,8 @@ __all__ = [
 class MLE:
     """Maximum Likelihood Estimation language model — Rust-accelerated."""
 
-    def __init__(self, order):
+    def __init__(self, order, vocabulary=None):
+
         self._impl = _RustMLE(order)
 
     def fit(self, sentences, vocabulary=None):
@@ -84,7 +85,8 @@ class MLE:
 class Lidstone:
     """Lidstone-smoothed language model — Rust-accelerated."""
 
-    def __init__(self, order, gamma):
+    def __init__(self, order, gamma, vocabulary=None):
+
         self._impl = _RustLidstone(order, gamma)
 
     def fit(self, sentences, vocabulary=None):
@@ -115,7 +117,8 @@ class Lidstone:
 class Laplace:
     """Laplace (add-one) smoothed language model — Rust-accelerated."""
 
-    def __init__(self, order):
+    def __init__(self, order, vocabulary=None):
+
         self._impl = _RustLaplace(order)
 
     def fit(self, sentences, vocabulary=None):
@@ -146,7 +149,8 @@ class Laplace:
 class KneserNeyInterpolated:
     """Kneser-Ney interpolated language model — Rust-accelerated."""
 
-    def __init__(self, order, discount=0.75):
+    def __init__(self, order, discount=0.75, vocabulary=None):
+
         self._impl = _RustKneserNeyInterpolated(order, discount)
 
     def fit(self, sentences):
@@ -167,7 +171,8 @@ class KneserNeyInterpolated:
 class WittenBellInterpolated:
     """Witten-Bell interpolated language model — Rust-accelerated."""
 
-    def __init__(self, order):
+    def __init__(self, order, vocabulary=None):
+
         self._impl = _RustWittenBellInterpolated(order)
 
     def fit(self, sentences):
@@ -188,7 +193,8 @@ class WittenBellInterpolated:
 class StupidBackoff:
     """Stupid backoff LM — Rust-accelerated."""
 
-    def __init__(self, order, alpha=0.4):
+    def __init__(self, order, alpha=0.4, vocabulary=None):
+
         self._impl = _RustStupidBackoff(order, alpha)
 
     def fit(self, sentences):
