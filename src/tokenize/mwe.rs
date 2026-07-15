@@ -2,10 +2,11 @@
 
 use hashbrown::HashMap;
 use pyo3::prelude::*;
+use smol_str::SmolStr;
 
 #[derive(Clone, Default)]
 struct TrieNode {
-    children: HashMap<String, Self>,
+    children: HashMap<SmolStr, Self>,
     is_end: bool,
 }
 
@@ -35,7 +36,7 @@ impl MWETokenizer {
         }
         let mut node = &mut self.root;
         for word in &mwe {
-            node = node.children.entry(word.clone()).or_default();
+            node = node.children.entry(SmolStr::new(word)).or_default();
         }
         node.is_end = true;
     }
@@ -48,7 +49,7 @@ impl MWETokenizer {
             let mut node = &self.root;
             for (offset, word) in text[i..].iter().enumerate() {
                 let j = i + offset;
-                match node.children.get(word) {
+                match node.children.get(word.as_str()) {
                     Some(next) => {
                         node = next;
                         if node.is_end {

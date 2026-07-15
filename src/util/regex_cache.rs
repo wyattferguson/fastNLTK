@@ -1,4 +1,9 @@
-//! Simple regex compilation cache.
+//! Regex compilation cache.
+//!
+//! Uses `parking_lot::Mutex` over `HashMap`. The lock is dropped during
+//! compilation so other threads aren't blocked by slow regex builds.
+//! For PyO3 single-threaded usage this is overkill but harmless.
+//! For rayon-based parallel tokenization, consider `dashmap`.
 
 use std::collections::HashMap;
 
@@ -18,7 +23,7 @@ pub fn get_or_compile(pattern: &str, flags: u32) -> Result<Regex, regex::Error> 
         return Ok(re.clone());
     }
 
-    // Compile (drop lock during compilation to avoid blocking other threads)
+    // Drop lock during compilation so other threads aren't blocked
     drop(cache);
     let re = compile_regex(pattern, flags)?;
 
