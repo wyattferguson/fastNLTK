@@ -1,9 +1,4 @@
-//! Treebank tokenizer — Penn Treebank-style tokenization.
-//!
-//! Based on NLTK's `TreebankWordTokenizer` which handles:
-//!   - English contractions (n't, 'm, 's, 're, 've, 'll, 'd)
-//!   - Punctuation splitting (parentheses, quotes, commas, etc.)
-//!   - Clitics and hyphenated words
+//! Penn Treebank-style tokenization.
 
 use pyo3::prelude::*;
 use regex::Regex;
@@ -26,10 +21,9 @@ static CONTRACTIONS2: LazyLock<Vec<(Regex, &str)>> = LazyLock::new(|| {
         (r"(?i)\b(t)(was)\b", " $1 $2"),
         (r"(?i)\b(wan)(na)\b", " $1 $2"),
     ];
-    patterns.iter().filter_map(|(p, r)| Regex::new(p).ok().map(|re| (re, *r))).collect()
+    patterns.iter().map(|(p, r)| (Regex::new(p).unwrap(), *r)).collect()
 });
 
-/// Punctuation rules for splitting. Regexes pre-compiled at load time.
 static PUNCTUATION: LazyLock<Vec<(Regex, &str)>> = LazyLock::new(|| {
     let patterns: &[(&str, &str)] = &[
         (r"([\[\](){}<>])", " $1 "),
@@ -38,7 +32,7 @@ static PUNCTUATION: LazyLock<Vec<(Regex, &str)>> = LazyLock::new(|| {
         (r"''", " '' "),
         (r"''", " '' "),
     ];
-    patterns.iter().filter_map(|(p, r)| Regex::new(p).ok().map(|re| (re, *r))).collect()
+    patterns.iter().map(|(p, r)| (Regex::new(p).unwrap(), *r)).collect()
 });
 
 /// Collapse multiple spaces — pre-compiled at load time.
