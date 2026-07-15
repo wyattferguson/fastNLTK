@@ -68,7 +68,7 @@ impl UnigramTagger {
         #[cfg(feature = "parallel")]
         {
             use rayon::prelude::*;
-            return sentences.into_par_iter().map(|s| self.tag(s)).collect();
+            sentences.into_par_iter().map(|s| self.tag(s)).collect()
         }
         #[cfg(not(feature = "parallel"))]
         sentences.into_iter().map(|s| self.tag(s)).collect()
@@ -189,7 +189,7 @@ impl BigramTagger {
         #[cfg(feature = "parallel")]
         {
             use rayon::prelude::*;
-            return sentences.into_par_iter().map(|s| self.tag(s)).collect();
+            sentences.into_par_iter().map(|s| self.tag(s)).collect()
         }
         #[cfg(not(feature = "parallel"))]
         sentences.into_iter().map(|s| self.tag(s)).collect()
@@ -291,7 +291,7 @@ impl TrigramTagger {
         #[cfg(feature = "parallel")]
         {
             use rayon::prelude::*;
-            return sentences.into_par_iter().map(|s| self.tag(s)).collect();
+            sentences.into_par_iter().map(|s| self.tag(s)).collect()
         }
         #[cfg(not(feature = "parallel"))]
         sentences.into_iter().map(|s| self.tag(s)).collect()
@@ -380,7 +380,7 @@ impl AffixTagger {
         #[cfg(feature = "parallel")]
         {
             use rayon::prelude::*;
-            return sentences.into_par_iter().map(|s| self.tag(s)).collect();
+            sentences.into_par_iter().map(|s| self.tag(s)).collect()
         }
         #[cfg(not(feature = "parallel"))]
         sentences.into_iter().map(|s| self.tag(s)).collect()
@@ -443,7 +443,7 @@ impl RegexpTagger {
         #[cfg(feature = "parallel")]
         {
             use rayon::prelude::*;
-            return sentences.into_par_iter().map(|s| self.tag(s)).collect();
+            sentences.into_par_iter().map(|s| self.tag(s)).collect()
         }
         #[cfg(not(feature = "parallel"))]
         sentences.into_iter().map(|s| self.tag(s)).collect()

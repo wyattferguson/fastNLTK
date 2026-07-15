@@ -19,7 +19,6 @@ pyo3 = { version = "0.29", features = ["abi3-py38", "generate-import-lib"] }
 regex = "1"
 unicode-segmentation = "1"
 rust-stemmers = "1"
-rustling = { path = "vendor/rustling", default-features = false, features = ["parallel"] }
 serde = { version = "1", features = ["derive"] }
 bincode = { version = "2", features = ["serde"] }
 serde_json = "1"
@@ -46,7 +45,7 @@ mimalloc = "0.1"
 [features]
 default = ["parallel", "extension-module"]
 extension-module = ["pyo3/extension-module"]
-parallel = ["rayon", "rustling/parallel"]
+parallel = ["rayon"]
 
 [profile.release]
 lto = "fat"

@@ -19,9 +19,9 @@ python -m nltk.downloader punkt averaged_perceptron_tagger wordnet
 4. **Conventional commits** — `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`.
 5. **Run lints before pushing**:
    ```bash
-   cargo clippy --tests -- -D warnings
+   cargo clippy --all-targets -- -D warnings
    cargo fmt --all -- --check
-   ruff check fastnltk/
+   ruff check fastnltk/ tests/
    cargo test
    python -m pytest
    ```
@@ -36,4 +36,4 @@ PyPI release. See `.github/workflows/`.
 - `src/` — Rust crate (`fastnltk._rust`), mirrors NLTK module layout
 - `fastnltk/` — Python shims, re-exports from Rust + delegates to `nltk`
 - `tests/` — pytest suite, mirrors `fastnltk/` layout
-- `benchmarks/` — `pytest-benchmark` comparisons against `nltk`
+- `benchmarks/` — Custom harness for regression-tracked comparisons against `nltk`

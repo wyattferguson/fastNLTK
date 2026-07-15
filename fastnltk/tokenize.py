@@ -16,6 +16,9 @@ from fastnltk._rust import (
     CharTokenizer as _RustCharTokenizer,
 )
 from fastnltk._rust import (
+    SpaceTokenizer as _RustSpaceTokenizer,
+)
+from fastnltk._rust import (
     LineTokenizer as _RustLineTokenizer,
 )
 from fastnltk._rust import (
@@ -196,12 +199,10 @@ class LineTokenizer:
 
 
 class SpaceTokenizer:
-    """Space tokenizer — delegates to NLTK (Rust impl still being optimized)."""
+    """Rust-accelerated space tokenizer."""
 
     def __init__(self) -> None:
-        import nltk.tokenize
-
-        self._impl: Any = nltk.tokenize.SpaceTokenizer()
+        self._impl = _RustSpaceTokenizer()
 
     def tokenize(self, text: str) -> list[str]:
         return self._impl.tokenize(text)

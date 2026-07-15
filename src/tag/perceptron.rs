@@ -109,7 +109,7 @@ impl PerceptronTagger {
         #[cfg(feature = "parallel")]
         {
             use rayon::prelude::*;
-            return sentences.par_iter().map(|s| self.tag_sentence(s)).collect();
+            sentences.par_iter().map(|s| self.tag_sentence(s)).collect()
         }
         #[cfg(not(feature = "parallel"))]
         sentences.iter().map(|s| self.tag_sentence(s)).collect()
@@ -126,9 +126,9 @@ impl PerceptronTagger {
 
     /// Load tagger state from a bincode cache file into self.
     fn load_from_cache(&mut self, path: &str) -> PyResult<()> {
-        let bytes = std::fs::read(path)
-            .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
-        let (tagger, _): (PerceptronTagger, usize) =
+        let bytes =
+            std::fs::read(path).map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
+        let (tagger, _): (Self, usize) =
             bincode::serde::decode_from_slice(&bytes, bincode::config::standard())
                 .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
         self.weights = tagger.weights;

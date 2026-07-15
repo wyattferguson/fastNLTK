@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """fastnltk.stem — Drop-in replacement for nltk.stem."""
+
+from __future__ import annotations
 
 import nltk.stem as _nltk_stem
 

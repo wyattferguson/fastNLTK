@@ -8,9 +8,10 @@ version = "0.4.0"
 requires-python = ">=3.8"
 description = "Drop-in Rust-accelerated replacement for NLTK. Same API, 5-50x faster."
 authors = [
-    { name = "fastNLTK Contributors" },
+    { name = "Wyatt Ferguson" },
 ]
 license = "Apache-2.0"
+keywords = ["nlp", "nltk", "tokenization", "tagging", "stemming", "parsing", "text-processing", "rust"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -31,6 +32,11 @@ dependencies = [
     "nltk>=3.6",
 ]
 dynamic = ["readme"]
+
+[project.urls]
+Homepage = "https://github.com/fastnltk/fastnltk"
+Repository = "https://github.com/fastnltk/fastnltk"
+Changelog = "https://github.com/fastnltk/fastnltk/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = ["maturin>=1.7", "pytest>=7", "pytest-benchmark", "ruff>=0.8", "mypy"]

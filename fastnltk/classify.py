@@ -1,8 +1,8 @@
-from __future__ import annotations
-
 """
 fastnltk.classify — Drop-in replacement for nltk.classify.
 """
+
+from __future__ import annotations
 
 import nltk.classify as _nltk_classify
 from nltk.classify import ClassifierI, DecisionTreeClassifier

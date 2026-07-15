@@ -5,6 +5,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/fastnltk.svg)](https://pypi.org/project/fastnltk/)
 [![Python](https://img.shields.io/pypi/pyversions/fastnltk.svg)](https://pypi.org/project/fastnltk/)
+[![CI](https://github.com/fastnltk/fastnltk/actions/workflows/quality.yml/badge.svg)](https://github.com/fastnltk/fastnltk/actions/workflows/quality.yml)
 [![Rust](https://img.shields.io/badge/rust-1.80%2B-blue)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
@@ -25,6 +26,18 @@ compiled code — and production regressions have made NLTK's performance unpred
 (e.g. 0.55s → 216s on 30K chars between versions).
 
 fastNLTK preserves the exact API while replacing the engine.
+
+## Platform Support
+
+| Platform | Architecture | Wheel |
+|----------|-------------|-------|
+| Linux    | x86_64      | ✅    |
+| Linux    | aarch64     | ✅    |
+| macOS    | x86_64      | ✅    |
+| macOS    | arm64       | ✅    |
+| Windows  | x64         | ✅    |
+
+Python 3.8–3.13, PyPy 3.9+. Rust 1.80+ for source builds.
 
 ```python
 # Before
@@ -181,8 +194,8 @@ pip install -e ".[dev]"
 maturin develop --release
 
 # Run tests
-cargo test                       # 279 Rust tests
-pytest tests/                     # 254 Python tests
+cargo test                       # 283 Rust tests
+pytest tests/                     # 257 Python tests
 
 # Quality checks
 cargo fmt --all -- --check
@@ -202,18 +215,24 @@ See [LICENSE](LICENSE) for details.
 fastNLTK is not affiliated with, endorsed by, or sponsored by NLTK or
 its maintainers. NLTK is a trademark of the NLTK Project.
 
-## Contact + Support
+## Citing
+
+If you use fastNLTK in academic work, please cite:
+
+```bibtex
+@software{fastnltk2025,
+  author       = {Wyatt Ferguson},
+  title        = {fastNLTK: Drop-in Rust-accelerated replacement for NLTK},
+  year         = {2025},
+  publisher    = {GitHub},
+  url          = {https://github.com/fastnltk/fastnltk}
+}
+```
+
+## Contact
 
 Created by [Wyatt Ferguson](https://github.com/wyattferguson)
 
-For any questions or comments heres how you can reach me:
-
-**:octopus: Follow me on [Github @wyattferguson](https://github.com/wyattferguson)**
-
-**:mailbox_with_mail: Email me at [wyattxdev@duck.com](wyattxdev@duck.com)**
-
-**:tropical_drink: Follow on [BlueSky @wyattf](https://wyattf.bsky.social)**
-
-If you find this useful and want to tip me a little coffee money:
-
-**:coffee: [Buy Me A Coffee](https://www.buymeacoffee.com/wyattferguson)**
+- [GitHub @wyattferguson](https://github.com/wyattferguson)
+- [BlueSky @wyattf](https://wyattf.bsky.social)
+- [Email](mailto:wyattxdev@duck.com)

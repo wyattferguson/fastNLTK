@@ -92,13 +92,12 @@ impl Tree {
             return py.None();
         }
         match &self.children[idx] {
-            TreeNode::Leaf(s) => s.clone().into_pyobject(py).unwrap().into_any().unbind(),
+            TreeNode::Leaf(s) => s
+                .clone()
+                .into_pyobject(py)
+                .map_or_else(|_| py.None(), |obj| obj.into_any().unbind()),
             TreeNode::Subtree(t) => {
-                // Return the subtree wrapped as a Python Tree object
-                match Py::new(py, t.clone()) {
-                    Ok(obj) => obj.into_any(),
-                    Err(_) => py.None(),
-                }
+                Py::new(py, t.clone()).map_or_else(|_| py.None(), pyo3::Py::into_any)
             }
         }
     }
@@ -133,6 +132,20 @@ impl Tree {
 
     fn pprint(&self) -> String {
         format!("{self}")
+    }
+
+    /// Append a child — accepts a `str` (leaf) or `Tree` (subtree).
+    /// Matches NLTK's `tree.append(child)`.
+    fn append(&mut self, child: &Bound<'_, PyAny>) -> PyResult<()> {
+        if let Ok(tree) = child.extract::<Tree>() {
+            self.children.push(TreeNode::Subtree(tree));
+        } else if let Ok(s) = child.extract::<String>() {
+            self.children.push(TreeNode::Leaf(s));
+        } else {
+            let s: String = child.str()?.to_string();
+            self.children.push(TreeNode::Leaf(s));
+        }
+        Ok(())
     }
 }
 
@@ -376,5 +389,23 @@ mod tests {
         let subs = sample_tree().subtrees();
         // Should have at least S and NP subtrees
         assert!(subs.len() >= 2);
+    }
+
+    #[test]
+    fn test_append_string_and_tree() {
+        pyo3::Python::initialize();
+        pyo3::Python::try_attach(|py| {
+            let mut tree = Tree::new("S", None);
+            let child_str = "hello".to_string();
+            tree.append(&child_str.into_pyobject(py).unwrap().into_any())?;
+            let child_tree = Tree::new("NP", Some(vec!["world".to_string()]));
+            let child_tree_py = Py::new(py, child_tree)?;
+            tree.append(child_tree_py.bind(py))?;
+            // Leaves should be: "hello", "world"
+            assert_eq!(tree.leaves(), vec!["hello", "world"]);
+            Ok::<_, PyErr>(())
+        })
+        .unwrap()
+        .unwrap();
     }
 }

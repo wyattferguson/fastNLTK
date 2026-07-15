@@ -51,6 +51,8 @@ __all__ = [
 
 
 class MLE:
+    """Maximum Likelihood Estimation language model — Rust-accelerated."""
+
     def __init__(self, order):
         self._impl = _RustMLE(order)
 
@@ -80,6 +82,8 @@ class MLE:
 
 
 class Lidstone:
+    """Lidstone-smoothed language model — Rust-accelerated."""
+
     def __init__(self, order, gamma):
         self._impl = _RustLidstone(order, gamma)
 
@@ -109,6 +113,8 @@ class Lidstone:
 
 
 class Laplace:
+    """Laplace (add-one) smoothed language model — Rust-accelerated."""
+
     def __init__(self, order):
         self._impl = _RustLaplace(order)
 
@@ -138,6 +144,8 @@ class Laplace:
 
 
 class KneserNeyInterpolated:
+    """Kneser-Ney interpolated language model — Rust-accelerated."""
+
     def __init__(self, order, discount=0.75):
         self._impl = _RustKneserNeyInterpolated(order, discount)
 
@@ -157,6 +165,8 @@ class KneserNeyInterpolated:
 
 
 class WittenBellInterpolated:
+    """Witten-Bell interpolated language model — Rust-accelerated."""
+
     def __init__(self, order):
         self._impl = _RustWittenBellInterpolated(order)
 

@@ -1,14 +1,10 @@
 //! Tweet tokenizer — handles emoji, hashtags, mentions, URLs, etc.
-//! Regexes compiled once via LazyLock (not per-call).
+//! Regexes compiled once via `LazyLock` (not per-call).
 
 use pyo3::prelude::*;
 use regex::Regex;
 use std::sync::LazyLock;
 
-#[allow(dead_code)]
-static _URL_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"https?://[^\s<>\[\]{}|\\^`]+|www\.[^\s<>\[\]{}|\\^`]+").unwrap()
-});
 static _EMOTICON_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"[<>]?[:;=8][\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\]|[\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\][:;=8][<>]?").unwrap()
 });

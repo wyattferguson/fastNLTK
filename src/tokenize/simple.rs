@@ -1,6 +1,10 @@
 //! Simple tokenizers: Space, Tab, Line, Char.
 
 use pyo3::prelude::*;
+use regex::Regex;
+use std::sync::LazyLock;
+
+static WS_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+").unwrap());
 
 // SpaceTokenizer
 
@@ -13,29 +17,32 @@ pub struct SpaceTokenizer;
 #[pymethods]
 impl SpaceTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        text.split(' ').map(String::from).collect()
+        if text.is_empty() {
+            return vec![String::new()];
+        }
+        let mut tokens = Vec::new();
+        let mut last_end = 0;
+        for m in WS_RE.find_iter(text) {
+            tokens.push(text[last_end..m.start()].to_string());
+            last_end = m.end();
+        }
+        tokens.push(text[last_end..].to_string());
+        tokens
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
         let mut spans = Vec::new();
-        let mut start: Option<usize> = None;
-        for (i, ch) in text.char_indices() {
-            if ch == ' ' {
-                if let Some(s) = start.take() {
-                    spans.push((s, i));
-                }
-            } else if start.is_none() {
-                start = Some(i);
-            }
+        let mut pos = 0;
+        for m in WS_RE.find_iter(text) {
+            spans.push((pos, m.start()));
+            pos = m.end();
         }
-        if let Some(s) = start {
-            spans.push((s, text.len()));
-        }
+        spans.push((pos, text.len()));
         spans
     }
 }
@@ -49,7 +56,7 @@ pub struct TabTokenizer;
 #[pymethods]
 impl TabTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -85,7 +92,7 @@ pub struct LineTokenizer;
 #[pymethods]
 impl LineTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -121,7 +128,7 @@ pub struct CharTokenizer;
 #[pymethods]
 impl CharTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -155,13 +162,13 @@ mod tests {
     #[test]
     fn test_space_tokenize_multiple_spaces() {
         let tok = SpaceTokenizer::new();
-        assert_eq!(tok.tokenize("a  b"), vec!["a", "", "b"]);
+        assert_eq!(tok.tokenize("a  b"), vec!["a", "b"]);
     }
 
     #[test]
     fn test_space_tokenize_leading_trailing() {
         let tok = SpaceTokenizer::new();
-        assert_eq!(tok.tokenize("  a b  "), vec!["", "", "a", "b", "", ""]);
+        assert_eq!(tok.tokenize("  a b  "), vec!["", "a", "b", ""]);
     }
 
     #[test]

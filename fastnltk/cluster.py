@@ -1,11 +1,11 @@
-from __future__ import annotations
-
 """
 fastnltk.cluster — Drop-in replacement for nltk.cluster.
 
 Rust-accelerated KMeansClusterer with Euclidean distance.
 Other clusterers (GAAC, VectorSpace) fall back to NLTK.
 """
+
+from __future__ import annotations
 
 from nltk.cluster import *  # noqa: F403
 

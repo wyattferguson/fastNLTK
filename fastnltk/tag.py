@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """
 fastnltk.tag — Drop-in replacement for nltk.tag.
 
 All taggers are Rust-accelerated via the compiled `_rust` extension.
 """
+
+from __future__ import annotations
 
 import functools
 import os
@@ -45,6 +45,9 @@ from fastnltk._rust import (
 )
 from fastnltk._rust import (
     TrigramTagger as _RustTrigramTagger,
+)
+from fastnltk._rust import (
+    TnT as _RustTnT,
 )
 from fastnltk._rust import (
     UnigramTagger as _RustUnigramTagger,
@@ -172,20 +175,18 @@ class PerceptronTagger:
 
 
 class TnT:
-    """TnT trigram HMM tagger — delegates to NLTK (Rust impl still being optimized)."""
+    """TnT trigram HMM tagger — integer-ID Viterbi, Rust-accelerated."""
 
     def __init__(self):
-        import nltk.tag
+        self._impl = _RustTnT()
 
-        self._impl = nltk.tag.TnT()
-
-    def train(self, sentences: list[list[str]]) -> None:
+    def train(self, sentences):
         self._impl.train(sentences)
 
-    def tag(self, words: list[str]) -> list[tuple[str, str]]:
+    def tag(self, words):
         return self._impl.tag(words)
 
-    def tag_sents(self, sentences: list[list[str]]) -> list[list[tuple[str, str]]]:
+    def tag_sents(self, sentences):
         return self._impl.tag_sents(sentences)
 
 

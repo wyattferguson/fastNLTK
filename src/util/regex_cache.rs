@@ -2,7 +2,7 @@
 //!
 //! Uses `parking_lot::Mutex` over `HashMap`. The lock is dropped during
 //! compilation so other threads aren't blocked by slow regex builds.
-//! For PyO3 single-threaded usage this is overkill but harmless.
+//! For `PyO3` single-threaded usage this is overkill but harmless.
 //! For rayon-based parallel tokenization, consider `dashmap`.
 
 use std::collections::HashMap;

@@ -43,8 +43,8 @@ class RegexpParser:
 
 
 def _iob_to_tree(iob_tags):
-    """Convert list of (word, iob) tuples to an nltk Tree."""
-    from nltk import Tree
+    """Convert list of (word, iob) tuples to a Tree."""
+    from fastnltk.tree import Tree
 
     words = [w for w, _ in iob_tags]
     tags = [t for _, t in iob_tags]
