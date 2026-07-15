@@ -46,15 +46,12 @@ class CFG:
 class EarleyChartParser:
     """Earley chart parser — Rust-accelerated."""
 
-    def __init__(self, grammar=None, trace=0):
+    def __init__(self, grammar, trace=0):
         self._impl = _RustEarleyChartParser()
-        self._grammar = grammar
+        self._grammar = grammar._impl if hasattr(grammar, "_impl") else grammar
 
     def parse(self, tokens):
-        if self._grammar is not None:
-            g = self._grammar._impl if hasattr(self._grammar, "_impl") else self._grammar
-            return self._impl.parse(g, tokens)
-        return self._impl.parse(tokens)
+        return self._impl.parse(self._grammar, tokens)
 
-    def parse_sents(self, grammar, sentences):
-        return [self.parse(grammar, s) for s in sentences]
+    def parse_sents(self, sentences):
+        return [self.parse(s) for s in sentences]

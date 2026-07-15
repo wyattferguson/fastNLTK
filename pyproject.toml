@@ -34,9 +34,9 @@ dependencies = [
 dynamic = ["readme"]
 
 [project.urls]
-Homepage = "https://github.com/fastnltk/fastnltk"
-Repository = "https://github.com/fastnltk/fastnltk"
-Changelog = "https://github.com/fastnltk/fastnltk/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/wyattferguson/fastnltk"
+Repository = "https://github.com/wyattferguson/fastnltk"
+Changelog = "https://github.com/wyattferguson/fastnltk/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = ["maturin>=1.7", "pytest>=7", "pytest-benchmark", "ruff>=0.8", "mypy"]

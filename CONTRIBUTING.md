@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-git clone https://github.com/fastnltk/fastnltk && cd fastnltk
+git clone https://github.com/wyattferguson/fastnltk && cd fastnltk
 python -m venv .venv && source .venv/bin/activate
 pip install maturin && maturin develop --release
 pip install -e ".[dev,test,lint]"

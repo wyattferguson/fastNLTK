@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use fastNLTK in your research, please cite it as below."
+title: "fastNLTK: Drop-in Rust-accelerated replacement for NLTK"
+authors:
+  - family-names: Ferguson
+    given-names: Wyatt
+    orcid: "https://orcid.org/0009-0008-1975-4583"
+year: 2025
+version: 0.4.0
+doi: 10.5281/zenodo.14927802
+date-released: 2025-07-03
+url: "https://github.com/fastnltk/fastnltk"
+repository-code: "https://github.com/fastnltk/fastnltk"
+license: Apache-2.0
+keywords:
+  - nlp
+  - nltk
+  - rust
+  - natural-language-processing
+  - tokenization
+  - stemming
+  - pos-tagging
+  - parsing
+  - language-model
+  - python
+abstract: >
+  fastNLTK is a drop-in Rust-accelerated replacement for the Natural Language
+  Toolkit (NLTK). It preserves the exact NLTK Python API while replacing hot
+  paths with compiled Rust code, delivering 5–168× speed improvements across
+  tokenization, tagging, stemming, parsing, metrics, language modeling, and more.
+  Requires no code changes beyond changing the import statement.
