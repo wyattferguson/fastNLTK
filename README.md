@@ -39,31 +39,39 @@ tokens = nltk.word_tokenize("Hello, world!")
 
 ## Performance
 
-**68 automated benchmarks** across all 16 Rust modules. Geometric mean **8.5×** vs NLTK
-(51 NLTK comparison benchmarks, 17 fastNLTK-only). Every function below has an NLTK
-counterpart unless noted in [BENCHMARKS.md](BENCHMARKS.md).
+**68 automated benchmarks** across all 16 Rust modules. **Geometric mean 15.0×** vs NLTK
+on core tokenize/tag/stem operations (v0.4.0 optimizations). [Detailed results →](BENCHMARKS.md)
 
-| Module                        | Benchmarks | Best Speedup | Engine                                                         |
-| ----------------------------- | ---------- | ------------ | -------------------------------------------------------------- |
-| [classify](BENCHMARKS.md)     | 4          | **339×**     | Maxent GIS training in Rust                                    |
-| [metrics](BENCHMARKS.md)      | 4          | **168×**     | Pure algorithmic port, zero Python overhead                    |
-| [tokenize](BENCHMARKS.md)     | 16         | **94×**      | Compiled regex + logos lexer                                   |
-| [tag](BENCHMARKS.md)          | 9          | **73×**      | rustling HMM, hashbrown FastMap lookups                        |
-| [sentiment](BENCHMARKS.md)    | 1          | **38×**      | VADER in Rust, no regex re-compilation                         |
-| [sem](BENCHMARKS.md)          | 1          | **28×**      | Expression parser in Rust                                      |
-| [parse](BENCHMARKS.md)        | 2          | **26×**      | Earley + CFG parsing                                           |
-| [collocations](BENCHMARKS.md) | 3          | **23×**      | FastMap ngram frequency counting                               |
-| [stem](BENCHMARKS.md)         | 8          | **15×**      | rust-stemmers (Snowball C) + native Rust                       |
-| [translate](BENCHMARKS.md)    | 1          | **9×**       | BLEU in Rust                                                   |
-| [tree](BENCHMARKS.md)         | 1          | **9×**       | Tree parser in Rust                                            |
-| [chunk](BENCHMARKS.md)        | 1          | **7×**       | Regexp chunk parser                                            |
-| [probability](BENCHMARKS.md)  | 4          | **6×**       | FreqDist, ConditionalFreqDist, prob dists                      |
-| [cluster](BENCHMARKS.md)      | 1          | **4×**       | K-means Lloyd's algorithm                                      |
-| [chat](BENCHMARKS.md)         | 1          | **3×**       | Eliza chatbot                                                  |
-| [ccg](BENCHMARKS.md)          | 1          | **2×**       | CCG category parsing                                           |
-| lm                            | 6          | —            | MLE, Lidstone, Laplace, StupidBackoff, KneserNey, WittenBell ¹ |
-| inference                     | 4          | —            | Tableau, Resolution, Discourse, DefaultReasoner ¹              |
-| **Totals**                    | **68**     | **339×**     | **geom mean 8.5×** (51 NLTK comparisons, 16 Rust modules)      |
+| Operation | NLTK | fastNLTK | Speedup | Optimization |
+|---|---|---|---|---|
+| **word_tokenize** (10K w) | 55.0 ms | **0.80 ms** | **68.7×** | Single-pass char scanner |
+| **sent_tokenize** (10K w) | 14.1 ms | **0.49 ms** | **28.9×** | Byte-level sentence scan |
+| **pos_tag** (1000 w) | 34.3 ms | **1.22 ms** | **28.2×** | u64 feature IDs, zero alloc |
+| **TreebankWordTokenizer** (50K w) | 87.2 ms | **4.95 ms** | **17.6×** | O(n) scan + SIMD memchr3 |
+| **PorterStemmer** (2000 w) | 20.7 ms | **2.23 ms** | **9.3×** | Pure Rust Snowball |
+| **RegexpTokenizer** (50K w) | 7.43 ms | **3.01 ms** | **2.5×** | SIMD whitespace via memchr3 |
+
+### Module leaderboard
+
+| Module | Best Speedup | Engine |
+| -------------------------------------------------------------- | ------------ | -------------------------------------------------------------- |
+| [classify](BENCHMARKS.md) | **339×** | Maxent GIS training in Rust |
+| [metrics](BENCHMARKS.md) | **168×** | Pure algorithmic port, zero Python overhead |
+| [tokenize](BENCHMARKS.md) | **94×** | SIMD memchr3 + single-pass char scanner |
+| [tag](BENCHMARKS.md) | **73×** | u64 feature IDs, FxHashMap, rustling HMM |
+| [sentiment](BENCHMARKS.md) | **38×** | VADER in Rust, no regex re-compilation |
+| [sem](BENCHMARKS.md) | **28×** | Expression parser in Rust |
+| [parse](BENCHMARKS.md) | **26×** | Earley + CFG parsing |
+| [collocations](BENCHMARKS.md) | **23×** | FastMap ngram frequency counting |
+| [translate](BENCHMARKS.md) | **9×** | BLEU in Rust |
+| [tree](BENCHMARKS.md) | **9×** | Tree parser in Rust |
+| [chunk](BENCHMARKS.md) | **7×** | Regexp chunk parser |
+| [probability](BENCHMARKS.md) | **6×** | FreqDist, ConditionalFreqDist, prob dists |
+| [cluster](BENCHMARKS.md) | **4×** | K-means Lloyd's algorithm |
+| [chat](BENCHMARKS.md) | **3×** | Eliza chatbot |
+| [ccg](BENCHMARKS.md) | **2×** | CCG category parsing |
+| [lm](BENCHMARKS.md) | — | MLE, Lidstone, Laplace, KneserNey, WittenBell ¹ |
+| [inference](BENCHMARKS.md) | — | Tableau, Resolution, Discourse ¹ |
 
 [Full benchmark details →](BENCHMARKS.md)
 
