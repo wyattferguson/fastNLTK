@@ -5,7 +5,8 @@ use pyo3::prelude::*;
 use regex::Regex;
 use std::sync::LazyLock;
 
-static URL_RE: LazyLock<Regex> = LazyLock::new(|| {
+#[allow(dead_code)]
+static _URL_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"https?://[^\s<>\[\]{}|\\^`]+|www\.[^\s<>\[\]{}|\\^`]+").unwrap()
 });
 static _EMOTICON_RE: LazyLock<Regex> = LazyLock::new(|| {

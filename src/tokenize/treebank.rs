@@ -285,19 +285,19 @@ mod tests {
 
     #[test]
     fn test_parentheses() {
-        let (t, s) = tokenize_treebank("Hello (world)");
+        let (t, _) = tokenize_treebank("Hello (world)");
         assert_eq!(t, vec!["Hello", "(", "world", ")"]);
     }
 
     #[test]
     fn test_comma() {
-        let (t, s) = tokenize_treebank("Hello, world");
+        let (t, _) = tokenize_treebank("Hello, world");
         assert_eq!(t, vec!["Hello", ",", "world"]);
     }
 
     #[test]
     fn test_double_hyphen() {
-        let (t, s) = tokenize_treebank("Hello--world");
+        let (t, _) = tokenize_treebank("Hello--world");
         assert_eq!(t, vec!["Hello", "--", "world"]);
     }
 

@@ -7,26 +7,23 @@ use pyo3::prelude::*;
 /// Tokenize a string by splitting on whitespace.
 ///
 /// Matches NLTK's `nltk.tokenize.SpaceTokenizer`.
-/// NLTK compat: Same behavior (split on space, collapse empty).
 #[pyclass(name = "SpaceTokenizer", module = "fastnltk._rust")]
 pub struct SpaceTokenizer;
 
 #[pymethods]
 impl SpaceTokenizer {
     #[new]
-    const fn new() -> Self {
+    fn new() -> Self {
         Self
     }
 
-    /// Tokenize text by splitting on space characters.
     fn tokenize(&self, text: &str) -> Vec<String> {
-        tokenize_space(text)
+        text.split(' ').map(String::from).collect()
     }
 
-    /// Return span tuples (start, end) for each token.
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
         let mut spans = Vec::new();
-        let mut start = None;
+        let mut start: Option<usize> = None;
         for (i, ch) in text.char_indices() {
             if ch == ' ' {
                 if let Some(s) = start.take() {
@@ -43,38 +40,16 @@ impl SpaceTokenizer {
     }
 }
 
-/// Core `SpaceTokenizer` logic: split on ' ' preserving empty tokens.
-/// SIMD-accelerated via memchr (SSE2/AVX2 on x86, NEON on ARM).
-fn tokenize_space(text: &str) -> Vec<String> {
-    if text.is_empty() {
-        return vec![String::new()];
-    }
-    let bytes = text.as_bytes();
-    let mut tokens = Vec::new();
-    let mut start = 0;
-    while start < bytes.len() {
-        if let Some(rel) = memchr::memchr(b' ', &bytes[start..]) {
-            let abs = start + rel;
-            tokens.push(text[start..abs].to_string());
-            start = abs + 1;
-        } else {
-            tokens.push(text[start..].to_string());
-            break;
-        }
-    }
-    tokens
-}
-
 // TabTokenizer
 
-/// Tokenize a string by splitting on tabs.
+/// Tokenize a string by splitting on tab characters.
 #[pyclass(name = "TabTokenizer", module = "fastnltk._rust")]
 pub struct TabTokenizer;
 
 #[pymethods]
 impl TabTokenizer {
     #[new]
-    const fn new() -> Self {
+    fn new() -> Self {
         Self
     }
 
@@ -84,7 +59,7 @@ impl TabTokenizer {
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
         let mut spans = Vec::new();
-        let mut start = None;
+        let mut start: Option<usize> = None;
         for (i, ch) in text.char_indices() {
             if ch == '\t' {
                 if let Some(s) = start.take() {
@@ -103,14 +78,14 @@ impl TabTokenizer {
 
 // LineTokenizer
 
-/// Tokenize a string by splitting on newlines.
+/// Tokenize a string into lines.
 #[pyclass(name = "LineTokenizer", module = "fastnltk._rust")]
 pub struct LineTokenizer;
 
 #[pymethods]
 impl LineTokenizer {
     #[new]
-    const fn new() -> Self {
+    fn new() -> Self {
         Self
     }
 
@@ -120,18 +95,18 @@ impl LineTokenizer {
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
         let mut spans = Vec::new();
-        let mut start = 0;
-        let len = text.len();
+        let mut start: Option<usize> = None;
         for (i, ch) in text.char_indices() {
             if ch == '\n' {
-                if i > start {
-                    spans.push((start, i));
+                if let Some(s) = start.take() {
+                    spans.push((s, i));
                 }
-                start = i + 1;
+            } else if start.is_none() {
+                start = Some(i);
             }
         }
-        if start < len {
-            spans.push((start, len));
+        if let Some(s) = start {
+            spans.push((s, text.len()));
         }
         spans
     }
@@ -146,7 +121,7 @@ pub struct CharTokenizer;
 #[pymethods]
 impl CharTokenizer {
     #[new]
-    const fn new() -> Self {
+    fn new() -> Self {
         Self
     }
 
@@ -164,8 +139,6 @@ impl CharTokenizer {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // ── SpaceTokenizer tests ─────────────────────────────
 
     #[test]
     fn test_space_tokenize_basic() {
@@ -203,8 +176,6 @@ mod tests {
         assert_eq!(tok.span_tokenize("a b c"), vec![(0, 1), (2, 3), (4, 5)]);
     }
 
-    // ── TabTokenizer tests ───────────────────────────────
-
     #[test]
     fn test_tab_tokenize_basic() {
         let tok = TabTokenizer::new();
@@ -216,8 +187,6 @@ mod tests {
         let tok = TabTokenizer::new();
         assert_eq!(tok.tokenize(""), vec![""]);
     }
-
-    // ── LineTokenizer tests ──────────────────────────────
 
     #[test]
     fn test_line_tokenize_basic() {
@@ -235,10 +204,8 @@ mod tests {
     #[test]
     fn test_line_span_tokenize() {
         let tok = LineTokenizer::new();
-        assert_eq!(tok.span_tokenize("ab\ncd\nef"), vec![(0, 2), (3, 5), (6, 8)]);
+        assert_eq!(tok.span_tokenize("a\nb\nc"), vec![(0, 1), (2, 3), (4, 5)]);
     }
-
-    // ── CharTokenizer tests ──────────────────────────────
 
     #[test]
     fn test_char_tokenize_basic() {
@@ -256,7 +223,7 @@ mod tests {
     #[test]
     fn test_char_tokenize_unicode() {
         let tok = CharTokenizer::new();
-        let chars = tok.tokenize("héllo");
-        assert_eq!(chars.len(), 5);
+        let result = tok.tokenize("héllo");
+        assert_eq!(result.len(), 5);
     }
 }

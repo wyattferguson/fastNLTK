@@ -539,7 +539,7 @@ mod tests {
     fn test_affix_tagger_suffix() {
         pyo3::Python::initialize();
         pyo3::Python::try_attach(|py| {
-            let mut tagger = AffixTagger::new(3, true, None);
+            let mut tagger = AffixTagger::new(3, true);
             let list = PyList::empty(py);
             list.append(vec![("walking".to_string(), "VBG".to_string())]).unwrap();
             tagger.train(&list).unwrap();

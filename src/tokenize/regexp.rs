@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn test_wordpunct_tokenize() {
-        let tok = WordPunctTokenizer::new().unwrap();
+        let tok = WordPunctTokenizer::new();
         let result = tok.tokenize("Hello, world!");
         assert_eq!(result, vec!["Hello", ",", "world", "!"]);
     }
