@@ -60,13 +60,21 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Add aarch64 target
+        run: rustup target add aarch64-unknown-linux-gnu
+
+      - name: Install maturin
+        run: pip install maturin
+
       - name: Build wheel
-        uses: PyO3/maturin-action@v1
-        with:
-          target: aarch64-unknown-linux-gnu
-          manylinux: off
-          rust-toolchain: stable
-          args: --release --locked --compatibility pypi --out dist
+        run: maturin build --release --locked --compatibility pypi --out dist --target aarch64-unknown-linux-gnu
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
       - name: Upload wheel
         uses: actions/upload-artifact@v6
