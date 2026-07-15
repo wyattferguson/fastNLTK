@@ -1,10 +1,10 @@
-//! `RegexpStemmer` — strip suffix matching a pattern.
-use once_cell::sync::Lazy;
+/// `RegexpStemmer` — strip suffix matching a pattern.
+use std::sync::LazyLock;
 use pyo3::prelude::*;
 use regex::Regex;
 
-static STEM_RE: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(?i)(ing|ed|s|ly|ness|ment|tion|able)$").unwrap());
+static STEM_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)(ing|ed|s|ly|ness|ment|tion|able)$").unwrap());
 
 #[pyclass(name = "RegexpStemmer", module = "fastnltk._rust")]
 #[derive(Clone)]

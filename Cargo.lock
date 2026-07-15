@@ -330,7 +330,6 @@ dependencies = [
  "logos",
  "mimalloc",
  "nltk-metrics",
- "once_cell",
  "parking_lot",
  "phf",
  "pyo3",

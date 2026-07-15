@@ -1,4 +1,4 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use pyo3::prelude::*;
 use regex::Regex;
 use smol_str::SmolStr;
@@ -7,7 +7,7 @@ use std::borrow::Cow;
 #[pyclass(name = "ToktokTokenizer", module = "fastnltk._rust")]
 pub struct ToktokTokenizer;
 
-static TOKTOK_SUBS: Lazy<Vec<(Regex, String)>> = Lazy::new(build_subs);
+static TOKTOK_SUBS: LazyLock<Vec<(Regex, String)>> = LazyLock::new(build_subs);
 
 fn mk_re(p: &str) -> Regex {
     Regex::new(p).unwrap_or_else(|e| panic!("bad regex '{p}': {e}"))
