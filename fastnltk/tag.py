@@ -260,36 +260,7 @@ class TrigramTagger:
         return self._impl.evaluate(gold)
 
 
-class BigramTagger:
-    """Bigram tagger — Rust-accelerated lookup."""
 
-    def __init__(self, backoff=None):
-        self._impl = _RustBigramTagger(backoff)
-
-    def train(self, sentences: list[list[str]]) -> None:
-        self._impl.train(sentences)
-
-    def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
-        return self._impl.tag(tokens)
-
-    def tag_sents(self, sentences: list[list[str]]) -> list[list[tuple[str, str]]]:
-        return self._impl.tag_sents(sentences)
-
-
-class TrigramTagger:
-    """Trigram tagger — Rust-accelerated lookup."""
-
-    def __init__(self, backoff=None):
-        self._impl = _RustTrigramTagger(backoff)
-
-    def train(self, sentences: list[list[str]]) -> None:
-        self._impl.train(sentences)
-
-    def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
-        return self._impl.tag(tokens)
-
-    def tag_sents(self, sentences: list[list[str]]) -> list[list[tuple[str, str]]]:
-        return self._impl.tag_sents(sentences)
 
 
 class AffixTagger:

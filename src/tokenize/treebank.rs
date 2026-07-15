@@ -37,20 +37,24 @@ fn find_contraction(word: &str) -> Option<(usize, usize)> {
     if word.len() < 3 {
         return None;
     }
+    let bytes = word.as_bytes();
 
-    // Find apostrophe position
-    let ap_pos = word.find('\'')?;
+    // Find the LAST apostrophe (matches from end, like NLTK regex)
+    // This handles words like "Y'all're" where 're at the end should split first
+    let ap_pos = word.rfind('\'')?;
+    if ap_pos == 0 || ap_pos >= word.len() - 1 {
+        return None;
+    }
 
-    let before = &word[..ap_pos];
     let after = &word[ap_pos + 1..];
     let after_bytes = after.as_bytes();
 
-    // n't: before ends with 'n', after starts with 't'
-    if !after_bytes.is_empty() && after_bytes[0] == b't' {
+    // n't: check if there's an 'n' before the apostrophe and 't' after
+    if bytes[ap_pos - 1] == b'n' && !after_bytes.is_empty() && after_bytes[0] == b't' {
         let rest = &after_bytes[1..];
-        if (rest.is_empty() || !rest[0].is_ascii_alphabetic()) && before.ends_with('n') {
-            let stem_end = ap_pos - 1; // split at 'n', i.e. split at start of 'n'
-            return Some((stem_end, ap_pos + 2)); // "n't" = 3 bytes from ap_pos-1 to ap_pos+2 inclusive
+        if rest.is_empty() || !rest[0].is_ascii_alphabetic() {
+            let stem_end = ap_pos - 1;
+            return Some((stem_end, ap_pos + 2));
         }
     }
 

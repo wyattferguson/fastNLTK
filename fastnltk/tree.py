@@ -27,11 +27,28 @@ class Tree:
     """Rust-accelerated Tree data structure matching NLTK's Tree API."""
 
     def __init__(self, label, children=None):
-        self._impl = _RustTree(label, children or [])
+        if children is None:
+            children = []
+        # Build tree: str children passed to Rust, Tree children appended
+        str_children = [c for c in children if isinstance(c, str)]
+        self._impl = _RustTree(label, str_children)
+        for c in children:
+            if isinstance(c, Tree):
+                self._impl.append(c._impl)
 
     @classmethod
     def from_string(cls, string):
         return cls._from_impl(_RustTree.from_string(string))
+
+    @classmethod
+    def fromstring(cls, string):
+        """Alias for from_string, matching NLTK's Tree.fromstring."""
+        return cls.from_string(string)
+
+    @classmethod
+    def bracket_parse(cls, string):
+        """Alias for from_string, matching NLTK's bracket_parse."""
+        return cls.from_string(string)
 
     @classmethod
     def _from_impl(cls, impl):
@@ -90,6 +107,10 @@ class Tree:
         if isinstance(other, Tree):
             return str(self) == str(other)
         return NotImplemented
+
+    def append(self, child):
+        """Append a child (str or Tree)."""
+        self._impl.append(child)
 
     def __hash__(self):
         return hash(str(self))

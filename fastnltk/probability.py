@@ -84,7 +84,7 @@ class FreqDist:
         return self._impl.copy()
 
     def keys(self):
-        return self._impl.keys()
+        return self._impl.samples()
 
     def values(self):
         return self._impl.values()
@@ -112,7 +112,7 @@ class ConditionalFreqDist:
         result = self._impl.__getitem__(condition)
         if result is None:
             result = _RustFreqDist([])
-            self._impl.__setitem__(condition, result)
+            self._impl[condition] = result
         return result
 
     def conditions(self):

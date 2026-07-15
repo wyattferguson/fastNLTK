@@ -22,8 +22,9 @@ impl SpaceTokenizer {
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        // NLTK's SpaceTokenizer uses re.split(r"\s+", s)
-        // which produces empty strings for consecutive whitespace.
+        // Match NLTK's SpaceTokenizer: re.split(r"\s+", s)
+        // CPython's re.split produces empty strings for leading/trailing gaps.
+        // Rust's regex::split matches CPython behavior including empty strings.
         if text.is_empty() {
             return vec![String::new()];
         }
