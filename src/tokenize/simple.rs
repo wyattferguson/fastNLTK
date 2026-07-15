@@ -43,12 +43,27 @@ impl SpaceTokenizer {
     }
 }
 
-/// Core `SpaceTokenizer` logic: split on ' ', filter empty.
+/// Core `SpaceTokenizer` logic: split on ' ' preserving empty tokens.
+/// SIMD-accelerated via memchr (SSE2/AVX2 on x86, NEON on ARM).
 fn tokenize_space(text: &str) -> Vec<String> {
-    let n = text.split(' ').count();
-    let mut tokens = Vec::with_capacity(n);
-    for s in text.split(' ') {
-        tokens.push(s.to_string());
+    if text.is_empty() {
+        return vec![String::new()];
+    }
+    let bytes = text.as_bytes();
+    let mut tokens = Vec::new();
+    let mut start = 0;
+    while start < bytes.len() {
+        match memchr::memchr(b' ', &bytes[start..]) {
+            Some(rel) => {
+                let abs = start + rel;
+                tokens.push(text[start..abs].to_string());
+                start = abs + 1;
+            }
+            None => {
+                tokens.push(text[start..].to_string());
+                break;
+            }
+        }
     }
     tokens
 }

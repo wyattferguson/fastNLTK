@@ -1,143 +1,137 @@
-# Performance Bottleneck Analysis & Optimization Plan
+# Performance Optimization Plan — Low Performers
 
-## Benchmark Baseline
+Based on benchmark audit + online research.
 
-All measurements on 10,000-word English text (~65K chars), release build, single core.
+## Ranking: Worst → Best
 
-| Operation | Time | Throughput | vs str.split |
-|---|---|---|---|
-| **str.split** (theoretical max) | 0.20 ms | 50M w/s | 1.0x |
-| **RegexpTokenizer \S+** | 0.92 ms | 11M w/s | 4.5x |
-| **TreebankWordTokenizer** (19 passes) | 0.84 ms | 12M w/s | 4.2x |
-| **ToktokTokenizer** | 0.80 ms | 12M w/s | 4.0x |
-| **pos_tag** (500 words) | 4.1 ms | 122K w/s | 400x |
-| **sent_tokenize** (Punkt) | 3.2 ms | - | - |
-| **PorterStemmer** (5000 words) | 0.15 ms | 33M w/s | - |
-| **MLE.score** (single call) | 0.08 µs | - | - |
+| Rank | Module | vs NLTK | Absolute time | Root cause | Effort | Est. gain |
+|---|---|---|---|---|---|---|
+| 1 | **SpaceTokenizer** | **0.4×** | 0.26→0.68ms | PyO3 boundary cost dominates tiny op | 2h | 3-5× |
+| 2 | **TnT tagger** | **0.8×** | 1.46→1.72ms | SmolStr alloc in Viterbi inner loop | 1d | 3-5× |
+| 3 | **MWETokenizer** | 1.0× | 1.00→0.96ms | Python-level string matching? | 4h | 2-3× |
+| 4 | **DefaultTagger** | 1.1× | 1.67→1.55ms | Tag clone per token | 1h | 2× |
+| 5 | **RegexpTokenizer** (custom) | 1.4× | 2.15→1.57ms | NLTK uses C `re` module | 4h | 2× |
+| 6 | **UnigramTagger** | 1.5× | 2.32→1.55ms | SmolStr clone for hash key | 2h | 2× |
+| 7 | **BigramTagger** | 2.0× | 3.94→1.99ms | SmolStr tuple key clone | 4h | 2-3× |
+| 8 | **TrigramTagger** | 2.0× | 4.15→2.04ms | SmolStr triple key clone | 4h | 2-3× |
+| 9 | **WordPunctTokenizer** | 2.0× | 5.30→2.30ms | Regex + SmolStr overhead | 2h | 2× |
+| 10 | **AffixTagger** | 2.0× | 3.47→1.92ms | SmolStr clone + regex | 2h | 2× |
+| 11 | **CCG parser** | 2.0× | 1.26→0.77ms | Complex recursive parsing | 2d | 2× |
+| 12 | **NaiveBayes.classify** | 3.0× | 9.66→2.99ms | HashMap with SmolStr keys | 4h | 2× |
 
-## Bottleneck #1: Regex Engine Overhead (Tokenizers)
+---
 
-**Gap: 0.64ms per 10K words (4x slower than str.split)**
+## Detailed Analysis
 
-Root cause: The `regex` crate compiles Unicode-aware DFAs for every pattern, handles full UTF-8 decoding, and allocates capture groups. For `\S+` (our most common tokenizer pattern), this is massive overkill — we just want non-whitespace sequences.
+### #1 — SpaceTokenizer (0.4×)
 
-**Option A: Manual char scanner for `\S+` (high impact, 2 days)**
-Replace `RegexpTokenizer`'s regex with a hand-written `char_indices()` scanner:
-```rust
-fn tokenize_whitespace(text: &str) -> Vec<String> {
-    let mut tokens = Vec::new();
-    let mut start = None;
-    for (i, c) in text.char_indices() {
-        if c.is_whitespace() {
-            if let Some(s) = start.take() {
-                tokens.push(text[s..i].to_string());
-            }
-        } else if start.is_none() {
-            start = Some(i);
-        }
-    }
-    if let Some(s) = start {
-        tokens.push(text[s..].to_string());
-    }
-    tokens
+**Problem:** `text.split(' ').map(String::from).collect()` is dominated by PyO3 call overhead for tiny inputs. NLTK's Python `str.split(' ')` runs at C speed and avoids the boundary.
+
+**Research:** CPython's `str.split` is hand-tuned C that reuses existing PyUnicode objects (zero copy). Our Rust function pays 0.7µs just to cross the PyO3 boundary, which is meaningful when the function itself takes 0.26ms.
+
+**Fix:** Replace with the same SIMD `memchr3` scanner used by `RegexpTokenizer`. Since SpaceTokenizer splits on any whitespace (not just space), we use our fast `\S+` scanner path. This also avoids the split-iterator overhead.
+
+````rust
+fn tokenize_space(text: &str) -> Vec<String> {
+    // Reuse the SIMD memchr3 scanner from regexp.rs
+    tokenize_whitespace(text)
 }
-```
-**Estimated speedup: 3-5x for `\S+` tokenization** (approaches str.split speed)
+````
 
-**Option B: SIMD whitespace scanner (high impact, 1 week)**
-Use `memchr` crate to find whitespace byte-by-byte with SIMD (`memchr::memchr` on space byte). Avoids UTF-8 decoding entirely for ASCII-common text.
-- `memchr` uses SSE2/AVX2 on x86, NEON on ARM
-- Can process 16-32 bytes per cycle
-- **Estimated speedup: 6-10x** (close to memchr's 0.03ms for 10K words)
+**Est. gain: 3-5×** (same as RegexpTokenizer improvement: 0.927ms→0.272ms)
 
-**Option C: Pre-compute regex DFAs at compile time (low effort, 2 hours)**
-Replace `LazyLock<Regex>` with `Regex::new(...).unwrap()` in `const` or `static` via the `regex_lite`/`once_cell` compile-time approach. Saves the one-time compilation cost (~100µs per regex) — negligible for production use.
+---
 
-## Bottleneck #2: N-Pass String Copying (Treebank)
+### #2 — TnT Tagger (0.8×)
 
-**Cost: 19 sequential `re.replace_all` passes, each creating a new `String`**
+**Problem:** Three nested loops in Viterbi decoding with `SmolStr::new()` and tuple-key HashMap clones in each iteration.
 
-The Treebank tokenizer does:
-```
-for each of 19 regex patterns:
-    s = re.replace_all(&s, replacement).to_string()   // O(n) scan + allocation
-```
+**Code:** `src/tag/tnt.rs`
+- `SmolStr::new(tag)` called for every `(word, tag)` pair in O(N×T²) loop
+- `self.trans_prob_smol(&SmolStr::new(tag_k), &SmolStr::new(tag_j))` — creates two SmolStrs per inner iteration
+- `self.bi_counts.get(&(t1.clone(), t2.clone()))` — clones both SmolStrs to create tuple key
+- `trans_prob_smol` iterates ALL entries with `filter(|((a, _), _)| a == t1)` to recompute `total` — O(T) per lookup
 
-At 10K words (65K chars), that's 20 × 65K = 1.3 MB of temporary string allocations per call.
+**Research:** Standard Viterbi optimization techniques:
+1. **Transposed transition matrix** — store in column-major for cache-friendly access (from `crfs-rs` commit d303f90)
+2. **Integer tag IDs** — map `SmolStr` tags to `u16` indices once, then use `[[f64; T]; T]` arrays instead of HashMaps
+3. **Pre-compute `total`** for each transition row — avoid O(T) scan per lookup
+4. **Statically-sized arrays** for small tag sets (typical T=45) — eliminate all HashMap overhead
 
-**Fix: Single-pass semantic scanner (high impact, 3 days)**
-Instead of sequential regex substitution, write a character-by-character scanner that handles contractions, punctuation splitting, and space collapsing in a single pass:
+**Fix:**
+````rust
+// Step 1: Pre-compute tag→ID mapping (done once in train())
+let tag_to_id: FxHashMap<SmolStr, u16> = ...;
 
-```rust
-fn tokenize_treebank_fast(text: &str) -> Vec<String> {
-    let mut tokens = Vec::new();
-    let mut current = String::with_capacity(text.len() / 20);
-    for (i, c) in text.char_indices() {
-        match c {
-            // Handle contractions inline
-            '\'' if is_contraction_start(&text, i) => { ... }
-            // Handle punctuation splitting
-            '.' | ',' | '!' | '?' => { flush(&mut current, &mut tokens); push_punct(c, &mut tokens); }
-            // Normal whitespace
-            c if c.is_whitespace() => flush(&mut current, &mut tokens),
-            _ => current.push(c),
-        }
-    }
-    flush(&mut current, &mut tokens);
-    tokens
-}
-```
+// Step 2: Store transition counts as 2D arrays
+// bi_counts[t1][t2] = count
+let bi_counts: Vec<Vec<u64>> = vec![vec![0; T]; T];
+let tri_counts: Vec<Vec<Vec<u64>>> = vec![vec![vec![0; T]; T]; T];
 
-**Estimated speedup: 5-10x** (one scan instead of 20, avoid all intermediate allocations)
+// Step 3: Pre-compute per-tag totals
+let bi_totals: Vec<u64> = (0..T).map(|i| bi_counts[i].iter().sum()).collect();
+let uni_totals: Vec<u64> = uni_counts.iter().sum();
 
-## Bottleneck #3: span_tokenize O(n²) Scan (Treebank)
+// Step 4: Emission probs as 2D array: em_probs[tag_id][word_id] = prob
+let mut em_probs: Vec<Vec<f64>> = vec![vec![0.0; V]; T];
+````
 
-**Cost: Each call to `span_tokenize` scans the text once per token via `text.find()`**
+This eliminates ALL HashMap lookups and SmolStr allocations from the Viterbi loop. With T≈45 tags, the inner loop goes from ~180 HashMap ops per word to ~180 array accesses.
 
-```rust
-for token in &tokens {
-    if let Some(pos) = text[search_start..].find(token.as_str()) {
-        // O(n) substring search per token => O(n²) total
-    }
-}
-```
+**Est. gain: 3-5×** (matching the typical Rust-vs-Python gap for tight loops)
 
-**Fix: Collect spans during tokenization (high impact, 1 day)**
-Modify the tokenizer to return `Vec<(usize, usize, &str)>` or store byte offsets during the single-pass scan. This eliminates the post-hoc O(n²) search entirely.
+---
 
-## Bottleneck #4: pos_tag Model Loading
+### #3 — MWETokenizer (1.0×)
 
-**Cost: 4.1ms for 500 words (40x slower than NLTK's own Python tagger)**
+**Problem:** Probably string matching with many intermediate allocations.
 
-The `pos_tag` function:
-1. Loads a ~5MB NLTK perceptron model from disk
-2. Copies weights into the Rust tagger
-3. Runs inference per-token
+**Fix:** Analyze and apply integer IDs for phrase matching.
 
-The slowest part is the Python↔Rust boundary crossing for each word. The `pos_tag_sents` function processes entire sentences at once, amortizing the boundary cost.
+**Est. gain: 2-3×**
 
-**Fix: Batch inference (low effort, explore)**
-- Ensure `pos_tag_sents` is preferred over repeated `pos_tag` calls
-- Profile the Rust inference loop to check for allocation hot spots
-- Consider using a smaller model or pre-compiled binary format
+---
 
-## Prioritized Action Plan
+### #4-#10 — Sequential Taggers (1.1×-2.0×)
 
-| # | Optimization | Effort | Gain | Module |
+**Common problem:** All of these taggers use `SmolStr` tuple keys in HashMaps. Each `get()` requires cloning both SmolStrs to build the key. For bigram/trigram taggers, the tuple key construction allocates.
+
+**Fix:** Same approach as TnT — integer tag IDs:
+
+````rust
+// Before:
+FastMap<(SmolStr, SmolStr), SmolStr>  // BigramTagger
+
+// After:
+Vec<Vec<u16>>  // bigram_map[prev_tag_id][word_id] = tag_id
+````
+
+For taggers with small vocabularies, a `Vec<Vec<u16>>` is faster than any HashMap for lookups (dense access, no hashing).
+
+**Est. gain: 2-3×** each.
+
+---
+
+### #9 — WordPunctTokenizer (2.0×)
+
+**Problem:** Uses regex `\w+|[^\w\s]+` via the Rust `regex` crate. NLTK uses Python's `re` which is also C. The gap is small.
+
+**Fix:** Add a fast-path char scanner for the `\w+|[^\w\s]+` pattern, similar to our `\S+` fast path. Scan for runs of word chars and non-word non-whitespace chars.
+
+**Est. gain: 3-4×**
+
+---
+
+## Implementation Priority
+
+| Priority | Item | Effort | Gain | Depends on |
 |---|---|---|---|---|
-| 1 | **Single-pass Treebank scanner** (merge 19 regex passes) | 3 days | 5-10x | `src/tokenize/treebank.rs` |
-| 2 | **Manual char scanner** for `\S+` / `\w+` | 2 days | 3-5x | `src/tokenize/regexp.rs` |
-| 3 | **Span capture during tokenization** (O(n) not O(n²)) | 1 day | 10-100x | `src/tokenize/regexp.rs` |
-| 4 | **SIMD whitespace via memchr** | 1 week | 6-10x | `src/tokenize/regexp.rs` |
-| 5 | **pos_tag batch profiling** | 1 day | 2x? | `src/tag/perceptron.rs` |
+| **P0** | SpaceTokenizer → SIMD scanner | 2h | 3-5× | — |
+| **P1** | TnT → integer IDs + flat arrays | 1d | 3-5× | — |
+| **P2** | Bigram/Trigram taggers → integer IDs | 4h | 2-3× | P1 (same technique) |
+| **P3** | Unigram/Affix/Default taggers → integer IDs | 4h | 2× | P1 |
+| **P4** | WordPunctTokenizer → char scanner | 2h | 2× | — |
+| **P5** | MWETokenizer → analyze + fix | 4h | 2× | — |
+| **P6** | CCG parser → profile + optimize | 2d | 2× | — |
 
-**Recommended first step: Items 1 + 2 + 3 together (6 days).** These are independent and target the most commonly used code path (tokenization). The theoretical ceiling is str.split (0.2ms/10K words), so we have 4x headroom to capture.
-
-## After-Optimization Target
-
-| Operation | Current | Target | Gain |
-|---|---|---|---|
-| RegexpTokenizer `\S+` (10K w) | 0.92 ms | 0.10-0.20 ms | 5-9x |
-| TreebankWordTokenizer (10K w) | 0.84 ms | 0.15-0.30 ms | 3-6x |
-| span_tokenize (10K w) | 1.2 ms | 0.15-0.30 ms | 4-8x |
-| pos_tag (1000 w) | 8.2 ms | 4-6 ms | 1.5-2x |
+**Recommended first step: P0 + P1** — SpaceTokenizer is the worst offender (SLOWER than NLTK) and takes 2 hours. TnT is the second-worst and the integer-ID optimization unlocks P2/P3. Together they're ~1.5 days and bring the bottom of the benchmark table from 0.4×-0.8× to 3-5×.
