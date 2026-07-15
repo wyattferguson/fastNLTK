@@ -36,6 +36,7 @@ thiserror = "2"
 rayon = { version = "1", optional = true }
 whatlang = "0.18"
 nltk-metrics = "0.4"
+memchr = "2.8.3"
 
 # Excluded on Linux aarch64: manylinux GCC v7 doesn't support -Wdate-time
 # that the cc crate injects by default into libmimalloc-sys.

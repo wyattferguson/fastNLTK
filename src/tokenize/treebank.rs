@@ -4,6 +4,7 @@
 //! Second pass: split each word on Treebank punctuation/contractions.
 //! No regex, no intermediate string copies for the common case.
 
+use memchr::memchr3;
 use pyo3::prelude::*;
 
 /// Characters that Treebank detaches from adjacent words.
@@ -158,23 +159,42 @@ fn flush_subword(
 /// Tokenize text using Treebank rules.
 ///
 /// Returns `(tokens, byte_spans)`. Spans reference the original `text`.
+/// First pass uses SIMD memchr3 for whitespace boundary detection.
 pub fn tokenize_treebank(text: &str) -> (Vec<String>, Vec<(usize, usize)>) {
     let mut tokens: Vec<String> = Vec::new();
     let mut spans: Vec<(usize, usize)> = Vec::new();
-    let mut word_start: Option<usize> = None;
+    let bytes = text.as_bytes();
+    let mut start = 0;
 
-    for (i, c) in text.char_indices() {
-        if c.is_whitespace() {
-            if let Some(ws) = word_start.take() {
-                split_word(&text[ws..i], ws, &mut tokens, &mut spans);
-            }
-        } else if word_start.is_none() {
-            word_start = Some(i);
+    while start < bytes.len() {
+        // Skip carriage return (not in memchr3 search set but is whitespace)
+        if bytes[start] == b'\r' {
+            start += 1;
+            continue;
         }
-    }
-
-    if let Some(ws) = word_start {
-        split_word(&text[ws..], ws, &mut tokens, &mut spans);
+        match memchr3(b' ', b'\t', b'\n', &bytes[start..]) {
+            Some(rel) => {
+                let mut abs = start + rel;
+                // Exclude trailing \r before \n from the token
+                if abs > start && bytes[abs - 1] == b'\r' {
+                    abs -= 1;
+                }
+                if abs > start {
+                    split_word(&text[start..abs], start, &mut tokens, &mut spans);
+                }
+                start = abs + 1;
+                // Skip consecutive ASCII whitespace
+                while start < bytes.len() && bytes[start].is_ascii_whitespace() {
+                    start += 1;
+                }
+            }
+            None => {
+                if start < bytes.len() {
+                    split_word(&text[start..], start, &mut tokens, &mut spans);
+                }
+                break;
+            }
+        }
     }
 
     (tokens, spans)

@@ -1,5 +1,6 @@
 //! Regexp-based tokenizers: `RegexpTokenizer`, `WhitespaceTokenizer`,
 
+use memchr::memchr3;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use regex::Regex;
@@ -26,66 +27,82 @@ pub struct RegexpTokenizer {
     is_simple_whitespace: bool,
 }
 
-/// Fast whitespace tokenizer: finds non-whitespace runs.
+/// SIMD-accelerated whitespace tokenizer.
+/// Uses memchr3 to find space/tab/newline with SSE2/AVX2/NEON.
 fn tokenize_whitespace(text: &str) -> Vec<String> {
+    let bytes = text.as_bytes();
     let mut tokens = Vec::new();
-    let mut start: Option<usize> = None;
-    for (i, c) in text.char_indices() {
-        if c.is_whitespace() {
-            if let Some(s) = start.take() {
-                tokens.push(text[s..i].to_string());
-            }
-        } else if start.is_none() {
-            start = Some(i);
+    let mut start = 0;
+    while start < bytes.len() {
+        // Skip standalone \r (not in memchr3 set) and other ASCII ws
+        if bytes[start].is_ascii_whitespace() {
+            start += 1;
+            continue;
         }
-    }
-    if let Some(s) = start {
-        tokens.push(text[s..].to_string());
+        match memchr3(b' ', b'\t', b'\n', &bytes[start..]) {
+            Some(rel) => {
+                let ws_pos = start + rel; // position of whitespace byte
+                // Exclude trailing \r before \n from token
+                let mut token_end = ws_pos;
+                if bytes[ws_pos] == b'\n' && token_end > start && bytes[token_end - 1] == b'\r' {
+                    token_end -= 1;
+                }
+                tokens.push(text[start..token_end].to_string());
+                start = ws_pos + 1;
+                // Skip consecutive ASCII whitespace
+                while start < bytes.len() && bytes[start].is_ascii_whitespace() {
+                    start += 1;
+                }
+            }
+            None => {
+                tokens.push(text[start..].to_string());
+                break;
+            }
+        }
     }
     tokens
 }
 
-/// Fast whitespace span finder.
+/// SIMD-accelerated whitespace span finder.
 fn span_tokenize_whitespace(text: &str) -> Vec<(usize, usize)> {
+    let bytes = text.as_bytes();
     let mut spans = Vec::new();
-    let mut start: Option<usize> = None;
-    for (i, c) in text.char_indices() {
-        if c.is_whitespace() {
-            if let Some(s) = start.take() {
-                spans.push((s, i));
-            }
-        } else if start.is_none() {
-            start = Some(i);
+    let mut start = 0;
+    while start < bytes.len() {
+        if bytes[start].is_ascii_whitespace() {
+            start += 1;
+            continue;
         }
-    }
-    if let Some(s) = start {
-        spans.push((s, text.len()));
+        match memchr3(b' ', b'\t', b'\n', &bytes[start..]) {
+            Some(rel) => {
+                let ws_pos = start + rel;
+                let mut token_end = ws_pos;
+                if bytes[ws_pos] == b'\n' && token_end > start && bytes[token_end - 1] == b'\r' {
+                    token_end -= 1;
+                }
+                spans.push((start, token_end));
+                start = ws_pos + 1;
+                while start < bytes.len() && bytes[start].is_ascii_whitespace() {
+                    start += 1;
+                }
+            }
+            None => {
+                spans.push((start, bytes.len()));
+                break;
+            }
+        }
     }
     spans
 }
 
-/// Fast gap tokenizer: splits on whitespace runs.
+/// Gap tokenizer: same as tokenize_whitespace (both return non-ws runs).
 fn split_whitespace_gaps(text: &str) -> Vec<String> {
-    text.split_whitespace().map(String::from).collect()
+    tokenize_whitespace(text)
 }
 
-/// Fast gap span finder.
+/// Gap span finder.
 fn span_split_whitespace_gaps(text: &str) -> Vec<(usize, usize)> {
-    let mut spans = Vec::new();
-    let mut start: Option<usize> = None;
-    for (i, c) in text.char_indices() {
-        if c.is_whitespace() {
-            if let Some(s) = start.take() {
-                spans.push((s, i));
-            }
-        } else if start.is_none() {
-            start = Some(i);
-        }
-    }
-    if let Some(s) = start {
-        spans.push((s, text.len()));
-    }
-    spans
+    span_tokenize_whitespace(text)
 }
 
 fn is_simple_whitespace_pattern(pattern: &str, gaps: bool) -> bool {

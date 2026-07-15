@@ -219,6 +219,7 @@ dependencies = [
  "bumpalo",
  "hashbrown 0.17.1",
  "logos",
+ "memchr",
  "mimalloc",
  "nltk-metrics",
  "parking_lot",
