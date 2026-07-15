@@ -57,6 +57,15 @@ impl KneserNeyInterpolated {
     const fn order(&self) -> usize {
         self.order
     }
+    fn logscore(&self, word: &str, context: Option<Vec<String>>) -> f64 {
+        let s = self.score(word, context);
+        if s > 0.0 { s.ln() } else { f64::NEG_INFINITY }
+    }
+
+    fn vocab_size(&self) -> usize {
+        self.counts.len()
+    }
+
     const fn fitted(&self) -> bool {
         self.fitted
     }

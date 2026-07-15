@@ -179,7 +179,7 @@ impl EarleyChartParser {
                     // Complete: advance states expecting this lhs
                     for k in 0..i {
                         for ci in 0..chart[k].len() {
-                            let mut pred = chart[k][ci].clone();
+                            let pred = chart[k][ci].clone();
                             if pred.dot < pred.rhs.len() && pred.rhs[pred.dot] == state.lhs {
                                 let mut advanced = pred.advance();
                                 // Add backpointer: this completion used state at (i, j)

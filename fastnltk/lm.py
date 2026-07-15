@@ -159,9 +159,16 @@ class KneserNeyInterpolated:
     def score(self, word, context=None):
         return self._impl.score(word, context)
 
+    def logscore(self, word, context=None):
+        return self._impl.logscore(word, context)
+
     @property
     def order(self):
         return self._impl.order()
+
+    @property
+    def vocab_size(self):
+        return self._impl.vocab_size()
 
     @property
     def fitted(self):
@@ -181,9 +188,16 @@ class WittenBellInterpolated:
     def score(self, word, context=None):
         return self._impl.score(word, context)
 
+    def logscore(self, word, context=None):
+        return self._impl.logscore(word, context)
+
     @property
     def order(self):
         return self._impl.order()
+
+    @property
+    def vocab_size(self):
+        return self._impl.vocab_size()
 
     @property
     def fitted(self):
@@ -203,9 +217,16 @@ class StupidBackoff:
     def score(self, word, context=None):
         return self._impl.score(word, context)
 
+    def logscore(self, word, context=None):
+        return self._impl.logscore(word, context)
+
     @property
     def order(self):
         return self._impl.order()
+
+    @property
+    def vocab_size(self):
+        return self._impl.vocab_size()
 
     @property
     def fitted(self):
