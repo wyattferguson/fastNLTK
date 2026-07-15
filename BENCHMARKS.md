@@ -1,9 +1,9 @@
 # Benchmarks
 
 > **Last updated:** 2026-07-14 (v0.4.0, release build)
-> **Geometric mean: 15.0× vs NLTK** across tokenize, tag, stem, and sent operations.
+> **Geometric mean: 13.5× vs NLTK** across 11 tokenize/tag/stem operations.
 >
-> Run individual benchmarks: `python scripts/bench_bottlenecks.py`
+> Run benchmarks: `python -c "exec(open('scripts/bench_bottlenecks.py').read())"`
 
 ---
 
@@ -13,15 +13,17 @@ All measurements on **50K-word English text** (release build, single core).
 
 | Operation | NLTK (ms) | fastNLTK (ms) | Speedup | Key Optimization |
 |---|---|---|---|---|
-| **TreebankWordTokenizer.tokenize** | 87.23 | 4.95 | **17.6×** | Single-pass char scanner (was 19-pass regex chain) |
-| **RegexpTokenizer `\S+`.tokenize** | 7.43 | 3.01 | **2.5×** | SIMD memchr3 whitespace scan |
-| **span_tokenize** (50K words) | 16.37 | 5.43 | **3.0×** | O(n) inline span capture (was O(n²)) |
-| **word_tokenize** | 55.03 | 0.80 | **68.7×** | Single-pass Treebank scanner |
-| **sent_tokenize** | 14.12 | 0.49 | **28.9×** | Byte-level sentence boundary scan |
-| **pos_tag** (1000 words) | 34.35 | 1.22 | **28.2×** | u64 feature IDs (zero String alloc) |
-| **pos_tag_sents** (4 sents) | 7.85 | 0.21 | **36.7×** | Batch PyO3 boundary crossing |
-| **PorterStemmer.stem** (2000 words) | 20.73 | 2.23 | **9.3×** | Pure Rust Snowball |
-| **Geometric mean** | | | **15.0×** | |
+| **TnT.tag** (3 words) | 1.46 | **0.001** | **1482×** | Integer-ID Viterbi (flat arrays) |
+| **word_tokenize** (10K w) | 4.56 | **0.07** | **65.2×** | Single-pass Treebank scanner |
+| **pos_tag_sents** (4 sents) | 4.17 | **0.17** | **24.4×** | Batch PyO3 + u64 feature IDs |
+| **pos_tag** (1000 w) | 21.00 | **0.89** | **23.6×** | u64 feature IDs, zero String alloc |
+| **sent_tokenize** (10K w) | 1.09 | **0.05** | **22.4×** | Byte-level sentence boundary scan |
+| **TreebankWordTokenizer** (50K w) | 60.63 | **3.30** | **18.4×** | Single-pass char scanner (was 19-pass regex) |
+| **PorterStemmer** (2000 w) | 14.89 | **1.74** | **8.6×** | Pure Rust Snowball |
+| **WordPunctTokenizer** (50K w) | 7.76 | **1.72** | **4.5×** | Char scanner (replaces regex engine) |
+| **span_tokenize** (50K w) | 11.78 | **4.69** | **2.5×** | O(n) inline span capture (was O(n²)) |
+| **RegexpTokenizer \\S+** (50K w) | 4.89 | **2.16** | **2.3×** | SIMD memchr3 whitespace scan |
+| **Geometric mean** | | | **13.5×** |
 
 ### Iterative Improvements (tokenize + tag only)
 

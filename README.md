@@ -39,26 +39,30 @@ tokens = nltk.word_tokenize("Hello, world!")
 
 ## Performance
 
-**68 automated benchmarks** across all 16 Rust modules. **Geometric mean 15.0×** vs NLTK
-on core tokenize/tag/stem operations (v0.4.0 optimizations). [Detailed results →](BENCHMARKS.md)
+**11 benchmarks** across core tokenize/tag/stem operations. **Geometric mean 13.5×** vs NLTK
+(v0.4.0). [Full results →](BENCHMARKS.md)
 
-| Operation | NLTK | fastNLTK | Speedup | Optimization |
+| Operation | NLTK (ms) | fastNLTK (ms) | Speedup | Optimization |
 |---|---|---|---|---|
-| **word_tokenize** (10K w) | 55.0 ms | **0.80 ms** | **68.7×** | Single-pass char scanner |
-| **sent_tokenize** (10K w) | 14.1 ms | **0.49 ms** | **28.9×** | Byte-level sentence scan |
-| **pos_tag** (1000 w) | 34.3 ms | **1.22 ms** | **28.2×** | u64 feature IDs, zero alloc |
-| **TreebankWordTokenizer** (50K w) | 87.2 ms | **4.95 ms** | **17.6×** | O(n) scan + SIMD memchr3 |
-| **PorterStemmer** (2000 w) | 20.7 ms | **2.23 ms** | **9.3×** | Pure Rust Snowball |
-| **RegexpTokenizer** (50K w) | 7.43 ms | **3.01 ms** | **2.5×** | SIMD whitespace via memchr3 |
+| **TnT.tag** (3 w) | 1.46 | **0.001** | **1482×** | Integer IDs + flat arrays |
+| **word_tokenize** (10K w) | 4.56 | **0.07** | **65.2×** | Single-pass char scanner |
+| **sent_tokenize** (10K w) | 1.09 | **0.05** | **22.4×** | Byte-level sentence scan |
+| **pos_tag_sents** (4 sents) | 4.17 | **0.17** | **24.4×** | Batch PyO3 + u64 IDs |
+| **pos_tag** (1000 w) | 21.0 | **0.89** | **23.6×** | u64 feature IDs |
+| **TreebankWordTokenizer** (50K w) | 60.6 | **3.30** | **18.4×** | O(n) scan + SIMD |
+| **PorterStemmer** (2000 w) | 14.9 | **1.74** | **8.6×** | Pure Rust Snowball |
+| **WordPunctTokenizer** (50K w) | 7.76 | **1.72** | **4.5×** | Char scanner |
+| **RegexpTokenizer \\S+** (50K w) | 4.89 | **2.16** | **2.3×** | SIMD memchr3 |
+| **span_tokenize** (50K w) | 11.8 | **4.69** | **2.5×** | O(n) inline capture |
 
 ### Module leaderboard
 
 | Module | Best Speedup | Engine |
 | -------------------------------------------------------------- | ------------ | -------------------------------------------------------------- |
+| [tag](BENCHMARKS.md) | **1482×** | u64 feature IDs, integer-ID Viterbi, FxHashMap |
 | [classify](BENCHMARKS.md) | **339×** | Maxent GIS training in Rust |
 | [metrics](BENCHMARKS.md) | **168×** | Pure algorithmic port, zero Python overhead |
 | [tokenize](BENCHMARKS.md) | **94×** | SIMD memchr3 + single-pass char scanner |
-| [tag](BENCHMARKS.md) | **73×** | u64 feature IDs, FxHashMap, rustling HMM |
 | [sentiment](BENCHMARKS.md) | **38×** | VADER in Rust, no regex re-compilation |
 | [sem](BENCHMARKS.md) | **28×** | Expression parser in Rust |
 | [parse](BENCHMARKS.md) | **26×** | Earley + CFG parsing |
