@@ -32,15 +32,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Setup Docker
+      - name: Install QEMU (aarch64 cross-compile)
         if: matrix.target == 'aarch64'
-        uses: docker/setup-docker-action@v5
-
-      - name: Setup QEMU (aarch64 cross-compile)
-        if: matrix.target == 'aarch64'
-        uses: docker/setup-qemu-action@v4
-        with:
-          platforms: arm64
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-user-static binfmt-support
 
       - uses: actions/setup-python@v6
         with:
@@ -55,7 +51,7 @@ jobs:
           sccache: true
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: wheel-${{ matrix.target }}
           path: dist/*.whl
@@ -79,7 +75,7 @@ jobs:
           args: --out dist
 
       - name: Upload sdist
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: wheel-sdist
           path: dist/*.tar.gz
@@ -96,7 +92,7 @@ jobs:
 
     steps:
       - name: Download all wheels + sdist
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           pattern: wheel-*
           merge-multiple: true
