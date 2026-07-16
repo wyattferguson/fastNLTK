@@ -46,7 +46,7 @@ impl DiscourseThread {
     }
 
     /// Number of DRSs in the thread.
-    fn __len__(&self) -> usize {
+    const fn __len__(&self) -> usize {
         self.drss.len()
     }
 

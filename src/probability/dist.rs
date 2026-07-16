@@ -48,7 +48,7 @@ impl LaplaceProbDist {
     #[new]
     #[pyo3(signature = (freqdist, bins=None))]
     fn new(freqdist: FreqDist, bins: Option<usize>) -> Self {
-        let b = bins.unwrap_or(freqdist.num_samples());
+        let b = bins.unwrap_or_else(|| freqdist.num_samples());
         Self { freqdist, bins: b }
     }
     fn prob(&self, sample: &str) -> f64 {

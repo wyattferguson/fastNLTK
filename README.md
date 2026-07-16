@@ -40,39 +40,42 @@ All your NLTK data (corpora, models, pickles) still works. Nothing to re-downloa
 
 Benchmarked on release builds against NLTK 3.10, Rust 1.97.1. [Full results →](BENCHMARKS.md)
 
-| Operation                  | NLTK     | fastNLTK | Speedup  |
-| -------------------------- | -------- | -------- | -------- |
-| edit_distance              | 2.48 ms  | 0.01 ms  | **182×** |
-| windowdiff                 | 2.33 ms  | 0.01 ms  | **158×** |
-| pk (segmentation)          | 2.16 ms  | 0.02 ms  | **88×**  |
-| S-expression tokenizer     | 0.47 ms  | 0.01 ms  | **41×**  |
-| sentence tokenizer (Punkt) | 14.43 ms | 0.43 ms  | **34×**  |
-| Treebank detokenizer       | 6.66 ms  | 0.20 ms  | **33×**  |
-| Expression parser          | 16.50 ms | 0.57 ms  | **29×**  |
-| CFG grammar parser         | 0.06 ms  | 0.002 ms | **27×**  |
-| Tweet tokenizer            | 83.49 ms | 3.57 ms  | **23×**  |
-| Lancaster stemmer          | 39.75 ms | 1.87 ms  | **21×**  |
-| quadgram collocations      | 106.84 ms| 5.29 ms  | **20×**  |
-| Earley parser              | 6.67 ms  | 0.49 ms  | **14×**  |
-| WordNet lemmatizer         | 6.23 ms  | 0.48 ms  | **13×**  |
-| Snowball stemmer           | 22.42 ms | 1.91 ms  | **12×**  |
-| word tokenizer (Treebank)  | 42.36 ms | 4.05 ms  | **10×**  |
+| Operation                  | NLTK      | fastNLTK | Speedup  |
+| -------------------------- | --------- | -------- | -------- |
+| TextTiling tokenizer       | 22366 ms  | 34 ms    | **655×** |
+| edit_distance              | 2.53 ms   | 0.01 ms  | **180×** |
+| windowdiff                 | 2.42 ms   | 0.02 ms  | **160×** |
+| pk (segmentation)          | 2.20 ms   | 0.02 ms  | **91×**  |
+| Maxent classifier training | 45.02 ms  | 0.09 ms  | **495×** |
+| Treebank detokenizer       | 6.85 ms   | 0.21 ms  | **33×**  |
+| sentence tokenizer (Punkt) | 14.41 ms  | 0.46 ms  | **32×**  |
+| S-expression tokenizer     | 0.36 ms   | 0.01 ms  | **30×**  |
+| Expression parser          | 17.45 ms  | 0.60 ms  | **29×**  |
+| Tweet tokenizer            | 86.61 ms  | 3.29 ms  | **26×**  |
+| CFG grammar parser         | 0.05 ms   | 0.002 ms | **24×**  |
+| quadgram collocations      | 98.92 ms  | 5.44 ms  | **18×**  |
+| Lancaster stemmer          | 32.23 ms  | 1.86 ms  | **17×**  |
+| Earley parser              | 7.37 ms   | 0.51 ms  | **14×**  |
+| WordNet lemmatizer         | 6.36 ms   | 0.48 ms  | **13×**  |
+| Snowball stemmer           | 22.50 ms  | 2.04 ms  | **11×**  |
+| word tokenizer (Treebank)  | 42.52 ms  | 4.09 ms  | **10×**  |
 
-Geometric mean across 44 benchmarks: **8.4×**. Module-level breakdown:
+Geometric mean across 49 benchmarks: **8.3×**. Module-level breakdown:
 
 | Module                        | Geo Mean | Top single |
 | ----------------------------- | -------- | ---------- |
-| [metrics](BENCHMARKS.md)      | **140×** | 182×       |
+| [metrics](BENCHMARKS.md)      | **140×** | 180×       |
 | [sem](BENCHMARKS.md)          | **29×**  | 29×        |
-| [parse](BENCHMARKS.md)        | **19×**  | 27×        |
-| [collocations](BENCHMARKS.md) | **14×**  | 20×        |
-| [tree](BENCHMARKS.md)         | **12×**  | 12×        |
+| [parse](BENCHMARKS.md)        | **19×**  | 24×        |
+| [collocations](BENCHMARKS.md) | **13×**  | 18×        |
+| [tree](BENCHMARKS.md)         | **10×**  | 10×        |
 | [translate](BENCHMARKS.md)    | **9×**   | 9×         |
-| [stem](BENCHMARKS.md)         | **8×**   | 21×        |
+| [tokenize](BENCHMARKS.md)     | **13×**  | 655×       |
+| [classify](BENCHMARKS.md)     | **8×**   | 495×       |
 | [chunk](BENCHMARKS.md)        | **8×**   | 8×         |
-| [tokenize](BENCHMARKS.md)     | **5×**   | 41×        |
-| [classify](BENCHMARKS.md)     | **5×**   | 8×         |
-| [tag](BENCHMARKS.md)          | **3×**   | 9×         |
+| [cluster](BENCHMARKS.md)      | **6×**   | 6×         |
+| [stem](BENCHMARKS.md)         | **9×**   | 17×        |
+| [tag](BENCHMARKS.md)          | **3×**   | 8×         |
 
 ## What's accelerated
 

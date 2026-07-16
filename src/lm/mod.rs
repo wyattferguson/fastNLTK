@@ -39,8 +39,7 @@ impl NgramCounts {
         self.vocab.push("</s>".to_string());
         for sentence in sentences {
             let pad = self.order.saturating_sub(1);
-            let padded: Vec<&str> = std::iter::repeat("<s>")
-                .take(pad)
+            let padded: Vec<&str> = std::iter::repeat_n("<s>", pad)
                 .chain(sentence.iter().map(String::as_str))
                 .chain(std::iter::once("</s>"))
                 .collect();
@@ -157,7 +156,7 @@ impl MLE {
         self.counts.order
     }
 
-    fn vocab_size(&self) -> usize {
+    const fn vocab_size(&self) -> usize {
         self.counts.vocab.len()
     }
 
@@ -195,11 +194,13 @@ impl Laplace {
         }
         let v = self.counts.vocab.len().max(1) as f64;
         let ctx_key = self.counts.context_key(&context.unwrap_or_default());
-        let (count, total) = if let Some(ctx) = self.counts.context_counts.get(&ctx_key) {
-            (ctx.get(word).copied().unwrap_or(0.0), ctx.values().sum::<f64>())
-        } else {
-            (0.0, 0.0)
-        };
+        let (count, total) = self
+            .counts
+            .context_counts
+            .get(&ctx_key)
+            .map_or((0.0, 0.0), |ctx| {
+                (ctx.get(word).copied().unwrap_or(0.0), ctx.values().sum::<f64>())
+            });
         (count + 1.0) / (total + v)
     }
 
@@ -252,7 +253,7 @@ impl Laplace {
         self.counts.order
     }
 
-    fn vocab_size(&self) -> usize {
+    const fn vocab_size(&self) -> usize {
         self.counts.vocab.len()
     }
 
@@ -292,11 +293,13 @@ impl Lidstone {
         }
         let v = self.counts.vocab.len().max(1) as f64;
         let ctx_key = self.counts.context_key(&context.unwrap_or_default());
-        let (count, total) = if let Some(ctx) = self.counts.context_counts.get(&ctx_key) {
-            (ctx.get(word).copied().unwrap_or(0.0), ctx.values().sum::<f64>())
-        } else {
-            (0.0, 0.0)
-        };
+        let (count, total) = self
+            .counts
+            .context_counts
+            .get(&ctx_key)
+            .map_or((0.0, 0.0), |ctx| {
+                (ctx.get(word).copied().unwrap_or(0.0), ctx.values().sum::<f64>())
+            });
         (count + self.gamma) / self.gamma.mul_add(v, total)
     }
 
@@ -349,7 +352,7 @@ impl Lidstone {
         self.counts.order
     }
 
-    fn vocab_size(&self) -> usize {
+    const fn vocab_size(&self) -> usize {
         self.counts.vocab.len()
     }
 

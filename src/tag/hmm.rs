@@ -66,7 +66,7 @@ impl HiddenMarkovModelTagger {
                 *transition_counts.entry((prev_tag.clone(), tag.clone())).or_insert(0.0) += 1.0;
                 *tag_totals.entry(prev_tag.clone()).or_insert(0.0) += 1.0;
                 *emission_counts.entry((tag.clone(), word.clone())).or_insert(0.0) += 1.0;
-                prev_tag = tag.clone();
+                prev_tag.clone_from(tag);
             }
             // Transition to end
             *transition_counts.entry((prev_tag, "</s>".to_string())).or_insert(0.0) += 1.0;

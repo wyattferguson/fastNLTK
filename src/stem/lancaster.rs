@@ -188,10 +188,9 @@ fn parse_rule(s: &str) -> Option<Rule> {
     let raw_ending = &s[..digit_pos];
 
     // Check for intact flag (*) at end of ending section
-    let (ending_forward, intact) = if raw_ending.ends_with('*') {
-        (&raw_ending[..raw_ending.len() - 1], true)
-    } else {
-        (raw_ending, false)
+    let (ending_forward, intact) = match raw_ending.strip_suffix('*') {
+        Some(stripped) => (stripped, true),
+        None => (raw_ending, false),
     };
     // NLTK stores endings in reverse — reverse them for forward comparison
     let ending: String = ending_forward.chars().rev().collect();
@@ -258,19 +257,11 @@ impl LancasterStemmer {
 
         let dict = &*RULE_DICT;
 
-        loop {
-            let llp = match last_letter_pos(&w) {
-                Some(p) => p,
-                None => break,
-            };
-
+        while let Some(llp) = last_letter_pos(&w) {
             let chars: Vec<char> = w.chars().collect();
             let last_char = chars[llp];
 
-            let rules = match dict.get(&last_char) {
-                Some(r) => r,
-                None => break,
-            };
+            let Some(rules) = dict.get(&last_char) else { break };
 
             let mut applied = false;
             for rule in rules {

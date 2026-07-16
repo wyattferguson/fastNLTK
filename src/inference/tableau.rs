@@ -74,9 +74,10 @@ impl TableauProver {
         }
 
         // Find first non-atomic formula
-        if let Some(idx) = branch.iter().position(|sf| !is_literal_simple(&sf.formula)) {
+        let idx = branch.iter().position(|sf| !is_literal_simple(&sf.formula));
+        if let Some(idx) = idx {
             let sf = branch[idx].clone();
-            let mut base: Branch = branch.clone();
+            let mut base: Branch = branch;
             base.remove(idx);
             let f = sf.formula.nnf();
 
