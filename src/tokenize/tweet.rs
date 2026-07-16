@@ -1,37 +1,20 @@
 //! Tweet tokenizer — handles emoji, hashtags, mentions, URLs, etc.
-//!
-//! Based on NLTK's `TweetTokenizer` with regex patterns for
-//! social media text.
+//! Regexes compiled once via `LazyLock` (not per-call).
 
 use pyo3::prelude::*;
 use regex::Regex;
+use std::sync::LazyLock;
 
-/// Regex patterns for tweet tokenization (from NLTK's casual.py)
-fn build_patterns() -> (Regex, Regex, Regex, Regex) {
-    // URL pattern
-    let url_re = Regex::new(r"https?://[^\s<>\[\]{}|\\^`]+|www\.[^\s<>\[\]{}|\\^`]+").unwrap();
+static _EMOTICON_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"[<>]?[:;=8][\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\]|[\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\][:;=8][<>]?").unwrap()
+});
+static _PHONE_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?:(?:\+?1[ \.-]?)?\(?\d{3}\)?[ \.-]?\d{3}[ \.-]?\d{4})").unwrap()
+});
+static MAIN_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"https?://[^\s<>\[\]{}|\\^`]+|www\.[^\s<>\[\]{}|\\^`]+|[\w.]+@[\w.]+\.[a-z]{2,}|\d+\.\d+|[\#@]?\w+(?:'\w+)?|[<>]?[:;=8][\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\]|[\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\][:;=8][<>]?|\S").unwrap()
+});
 
-    // Emoticon pattern
-    let emoticon_re = Regex::new(
-        r"[<>]?[:;=8][\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\]|[\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\][:;=8][<>]?"
-    ).unwrap();
-
-    // Phone number pattern
-    let phone_re = Regex::new(r"(?:(?:\+?1[ \.-]?)?\(?\d{3}\)?[ \.-]?\d{3}[ \.-]?\d{4})").unwrap();
-
-    // Main split pattern: preserve URL, emoji, hashtags, mentions
-    let main_re = Regex::new(
-        r"https?://[^\s<>\[\]{}|\\^`]+|www\.[^\s<>\[\]{}|\\^`]+|[\#@]?\w+(?:'\w+)?|[<>]?[:;=8][\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\]|[\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\][:;=8][<>]?|\S"
-    ).unwrap();
-
-    (main_re, url_re, emoticon_re, phone_re)
-}
-
-// ═══════════════════════════════════════════════════════════
-// TweetTokenizer
-// ═══════════════════════════════════════════════════════════
-
-/// Tokenizer for Twitter/text messages.
 #[pyclass(name = "TweetTokenizer", module = "fastnltk._rust")]
 #[derive(Clone)]
 pub struct TweetTokenizer {
@@ -44,45 +27,50 @@ pub struct TweetTokenizer {
 impl TweetTokenizer {
     #[new]
     #[pyo3(signature = (preserve_case=true, reduce_len=false, strip_handles=false))]
-    fn new(preserve_case: bool, reduce_len: bool, strip_handles: bool) -> Self {
+    const fn new(preserve_case: bool, reduce_len: bool, strip_handles: bool) -> Self {
         Self { preserve_case, reduce_len, strip_handles }
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        let (main_re, _url_re, _emoticon_re, _phone_re) = build_patterns();
         let mut tokens = Vec::new();
-
-        for m in main_re.find_iter(text) {
-            let token = m.as_str().to_string();
+        for m in MAIN_RE.find_iter(text) {
+            let token = m.as_str();
 
             // Handle @mentions
             if self.strip_handles && token.starts_with('@') && token.len() > 1 {
                 continue;
             }
 
-            // Handle case
-            let token = if self.preserve_case { token } else { token.to_lowercase() };
+            if token.is_empty() {
+                continue;
+            }
 
-            // Handle repeated characters
-            let token = if self.reduce_len { reduce_repeated(&token) } else { token };
+            let out = if self.preserve_case {
+                if self.reduce_len {
+                    reduce_repeated(token)
+                } else {
+                    token.to_string()
+                }
+            } else if self.reduce_len {
+                reduce_repeated(&token.to_lowercase())
+            } else {
+                token.to_lowercase()
+            };
 
-            tokens.push(token);
+            tokens.push(out);
         }
-
         tokens
     }
 }
 
-/// Reduce repeated characters (e.g., "hellooooo" → "hellooo")
+/// Reduce repeated characters (e.g., "hellooooo" -> "hellooo")
 fn reduce_repeated(s: &str) -> String {
     let chars: Vec<char> = s.chars().collect();
     if chars.len() <= 3 {
         return s.to_string();
     }
-
     let mut result = String::with_capacity(s.len());
     let mut count = 1;
-
     for i in 0..chars.len() {
         if i > 0 && chars[i] == chars[i - 1] {
             count += 1;
@@ -94,13 +82,8 @@ fn reduce_repeated(s: &str) -> String {
             result.push(chars[i]);
         }
     }
-
     result
 }
-
-// ═══════════════════════════════════════════════════════════
-// Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {
@@ -109,43 +92,37 @@ mod tests {
     #[test]
     fn test_tweet_basic() {
         let tok = TweetTokenizer::new(true, false, false);
-        let result = tok.tokenize("Hello world!");
-        assert_eq!(result, vec!["Hello", "world", "!"]);
+        assert_eq!(tok.tokenize("Hello world!"), vec!["Hello", "world", "!"]);
     }
 
     #[test]
     fn test_tweet_hashtag() {
         let tok = TweetTokenizer::new(true, false, false);
-        let result = tok.tokenize("#NLP is fun");
-        assert_eq!(result, vec!["#NLP", "is", "fun"]);
+        assert_eq!(tok.tokenize("#NLP is fun"), vec!["#NLP", "is", "fun"]);
     }
 
     #[test]
     fn test_tweet_mention() {
         let tok = TweetTokenizer::new(true, false, false);
-        let result = tok.tokenize("@user hello");
-        assert_eq!(result, vec!["@user", "hello"]);
+        assert_eq!(tok.tokenize("@user hello"), vec!["@user", "hello"]);
     }
 
     #[test]
     fn test_tweet_mention_stripped() {
         let tok = TweetTokenizer::new(true, false, true);
-        let result = tok.tokenize("@user hello");
-        assert_eq!(result, vec!["hello"]);
+        assert_eq!(tok.tokenize("@user hello"), vec!["hello"]);
     }
 
     #[test]
     fn test_tweet_url() {
         let tok = TweetTokenizer::new(true, false, false);
-        let result = tok.tokenize("Check https://example.com");
-        assert_eq!(result, vec!["Check", "https://example.com"]);
+        assert_eq!(tok.tokenize("Check https://example.com"), vec!["Check", "https://example.com"]);
     }
 
     #[test]
     fn test_tweet_emoticon() {
         let tok = TweetTokenizer::new(true, false, false);
-        let result = tok.tokenize("Hello :)");
-        assert!(result.contains(&":)".to_string()));
+        assert!(tok.tokenize("Hello :)").contains(&":)".to_string()));
     }
 
     #[test]

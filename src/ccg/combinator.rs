@@ -1,6 +1,4 @@
 //! CCG combinator rules — Forward/Backward Application, Composition, Type Raising.
-//!
-//! NLTK equivalent: nltk.ccg.combinator
 
 use crate::ccg::CategoryKind;
 
@@ -21,37 +19,37 @@ pub(crate) struct Combinator {
 }
 
 /// Standard CCG combinators.
-pub(crate) fn forward_application() -> Combinator {
+pub(crate) const fn forward_application() -> Combinator {
     Combinator { name: "FA", dir: Direction::Forward, is_type_raise: false }
 }
 
-pub(crate) fn backward_application() -> Combinator {
+pub(crate) const fn backward_application() -> Combinator {
     Combinator { name: "BA", dir: Direction::Backward, is_type_raise: false }
 }
 
-pub(crate) fn forward_composition() -> Combinator {
+pub(crate) const fn forward_composition() -> Combinator {
     Combinator { name: "FC", dir: Direction::Forward, is_type_raise: false }
 }
 
-pub(crate) fn backward_composition() -> Combinator {
+pub(crate) const fn backward_composition() -> Combinator {
     Combinator { name: "BC", dir: Direction::Backward, is_type_raise: false }
 }
 
 #[allow(dead_code)]
-pub(crate) fn forward_type_raising() -> Combinator {
+pub(crate) const fn forward_type_raising() -> Combinator {
     Combinator { name: "FT", dir: Direction::Forward, is_type_raise: true }
 }
 
 #[allow(dead_code)]
-pub(crate) fn backward_type_raising() -> Combinator {
+pub(crate) const fn backward_type_raising() -> Combinator {
     Combinator { name: "BT", dir: Direction::Backward, is_type_raise: true }
 }
 
-pub(crate) fn forward_crossed_composition() -> Combinator {
+pub(crate) const fn forward_crossed_composition() -> Combinator {
     Combinator { name: "FX", dir: Direction::Forward, is_type_raise: false }
 }
 
-pub(crate) fn backward_crossed_composition() -> Combinator {
+pub(crate) const fn backward_crossed_composition() -> Combinator {
     Combinator { name: "BX", dir: Direction::Backward, is_type_raise: false }
 }
 
@@ -102,7 +100,7 @@ pub(crate) fn all_combinators() -> Vec<Combinator> {
 }
 
 /// Pretty-print combinator name.
-pub(crate) fn combinator_name(comb: &Combinator) -> &'static str {
+pub(crate) const fn combinator_name(comb: &Combinator) -> &'static str {
     comb.name
 }
 

@@ -1,7 +1,4 @@
 //! Probability distribution types — MLE and Laplace smoothing.
-//!
-//! Implements `MLEProbDist` (maximum likelihood) and `LaplaceProbDist`
-//! (add-one smoothing) matching NLTK's API.
 
 use crate::probability::FreqDist;
 use pyo3::prelude::*;
@@ -17,7 +14,7 @@ pub struct MLEProbDist {
 impl MLEProbDist {
     #[new]
     #[pyo3(signature = (freqdist, _bins=None))]
-    fn new(freqdist: FreqDist, _bins: Option<usize>) -> Self {
+    const fn new(freqdist: FreqDist, _bins: Option<usize>) -> Self {
         Self { freqdist }
     }
     fn prob(&self, sample: &str) -> f64 {

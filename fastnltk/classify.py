@@ -2,6 +2,8 @@
 fastnltk.classify — Drop-in replacement for nltk.classify.
 """
 
+from __future__ import annotations
+
 import nltk.classify as _nltk_classify
 from nltk.classify import ClassifierI, DecisionTreeClassifier
 from nltk.classify.util import accuracy, apply_features, log_likelihood
@@ -31,6 +33,7 @@ __all__ = [
 
 class TextCat:
     """Language detection — Rust-accelerated via whatlang."""
+
     def __init__(self):
         self._impl = _RustTextCat()
 
@@ -47,6 +50,7 @@ class TextCat:
 
 class MaxentClassifier:
     """Maximum Entropy classifier — Rust-accelerated GIS training."""
+
     def __init__(self):
         self._impl = None  # set by train()
 
@@ -58,10 +62,10 @@ class MaxentClassifier:
         inst._impl.train(labeled_featuresets, max_iter, sigma)
         return inst
 
-    def classify(self, features):
+    def classify(self, features: dict) -> str:
         return self._impl.classify(features)
 
-    def labels(self):
+    def labels(self) -> list[str]:
         return self._impl.labels()
 
     def prob_classify(self, features):
@@ -73,6 +77,7 @@ class MaxentClassifier:
 
 class NaiveBayesClassifier:
     """Naive Bayes classifier — Rust-accelerated."""
+
     def __init__(self):
         self._impl = None  # set by train()
 
@@ -83,10 +88,10 @@ class NaiveBayesClassifier:
         inst._impl.train(labeled_featuresets)
         return inst
 
-    def classify(self, features):
+    def classify(self, features: dict) -> str:
         return self._impl.classify(features)
 
-    def labels(self):
+    def labels(self) -> list[str]:
         return self._impl.labels()
 
     def prob_classify(self, features):
@@ -98,9 +103,11 @@ class NaiveBayesClassifier:
 
 class PositiveNaiveBayesClassifier:
     """Positive Naive Bayes for positive + unlabeled data."""
+
     @staticmethod
     def train(positive_featuresets, unlabeled_featuresets):
         from fastnltk.classify import NaiveBayesClassifier
+
         labeled = [(feats, "pos") for feats in positive_featuresets] + [
             (feats, "neg") for feats in unlabeled_featuresets
         ]

@@ -37,8 +37,12 @@ __all__ = [
 
 class FreqDist:
     """Frequency distribution — Rust-accelerated."""
+
     def __init__(self, samples=None):
-        self._impl = _RustFreqDist(samples or [])
+        if isinstance(samples, str):
+            self._impl = _RustFreqDist(list(samples))
+        else:
+            self._impl = _RustFreqDist(samples or [])
 
     def N(self):
         return self._impl.N()
@@ -67,6 +71,22 @@ class FreqDist:
     def __getitem__(self, sample):
         return self._impl[sample]
 
+    def get(self, sample, default=0):
+        try:
+            if sample in self._impl:
+                return self._impl[sample]
+            return default
+        except Exception:
+            return default
+
+    def __setitem__(self, sample, count):
+        current = self._impl[sample] if sample in self._impl else 0
+        if count > current:
+            self._impl.inc(sample, count - current)
+        elif count < current:
+            # Reset and rebuild — rare case, use inc for simplicity
+            self._impl.inc(sample, count - current)
+
     def __len__(self):
         return len(self._impl)
 
@@ -80,7 +100,7 @@ class FreqDist:
         return self._impl.copy()
 
     def keys(self):
-        return self._impl.keys()
+        return self._impl.samples()
 
     def values(self):
         return self._impl.values()
@@ -88,8 +108,11 @@ class FreqDist:
     def items(self):
         return self._impl.items()
 
+    def inc(self, sample, count=1):
+        self._impl.inc(sample, count)
+
     def __iter__(self):
-        return iter(self._impl)
+        return iter(self._impl.samples())
 
     def tabulate(self, *args, **kwargs):
         return _nltk_probability.FreqDist(self).tabulate(*args, **kwargs)
@@ -100,11 +123,18 @@ class FreqDist:
 
 class ConditionalFreqDist:
     """Conditional frequency distribution — Rust-accelerated."""
+
     def __init__(self):
         self._impl = _RustConditionalFreqDist()
 
     def __getitem__(self, condition):
-        return self._impl.__getitem__(condition)
+        result = self._impl.freqdist(condition)
+        if result is None:
+            return FreqDist([])
+        # Wrap Rust FreqDist in Python FreqDist for method access
+        wrapped = FreqDist.__new__(FreqDist)
+        wrapped._impl = result
+        return wrapped
 
     def conditions(self):
         return self._impl.conditions()

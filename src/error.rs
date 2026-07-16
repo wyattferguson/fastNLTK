@@ -1,7 +1,4 @@
 //! Structured error types for fastNLTK.
-//!
-//! Replaces 64 raw `PyValueError::new_err(format!(...))` sites with
-//! a single typed error enum. Uses `thiserror` for derive macros.
 
 use pyo3::exceptions::PyValueError;
 use pyo3::PyErr;

@@ -1,8 +1,4 @@
 //! Agreement metrics — kappa, pi, alpha for inter-annotator agreement.
-//!
-//! Wraps `nltk_metrics::agreement` for NLTK-compatible agreement coefficients.
-//!
-//! NLTK equivalent: nltk.metrics.agreement
 
 use pyo3::prelude::*;
 

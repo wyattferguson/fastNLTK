@@ -1,7 +1,4 @@
 //! Scoring metrics: precision, recall, `f_measure`, `edit_distance`, `jaro/jaro_winkler` similarity,
-//! `jaccard_distance`, `binary_distance`, `dice_similarity`.
-//!
-//! NLTK equivalent: nltk.metrics.scores + nltk.metrics.distance
 
 use pyo3::prelude::*;
 

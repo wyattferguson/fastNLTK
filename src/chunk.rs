@@ -1,17 +1,10 @@
 //! Chunking — Rust-accelerated `RegexpChunkParser`.
-//!
-//! Implements NLTK's `RegexpParser` with `ChunkRule` support.
-//! Compiles chunk grammar patterns to tag-sequence regexes
-//! and applies them to tagged text for IOB chunking.
-//! 5-10x faster than NLTK's pure-Python implementation.
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use regex::Regex;
 
-// ═══════════════════════════════════════════════════════════
 // Tag pattern: compiles a <tag_pattern> to a Regex
-// ═══════════════════════════════════════════════════════════
 
 /// Compile a single tag pattern like `<DT>`, `<JJ?>`, `<NN.*>` into a regex.
 /// The pattern is applied to just the tag string.
@@ -74,9 +67,7 @@ fn parse_tag_sequence(pattern: &str) -> Result<Vec<Regex>, String> {
     Ok(regexes)
 }
 
-// ═══════════════════════════════════════════════════════════
 // ChunkRule: find tag sequences matching a pattern, mark as chunk
-// ═══════════════════════════════════════════════════════════
 
 /// Apply a chunk rule to a sequence of tags. Modifies IOB tags in-place.
 #[allow(clippy::needless_pass_by_ref_mut)]
@@ -107,9 +98,7 @@ fn apply_chunk_rule(tag_patterns: &[Regex], tags: &mut [&str], iob: &mut [&str])
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // RegexpParser: parse grammar string, apply rules
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "RegexpParser", module = "fastnltk._rust")]
 #[derive(Clone)]
@@ -127,29 +116,24 @@ impl RegexpParser {
         Ok(Self { rules })
     }
 
-    /// Parse a tagged sentence and return IOB tags as Vec<(word, `iob_tag`)>.
+    /// Parse a tagged sentence and return (word, `pos_tag`, `iob_tag`) triples.
     #[pyo3(signature = (tokens))]
-    fn parse(&self, tokens: Vec<(String, String)>) -> Vec<(String, String)> {
+    fn parse(&self, tokens: Vec<(String, String)>) -> Vec<(String, String, String)> {
         if tokens.is_empty() {
             return Vec::new();
         }
 
-        // Extract words and tags
-        let tags: Vec<&str> = tokens.iter().map(|(_, t)| t.as_str()).collect();
+        // Extract words and POS tags
+        let pos_tags: Vec<&str> = tokens.iter().map(|(_, t)| t.as_str()).collect();
         let mut iob: Vec<&str> = vec!["O"; tokens.len()];
 
         // Apply each rule
         for (_label, tag_patterns) in &self.rules {
-            apply_chunk_rule(tag_patterns, &mut tags.clone(), &mut iob);
+            apply_chunk_rule(tag_patterns, &mut pos_tags.clone(), &mut iob);
         }
 
-        // Return (word, iob_tag) pairs
-        tokens
-            .iter()
-            .map(|(w, _)| w.as_str())
-            .zip(iob)
-            .map(|(w, i)| (w.to_string(), i.to_string()))
-            .collect()
+        // Return (word, pos_tag, iob_tag) triples
+        tokens.into_iter().zip(iob).map(|((w, t), i)| (w, t, i.to_string())).collect()
     }
 }
 
@@ -190,18 +174,14 @@ impl RegexpParser {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RegexpParser>()?;
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {
@@ -274,9 +254,9 @@ mod tests {
         ];
         let result = parser.parse(tokens);
         assert_eq!(result.len(), 3);
-        assert_eq!(result[0].1, "B-NP");
-        assert_eq!(result[1].1, "I-NP");
-        assert_eq!(result[2].1, "O");
+        assert_eq!(result[0].2, "B-NP");
+        assert_eq!(result[1].2, "I-NP");
+        assert_eq!(result[2].2, "O");
     }
 
     #[test]
@@ -284,7 +264,7 @@ mod tests {
         let parser = RegexpParser::new("NP: {<DT><NN>}").unwrap();
         let tokens = vec![("cat".to_string(), "NN".to_string())];
         let result = parser.parse(tokens);
-        assert_eq!(result[0].1, "O");
+        assert_eq!(result[0].2, "O");
     }
 
     #[test]

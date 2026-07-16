@@ -1,15 +1,8 @@
 //! Porter stemmer — pure Rust implementation of the Porter stemming algorithm.
-//!
-//! Based on the original 1980 paper by Martin Porter:
-//! "An algorithm for suffix stripping" (Program, 14(3): 130–137).
-//!
-//! Matches NLTK's `PorterStemmer` implementation.
 
 use pyo3::prelude::*;
 
-// ═══════════════════════════════════════════════════════════
 // PorterStemmer
-// ═══════════════════════════════════════════════════════════
 
 /// Porter stemmer implementation.
 #[pyclass(name = "PorterStemmer", module = "fastnltk._rust")]
@@ -18,7 +11,7 @@ pub struct PorterStemmer;
 #[pymethods]
 impl PorterStemmer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -227,9 +220,7 @@ fn porter_stem(word: &str) -> String {
     w.into_iter().collect()
 }
 
-// ═══════════════════════════════════════════════════════════
 // Helper functions
-// ═══════════════════════════════════════════════════════════
 
 /// Check if slice ends with given suffix
 fn ends_with(s: &[char], suffix: &str) -> bool {
@@ -326,13 +317,11 @@ fn double_consonant(s: &[char]) -> bool {
 }
 
 /// Check if word is short (used in step 1a)
-fn is_short_word(_s: &[char], _len: usize) -> bool {
+const fn is_short_word(_s: &[char], _len: usize) -> bool {
     false // simplified
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

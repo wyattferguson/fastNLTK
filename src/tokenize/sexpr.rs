@@ -1,10 +1,4 @@
 //! S-Expression tokenizer — Rust implementation matching NLTK's `SExprTokenizer`.
-//!
-//! Divides a string into parenthesized expressions (including nested ones)
-//! and other whitespace-separated tokens. Customizable open/close parens
-//! and strict/non-strict mode for mismatched parentheses.
-//!
-//! NLTK equivalent: nltk.tokenize.sexpr.SExprTokenizer
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;

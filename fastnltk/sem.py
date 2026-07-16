@@ -12,8 +12,20 @@ from fastnltk._rust import fromstring as _rust_fromstring
 from fastnltk._rust import simplify as _rust_simplify
 
 # Submodule pass-through (version-safe)
-for _attr in ["boxer", "drt", "glue", "linearlogic", "lfg", "relextract",
-              "chat80", "logic", "evaluate", "skolemize", "util", "hole"]:
+for _attr in [
+    "boxer",
+    "drt",
+    "glue",
+    "linearlogic",
+    "lfg",
+    "relextract",
+    "chat80",
+    "logic",
+    "evaluate",
+    "skolemize",
+    "util",
+    "hole",
+]:
     if hasattr(_nltk_sem, _attr):
         globals()[_attr] = getattr(_nltk_sem, _attr)
 

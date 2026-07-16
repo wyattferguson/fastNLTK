@@ -104,10 +104,18 @@ __all__ = [
 
 
 def jaccard_distance(s1, s2):
+    # NLTK accepts both sets and strings
+    if isinstance(s1, set) and isinstance(s2, set):
+        if not s1 and not s2:
+            return 0.0
+        return 1 - len(s1 & s2) / len(s1 | s2)
     return _rust_jaccard_distance(s1, s2)
 
 
 def binary_distance(s1, s2):
+    # NLTK accepts both sets and strings
+    if isinstance(s1, set) and isinstance(s2, set):
+        return 0.0 if s1 == s2 else 1.0
     return _rust_binary_distance(s1, s2)
 
 
@@ -127,9 +135,23 @@ def dice_similarity(x, y):
     return _rust_dice_similarity(x, y)
 
 
-# Rust exports (no fallback)
-windowdiff = _rust_windowdiff
-pk = _rust_pk
+# Rust exports with set/list→str conversion for NLTK compat
+def windowdiff(reference, hypothesis, k=3, boundary='1'):
+    if isinstance(reference, list):
+        reference = ''.join(str(b) for b in reference)
+    if isinstance(hypothesis, list):
+        hypothesis = ''.join(str(b) for b in hypothesis)
+    return _rust_windowdiff(reference, hypothesis, k, boundary)
+
+
+def pk(reference, hypothesis, k=None, boundary='1'):
+    if isinstance(reference, list):
+        reference = ''.join(str(b) for b in reference)
+    if isinstance(hypothesis, list):
+        hypothesis = ''.join(str(b) for b in hypothesis)
+    return _rust_pk(reference, hypothesis, k if k is not None else max(1, len(reference) // 10), boundary)
+
+
 kappa = _rust_kappa
 pi = _rust_pi
 alpha = _rust_alpha

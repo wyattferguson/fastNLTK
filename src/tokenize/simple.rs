@@ -1,75 +1,58 @@
 //! Simple tokenizers: Space, Tab, Line, Char.
-//!
-//! These are the simplest tokenizers in NLTK, serving as the
-//! first functions to implement in the "one at a time" workflow.
 
 use pyo3::prelude::*;
+use regex::Regex;
+use std::sync::LazyLock;
 
-// ═══════════════════════════════════════════════════════════
+static WS_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+").unwrap());
+
 // SpaceTokenizer
-// ═══════════════════════════════════════════════════════════
 
 /// Tokenize a string by splitting on whitespace.
 ///
 /// Matches NLTK's `nltk.tokenize.SpaceTokenizer`.
-/// NLTK compat: Same behavior (split on space, collapse empty).
 #[pyclass(name = "SpaceTokenizer", module = "fastnltk._rust")]
 pub struct SpaceTokenizer;
 
 #[pymethods]
 impl SpaceTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
-    /// Tokenize text by splitting on space characters.
     fn tokenize(&self, text: &str) -> Vec<String> {
-        tokenize_space(text)
+        // Match NLTK's SpaceTokenizer: re.split(r"\s+", s)
+        // CPython's re.split produces empty strings for leading/trailing gaps.
+        // Rust's regex::split matches CPython behavior including empty strings.
+        if text.is_empty() {
+            return vec![String::new()];
+        }
+        WS_RE.split(text).map(String::from).collect()
     }
 
-    /// Return span tuples (start, end) for each token.
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
         let mut spans = Vec::new();
-        let mut start = None;
-        for (i, ch) in text.char_indices() {
-            if ch == ' ' {
-                if let Some(s) = start.take() {
-                    spans.push((s, i));
-                }
-            } else if start.is_none() {
-                start = Some(i);
-            }
+        let mut pos = 0;
+        for m in WS_RE.find_iter(text) {
+            spans.push((pos, m.start()));
+            pos = m.end();
         }
-        if let Some(s) = start {
-            spans.push((s, text.len()));
-        }
+        spans.push((pos, text.len()));
         spans
     }
 }
 
-/// Core `SpaceTokenizer` logic: split on ' ', filter empty.
-fn tokenize_space(text: &str) -> Vec<String> {
-    let n = text.split(' ').count();
-    let mut tokens = Vec::with_capacity(n);
-    for s in text.split(' ') {
-        tokens.push(s.to_string());
-    }
-    tokens
-}
-
-// ═══════════════════════════════════════════════════════════
 // TabTokenizer
-// ═══════════════════════════════════════════════════════════
 
-/// Tokenize a string by splitting on tabs.
+/// Tokenize a string by splitting on tab characters.
 #[pyclass(name = "TabTokenizer", module = "fastnltk._rust")]
 pub struct TabTokenizer;
 
 #[pymethods]
 impl TabTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -79,7 +62,7 @@ impl TabTokenizer {
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
         let mut spans = Vec::new();
-        let mut start = None;
+        let mut start: Option<usize> = None;
         for (i, ch) in text.char_indices() {
             if ch == '\t' {
                 if let Some(s) = start.take() {
@@ -96,47 +79,44 @@ impl TabTokenizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // LineTokenizer
-// ═══════════════════════════════════════════════════════════
 
-/// Tokenize a string by splitting on newlines.
+/// Tokenize a string into lines.
 #[pyclass(name = "LineTokenizer", module = "fastnltk._rust")]
 pub struct LineTokenizer;
 
 #[pymethods]
 impl LineTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        text.lines().map(String::from).collect()
+        // NLTK default: blanklines='discard', remove lines with only whitespace
+        text.lines().filter(|l| !l.trim().is_empty()).map(String::from).collect()
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
         let mut spans = Vec::new();
-        let mut start = 0;
-        let len = text.len();
+        let mut start: Option<usize> = None;
         for (i, ch) in text.char_indices() {
             if ch == '\n' {
-                if i > start {
-                    spans.push((start, i));
+                if let Some(s) = start.take() {
+                    spans.push((s, i));
                 }
-                start = i + 1;
+            } else if start.is_none() {
+                start = Some(i);
             }
         }
-        if start < len {
-            spans.push((start, len));
+        if let Some(s) = start {
+            spans.push((s, text.len()));
         }
         spans
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // CharTokenizer
-// ═══════════════════════════════════════════════════════════
 
 /// Tokenize a string into individual characters.
 #[pyclass(name = "CharTokenizer", module = "fastnltk._rust")]
@@ -145,7 +125,7 @@ pub struct CharTokenizer;
 #[pymethods]
 impl CharTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -158,15 +138,11 @@ impl CharTokenizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // ── SpaceTokenizer tests ─────────────────────────────
 
     #[test]
     fn test_space_tokenize_basic() {
@@ -183,13 +159,13 @@ mod tests {
     #[test]
     fn test_space_tokenize_multiple_spaces() {
         let tok = SpaceTokenizer::new();
-        assert_eq!(tok.tokenize("a  b"), vec!["a", "", "b"]);
+        assert_eq!(tok.tokenize("a  b"), vec!["a", "b"]);
     }
 
     #[test]
     fn test_space_tokenize_leading_trailing() {
         let tok = SpaceTokenizer::new();
-        assert_eq!(tok.tokenize("  a b  "), vec!["", "", "a", "b", "", ""]);
+        assert_eq!(tok.tokenize("  a b  "), vec!["", "a", "b", ""]);
     }
 
     #[test]
@@ -204,8 +180,6 @@ mod tests {
         assert_eq!(tok.span_tokenize("a b c"), vec![(0, 1), (2, 3), (4, 5)]);
     }
 
-    // ── TabTokenizer tests ───────────────────────────────
-
     #[test]
     fn test_tab_tokenize_basic() {
         let tok = TabTokenizer::new();
@@ -217,8 +191,6 @@ mod tests {
         let tok = TabTokenizer::new();
         assert_eq!(tok.tokenize(""), vec![""]);
     }
-
-    // ── LineTokenizer tests ──────────────────────────────
 
     #[test]
     fn test_line_tokenize_basic() {
@@ -236,10 +208,8 @@ mod tests {
     #[test]
     fn test_line_span_tokenize() {
         let tok = LineTokenizer::new();
-        assert_eq!(tok.span_tokenize("ab\ncd\nef"), vec![(0, 2), (3, 5), (6, 8)]);
+        assert_eq!(tok.span_tokenize("a\nb\nc"), vec![(0, 1), (2, 3), (4, 5)]);
     }
-
-    // ── CharTokenizer tests ──────────────────────────────
 
     #[test]
     fn test_char_tokenize_basic() {
@@ -257,7 +227,7 @@ mod tests {
     #[test]
     fn test_char_tokenize_unicode() {
         let tok = CharTokenizer::new();
-        let chars = tok.tokenize("héllo");
-        assert_eq!(chars.len(), 5);
+        let result = tok.tokenize("héllo");
+        assert_eq!(result.len(), 5);
     }
 }

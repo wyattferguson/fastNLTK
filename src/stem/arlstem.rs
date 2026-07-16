@@ -1,13 +1,8 @@
 //! `ARLSTem` — Arabic stemmers matching NLTK's `ARLSTem` and `ARLSTem2`.
-//!
-//! Rule-based Arabic stemming: removes prefixes, suffixes, diacritics,
-//! normalizes letters, converts plural to singular, feminine to masculine.
 
 use pyo3::prelude::*;
 
-// ═══════════════════════════════════════════════════════════
 // ARLSTem
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "ARLSTem", module = "fastnltk._rust")]
 pub struct ARLSTem;
@@ -15,7 +10,7 @@ pub struct ARLSTem;
 #[pymethods]
 impl ARLSTem {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -42,9 +37,7 @@ impl ARLSTem {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // ARLSTem2
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "ARLSTem2", module = "fastnltk._rust")]
 pub struct ARLSTem2;
@@ -52,7 +45,7 @@ pub struct ARLSTem2;
 #[pymethods]
 impl ARLSTem2 {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
@@ -79,9 +72,7 @@ impl ARLSTem2 {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Normalization
-// ═══════════════════════════════════════════════════════════
 
 fn normalize(token: &str) -> String {
     let mut result = String::with_capacity(token.len());
@@ -101,9 +92,7 @@ fn normalize(token: &str) -> String {
     result
 }
 
-// ═══════════════════════════════════════════════════════════
 // Prefix stripping
-// ═══════════════════════════════════════════════════════════
 
 static PREFIXES: &[&str] = &[
     "ال",   // Al-
@@ -144,9 +133,7 @@ fn strip_prefix(token: &str) -> Option<String> {
     None
 }
 
-// ═══════════════════════════════════════════════════════════
 // Suffix stripping
-// ═══════════════════════════════════════════════════════════
 
 static SUFFIXES: &[&str] = &[
     "\u{643}\u{645}\u{627}", // كما
@@ -188,9 +175,7 @@ fn strip_suffix(token: &str) -> String {
     token.to_string()
 }
 
-// ═══════════════════════════════════════════════════════════
 // Plural to singular
-// ═══════════════════════════════════════════════════════════
 
 static PLURAL_SUFFIXES: &[(&str, &str)] = &[
     ("ات", ""), // جمع مؤنث سالم
@@ -230,9 +215,7 @@ fn plural_to_singular(token: &str) -> Option<String> {
     None
 }
 
-// ═══════════════════════════════════════════════════════════
 // Feminine to masculine
-// ═══════════════════════════════════════════════════════════
 
 fn feminine_to_masculine(token: &str) -> Option<String> {
     let chars: Vec<char> = token.chars().collect();
@@ -246,9 +229,7 @@ fn feminine_to_masculine(token: &str) -> Option<String> {
     None
 }
 
-// ═══════════════════════════════════════════════════════════
 // Verb stripping (ARLSTem)
-// ═══════════════════════════════════════════════════════════
 
 fn strip_verb(token: &str) -> String {
     let chars: Vec<char> = token.chars().collect();
@@ -296,9 +277,7 @@ fn strip_verb(token: &str) -> String {
     t
 }
 
-// ═══════════════════════════════════════════════════════════
 // Verb stripping (ARLSTem2 — more aggressive)
-// ═══════════════════════════════════════════════════════════
 
 fn strip_verb2(token: &str) -> String {
     let chars: Vec<char> = token.chars().collect();
@@ -354,9 +333,7 @@ fn strip_verb2(token: &str) -> String {
     t
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ARLSTem>()?;
@@ -364,9 +341,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

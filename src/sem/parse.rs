@@ -1,9 +1,4 @@
 //! Recursive descent parser for logical formulas.
-//!
-//! Tokenizes and parses expressions in NLTK's logic syntax:
-//! - Variables, constants, applications, lambda, quantifiers
-//! - Connectives: &, |, -, ->, <->
-//! - Equality: =
 
 use crate::sem::expression::{Expression, Type};
 

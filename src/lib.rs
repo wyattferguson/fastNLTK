@@ -1,38 +1,9 @@
-//! fastNLTK — Drop-in Rust-accelerated replacement for NLTK.
-//!
-//! This crate compiles to a `PyO3` extension module (`fastnltk._rust`)
-//! that provides native-speed implementations of NLTK's NLP algorithms.
-//!
-//! Modules correspond to NLTK packages:
-//! - `ccg`: Combinatory Categorial Grammar parsing
-//! - `chat`: Eliza-style chatbot
-//! - `chunk`: Chunking (NP/VP extraction)
-//! - `classify`: `NaiveBayes`, `MaxEnt`, `TextCat`
-//! - `cluster`: K-means clustering
-//! - `collocations`: Bigram/trigram collocation finders
-//! - `corpus`: Corpus reader wrappers
-//! - `drt`: Discourse Representation Theory
-//! - `inference`: Tableau + Resolution theorem provers
-//! - `lm`: Language models (MLE, Lidstone, `WittenBell`, `StupidBackoff`)
-//! - `metrics`: Agreement, association, segmentation, distance, Jaccard
-//! - `parse`: CFG + Earley chart parsing
-//! - `probability`: `FreqDist`, `ConditionalFreqDist`, probability distributions
-//! - `sem`: Semantic expression parsing + evaluation
-//! - `sentiment`: VADER sentiment analysis
-//! - `stem`: Porter, Lancaster, Snowball, Regexp, Arabic stemmers
-//! - `tag`: POS tagging (Perceptron, `TnT`, HMM, sequential backoff)
-//! - `tokenize`: Treebank, Toktok, Tweet, Punkt, Regexp, MWE, `TextTiling`
-//! - `translate`: BLEU score computation
-//! - `tree`: NLTK Tree data structure
-//! - `util`: Regex caching, string utilities
+//! Drop-in Rust-accelerated replacement for NLTK.
 
-// PyO3 0.29 deprecates auto-FromPyObject for Clone #[pyclass]; opt-in/out deferred to 0.30
-#![allow(deprecated)]
+#![allow(deprecated)] // PyO3 0.29: FromPyObject for Clone #[pyclass]
 
-// mimalloc as global allocator on all platforms except Linux aarch64.
-// The manylinux cross-compilation container ships an older crosstool-ng
-// GCC that doesn't support -Wdate-time, which the cc crate default flags
-// inject.  On those targets we fall back to the system allocator.
+// System allocator on Linux aarch64 (manylinux GCC too old for
+// -Wdate-time injected by cc crate into libmimalloc-sys).
 #[cfg(not(all(target_arch = "aarch64", target_os = "linux")))]
 use mimalloc::MiMalloc;
 
@@ -75,6 +46,9 @@ fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // ── Stemming ─────────────────────────────────────────
     stem::register_module(m)?;
+
+    // ── Data ───────────────────────────────────────────
+    data::register_module(m)?;
 
     // ── Tagging ──────────────────────────────────────────
     tag::register_module(m)?;

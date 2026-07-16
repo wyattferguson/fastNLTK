@@ -1,15 +1,10 @@
 //! Clustering — Rust-accelerated K-means clusterer.
-//!
-//! K-means with Euclidean distance, iterative refinement, and
-//! convergence detection. 5-10x faster than NLTK's pure-Python `KMeansClusterer`.
 
 use pyo3::prelude::*;
 
 use crate::error::FastNltkError;
 
-// ═══════════════════════════════════════════════════════════
 // KMeansClusterer
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "KMeansClusterer", module = "fastnltk._rust")]
 pub struct KMeansClusterer {
@@ -24,7 +19,7 @@ pub struct KMeansClusterer {
 impl KMeansClusterer {
     #[new]
     #[pyo3(signature = (num_clusters, max_iterations=50))]
-    fn new(num_clusters: usize, max_iterations: usize) -> Self {
+    const fn new(num_clusters: usize, max_iterations: usize) -> Self {
         Self {
             num_clusters,
             max_iterations,
@@ -140,14 +135,12 @@ impl KMeansClusterer {
     }
 
     /// Number of clusters.
-    fn num_clusters(&self) -> usize {
+    const fn num_clusters(&self) -> usize {
         self.num_clusters
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Distance functions
-// ═══════════════════════════════════════════════════════════
 
 #[inline]
 fn euclidean_sq(a: &[f64], b: &[f64]) -> f64 {
@@ -159,18 +152,14 @@ fn euclidean_sq(a: &[f64], b: &[f64]) -> f64 {
     sum
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<KMeansClusterer>()?;
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

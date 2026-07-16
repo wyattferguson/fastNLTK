@@ -34,10 +34,22 @@ __version__ = "0.4.0"
 
 # Import remaining submodules — each handles Rust-availability gracefully
 _modules = [
-    "stem", "probability", "lm", "metrics",
-    "parse", "tree", "corpus", "sentiment", "translate",
-    "sem", "inference", "cluster", "ccg", "chat",
-    "classify", "collocations",
+    "stem",
+    "probability",
+    "lm",
+    "metrics",
+    "parse",
+    "tree",
+    "corpus",
+    "sentiment",
+    "translate",
+    "sem",
+    "inference",
+    "cluster",
+    "ccg",
+    "chat",
+    "classify",
+    "collocations",
 ]
 
 for _mod_name in _modules:

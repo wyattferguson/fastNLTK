@@ -1,16 +1,10 @@
 //! Chat — Rust-accelerated pattern-matching chatbot.
-//!
-//! Implements NLTK's Chat class: regex pattern pairs are matched
-//! against user input, returning a random response from matching pair.
-//! Pure pattern matching — no ML, 10-50x faster than NLTK.
 
 use pyo3::prelude::*;
 use rand::RngExt;
 use regex::Regex;
 
-// ═══════════════════════════════════════════════════════════
 // Chat
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "Chat", module = "fastnltk._rust")]
 pub struct Chat {
@@ -57,18 +51,14 @@ impl Chat {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Chat>()?;
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

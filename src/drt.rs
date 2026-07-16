@@ -1,13 +1,4 @@
 //! DRT — Discourse Representation Theory, Rust-accelerated.
-//!
-//! Implements NLTK's `nltk.sem.drt` module:
-//!   - DRS (Discourse Representation Structure) with universe + conditions
-//!   - DRS parsing from string format: (\[x,y\],\[dog(x),cat(y)\])
-//!   - DRS conditions: Predicate, Equality, Negation, Implication, Disjunction
-//!   - DRS -> FOL conversion
-//!   - DRS embedding (model evaluation)
-//!
-//! Phase 3 of the sem module port.
 
 use std::fmt;
 
@@ -16,9 +7,7 @@ use pyo3::prelude::*;
 
 use crate::sem::{model_evaluate, Assignment, Expression, Individual, Valuation};
 
-// ═══════════════════════════════════════════════════════════
 // DRS types
-// ═══════════════════════════════════════════════════════════
 
 /// A Discourse Representation Structure.
 #[derive(Clone, Debug, PartialEq)]
@@ -67,9 +56,7 @@ impl fmt::Display for DRSCondition {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // DRS string representation (bracket format)
-// ═══════════════════════════════════════════════════════════
 
 impl DRS {
     /// Parse a DRS from bracket notation: (\[x,y\],\[dog(x),cat(y)\])
@@ -295,6 +282,7 @@ impl DRS {
     }
 
     /// Convert DRS to a first-order logic formula.
+    #[must_use]
     pub fn to_fol(&self) -> Expression {
         // DRS([x1,...,xn],[C1,...,Cn]) becomes exists x1...exists xn.(C1 & ... & Cn)
         // Build conjunction from conditions without artificial "true" sentinel
@@ -359,9 +347,7 @@ fn cond_to_fol(cond: &DRSCondition) -> Expression {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // PyO3 wrappers
-// ═══════════════════════════════════════════════════════════
 
 #[pyfunction]
 #[pyo3(signature = (drs_string))]
@@ -385,9 +371,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

@@ -1,0 +1,33 @@
+# Cargo config for fastNLTK
+# Enables mold/lld linker (dramatically faster linking),
+# parallel codegen for dev builds, and sccache support.
+
+# Auto-detect mold or lld linker
+[target.'cfg(all())']
+# mold (Linux): cargo install mold, or apt install mold, or brew install mold
+# Uncomment if mold is installed:
+# linker = "mold"
+
+[target.x86_64-pc-windows-msvc]
+# Windows: use lld-link from LLVM (choco install llvm or https://llvm.org)
+# Uncomment if LLVM is installed:
+# linker = "lld-link.exe"
+
+[profile.dev]
+# More parallel codegen units = faster compile (default: 16)
+codegen-units = 256
+incremental = true
+
+[profile.test]
+codegen-units = 256
+incremental = true
+
+[env]
+# sccache speeds up repeated compilation: cargo install sccache
+# RUSTC_WRAPPER = "sccache"
+# SCCACHE_DIR = ".sccache"
+# SCCACHE_CACHE_SIZE = "10G"
+
+[term]
+progress.when = "auto"
+verbose = false

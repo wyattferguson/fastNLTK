@@ -1,10 +1,10 @@
-//! `RegexpStemmer` — strip suffix matching a pattern.
-use once_cell::sync::Lazy;
 use pyo3::prelude::*;
 use regex::Regex;
+/// `RegexpStemmer` — strip suffix matching a pattern.
+use std::sync::LazyLock;
 
-static STEM_RE: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(?i)(ing|ed|s|ly|ness|ment|tion|able)$").unwrap());
+static STEM_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)(ing|ed|s|ly|ness|ment|tion|able)$").unwrap());
 
 #[pyclass(name = "RegexpStemmer", module = "fastnltk._rust")]
 #[derive(Clone)]
@@ -16,7 +16,7 @@ pub struct RegexpStemmer {
 impl RegexpStemmer {
     #[new]
     #[pyo3(signature = (min_length = 0))]
-    fn new(min_length: usize) -> Self {
+    const fn new(min_length: usize) -> Self {
         Self { min_length }
     }
 
@@ -35,5 +35,18 @@ mod tests {
     fn test_regexp() {
         let st = RegexpStemmer::new(0);
         assert_eq!(st.stem("cats"), "cat");
+    }
+
+    #[test]
+    fn test_regexp_empty() {
+        let st = RegexpStemmer::new(0);
+        assert_eq!(st.stem(""), "");
+    }
+
+    #[test]
+    fn test_regexp_min_length() {
+        let st = RegexpStemmer::new(5);
+        assert_eq!(st.stem("cat"), "cat"); // too short
+        assert_eq!(st.stem("running"), "runn"); // long enough
     }
 }

@@ -1,15 +1,4 @@
 //! `TextTiling` — topical segmentation of documents.
-//!
-//! Port of NLTK's nltk.tokenize.texttiling.TextTilingTokenizer.
-//! Detects subtopic shifts based on lexical co-occurrence patterns.
-//!
-//! Algorithm steps:
-//! 1. Tokenize into pseudo-sentences (fixed-size blocks)
-//! 2. Compute similarity between adjacent blocks
-//! 3. Smooth the similarity scores
-//! 4. Find valleys (boundaries) in the score curve
-//!
-//! NLTK equivalent: nltk.tokenize.texttiling.TextTilingTokenizer
 
 use hashbrown::HashMap;
 use hashbrown::HashSet;
@@ -31,7 +20,7 @@ pub struct TextTilingTokenizer {
 impl TextTilingTokenizer {
     #[new]
     #[pyo3(signature = (w=20, k=10, demo_mode=false))]
-    fn new(w: usize, k: usize, demo_mode: bool) -> Self {
+    const fn new(w: usize, k: usize, demo_mode: bool) -> Self {
         Self { w, k, demo_mode }
     }
 

@@ -11,6 +11,7 @@ from fastnltk._rust import Chat as _RustChat
 
 class Chat:
     """Rust-accelerated pattern-matching chatbot."""
+
     def __init__(self, pairs):
         self._impl = _RustChat(pairs)
 

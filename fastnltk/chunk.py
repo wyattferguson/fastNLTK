@@ -33,6 +33,7 @@ __all__ = [
 
 class RegexpParser:
     """Rust-accelerated RegexpParser for chunk grammar matching."""
+
     def __init__(self, grammar):
         self._impl = _RustRegexpParser(grammar)
 
@@ -42,32 +43,42 @@ class RegexpParser:
 
 
 def _iob_to_tree(iob_tags):
-    """Convert list of (word, iob) tuples to an nltk Tree."""
-    from nltk import Tree
+    """Convert list of (word, pos_tag, iob_tag) triples to a Tree
+    with leaves as "word/pos" matching NLTK's format."""
+    from fastnltk.tree import Tree
 
-    words = [w for w, _ in iob_tags]
-    tags = [t for _, t in iob_tags]
+    if not iob_tags:
+        return Tree("S", [])
+
+    # Handle both (w, iob) and (w, pos, iob) formats
+    if len(iob_tags[0]) == 3:
+        words, pos_tags, iob = zip(*iob_tags)
+    else:
+        words = [w for w, _ in iob_tags]
+        pos_tags = ["" for _ in iob_tags]
+        iob = [t for _, t in iob_tags]
 
     tree = Tree("S", [])
     current_chunk = None
 
-    for word, tag in zip(words, tags):
+    for word, pos, tag in zip(words, pos_tags, iob):
+        leaf = f"{word}/{pos}" if pos else word
         if tag.startswith("B-"):
             if current_chunk is not None:
                 tree.append(current_chunk)
             label = tag[2:]
-            current_chunk = Tree(label, [word])
+            current_chunk = Tree(label, [leaf])
         elif tag.startswith("I-"):
             if current_chunk is not None:
-                current_chunk.append(word)
+                current_chunk.append(leaf)
             else:
                 label = tag[2:]
-                current_chunk = Tree(label, [word])
+                current_chunk = Tree(label, [leaf])
         else:  # O
             if current_chunk is not None:
                 tree.append(current_chunk)
                 current_chunk = None
-            tree.append(word)
+            tree.append(leaf)
 
     if current_chunk is not None:
         tree.append(current_chunk)

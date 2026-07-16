@@ -1,17 +1,11 @@
 //! `WordNet` lemmatizer — morphy algorithm in Rust.
-//!
-//! Implements the morphy algorithm matching NLTK's `WordNetLemmatizer`.
-//! Loads exception lists and index files from `nltk_data`.
-//! ~10x faster than NLTK's pure-Python implementation.
 
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use pyo3::prelude::*;
 
-// ═══════════════════════════════════════════════════════════
 // Morphy data: loaded once from nltk_data
-// ═══════════════════════════════════════════════════════════
 
 struct WordNetData {
     /// Exception lists per POS: pos → inflected → base form
@@ -81,9 +75,7 @@ impl WordNetData {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Morphy algorithm
-// ═══════════════════════════════════════════════════════════
 
 /// Morphological substitution rules per POS.
 /// Each entry: (suffix, replacement) — try replacing suffix with replacement, check existence.
@@ -150,9 +142,7 @@ fn morphy(data: &WordNetData, word: &str, pos: &str) -> Option<String> {
     None
 }
 
-// ═══════════════════════════════════════════════════════════
 // WordNetLemmatizer — Python-facing class
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "WordNetLemmatizer", module = "fastnltk._rust")]
 pub struct WordNetLemmatizer {
@@ -198,18 +188,14 @@ impl WordNetLemmatizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<WordNetLemmatizer>()?;
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

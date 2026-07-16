@@ -33,9 +33,12 @@ from fastnltk._rust import (
 )
 
 __all__ = [
-    "MLE", "Lidstone", "Laplace",
+    "MLE",
+    "Lidstone",
+    "Laplace",
     "KneserNeyInterpolated",
-    "StupidBackoff", "WittenBellInterpolated",
+    "StupidBackoff",
+    "WittenBellInterpolated",
     "AbsoluteDiscountingInterpolated",
     "padded_everygrams",
     "everygrams",
@@ -48,7 +51,10 @@ __all__ = [
 
 
 class MLE:
-    def __init__(self, order):
+    """Maximum Likelihood Estimation language model — Rust-accelerated."""
+
+    def __init__(self, order, vocabulary=None):
+
         self._impl = _RustMLE(order)
 
     def fit(self, sentences, vocabulary=None):
@@ -77,7 +83,10 @@ class MLE:
 
 
 class Lidstone:
-    def __init__(self, order, gamma):
+    """Lidstone-smoothed language model — Rust-accelerated."""
+
+    def __init__(self, order, gamma, vocabulary=None):
+
         self._impl = _RustLidstone(order, gamma)
 
     def fit(self, sentences, vocabulary=None):
@@ -106,7 +115,10 @@ class Lidstone:
 
 
 class Laplace:
-    def __init__(self, order):
+    """Laplace (add-one) smoothed language model — Rust-accelerated."""
+
+    def __init__(self, order, vocabulary=None):
+
         self._impl = _RustLaplace(order)
 
     def fit(self, sentences, vocabulary=None):
@@ -135,7 +147,10 @@ class Laplace:
 
 
 class KneserNeyInterpolated:
-    def __init__(self, order, discount=0.75):
+    """Kneser-Ney interpolated language model — Rust-accelerated."""
+
+    def __init__(self, order, discount=0.75, vocabulary=None):
+
         self._impl = _RustKneserNeyInterpolated(order, discount)
 
     def fit(self, sentences):
@@ -144,9 +159,16 @@ class KneserNeyInterpolated:
     def score(self, word, context=None):
         return self._impl.score(word, context)
 
+    def logscore(self, word, context=None):
+        return self._impl.logscore(word, context)
+
     @property
     def order(self):
         return self._impl.order()
+
+    @property
+    def vocab_size(self):
+        return self._impl.vocab_size()
 
     @property
     def fitted(self):
@@ -154,7 +176,10 @@ class KneserNeyInterpolated:
 
 
 class WittenBellInterpolated:
-    def __init__(self, order):
+    """Witten-Bell interpolated language model — Rust-accelerated."""
+
+    def __init__(self, order, vocabulary=None):
+
         self._impl = _RustWittenBellInterpolated(order)
 
     def fit(self, sentences):
@@ -163,9 +188,16 @@ class WittenBellInterpolated:
     def score(self, word, context=None):
         return self._impl.score(word, context)
 
+    def logscore(self, word, context=None):
+        return self._impl.logscore(word, context)
+
     @property
     def order(self):
         return self._impl.order()
+
+    @property
+    def vocab_size(self):
+        return self._impl.vocab_size()
 
     @property
     def fitted(self):
@@ -174,7 +206,9 @@ class WittenBellInterpolated:
 
 class StupidBackoff:
     """Stupid backoff LM — Rust-accelerated."""
-    def __init__(self, order, alpha=0.4):
+
+    def __init__(self, order, alpha=0.4, vocabulary=None):
+
         self._impl = _RustStupidBackoff(order, alpha)
 
     def fit(self, sentences):
@@ -183,9 +217,16 @@ class StupidBackoff:
     def score(self, word, context=None):
         return self._impl.score(word, context)
 
+    def logscore(self, word, context=None):
+        return self._impl.logscore(word, context)
+
     @property
     def order(self):
         return self._impl.order()
+
+    @property
+    def vocab_size(self):
+        return self._impl.vocab_size()
 
     @property
     def fitted(self):

@@ -1,13 +1,13 @@
-use once_cell::sync::Lazy;
 use pyo3::prelude::*;
 use regex::Regex;
-use smol_str::SmolStr;
 use std::borrow::Cow;
+use std::sync::LazyLock;
 
 #[pyclass(name = "ToktokTokenizer", module = "fastnltk._rust")]
 pub struct ToktokTokenizer;
 
-static TOKTOK_SUBS: Lazy<Vec<(Regex, String)>> = Lazy::new(build_subs);
+static NUM_COMMA_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(\d),(\d)").unwrap());
+static TOKTOK_SUBS: LazyLock<Vec<(Regex, String)>> = LazyLock::new(build_subs);
 
 fn mk_re(p: &str) -> Regex {
     Regex::new(p).unwrap_or_else(|e| panic!("bad regex '{p}': {e}"))
@@ -20,14 +20,16 @@ fn sub(p: &str, r: &str) -> (Regex, String) {
 #[pymethods]
 impl ToktokTokenizer {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 
     #[pyo3(signature = (text, return_str=false))]
     fn tokenize(&self, text: &str, return_str: bool) -> Vec<String> {
         let subs = &*TOKTOK_SUBS;
-        let mut s: Cow<str> = Cow::Borrowed(text);
+        // Protect digit-comma-digit patterns (e.g. "525,600") before punctuation splitting
+        let protected = NUM_COMMA_RE.replace_all(text, "$1\u{0001}$2");
+        let mut s: Cow<str> = Cow::Owned(protected.into_owned());
         for (re, replacement) in subs {
             if let Cow::Borrowed(inner) = s {
                 if re.is_match(inner) {
@@ -49,7 +51,9 @@ impl ToktokTokenizer {
         let parts: Vec<&str> = t.split_whitespace().collect();
         let mut out = Vec::with_capacity(parts.len());
         for p in parts {
-            out.push(SmolStr::new(p).to_string());
+            // Restore digit-comma-digit placeholders
+            let restored = p.replace('\u{0001}', ",");
+            out.push(restored);
         }
         out
     }
@@ -58,7 +62,7 @@ impl ToktokTokenizer {
 fn build_subs() -> Vec<(Regex, String)> {
     vec![
         sub("\u{00a0}", " "),
-        sub(r"([،;؛¿!\x22\]\)}»›\u{201d}؟¡%\u{066a}°±©®।॥\u{2026}])", " $1 "),
+        sub(r"([،,;؛¿!\x22\]\)}»›\u{201d}؟¡%\u{066a}°±©®।॥\u{2026}])", " $1 "),
         sub(r"([({\[\u2018\u201c\u201e\u201a\u2019\xab\u2039\u300c\u300e])", " $1 "),
         sub(r"[\u{2013}\u{2014}]", " $0 "),
         sub(r"& ", "&amp; "),

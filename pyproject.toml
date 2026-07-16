@@ -8,9 +8,10 @@ version = "0.4.0"
 requires-python = ">=3.8"
 description = "Drop-in Rust-accelerated replacement for NLTK. Same API, 5-50x faster."
 authors = [
-    { name = "fastNLTK Contributors" },
+    { name = "Wyatt Ferguson" },
 ]
 license = "Apache-2.0"
+keywords = ["nlp", "nltk", "tokenization", "tagging", "stemming", "parsing", "text-processing", "rust"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -32,6 +33,11 @@ dependencies = [
 ]
 dynamic = ["readme"]
 
+[project.urls]
+Homepage = "https://github.com/wyattferguson/fastnltk"
+Repository = "https://github.com/wyattferguson/fastnltk"
+Changelog = "https://github.com/wyattferguson/fastnltk/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
 dev = ["maturin>=1.7", "pytest>=7", "pytest-benchmark", "ruff>=0.8", "mypy"]
 test = ["pytest>=7", "pytest-benchmark", "hypothesis", "nltk>=3.6"]
@@ -49,10 +55,9 @@ target-version = "py38"
 
 [tool.ruff.lint]
 extend-select = ["I", "Q", "UP", "RUF100"]
-extend-ignore = ["E501"]
+extend-ignore = ["E501", "E402"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short"
 filterwarnings = ["error"]
-timeout = 60

@@ -3,8 +3,8 @@ name = "fastnltk"
 version = "0.4.0"
 edition = "2021"
 license = "Apache-2.0"
-homepage = "https://github.com/your/fastnltk"
-repository = "https://github.com/your/fastnltk"
+homepage = "https://github.com/wyattferguson/fastnltk"
+repository = "https://github.com/wyattferguson/fastnltk"
 description = "Drop-in Rust-accelerated replacement for NLTK"
 keywords = ["nlp", "nltk", "tokenization", "tagging", "stemming", "parsing", "text-processing"]
 categories = ["text-processing", "science"]
@@ -15,55 +15,37 @@ name = "fastnltk"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-# Core bindings
 pyo3 = { version = "0.29", features = ["abi3-py38", "generate-import-lib"] }
-
-# Tokenization
 regex = "1"
 unicode-segmentation = "1"
-
-# Stemming (saves 5,900 LoC — all Snowball algorithms)
 rust-stemmers = "1"
-
-# POS tagging + LM + HMM + ngram (saves ~2,500 LoC)
-rustling = { version = "0.8", default-features = false, features = ["parallel"] }
-
-# Serialization for model loading
 serde = { version = "1", features = ["derive"] }
-bincode = "2"
+postcard = { version = "1", features = ["alloc"] }
 serde_json = "1"
-
-# Performance
 hashbrown = "0.17"
 rustc-hash = "2"
-once_cell = "1"
 parking_lot = "0.12"
 rand = "0.10"
-smol_str = "0.3"
+smol_str = { version = "0.3", features = ["serde"] }
 bumpalo = "3"
 logos = "0.16"
 smallvec = "1"
 phf = { version = "0.14", features = ["macros"] }
 thiserror = "2"
-
-# Optional parallel processing
 rayon = { version = "1", optional = true }
-
-# Language detection (for TextCat replacement)
 whatlang = "0.18"
 nltk-metrics = "0.4"
+memchr = "2.8.3"
 
-# mimalloc as global allocator — skipped on Linux aarch64 where the
-# manylinux container's old crosstool-ng-built GCC in the cross container
-# doesn't support the -Wdate-time flag that the cc crate injects by default.
-# macOS aarch64 (native clang) is unaffected.
+# Excluded on Linux aarch64: manylinux GCC v7 doesn't support -Wdate-time
+# that the cc crate injects by default into libmimalloc-sys.
 [target.'cfg(not(all(target_arch = "aarch64", target_os = "linux")))'.dependencies]
 mimalloc = "0.1"
 
 [features]
 default = ["parallel", "extension-module"]
 extension-module = ["pyo3/extension-module"]
-parallel = ["rayon", "rustling/parallel"]
+parallel = ["rayon"]
 
 [profile.release]
 lto = "fat"
@@ -75,53 +57,22 @@ panic = "abort"
 [profile.dev]
 opt-level = 0
 
+# Clippy settings: most pedantic/nursery lints are wanted as warnings.
+# The allow-list covers patterns inherent to PyO3 FFI.
 [lints.clippy]
-# Catch correctness / performance issues
 pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
-# Allow pedantic lints that don't fit our domain
-module_name_repetitions = "allow"
-too_many_lines = "allow"
-cast_precision_loss = "allow"
-must_use_candidate = "allow"
-missing_fields_in_debug = "allow"
-# PyO3 FFI inherently uses unwrap/expect patterns
-unwrap_used = "allow"
-expect_used = "allow"
-# Every PyO3 method returns PyResult — errors are PyErr variants
+# unwrap_used/expect_used allowed at specific call sites via #[allow()]
+# only where the precondition is statically proven (e.g. known-good regex literals)
 missing_errors_doc = "allow"
 missing_panics_doc = "allow"
-# These are informational, not action items
-missing_const_for_fn = "allow"
-needless_pass_by_value = "allow"
-# PyO3 #[pymethods] require &self even for stateless methods
 unused_self = "allow"
-# PyO3 #[pymethods] must return PyResult for FFI compatibility
 unnecessary_wraps = "allow"
-# #[pyo3] pyfunctions need complex return types for FFI
 type_complexity = "allow"
-# Intentional numeric casts in performance paths
 cast_possible_truncation = "allow"
 cast_sign_loss = "allow"
 cast_possible_wrap = "allow"
 cast_lossless = "allow"
-# PyO3 uses Option-based patterns that trigger this
-option_if_let_else = "allow"
-# Performance-critical code uses index loops intentionally
-needless_range_loop = "allow"
-# PyO3 Signature attributes use parameter names matching Python API
-similar_names = "allow"
-# Tokenizer tokenize() methods use &self per PyO3 requirement
-# Hashbrown entry API triggers this
-or_fun_call = "allow"
-# PyO3 allocates Vec<Vec<...>> for chart parsing
-ptr_arg = "allow"
-# Test code — pedantic lint cleanup deferred
-redundant_closure_for_method_calls = "allow"
-collapsible_match = "allow"
-let_and_return = "allow"
-branches_sharing_code = "allow"
-items_after_statements = "allow"
 
 [lints.rust]
 unused_must_use = "warn"

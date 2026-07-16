@@ -1,8 +1,4 @@
 //! Corpus readers — Rust-accelerated file I/O + tokenization.
-//!
-//! Implements `PlaintextCorpusReader` which reads text files from a directory
-//! and tokenizes them using fastNLTK's Rust tokenizers (`sent_tokenize`,
-//! `word_tokenize`). Replaces NLTK's pure-Python corpus reader hot path.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -12,9 +8,7 @@ use pyo3::prelude::*;
 
 use crate::tokenize::{self};
 
-// ═══════════════════════════════════════════════════════════
 // PlaintextCorpusReader
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "PlaintextCorpusReader", module = "fastnltk._rust")]
 pub struct PlaintextCorpusReader {
@@ -123,9 +117,7 @@ impl PlaintextCorpusReader {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PlaintextCorpusReader>()?;

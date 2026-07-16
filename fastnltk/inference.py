@@ -6,7 +6,6 @@ Full Rust-accelerated stack: TableauProver, ResolutionProver,
 DiscourseThread, DefaultReasoner, ClosedWorldReasoner.
 """
 
-
 # Re-export NLTK names for API compatibility
 from nltk.inference import (  # noqa: F401
     DiscourseTester,

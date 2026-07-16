@@ -1,6 +1,7 @@
 //! String utility functions.
 
 /// Count occurrences of a character in a string.
+#[must_use]
 pub fn count_char(s: &str, c: char) -> usize {
     s.chars().filter(|&ch| ch == c).count()
 }
@@ -11,6 +12,7 @@ pub fn is_blank(s: &str) -> bool {
 }
 
 /// Collapse multiple whitespace characters into a single space.
+#[must_use]
 pub fn collapse_whitespace(s: &str) -> String {
     let mut result = String::with_capacity(s.len());
     let mut prev_space = false;

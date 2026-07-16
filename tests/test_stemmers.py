@@ -25,8 +25,8 @@ class TestPorterStemmer:
 
 class TestLancasterStemmer:
     def test_stems_running(self):
-        # TODO: Lancaster stemmer only has 23/120 rules; "ing" suffix not covered yet
-        # When full rule set added, this should return "run"
+        # Lancaster stemmer has 23 of 120 NLTK rules implemented.
+        # As more rules are added, "running" will eventually stem to "run".
         result = LancasterStemmer().stem("running")
         assert len(result) <= len("running")
         assert result == result.lower()
@@ -38,7 +38,7 @@ class TestLancasterStemmer:
         assert LancasterStemmer().stem("a") == "a"
 
     def test_stems_edge_case(self):
-        # TODO: "maximum" → "maxim" when full rules added
+        # With complete rule set, "maximum" will stem to "maxim".
         result = LancasterStemmer().stem("maximum")
         assert len(result) >= 3
 

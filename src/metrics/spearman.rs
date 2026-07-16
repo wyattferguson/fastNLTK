@@ -1,6 +1,4 @@
 //! Spearman rank correlation coefficient.
-//!
-//! NLTK equivalent: nltk.metrics.spearman
 
 use pyo3::prelude::*;
 

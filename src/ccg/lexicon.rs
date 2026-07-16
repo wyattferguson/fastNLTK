@@ -1,10 +1,4 @@
 //! CCG Lexicon — maps words to category lists.
-//!
-//! A CCG lexicon stores possible syntactic categories for each word.
-//! Words can have multiple categories (e.g., "run" can be NP or S\NP).
-//! The lexicon is used by `CCGChartParser` to initialize chart edges.
-//!
-//! NLTK equivalent: nltk.ccg.lexicon
 
 use hashbrown::HashMap;
 use pyo3::exceptions::PyValueError;
@@ -44,6 +38,7 @@ impl CCGLexicon {
     ///
     /// This is the public Python API. Returns cloned Categories
     /// so callers can own them independently of the lexicon.
+    #[must_use]
     pub fn lookup(&self, word: &str) -> Vec<Category> {
         self.entries.get(word).cloned().unwrap_or_default()
     }
@@ -87,7 +82,7 @@ impl CCGLexicon {
     }
 
     #[allow(dead_code)]
-    pub(crate) fn categories(&self) -> &HashMap<SmolStr, Vec<Category>> {
+    pub(crate) const fn categories(&self) -> &HashMap<SmolStr, Vec<Category>> {
         &self.entries
     }
 }

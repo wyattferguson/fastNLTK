@@ -1,17 +1,11 @@
 //! Punkt sentence tokenizer — Rust port matching NLTK's implementation.
-//!
-//! Uses trained Punkt models loaded from NLTK's `nltk_data` directory.
-//! The model parameters (abbreviations, collocations, orthographic context)
-//! are loaded via Python pickle and passed to Rust for inference.
 
 use hashbrown::HashSet;
 
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyFrozenSet, PySet};
 
-// ═══════════════════════════════════════════════════════════
 // Parameter types matching NLTK's PunktParameters
-// ═══════════════════════════════════════════════════════════
 
 #[derive(Clone, Debug)]
 pub struct PunktParams {
@@ -33,9 +27,13 @@ impl PunktParams {
     }
 
     /// Check if a word is a known abbreviation.
+    /// NLTK stores abbreviations in lowercase — match case-insensitively.
     fn is_abbrev(&self, word: &str) -> bool {
         let stripped = word.trim_end_matches('.');
-        self.abbrev_types.contains(stripped) || self.abbrev_types.contains(word)
+        let lower = stripped.to_lowercase();
+        self.abbrev_types.contains(stripped)
+            || self.abbrev_types.contains(word)
+            || self.abbrev_types.contains(&lower)
     }
 
     /// Check if a word pair is a known collocation.
@@ -50,9 +48,7 @@ impl PunktParams {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // PunktSentenceTokenizer
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "PunktSentenceTokenizer", module = "fastnltk._rust")]
 pub struct PunktSentenceTokenizer {
@@ -131,9 +127,7 @@ impl PunktSentenceTokenizer {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Implementation: Three-pass sentence boundary detection
-// ═══════════════════════════════════════════════════════════
 
 impl PunktSentenceTokenizer {
     fn tokenize_simple_sentences(text: &str) -> Vec<(usize, usize)> {
@@ -156,7 +150,7 @@ impl PunktSentenceTokenizer {
                 }
             }
         }
-        if start < text.len() {
+        if start < text.len() && text[start..].chars().any(|c| !c.is_whitespace()) {
             spans.push((start, text.len()));
         }
         spans
@@ -182,27 +176,29 @@ impl PunktSentenceTokenizer {
                     let is_sentence_break = self.is_sentence_boundary(text, &tokens, i, params);
 
                     if is_sentence_break {
-                        // Include trailing whitespace/quote in current sentence
-                        let real_end = if end < text.len() {
-                            let remaining = &text[end..];
-
-                            remaining
-                                .find(|c: char| {
-                                    !c.is_whitespace() && c != '"' && c != '\'' && c != ')'
-                                })
-                                .map_or(text.len(), |pos| end + pos)
-                        } else {
-                            end
-                        };
-                        spans.push((start, real_end));
-                        start = real_end;
+                        // NLTK-compatible: sentence ends at period/!/?, no trailing space.
+                        // Next sentence starts after any trailing whitespace.
+                        spans.push((start, end));
+                        // Advance start past whitespace between sentences
+                        let after = &text[end..];
+                        let ws_len =
+                            after.find(|c: char| !c.is_whitespace()).unwrap_or(after.len());
+                        start = end + ws_len;
                     }
                 }
                 i += 1;
             }
 
             if start < text.len() {
-                spans.push((start, text.len()));
+                // Strip trailing whitespace from final sentence (NLTK-compatible)
+                let trimmed_end = text[start..]
+                    .char_indices()
+                    .rfind(|(_, c)| !c.is_whitespace())
+                    .map_or(start, |(i, c)| start + i + c.len_utf8());
+                // Only push if there's actual non-whitespace content
+                if trimmed_end > start {
+                    spans.push((start, trimmed_end));
+                }
             }
 
             spans
@@ -216,34 +212,40 @@ impl PunktSentenceTokenizer {
 
     /// Tokenize text into (position, word) pairs.
     /// Words keep their trailing punctuation attached for abbreviation detection.
+    /// Tokenize text into (`byte_position`, word) pairs.
+    /// Words keep their trailing punctuation attached for abbreviation detection.
     fn tokenize_words(&self, text: &str) -> Vec<(usize, String)> {
         let mut tokens = Vec::new();
+        // Use char_indices to track byte positions alongside character indices
+        let char_indices: Vec<(usize, char)> = text.char_indices().collect();
         let mut i = 0;
-        let chars: Vec<char> = text.chars().collect();
 
-        while i < chars.len() {
-            if chars[i].is_whitespace() {
+        while i < char_indices.len() {
+            let (_byte_pos, ch) = char_indices[i];
+            if ch.is_whitespace() {
                 i += 1;
                 continue;
             }
-            let start = i;
+            let start_i = i;
 
             // Collect a word: alphanumeric + internal periods/hyphens/apostrophes
-            while i < chars.len()
-                && !chars[i].is_whitespace()
-                && (chars[i].is_alphanumeric()
-                    || chars[i] == '.'
-                    || chars[i] == '-'
-                    || chars[i] == '\'')
+            while i < char_indices.len()
+                && !char_indices[i].1.is_whitespace()
+                && (char_indices[i].1.is_alphanumeric()
+                    || char_indices[i].1 == '.'
+                    || char_indices[i].1 == '-'
+                    || char_indices[i].1 == '\'')
             {
                 i += 1;
             }
 
-            if i > start {
-                tokens.push((text[..start].len(), chars[start..i].iter().collect()));
+            let start_byte = char_indices[start_i].0;
+            if i > start_i {
+                let word: String = char_indices[start_i..i].iter().map(|(_, c)| c).collect();
+                tokens.push((start_byte, word));
             } else {
                 // Single non-alphanumeric char (punctuation)
-                tokens.push((text[..i].len(), chars[i].to_string()));
+                tokens.push((start_byte, ch.to_string()));
                 i += 1;
             }
         }
@@ -311,9 +313,7 @@ pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {

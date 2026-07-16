@@ -1,10 +1,4 @@
 //! Inference — Tableau + Resolution theorem provers.
-//!
-//! Proves first-order logic formulas using:
-//! - Connected tableau calculus with free variables
-//! - Resolution with CNF + saturation
-//!
-//! NLTK equivalent: nltk.inference.api + nltk.inference.tableau + nltk.inference.resolution
 
 use pyo3::prelude::*;
 

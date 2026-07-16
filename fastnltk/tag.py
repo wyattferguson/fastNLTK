@@ -4,12 +4,15 @@ fastnltk.tag — Drop-in replacement for nltk.tag.
 All taggers are Rust-accelerated via the compiled `_rust` extension.
 """
 
+from __future__ import annotations
+
 import functools
 import os
 import pickle
+import tempfile
 
 import nltk.tag as _nltk_tag
-from nltk.data import find
+from fastnltk.data import find
 from nltk.tag import (
     BrillTagger,
     BrillTaggerTrainer,
@@ -41,23 +44,64 @@ from fastnltk._rust import (
     RegexpTagger as _RustRegexpTagger,
 )
 from fastnltk._rust import (
-    TnT as _RustTnT,
+    TrigramTagger as _RustTrigramTagger,
 )
 from fastnltk._rust import (
-    TrigramTagger as _RustTrigramTagger,
+    TnT as _RustTnT,
 )
 from fastnltk._rust import (
     UnigramTagger as _RustUnigramTagger,
 )
 
 
+def _bincode_cache_path(resource_name: str) -> str:
+    """Compute deterministic bincode cache path."""
+    sanitized = resource_name.replace("/", "_").replace(".", "_")
+    return os.path.join(tempfile.gettempdir(), "fastnltk_cache", f"{sanitized}.bin")
+
 def _load_tagger_model(tagger):
-    """Load NLTK perceptron tagger weights into Rust tagger."""
-    path = find("taggers/averaged_perceptron_tagger/")
-    pickle_path = os.path.join(str(path), "averaged_perceptron_tagger.pickle")
-    with open(pickle_path, "rb") as f:
-        model_data = pickle.load(f)
-    tagger.load(model_data[0], model_data[1], sorted(model_data[2]))
+    """Load NLTK perceptron tagger weights into Rust tagger, with cache."""
+    cache_path = _bincode_cache_path("perceptron_tagger")
+
+    # Try cache first (fast path: skip NLTK load)
+    if os.path.exists(cache_path):
+        try:
+            tagger.load_from_cache(cache_path)
+            return
+        except Exception:
+            pass
+
+    # NLTK 3.10 uses averaged_perceptron_tagger_eng; fall back to legacy path
+    try:
+        path = str(find("taggers/averaged_perceptron_tagger_eng/"))
+    except LookupError:
+        path = str(find("taggers/averaged_perceptron_tagger/"))
+
+    # NLTK 3.10 stores separate JSON files; 3.9 stores single pickle
+    import json
+    json_weights = os.path.join(path, "averaged_perceptron_tagger_eng.weights.json")
+    if os.path.exists(json_weights):
+        with open(json_weights, encoding="utf-8") as f:
+            weights_dict = json.load(f)
+        with open(os.path.join(path, "averaged_perceptron_tagger_eng.tagdict.json"), encoding="utf-8") as f:
+            tagdict = json.load(f)
+        with open(os.path.join(path, "averaged_perceptron_tagger_eng.classes.json"), encoding="utf-8") as f:
+            classes = sorted(json.load(f))
+        # JSON uses dict of dicts; convert to tagger-compatible format
+        tagger.load(weights_dict, tagdict, classes)
+    else:
+        pickle_path = os.path.join(path, "averaged_perceptron_tagger.pickle")
+        with open(pickle_path, "rb") as f:
+            model_data = pickle.load(f)
+        tagger.load(model_data[0], model_data[1], sorted(model_data[2]))
+
+    # Save bincode cache for next time
+    try:
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        tagger.save_cache(cache_path)
+    except Exception:
+        pass
+
 
 __all__ = [
     "pos_tag",
@@ -98,7 +142,7 @@ def _get_tagger():
     return tagger
 
 
-def pos_tag(tokens, tagset=None, lang="eng"):
+def pos_tag(tokens: list[str], tagset=None, lang="eng"):
     """POS tagging (Rust-accelerated).
 
     Returns a list of (word, tag) tuples.
@@ -108,24 +152,20 @@ def pos_tag(tokens, tagset=None, lang="eng"):
         tagger = _get_tagger()
         result = tagger.tag(tokens)
         if tagset:
-            return [
-                (word, map_tag("en-ptb", tagset, tag) if tag else tag)
-                for word, tag in result
-            ]
+            return [(word, map_tag("en-ptb", tagset, tag) if tag else tag) for word, tag in result]
         return result
     except (ValueError, LookupError, RuntimeError):
         return _nltk_tag.pos_tag(tokens, tagset, lang)
 
 
-def pos_tag_sents(sentences, tagset=None, lang="eng"):
+def pos_tag_sents(sentences: list[list[str]], tagset=None, lang="eng"):
     """POS tagging for multiple sentences (Rust-accelerated)."""
     try:
         tagger = _get_tagger()
         results = tagger.tag_sents(sentences)
         if tagset:
             return [
-                [(word, map_tag("en-ptb", tagset, tag) if tag else tag)
-                 for word, tag in sent]
+                [(word, map_tag("en-ptb", tagset, tag) if tag else tag) for word, tag in sent]
                 for sent in results
             ]
         return results
@@ -135,6 +175,7 @@ def pos_tag_sents(sentences, tagset=None, lang="eng"):
 
 class PerceptronTagger:
     """Rust-accelerated averaged perceptron tagger."""
+
     def __init__(self, load_model=True):
         self._impl = _RustPerceptronTagger()
         if load_model:
@@ -143,18 +184,18 @@ class PerceptronTagger:
             except (LookupError, FileNotFoundError, OSError):
                 pass
 
-    def tag(self, tokens):
+    def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
         return self._impl.tag(tokens)
 
-    def tag_sents(self, sentences):
+    def tag_sents(self, sentences: list[list[str]]) -> list[list[tuple[str, str]]]:
         return self._impl.tag_sents(sentences)
 
 
 class TnT:
-    """TnT trigram HMM tagger — delegates to NLTK (Rust impl still being optimized)."""
+    """TnT trigram HMM tagger — integer-ID Viterbi, Rust-accelerated."""
+
     def __init__(self):
-        import nltk.tag
-        self._impl = nltk.tag.TnT()
+        self._impl = _RustTnT()
 
     def train(self, sentences):
         self._impl.train(sentences)
@@ -168,82 +209,102 @@ class TnT:
 
 class DefaultTagger:
     """Assign same tag to every token — Rust-accelerated."""
+
     def __init__(self, tag):
         self._impl = _RustDefaultTagger(tag)
 
-    def tag(self, tokens):
+    def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
         return self._impl.tag(tokens)
 
-    def tag_sents(self, sentences):
+    def tag_sents(self, sentences: list[list[str]]) -> list[list[tuple[str, str]]]:
         return self._impl.tag_sents(sentences)
 
 
 class UnigramTagger:
     """Unigram tagger — Rust-accelerated lookup."""
-    def __init__(self, backoff=None):
-        self._impl = _RustUnigramTagger(backoff)
 
-    def train(self, sentences):
+    def __init__(self, train=None, backoff=None):
+        self._impl = _RustUnigramTagger(backoff)
+        if train is not None:
+            self._impl.train(train)
+
+    def train(self, sentences: list[list[str]]) -> None:
         self._impl.train(sentences)
 
-    def tag(self, tokens):
+    def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
         return self._impl.tag(tokens)
 
-    def tag_sents(self, sentences):
+    def tag_sents(self, sentences: list[list[str]]) -> list[list[tuple[str, str]]]:
         return self._impl.tag_sents(sentences)
 
-    def evaluate(self, gold):
+    def evaluate(self, gold: list[list[str]]) -> float:
         return self._impl.evaluate(gold)
 
 
 class BigramTagger:
     """Bigram tagger — Rust-accelerated lookup."""
-    def __init__(self, backoff=None):
-        self._impl = _RustBigramTagger(backoff)
 
-    def train(self, sentences):
+    def __init__(self, train=None, backoff=None):
+        self._impl = _RustBigramTagger(backoff)
+        if train is not None:
+            self._impl.train(train)
+
+    def train(self, sentences: list[list[str]]) -> None:
         self._impl.train(sentences)
 
-    def tag(self, tokens):
+    def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
         return self._impl.tag(tokens)
 
-    def tag_sents(self, sentences):
+    def tag_sents(self, sentences: list[list[str]]) -> list[list[tuple[str, str]]]:
         return self._impl.tag_sents(sentences)
 
 
 class TrigramTagger:
     """Trigram tagger — Rust-accelerated lookup."""
-    def __init__(self, backoff=None):
-        self._impl = _RustTrigramTagger(backoff)
 
-    def train(self, sentences):
+    def __init__(self, train=None, backoff=None):
+        self._impl = _RustTrigramTagger(backoff)
+        if train is not None:
+            self._impl.train(train)
+
+    def train(self, sentences: list[list[str]]) -> None:
         self._impl.train(sentences)
 
-    def tag(self, tokens):
+    def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
         return self._impl.tag(tokens)
 
-    def tag_sents(self, sentences):
+    def tag_sents(self, sentences: list[list[str]]) -> list[list[tuple[str, str]]]:
         return self._impl.tag_sents(sentences)
+
+    def evaluate(self, gold: list[list[str]]) -> float:
+        return self._impl.evaluate(gold)
+
+
+
 
 
 class AffixTagger:
     """Affix (suffix/prefix) tagger — Rust-accelerated."""
-    def __init__(self, affix_len=3, use_suffix=True, backoff=None):
-        self._impl = _RustAffixTagger(affix_len, use_suffix, backoff)
 
-    def train(self, sentences):
+    def __init__(self, affix_len=3, use_suffix=True, train=None, backoff=None):
+        self._impl = _RustAffixTagger(affix_len, use_suffix)
+        if train is not None:
+            self._impl.train(train)
+
+    def train(self, sentences: list[list[str]]) -> None:
         self._impl.train(sentences)
 
-    def tag(self, tokens):
+    def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
         return self._impl.tag(tokens)
 
 
 class RegexpTagger:
     """Regexp pattern tagger — Rust-accelerated."""
+
     def __init__(self, patterns, backoff=None):
         self._impl = _RustRegexpTagger(patterns, backoff)
 
-    def tag(self, tokens):
+    def tag(self, tokens: list[str]) -> list[tuple[str, str]]:
         return self._impl.tag(tokens)
 
 

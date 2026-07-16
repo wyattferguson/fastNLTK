@@ -1,15 +1,4 @@
 //! Stemming — Rust-accelerated stemmers matching NLTK's API.
-//!
-//! Available stemmers:
-//! - `ARLSTem` / `ARLSTem2`: Arabic rule-based stemming
-//! - `Cistem`: German case-insensitive stemming
-//! - `ISRIStemmer`: Arabic root-based stemming
-//! - `LancasterStemmer`: Paice-Husk Lancaster stemming
-//! - `PorterStemmer`: Martin Porter's algorithm
-//! - `RegexpStemmer`: Regex-based suffix stripping
-//! - `RSLPStemmer`: Portuguese stemming
-//! - `SnowballStemmer`: Snowball (Porter2) with language selection
-//! - `WordNetLemmatizer`: `WordNet` lemma lookup
 
 pub mod arlstem;
 pub mod cistem;

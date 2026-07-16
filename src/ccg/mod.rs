@@ -1,6 +1,4 @@
 //! CCG — Combinatory Categorial Grammar types + API.
-//!
-//! NLTK equivalent: nltk.ccg.api
 
 pub mod chart;
 pub mod combinator;
@@ -28,11 +26,11 @@ pub(crate) enum CategoryKind {
 
 #[pymethods]
 impl Category {
-    fn is_primitive(&self) -> bool {
+    const fn is_primitive(&self) -> bool {
         matches!(self.inner, CategoryKind::Primitive(_))
     }
 
-    fn is_functional(&self) -> bool {
+    const fn is_functional(&self) -> bool {
         matches!(self.inner, CategoryKind::Functional { .. })
     }
 
@@ -46,14 +44,15 @@ impl Category {
 }
 
 impl Category {
-    pub(crate) fn new(kind: CategoryKind) -> Self {
+    pub(crate) const fn new(kind: CategoryKind) -> Self {
         Self { inner: kind }
     }
 
-    pub(crate) fn kind(&self) -> &CategoryKind {
+    pub(crate) const fn kind(&self) -> &CategoryKind {
         &self.inner
     }
 
+    #[must_use]
     pub fn primitive(label: &str) -> Self {
         Self { inner: CategoryKind::Primitive(label.to_string()) }
     }
@@ -92,6 +91,7 @@ fn fmt_kind(k: &CategoryKind) -> String {
 }
 
 /// Parse a CCG category string like "NP/N" or "S\NP" or "(S\NP)/NP".
+#[must_use]
 pub fn parse_category(s: &str) -> Option<Category> {
     let s = s.trim();
     if s.is_empty() {
@@ -152,31 +152,27 @@ fn parse_inner(s: &str) -> Option<(CategoryKind, usize)> {
     }
 
     // Scan for first / or \ (byte-level — CCG input is ASCII)
-    match bytes.iter().position(|&b| b == b'/' || b == b'\\') {
-        Some(pos) => {
-            let left = &s[..pos];
-            let right = s[pos + 1..].trim_start();
-            let result = parse_inner(left)?;
-            let arg_kind = parse_inner(right)?.0;
-            Some((
-                CategoryKind::Functional {
-                    result: Box::new(result.0),
-                    argument: Box::new(arg_kind),
-                    is_forward: bytes[pos] == b'/',
-                },
-                s.len(),
-            ))
+    if let Some(pos) = bytes.iter().position(|&b| b == b'/' || b == b'\\') {
+        let left = &s[..pos];
+        let right = s[pos + 1..].trim_start();
+        let result = parse_inner(left)?;
+        let arg_kind = parse_inner(right)?.0;
+        Some((
+            CategoryKind::Functional {
+                result: Box::new(result.0),
+                argument: Box::new(arg_kind),
+                is_forward: bytes[pos] == b'/',
+            },
+            s.len(),
+        ))
+    } else {
+        // Primitive category — ASCII alphabetic label
+        let label_len = bytes.iter().position(|&b| !b.is_ascii_alphabetic()).unwrap_or(bytes.len());
+        if label_len == 0 {
+            return None;
         }
-        None => {
-            // Primitive category — ASCII alphabetic label
-            let label_len =
-                bytes.iter().position(|&b| !b.is_ascii_alphabetic()).unwrap_or(bytes.len());
-            if label_len == 0 {
-                return None;
-            }
-            let label = s[..label_len].to_string();
-            Some((CategoryKind::Primitive(label), label_len))
-        }
+        let label = s[..label_len].to_string();
+        Some((CategoryKind::Primitive(label), label_len))
     }
 }
 

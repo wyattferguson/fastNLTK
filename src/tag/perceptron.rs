@@ -1,38 +1,80 @@
 //! Perceptron tagger — averaged perceptron POS tagging.
 //!
-//! Implementation matching NLTK's `nltk.tag.perceptron.PerceptronTagger`.
-//! Loads weights from NLTK's trained model pickle and performs inference.
-
-use std::collections::HashMap;
+//! Uses u64 feature IDs (`FxHash` of component strings) to eliminate
+//! all per-feature String allocation during inference.
+//! Fast path: tagdict lookup for common words avoids feature extraction.
 
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
+use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
+use smol_str::SmolStr;
 
-// ═══════════════════════════════════════════════════════════
-// PerceptronTagger
-// ═══════════════════════════════════════════════════════════
+/// `FxHash` algorithm constant (same as rustc-hash).
+const FXHASH_K: u64 = 6_364_136_223_846_793_005;
 
-/// Averaged perceptron POS tagger — Rust implementation.
-///
-/// Uses the same feature set and algorithm as NLTK's `PerceptronTagger`.
-/// Weights are loaded from NLTK's trained model.
+/// Deterministic `FxHash` of a single byte slice.
+/// rustc-hash v2 randomizes `FxHasher::default()`, breaking model
+/// weights — we use our own deterministic implementation instead.
+#[inline]
+fn fxhash_bytes(bytes: &[u8]) -> u64 {
+    bytes.iter().fold(0u64, |hash, &b| hash.wrapping_mul(FXHASH_K).wrapping_add(b as u64))
+}
+
+/// Hash a 2-component feature (prefix + value).
+/// Writes bytes directly, avoiding any String allocation.
+/// Consistent with hashing the concatenated string during model load.
+#[inline]
+fn hash2(a: &str, b: &str) -> u64 {
+    let mut hash = 0u64;
+    for &byte in a.as_bytes() {
+        hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64);
+    }
+    for &byte in b.as_bytes() {
+        hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64);
+    }
+    hash
+}
+
+/// Hash a 3-component feature. NLTK format: "a b c" (space-separated).
+/// Both a and b should include trailing spaces; c appended with space prefix.
+#[inline]
+fn hash3(a: &str, b: &str, c: &str) -> u64 {
+    let mut hash = 0u64;
+    for &byte in a.as_bytes() {
+        hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64);
+    }
+    for &byte in b.as_bytes() {
+        hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64);
+    }
+    // Space separator before third component (NLTK space-joins all parts)
+    hash = hash.wrapping_mul(FXHASH_K).wrapping_add(b' ' as u64);
+    for &byte in c.as_bytes() {
+        hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64);
+    }
+    hash
+}
+
 #[pyclass(name = "PerceptronTagger", module = "fastnltk._rust")]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PerceptronTagger {
-    /// Feature weights: `feature_name` → {tag → weight}
-    weights: HashMap<String, HashMap<String, f64>>,
-    /// Tag dictionary for common words: word → tag
-    tagdict: HashMap<String, String>,
-    /// Set of known POS tags
-    classes: Vec<String>,
+    /// Feature weights keyed by u64 hash of feature name string.
+    weights: FxHashMap<u64, FxHashMap<SmolStr, f64>>,
+    /// Tag dictionary for common words: word → tag.
+    tagdict: FxHashMap<SmolStr, SmolStr>,
+    /// Known POS tag classes.
+    classes: Vec<SmolStr>,
 }
 
 #[pymethods]
 impl PerceptronTagger {
     #[new]
     fn new() -> PyResult<Self> {
-        // Start with empty model — will need load() or fit() to be useful
-        Ok(Self { weights: HashMap::new(), tagdict: HashMap::new(), classes: Vec::new() })
+        Ok(Self {
+            weights: FxHashMap::default(),
+            tagdict: FxHashMap::default(),
+            classes: Vec::new(),
+        })
     }
 
     /// Load weights from Python dicts (from NLTK pickle).
@@ -43,96 +85,119 @@ impl PerceptronTagger {
         tagdict: Option<&Bound<'_, PyDict>>,
         classes: Option<Vec<String>>,
     ) -> PyResult<()> {
-        // Load weights
         if let Some(wd) = weights_dict {
-            let mut weights = HashMap::new();
+            let mut weights = FxHashMap::default();
             for (feat_key, tags_dict) in wd.iter() {
-                let feat_key = feat_key.extract::<String>()?;
+                let feat_key: String = feat_key.extract()?;
                 let tags_dict = tags_dict.cast::<PyDict>()?;
-                let mut tag_weights = HashMap::new();
+                // Hash the full key string (consistent with hash2)
+                let feat_id = fxhash_bytes(feat_key.as_bytes());
+
+                let mut tag_weights = FxHashMap::default();
                 for (tag, weight) in tags_dict.iter() {
-                    let tag = tag.extract::<String>()?;
-                    let weight = weight.extract::<f64>()?;
-                    tag_weights.insert(tag, weight);
+                    let tag: String = tag.extract()?;
+                    let weight: f64 = weight.extract()?;
+                    tag_weights.insert(SmolStr::new(tag), weight);
                 }
-                weights.insert(feat_key, tag_weights);
+                weights.insert(feat_id, tag_weights);
             }
             self.weights = weights;
         }
 
-        // Load tagdict
         if let Some(td) = tagdict {
-            let mut tagdict = HashMap::new();
+            let mut tagdict = FxHashMap::default();
             for (word, tag) in td.iter() {
-                let word = word.extract::<String>()?;
-                let tag = tag.extract::<String>()?;
-                tagdict.insert(word, tag);
+                let word: String = word.extract()?;
+                let tag: String = tag.extract()?;
+                tagdict.insert(SmolStr::new(word), SmolStr::new(tag));
             }
             self.tagdict = tagdict;
         }
 
-        // Load classes
         if let Some(classes) = classes {
-            self.classes = classes;
+            self.classes = classes.into_iter().map(SmolStr::new).collect();
         }
-
         Ok(())
     }
 
-    /// Tag a single sentence (list of tokens).
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
         self.tag_sentence(&tokens)
     }
 
-    /// Tag multiple sentences.
     fn tag_sents(&self, sentences: Vec<Vec<String>>) -> Vec<Vec<(String, String)>> {
+        #[cfg(feature = "parallel")]
+        {
+            use rayon::prelude::*;
+            sentences.par_iter().map(|s| self.tag_sentence(s)).collect()
+        }
+        #[cfg(not(feature = "parallel"))]
         sentences.iter().map(|s| self.tag_sentence(s)).collect()
+    }
+
+    /// Save tagger state to a cache file.
+    fn save_cache(&self, path: &str) -> PyResult<()> {
+        let bytes = postcard::to_allocvec(self)
+            .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
+        std::fs::write(path, bytes)
+            .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Load tagger state from a cache file into self.
+    fn load_from_cache(&mut self, path: &str) -> PyResult<()> {
+        let bytes =
+            std::fs::read(path).map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
+        let (tagger, _remaining): (Self, &[u8]) = postcard::take_from_bytes(&bytes)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+        self.weights = tagger.weights;
+        self.tagdict = tagger.tagdict;
+        self.classes = tagger.classes;
+        Ok(())
     }
 }
 
-// ═══════════════════════════════════════════════════════════
-// Implementation
-// ═══════════════════════════════════════════════════════════
-
 impl PerceptronTagger {
-    /// Tag a single sentence.
     fn tag_sentence(&self, tokens: &[String]) -> Vec<(String, String)> {
-        let n = tokens.len();
-        if n == 0 {
+        if tokens.is_empty() {
             return Vec::new();
         }
-
-        let mut result = Vec::with_capacity(n);
-        // Previous tags, starting with a special start marker
-        let mut prev_tags: Vec<String> = Vec::new();
+        let mut result = Vec::with_capacity(tokens.len());
+        let mut prev_tags: Vec<SmolStr> = Vec::new();
+        let mut feat_ids = Vec::with_capacity(20);
 
         for (i, word) in tokens.iter().enumerate() {
-            let tag = self.predict_tag(word, i, tokens, &prev_tags);
-            result.push((word.clone(), tag.clone()));
+            let tag = self.predict_tag(word, i, tokens, &prev_tags, &mut feat_ids);
+            result.push((word.clone(), tag.to_string()));
             prev_tags.push(tag);
         }
-
         result
     }
 
-    /// Predict the tag for a single word in context.
-    fn predict_tag(&self, word: &str, i: usize, tokens: &[String], prev_tags: &[String]) -> String {
-        // Check tagdict first (most common words)
+    fn predict_tag(
+        &self,
+        word: &str,
+        i: usize,
+        tokens: &[String],
+        prev_tags: &[SmolStr],
+        feat_ids: &mut Vec<u64>,
+    ) -> SmolStr {
+        // Fast path: tagdict lookup for common words (e.g. "the" → "DT")
         if let Some(tag) = self.tagdict.get(word) {
             return tag.clone();
         }
 
-        // Extract features
-        let features = self.extract_features(word, i, tokens, prev_tags);
+        // Collect feature IDs without any String allocation
+        feat_ids.clear();
+        collect_feature_ids(word, i, tokens, prev_tags, feat_ids);
 
-        // Score each class
-        let mut best_tag = "NN".to_string();
+        // Score each class against all features
+        let mut best_tag = SmolStr::new("NN");
         let mut best_score = f64::NEG_INFINITY;
 
         for class in &self.classes {
             let mut score = 0.0;
-            for feat in &features {
-                if let Some(feat_weights) = self.weights.get(feat.as_str()) {
+            for &fid in feat_ids.iter() {
+                if let Some(feat_weights) = self.weights.get(&fid) {
                     if let Some(weight) = feat_weights.get(class.as_str()) {
                         score += weight;
                     }
@@ -143,138 +208,98 @@ impl PerceptronTagger {
                 best_tag.clone_from(class);
             }
         }
-
         best_tag
     }
-
-    /// Extract features matching NLTK's `PerceptronTagger` feature set.
-    fn extract_features(
-        &self,
-        word: &str,
-        i: usize,
-        tokens: &[String],
-        prev_tags: &[String],
-    ) -> Vec<String> {
-        let mut feats = Vec::with_capacity(20);
-
-        // Current word features
-        feats.push(format!("i word {word}"));
-
-        // Word shape
-        let shape = word_shape(word);
-        feats.push(format!("i shape {shape}"));
-
-        // Prefix features (first 1-3 chars)
-        if !word.is_empty() {
-            let pref1: String = word.chars().take(1).collect();
-            feats.push(format!("i pref1 {pref1}"));
-        }
-        if word.chars().count() >= 2 {
-            let pref2: String = word.chars().take(2).collect();
-            feats.push(format!("i pref2 {pref2}"));
-        }
-        if word.chars().count() >= 3 {
-            let pref3: String = word.chars().take(3).collect();
-            feats.push(format!("i pref3 {pref3}"));
-        }
-
-        // Suffix features (last 1-3 chars)
-        if !word.is_empty() {
-            let suff1: String =
-                word.chars().rev().take(1).collect::<String>().chars().rev().collect();
-            feats.push(format!("i suffix {suff1}"));
-        }
-        if word.chars().count() >= 2 {
-            let suff2: String =
-                word.chars().rev().take(2).collect::<String>().chars().rev().collect();
-            feats.push(format!("i suff2 {suff2}"));
-        }
-        if word.chars().count() >= 3 {
-            let suff3: String =
-                word.chars().rev().take(3).collect::<String>().chars().rev().collect();
-            feats.push(format!("i suff3 {suff3}"));
-        }
-
-        // Previous word features
-        if i > 0 {
-            let prev_word = &tokens[i - 1];
-            feats.push(format!("i-1 word {prev_word}"));
-
-            // Previous word shape
-            let prev_shape = word_shape(prev_word);
-            feats.push(format!("i-1 shape {prev_shape}"));
-
-            // Previous word suffix
-            if prev_word.len() >= 2 {
-                feats.push(format!("i-1 suff2 {}", &prev_word[prev_word.len() - 2..]));
-            }
-            if prev_word.len() >= 3 {
-                feats.push(format!("i-1 suff3 {}", &prev_word[prev_word.len() - 3..]));
-            }
-        }
-
-        // Next word features
-        if i + 1 < tokens.len() {
-            let next_word = &tokens[i + 1];
-            feats.push(format!("i+1 word {next_word}"));
-
-            // Next word shape
-            let next_shape = word_shape(next_word);
-            feats.push(format!("i+1 shape {next_shape}"));
-        }
-
-        // Previous tag features
-        if let Some(tag) = prev_tags.last() {
-            feats.push(format!("i-1 tag {tag}"));
-
-            // Tag bigram
-            if prev_tags.len() >= 2 {
-                let tag2 = &prev_tags[prev_tags.len() - 2];
-                feats.push(format!("i-2 tag {tag2}"));
-                feats.push(format!("i-1 tag+tag {tag2}-{tag}"));
-            }
-        }
-
-        // Shape features for hyphenation and capitalization
-        if word.contains('-') {
-            feats.push("i has_hyphen".to_string());
-        }
-        if word.chars().any(char::is_uppercase) {
-            feats.push("i has_upper".to_string());
-        }
-        if word.chars().all(|c| c.is_uppercase() && c.is_alphabetic()) {
-            feats.push("i all_upper".to_string());
-        }
-
-        feats
-    }
 }
 
-// ═══════════════════════════════════════════════════════════
-// Word shape
-// ═══════════════════════════════════════════════════════════
+/// Collect feature integer IDs matching NLTK's `_get_features` exactly.
+/// NLTK format: `' '.join((name,) + args)` — space-separated components.
+fn collect_feature_ids(
+    word: &str,
+    i: usize,
+    tokens: &[String],
+    prev_tags: &[SmolStr],
+    out: &mut Vec<u64>,
+) {
+    // NLTK: add("i word", context[i])
+    out.push(hash2("i word ", word));
 
-/// Compute the shape of a word (capitalization pattern).
-/// e.g., "Hello" → "Xxxxx", "NLP" → "XXX", "hello" → "xxxx"
-fn word_shape(word: &str) -> String {
-    let mut shape = String::with_capacity(word.len());
-    for c in word.chars() {
-        if c.is_uppercase() {
-            shape.push('X');
-        } else if c.is_lowercase() {
-            shape.push('x');
-        } else if c.is_numeric() {
-            shape.push('d');
+    // NLTK: add("i suffix", word[-3:]) — last 3 chars (char-safe)
+    let suffix = if word.chars().count() >= 3 {
+        let start = word.char_indices().rev().nth(2).map_or(0, |(i, _)| i);
+        &word[start..]
+    } else {
+        word
+    };
+    out.push(hash2("i suffix ", suffix));
+
+    // NLTK: add("i pref1", word[0])
+    if let Some(c) = word.chars().next() {
+        let mut buf = [0u8; 4];
+        let s = c.encode_utf8(&mut buf);
+        out.push(hash2("i pref1 ", s));
+    }
+
+    // NLTK: add("i-1 tag", prev)
+    // NLTK: add("i-2 tag", prev2)
+    // NLTK: add("i tag+i-2 tag", prev, prev2)
+    // NLTK: add("i-1 tag+i word", prev, context[i])
+    if let Some(tag) = prev_tags.last() {
+        out.push(hash2("i-1 tag ", tag.as_str()));
+        if prev_tags.len() >= 2 {
+            let t2 = &prev_tags[prev_tags.len() - 2];
+            out.push(hash2("i-2 tag ", t2.as_str()));
+            // NLTK: add("i tag+i-2 tag", prev, prev2) → "i tag+i-2 tag prev prev2"
+            out.push(hash3("i tag+i-2 tag ", tag.as_str(), t2.as_str()));
+        }
+        // NLTK: add("i-1 tag+i word", prev, context[i]) → "i-1 tag+i word prev word"
+        out.push(hash3("i-1 tag+i word ", tag.as_str(), word));
+    }
+
+    // NLTK: add("i-1 word", context[i - 1])
+    if i > 0 {
+        let pw = &tokens[i - 1];
+        out.push(hash2("i-1 word ", pw));
+        // NLTK: add("i-1 suffix", context[i-1][-3:])
+        let prev_suffix: &str = if pw.chars().count() >= 3 {
+            // Get last 3 characters (char-safe, not byte-indexed)
+            let start = pw.char_indices().rev().nth(2).map_or(0, |(i, _)| i);
+            &pw[start..]
         } else {
-            shape.push(c);
-        }
+            pw.as_str()
+        };
+        out.push(hash2("i-1 suffix ", prev_suffix));
     }
-    shape
+
+    // NLTK: add("i-2 word", context[i - 2])
+    if i > 1 {
+        out.push(hash2("i-2 word ", &tokens[i - 2]));
+    }
+
+    // NLTK: add("i+1 word", context[i + 1])
+    if i + 1 < tokens.len() {
+        let nw = &tokens[i + 1];
+        out.push(hash2("i+1 word ", nw));
+        // NLTK: add("i+1 suffix", context[i+1][-3:])
+        let next_suffix = if nw.chars().count() >= 3 {
+            let start = nw.char_indices().rev().nth(2).map_or(0, |(i, _)| i);
+            &nw[start..]
+        } else {
+            nw.as_str()
+        };
+        out.push(hash2("i+1 suffix ", next_suffix));
+    }
+
+    // NLTK: add("i+2 word", context[i + 2])
+    if i + 2 < tokens.len() {
+        out.push(hash2("i+2 word ", &tokens[i + 2]));
+    }
+
+    // NLTK: add("bias")
+    out.push(fxhash_bytes(b"bias"));
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 mod tests {
@@ -282,32 +307,27 @@ mod tests {
 
     fn create_test_tagger() -> PerceptronTagger {
         let mut tagger = PerceptronTagger::new().unwrap();
-
-        // Add some minimal weights for testing
-        let mut weights = HashMap::new();
-        let mut w1 = HashMap::new();
-        w1.insert("DT".to_string(), 1.0);
-        w1.insert("NN".to_string(), 0.0);
-        weights.insert("i word the".to_string(), w1);
-
-        let mut w2 = HashMap::new();
-        w2.insert("NN".to_string(), 1.0);
-        w2.insert("VB".to_string(), 0.0);
-        weights.insert("i word cat".to_string(), w2);
-
-        let mut w3 = HashMap::new();
-        w3.insert("VB".to_string(), 1.0);
-        w3.insert("NN".to_string(), 0.0);
-        weights.insert("i word runs".to_string(), w3);
-
-        let mut w4 = HashMap::new();
-        w4.insert("NN".to_string(), 1.0);
-        w4.insert("DT".to_string(), 0.0);
-        weights.insert("i shape Xxx".to_string(), w4);
-
-        tagger.weights = weights;
-        tagger.classes = vec!["DT".to_string(), "NN".to_string(), "VB".to_string()];
-
+        let mut w = FxHashMap::default();
+        let mut w1 = FxHashMap::default();
+        w1.insert(SmolStr::new("DT"), 1.0);
+        w1.insert(SmolStr::new("NN"), 0.0);
+        w.insert(hash2("i word ", "the"), w1);
+        let mut w2 = FxHashMap::default();
+        w2.insert(SmolStr::new("NN"), 1.0);
+        w2.insert(SmolStr::new("VB"), 0.0);
+        w.insert(hash2("i word ", "cat"), w2);
+        let mut w3 = FxHashMap::default();
+        w3.insert(SmolStr::new("VB"), 1.0);
+        w3.insert(SmolStr::new("NN"), 0.0);
+        w.insert(hash2("i word ", "runs"), w3);
+        w.insert(hash2("i shape ", "Xxx"), {
+            let mut m = FxHashMap::default();
+            m.insert(SmolStr::new("NN"), 1.0);
+            m.insert(SmolStr::new("DT"), 0.0);
+            m
+        });
+        tagger.weights = w;
+        tagger.classes = vec![SmolStr::new("DT"), SmolStr::new("NN"), SmolStr::new("VB")];
         tagger
     }
 
@@ -316,9 +336,8 @@ mod tests {
         let tagger = create_test_tagger();
         let tokens = vec!["the".to_string(), "cat".to_string()];
         let result = tagger.tag(tokens);
-        assert_eq!(result.len(), 2);
-        assert_eq!(result[0].1, "DT"); // "the" → DT
-        assert_eq!(result[1].1, "NN"); // "cat" → NN
+        assert_eq!(result[0].1, "DT");
+        assert_eq!(result[1].1, "NN");
     }
 
     #[test]
@@ -329,12 +348,30 @@ mod tests {
     }
 
     #[test]
-    fn test_word_shape() {
-        assert_eq!(word_shape("Hello"), "Xxxxx");
-        assert_eq!(word_shape("NLP"), "XXX");
-        assert_eq!(word_shape("hello"), "xxxxx");
-        assert_eq!(word_shape("123"), "ddd");
-        assert_eq!(word_shape("iPhone"), "xXxxxx");
-        assert_eq!(word_shape("a"), "x");
+    fn test_hash_consistency() {
+        let h1 = hash2("i word ", "the");
+        let h2 = hash2("i word ", "the");
+        assert_eq!(h1, h2);
+        let h3 = hash2("i word ", "cat");
+        assert_ne!(h1, h3);
+    }
+
+    #[test]
+    fn test_hash_equivalent_to_full_key() {
+        // Verify hash2("i word ", "believe") == fxhash_bytes("i word believe")
+        assert_eq!(
+            hash2("i word ", "believe"),
+            fxhash_bytes(b"i word believe"),
+            "hash2 vs fxhash_bytes mismatch"
+        );
+        // Verify hash2("i+1 word ", "how") == fxhash_bytes("i+1 word how")
+        assert_eq!(hash2("i+1 word ", "how"), fxhash_bytes(b"i+1 word how"));
+        // Verify hash2("i suffix ", "e") == fxhash_bytes("i suffix e")
+        assert_eq!(hash2("i suffix ", "e"), fxhash_bytes(b"i suffix e"));
+        // Verify hash2 == model-load style
+        assert_eq!(hash2("i-1 word ", "the"), fxhash_bytes(b"i-1 word the"));
+        // Verify hash3 == combined with space separator
+        // NLTK format: "i-1 tag+tag DT NN" (space before each component)
+        assert_eq!(hash3("i-1 tag+tag ", "DT", "NN"), fxhash_bytes(b"i-1 tag+tag DT NN"));
     }
 }

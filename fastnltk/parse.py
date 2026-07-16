@@ -13,6 +13,7 @@ from fastnltk._rust import EarleyChartParser as _RustEarleyChartParser
 
 class CFG:
     """Context-free grammar — Rust-accelerated."""
+
     def __init__(self, start, productions):
         self._impl = _RustCFG(start, productions)
 
@@ -44,11 +45,16 @@ class CFG:
 
 class EarleyChartParser:
     """Earley chart parser — Rust-accelerated."""
-    def __init__(self):
+
+    def __init__(self, grammar=None, trace=0):
         self._impl = _RustEarleyChartParser()
+        if grammar is not None:
+            self._grammar = grammar._impl if hasattr(grammar, "_impl") else grammar
 
     def parse(self, grammar, tokens):
-        return self._impl.parse(grammar._impl if hasattr(grammar, "_impl") else grammar, tokens)
+        g = grammar._impl if hasattr(grammar, "_impl") else grammar
+        return self._impl.parse(g, tokens)
 
     def parse_sents(self, grammar, sentences):
-        return [self.parse(grammar, s) for s in sentences]
+        g = grammar._impl if hasattr(grammar, "_impl") else grammar
+        return [self._impl.parse(g, s) for s in sentences]

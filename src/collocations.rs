@@ -1,19 +1,11 @@
 //! collocations — N-gram collocation finders matching NLTK's API.
-//!
-//! Implements `BigramCollocationFinder`, `TrigramCollocationFinder`,
-//! `QuadgramCollocationFinder` with frequency counting and scoring.
-//!
-//! Available association measures: `chi_sq`, pmi, `pmi_like`, jaccard,
-//! `raw_freq`, dice, `student_t`, fisher, `poisson_stirling`, `freq_filter`.
 
 use hashbrown::HashMap as FastHashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
-// ═══════════════════════════════════════════════════════════
 // CollocationFinderBase
-// ═══════════════════════════════════════════════════════════
 
 /// Internal collocation finder state shared by Bigram/Trigram/Quadgram.
 struct CollocationData {
@@ -141,9 +133,7 @@ impl CollocationData {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // BigramCollocationFinder
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "BigramCollocationFinder", module = "fastnltk._rust")]
 pub struct BigramCollocationFinder {
@@ -178,9 +168,7 @@ impl BigramCollocationFinder {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // TrigramCollocationFinder
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "TrigramCollocationFinder", module = "fastnltk._rust")]
 pub struct TrigramCollocationFinder {
@@ -215,9 +203,7 @@ impl TrigramCollocationFinder {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // QuadgramCollocationFinder
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "QuadgramCollocationFinder", module = "fastnltk._rust")]
 pub struct QuadgramCollocationFinder {

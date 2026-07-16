@@ -1,15 +1,4 @@
 //! Inference Discourse — DRT discourse thread processing.
-//!
-//! Builds on `src/drt.rs` for DRS representation and provides
-//! discourse-level reading comprehension over threaded DRSs.
-//!
-//! Core functionality:
-//!   - `DiscourseThread`: manages a sequence of DRSs
-//!   - DRS merging across the thread (union of referents + conditions)
-//!   - FOL conversion of the merged discourse
-//!   - Yes/no question answering over a model
-//!
-//! NLTK equivalent: nltk.inference.discourse
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -29,7 +18,7 @@ pub struct DiscourseThread {
 #[pymethods]
 impl DiscourseThread {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self { drss: Vec::new(), all_referents: Vec::new() }
     }
 

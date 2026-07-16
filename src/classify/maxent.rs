@@ -1,8 +1,4 @@
 //! Maximum Entropy classifier — GIS training + inference in Rust.
-//!
-//! Implements NLTK's `MaxentClassifier` with Generalized Iterative Scaling (GIS).
-//! Feature encoding matches NLTK's `BinaryMaxentFeatureEncoding`.
-//! 3-8x faster than NLTK's pure-Python implementation.
 
 use std::collections::HashMap;
 
@@ -10,9 +6,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList, PyTuple};
 
-// ═══════════════════════════════════════════════════════════
 // Feature encoding
-// ═══════════════════════════════════════════════════════════
 
 type FeatureVector = Vec<(String, f64)>;
 
@@ -34,9 +28,7 @@ fn extract_features(features_dict: &Bound<'_, PyDict>) -> PyResult<FeatureVector
     Ok(features)
 }
 
-// ═══════════════════════════════════════════════════════════
 // MaxentClassifier
-// ═══════════════════════════════════════════════════════════
 
 #[pyclass(name = "MaxentClassifier", module = "fastnltk._rust")]
 #[derive(Clone)]
@@ -54,7 +46,7 @@ pub struct MaxentClassifier {
 #[pymethods]
 impl MaxentClassifier {
     #[new]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self { labels: Vec::new(), feature_names: Vec::new(), weights: Vec::new(), max_iter: 100 }
     }
 
@@ -315,9 +307,7 @@ impl MaxentClassifier {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Tests
-// ═══════════════════════════════════════════════════════════
 
 #[cfg(test)]
 #[allow(clippy::items_after_test_module)]
@@ -334,15 +324,27 @@ mod tests {
     #[test]
     fn test_features_empty() {
         let classifier = MaxentClassifier::new();
-        // An empty feature vector should return empty scores
+        let scores = classifier.compute_scores(&Vec::new());
+        assert!(scores.is_empty());
+    }
+
+    #[test]
+    fn test_new_has_no_labels() {
+        pyo3::Python::initialize();
+        let classifier = MaxentClassifier::new();
+        assert_eq!(classifier.labels().len(), 0);
+    }
+
+    #[test]
+    fn test_empty_scores() {
+        pyo3::Python::initialize();
+        let classifier = MaxentClassifier::new();
         let scores = classifier.compute_scores(&Vec::new());
         assert!(scores.is_empty());
     }
 }
 
-// ═══════════════════════════════════════════════════════════
 // Registration
-// ═══════════════════════════════════════════════════════════
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<MaxentClassifier>()?;

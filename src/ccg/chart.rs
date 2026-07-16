@@ -1,10 +1,4 @@
 //! CCG Chart Parser — CKY-style CCG parsing with combinators.
-//!
-//! Implements a bottom-up chart parser for Combinatory Categorial Grammar.
-//! Uses a flat `Vec<Vec<Vec<CCGEdge>>>` chart (O(1) array indexing)
-//! instead of `HashMap` for maximum parser throughput.
-//!
-//! NLTK equivalent: nltk.ccg.chart.CCGChartParser
 
 use pyo3::prelude::*;
 
@@ -68,7 +62,7 @@ pub struct CCGChartParser {
 impl CCGChartParser {
     #[new]
     #[pyo3(signature = (lexicon, max_span=20))]
-    fn new(lexicon: CCGLexicon, max_span: usize) -> Self {
+    const fn new(lexicon: CCGLexicon, max_span: usize) -> Self {
         Self { lexicon, max_span }
     }
 
@@ -316,8 +310,10 @@ mod tests {
     fn test_chart_parse_simple() {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> =
-            "the cat chased a ball".split_whitespace().map(|s| s.to_string()).collect();
+        let words: Vec<String> = "the cat chased a ball"
+            .split_whitespace()
+            .map(std::string::ToString::to_string)
+            .collect();
         let results = parser.parse(words).unwrap();
         assert!(!results.is_empty(), "Should find at least one parse");
         assert!(results.iter().any(|r| r.starts_with("Parse")), "Should have S parse");
@@ -327,7 +323,8 @@ mod tests {
     fn test_chart_parse_two_words() {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> = "the cat".split_whitespace().map(|s| s.to_string()).collect();
+        let words: Vec<String> =
+            "the cat".split_whitespace().map(std::string::ToString::to_string).collect();
         let results = parser.parse(words).unwrap();
         assert!(results.iter().any(|r| r.contains("NP")), "Should have NP");
     }
@@ -345,7 +342,7 @@ mod tests {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 20);
         let words: Vec<String> =
-            "the cat ate a ball".split_whitespace().map(|s| s.to_string()).collect();
+            "the cat ate a ball".split_whitespace().map(std::string::ToString::to_string).collect();
         let results = parser.parse(words).unwrap();
         assert!(!results.is_empty(), "Should handle unknown words");
     }
@@ -359,7 +356,8 @@ mod tests {
         ]))
         .unwrap();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> = "the cat ran".split_whitespace().map(|s| s.to_string()).collect();
+        let words: Vec<String> =
+            "the cat ran".split_whitespace().map(std::string::ToString::to_string).collect();
         let results = parser.parse(words).unwrap();
         assert!(
             results.iter().any(|r| r.starts_with("Parse")),
@@ -371,8 +369,10 @@ mod tests {
     fn test_max_span_exceeded() {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 3);
-        let words: Vec<String> =
-            "the cat chased a ball".split_whitespace().map(|s| s.to_string()).collect();
+        let words: Vec<String> = "the cat chased a ball"
+            .split_whitespace()
+            .map(std::string::ToString::to_string)
+            .collect();
         let result = parser.parse(words);
         assert!(result.is_err(), "Should reject input exceeding max_span");
     }
@@ -383,7 +383,8 @@ mod tests {
             CCGLexicon::new(Some(vec![("the".into(), "NP/N".into()), ("cat".into(), "N".into())]))
                 .unwrap();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> = "the cat".split_whitespace().map(|s| s.to_string()).collect();
+        let words: Vec<String> =
+            "the cat".split_whitespace().map(std::string::ToString::to_string).collect();
         let results = parser.parse(words).unwrap();
         assert!(results.iter().any(|r| r.contains("NP")), "Should find NP: {results:?}");
     }
