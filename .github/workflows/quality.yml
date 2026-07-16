@@ -67,6 +67,9 @@ jobs:
   # ── Dependency audit ──────────────────────────────
   deny:
     runs-on: ubuntu-latest
+    env:
+      # Container has 1.85.0; avoid downloading stable from rust-toolchain.toml
+      RUSTUP_TOOLCHAIN: "1.85.0"
     steps:
       - uses: actions/checkout@v5
       - uses: EmbarkStudios/cargo-deny-action@v2

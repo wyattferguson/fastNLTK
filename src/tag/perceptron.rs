@@ -147,9 +147,8 @@ impl PerceptronTagger {
     fn load_from_cache(&mut self, path: &str) -> PyResult<()> {
         let bytes =
             std::fs::read(path).map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
-        let (tagger, _remaining): (Self, &[u8]) =
-            postcard::take_from_bytes(&bytes)
-                .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+        let (tagger, _remaining): (Self, &[u8]) = postcard::take_from_bytes(&bytes)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
         self.weights = tagger.weights;
         self.tagdict = tagger.tagdict;
         self.classes = tagger.classes;
