@@ -133,11 +133,7 @@ impl RegexpParser {
         }
 
         // Return (word, pos_tag, iob_tag) triples
-        tokens
-            .into_iter()
-            .zip(iob)
-            .map(|((w, t), i)| (w, t, i.to_string()))
-            .collect()
+        tokens.into_iter().zip(iob).map(|((w, t), i)| (w, t, i.to_string())).collect()
     }
 }
 

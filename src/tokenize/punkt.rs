@@ -192,7 +192,8 @@ impl PunktSentenceTokenizer {
             if start < text.len() {
                 // Strip trailing whitespace from final sentence (NLTK-compatible)
                 let trimmed_end = text[start..]
-                    .char_indices().rfind(|(_, c)| !c.is_whitespace())
+                    .char_indices()
+                    .rfind(|(_, c)| !c.is_whitespace())
                     .map_or(start, |(i, c)| start + i + c.len_utf8());
                 if trimmed_end > start {
                     spans.push((start, trimmed_end));

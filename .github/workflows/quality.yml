@@ -8,9 +8,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  # Enable sccache for all cargo invocations
-  RUSTC_WRAPPER: sccache
-  SCCACHE_GHA_ENABLED: "true"
 
 jobs:
   # ── Code formatting ────────────────────────────────
@@ -19,7 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all -- --check
 
   # ── Clippy linting ─────────────────────────────────
@@ -29,7 +25,6 @@ jobs:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - uses: mozilla-actions/sccache-action@v0
       # Standard: deny correctness+suspicious+perf, warn style+complexity
       - run: cargo clippy --all-targets --no-default-features --features parallel -- -D clippy::correctness -D clippy::suspicious -D clippy::perf -W clippy::style -W clippy::complexity
         env:
@@ -42,7 +37,6 @@ jobs:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - uses: mozilla-actions/sccache-action@v0
       - run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items
 
   # ── Rust unit tests (fast) ─────────────────────────
@@ -59,7 +53,6 @@ jobs:
         with:
           key: ${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('Cargo.lock') }}
           save-if: ${{ github.ref == 'refs/heads/main' }}
-      - uses: mozilla-actions/sccache-action@v0
       - name: Install Python dev headers
         run: |
           pyver=$(python -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}-dev')")
@@ -70,8 +63,6 @@ jobs:
         run: cargo nextest run --no-default-features --features parallel
         env:
           PYO3_PYTHON: python
-
-
 
   # ── Dependency audit ──────────────────────────────
   deny:
@@ -92,7 +83,6 @@ jobs:
         with:
           python-version: "3.12"
       - uses: Swatinem/rust-cache@v2
-      - uses: mozilla-actions/sccache-action@v0
       - run: |
           pip install maturin nltk pytest hypothesis
           maturin develop --release

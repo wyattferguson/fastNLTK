@@ -227,7 +227,7 @@ fn collect_feature_ids(
 
     // NLTK: add("i suffix", word[-3:]) — last 3 chars (char-safe)
     let suffix = if word.chars().count() >= 3 {
-        let start = word.char_indices().rev().nth(2).map(|(i, _)| i).unwrap_or(0);
+        let start = word.char_indices().rev().nth(2).map_or(0, |(i, _)| i);
         &word[start..]
     } else {
         word
@@ -264,7 +264,7 @@ fn collect_feature_ids(
         // NLTK: add("i-1 suffix", context[i-1][-3:])
         let prev_suffix: &str = if pw.chars().count() >= 3 {
             // Get last 3 characters (char-safe, not byte-indexed)
-            let start = pw.char_indices().rev().nth(2).map(|(i, _)| i).unwrap_or(0);
+            let start = pw.char_indices().rev().nth(2).map_or(0, |(i, _)| i);
             &pw[start..]
         } else {
             pw.as_str()
@@ -283,7 +283,7 @@ fn collect_feature_ids(
         out.push(hash2("i+1 word ", nw));
         // NLTK: add("i+1 suffix", context[i+1][-3:])
         let next_suffix = if nw.chars().count() >= 3 {
-            let start = nw.char_indices().rev().nth(2).map(|(i, _)| i).unwrap_or(0);
+            let start = nw.char_indices().rev().nth(2).map_or(0, |(i, _)| i);
             &nw[start..]
         } else {
             nw.as_str()
