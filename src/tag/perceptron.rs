@@ -134,21 +134,21 @@ impl PerceptronTagger {
         sentences.iter().map(|s| self.tag_sentence(s)).collect()
     }
 
-    /// Save tagger state to a bincode cache file.
+    /// Save tagger state to a cache file.
     fn save_cache(&self, path: &str) -> PyResult<()> {
-        let bytes = bincode::serde::encode_to_vec(self, bincode::config::standard())
+        let bytes = postcard::to_allocvec(self)
             .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
         std::fs::write(path, bytes)
             .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
         Ok(())
     }
 
-    /// Load tagger state from a bincode cache file into self.
+    /// Load tagger state from a cache file into self.
     fn load_from_cache(&mut self, path: &str) -> PyResult<()> {
         let bytes =
             std::fs::read(path).map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
-        let (tagger, _): (Self, usize) =
-            bincode::serde::decode_from_slice(&bytes, bincode::config::standard())
+        let (tagger, _remaining): (Self, &[u8]) =
+            postcard::take_from_bytes(&bytes)
                 .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
         self.weights = tagger.weights;
         self.tagdict = tagger.tagdict;
