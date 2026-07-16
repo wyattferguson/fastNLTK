@@ -445,7 +445,6 @@ class TestChunk:
 
 
 class TestSentiment:
-    @pytest.mark.xfail(reason="Windows VADER lexicon loading differs from NLTK")
     def test_vader(self):
         try:
             ns, fs = nsent.SentimentIntensityAnalyzer(), _fsent.SentimentIntensityAnalyzer()

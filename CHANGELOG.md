@@ -7,10 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.1] — 2025-07-16
 
+### Added
+- MIGRATING.md: comprehensive guide for users migrating from NLTK
+
 ### Changed
-- Clippy cleanup for Rust 1.97: suppressed `cast_precision_loss`/`needless_pass_by_value` at crate level, fixed `or_fun_call`, `branches_sharing_code`, `needless_range_loop`, `let_and_return`, and other style lints
-- Benchmark results updated with release build numbers (geo mean 8.3× across 49 benchmarks)
+- VADER `SentimentIntensityAnalyzer` fully rewritten to match NLTK's algorithm exactly — uses `phf::Map` for zero-cost lexicon lookup (40× faster: 1.7ms vs 69ms)
+- FreqDist internal keys switched from `String` to `SmolStr` (inlines short strings, avoids heap allocation)
+- SpaceTokenizer now correctly implements `str.split(" ")` (was `re.split(r"\s+")` which split on all whitespace)
+- WordNet lemmatizer: per-POS lookups, fixed exception file parsing ("inflected base" not "base inflected"), double-consonant reduction (e.g. running→run), zip extraction support
+- Clippy cleanup for Rust 1.97: suppressed `cast_precision_loss`/`needless_pass_by_value` at crate level, fixed `or_fun_call`, `branches_sharing_code`, `needless_range_loop`, and other style lints
+- Benchmark results: geo mean 9.2× across 49 benchmarks (up from 8.3×)
 - `.gitignore` now excludes `benchmarks/results/*.json`
+- PyPI trove classifiers include Apache 2.0 license
+- pytest filterwarnings relaxed for NLTK deprecation warnings
+
+### Fixed
+- VADER VADER: exact NLTK scoring (`_sift_sentiment_scores` with +1 per sentiment word, `_punctuation_emphasis`, `_but_check`, `_never_check` with full NEGATE list, exact lexicon values from vader_lexicon.txt)
+- SpaceTokenizer span_tokenize for edge cases
+- `cargo clippy` warnings count reduced from 177 to 10
 
 ## [0.4.0] — 2025-07-15
 
