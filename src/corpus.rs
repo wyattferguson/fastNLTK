@@ -29,20 +29,20 @@ impl PlaintextCorpusReader {
         }
 
         let resolved: Vec<String> = fileids.unwrap_or_else(|| {
-                let mut ids: Vec<String> = Vec::new();
-                if let Ok(entries) = fs::read_dir(root_path) {
-                    for entry in entries.flatten() {
-                        let path = entry.path();
-                        if path.is_file() {
-                            if let Some(name) = path.file_name() {
-                                ids.push(name.to_string_lossy().to_string());
-                            }
+            let mut ids: Vec<String> = Vec::new();
+            if let Ok(entries) = fs::read_dir(root_path) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.is_file() {
+                        if let Some(name) = path.file_name() {
+                            ids.push(name.to_string_lossy().to_string());
                         }
                     }
                 }
-                ids.sort();
-                ids
-            });
+            }
+            ids.sort();
+            ids
+        });
 
         Ok(Self { root: root_path.to_path_buf(), fileids: resolved })
     }

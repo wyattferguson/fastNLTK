@@ -30,9 +30,7 @@ pub fn model_evaluate(
                 _ => return Err(format!("Expected predicate, got {func}")),
             };
             let arg_val = match arg.as_ref() {
-                Expression::Variable(n, _) => {
-                    assignment.get(n).cloned().unwrap_or_default()
-                }
+                Expression::Variable(n, _) => assignment.get(n).cloned().unwrap_or_default(),
                 Expression::Constant(n, _) => n.clone(),
                 e => return Err(format!("Expected argument, got {e}")),
             };
