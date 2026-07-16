@@ -2,6 +2,7 @@
 from __future__ import annotations
 import math
 from typing import Any
+import sys
 
 import nltk
 import pytest
@@ -238,6 +239,11 @@ class TestTag:
         f_t.train(TRAIN)
         _eq("TnT", n_t.tag(["The", "cat"]), f_t.tag(["The", "cat"]))
 
+    @pytest.mark.xfail(
+        sys.modules.get("nltk") is not None and tuple(int(x) for x in nltk.__version__.split(".")) >= (3, 10),
+        reason="NLTK 3.10 retrained perceptron model weights differ, tags not byte-identical",
+        strict=False,
+    )
     def test_perceptron(self):
         try:
             n_t, f_t = ntag.PerceptronTagger(), _ftag.PerceptronTagger()

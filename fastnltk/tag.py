@@ -60,10 +60,10 @@ def _bincode_cache_path(resource_name: str) -> str:
     return os.path.join(tempfile.gettempdir(), "fastnltk_cache", f"{sanitized}.bin")
 
 def _load_tagger_model(tagger):
-    """Load NLTK perceptron tagger weights into Rust tagger, with bincode cache."""
+    """Load NLTK perceptron tagger weights into Rust tagger, with cache."""
     cache_path = _bincode_cache_path("perceptron_tagger")
 
-    # Try bincode cache first (fast path: skip pickle)
+    # Try cache first (fast path: skip NLTK load)
     if os.path.exists(cache_path):
         try:
             tagger.load_from_cache(cache_path)
@@ -71,16 +71,29 @@ def _load_tagger_model(tagger):
         except Exception:
             pass
 
-    # Fall back to NLTK pickle
     # NLTK 3.10 uses averaged_perceptron_tagger_eng; fall back to legacy path
     try:
-        path = find("taggers/averaged_perceptron_tagger_eng/")
+        path = str(find("taggers/averaged_perceptron_tagger_eng/"))
     except LookupError:
-        path = find("taggers/averaged_perceptron_tagger/")
-    pickle_path = os.path.join(str(path), "averaged_perceptron_tagger.pickle")
-    with open(pickle_path, "rb") as f:
-        model_data = pickle.load(f)
-    tagger.load(model_data[0], model_data[1], sorted(model_data[2]))
+        path = str(find("taggers/averaged_perceptron_tagger/"))
+
+    # NLTK 3.10 stores separate JSON files; 3.9 stores single pickle
+    import json
+    json_weights = os.path.join(path, "averaged_perceptron_tagger_eng.weights.json")
+    if os.path.exists(json_weights):
+        with open(json_weights, encoding="utf-8") as f:
+            weights_dict = json.load(f)
+        with open(os.path.join(path, "averaged_perceptron_tagger_eng.tagdict.json"), encoding="utf-8") as f:
+            tagdict = json.load(f)
+        with open(os.path.join(path, "averaged_perceptron_tagger_eng.classes.json"), encoding="utf-8") as f:
+            classes = sorted(json.load(f))
+        # JSON uses dict of dicts; convert to tagger-compatible format
+        tagger.load(weights_dict, tagdict, classes)
+    else:
+        pickle_path = os.path.join(path, "averaged_perceptron_tagger.pickle")
+        with open(pickle_path, "rb") as f:
+            model_data = pickle.load(f)
+        tagger.load(model_data[0], model_data[1], sorted(model_data[2]))
 
     # Save bincode cache for next time
     try:
