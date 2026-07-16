@@ -72,7 +72,11 @@ def _load_tagger_model(tagger):
             pass
 
     # Fall back to NLTK pickle
-    path = find("taggers/averaged_perceptron_tagger/")
+    # NLTK 3.10 uses averaged_perceptron_tagger_eng; fall back to legacy path
+    try:
+        path = find("taggers/averaged_perceptron_tagger_eng/")
+    except LookupError:
+        path = find("taggers/averaged_perceptron_tagger/")
     pickle_path = os.path.join(str(path), "averaged_perceptron_tagger.pickle")
     with open(pickle_path, "rb") as f:
         model_data = pickle.load(f)
