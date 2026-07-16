@@ -3,7 +3,6 @@
 These tests verify that fastNLTK's output matches NLTK's output exactly.
 """
 
-
 import nltk
 
 from fastnltk.tokenize import LineTokenizer, SpaceTokenizer, TabTokenizer

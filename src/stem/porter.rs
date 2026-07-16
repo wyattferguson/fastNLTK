@@ -155,52 +155,56 @@ fn porter_stem(word: &str) -> String {
         }
     }
 
-    // Step 4
+    // Step 4 — measure applies to the STEM before the suffix, not the full word
     if w.len() >= 3 {
-        let m = measure(&w);
-        if m > 1 {
-            if ends_with(&w, "al") {
-                replace_end(&mut w, "al", "");
-            } else if ends_with(&w, "ance") {
-                replace_end(&mut w, "ance", "");
-            } else if ends_with(&w, "ence") {
-                replace_end(&mut w, "ence", "");
-            } else if ends_with(&w, "er") {
-                replace_end(&mut w, "er", "");
-            } else if ends_with(&w, "ic") {
-                replace_end(&mut w, "ic", "");
-            } else if ends_with(&w, "able") {
-                replace_end(&mut w, "able", "");
-            } else if ends_with(&w, "ible") {
-                replace_end(&mut w, "ible", "");
-            } else if ends_with(&w, "ant") {
-                replace_end(&mut w, "ant", "");
-            } else if ends_with(&w, "ement") {
-                replace_end(&mut w, "ement", "");
-            } else if ends_with(&w, "ment") {
-                replace_end(&mut w, "ment", "");
-            } else if ends_with(&w, "ent") {
-                replace_end(&mut w, "ent", "");
-            } else if ends_with(&w, "ion")
-                && w.len() > 4
-                && (w[w.len() - 4] == 's' || w[w.len() - 4] == 't')
-            {
-                replace_end(&mut w, "ion", "");
-            } else if ends_with(&w, "ou") {
-                replace_end(&mut w, "ou", "");
-            } else if ends_with(&w, "ism") {
-                replace_end(&mut w, "ism", "");
-            } else if ends_with(&w, "ate") {
-                replace_end(&mut w, "ate", "");
-            } else if ends_with(&w, "iti") {
-                replace_end(&mut w, "iti", "");
-            } else if ends_with(&w, "ous") {
-                replace_end(&mut w, "ous", "");
-            } else if ends_with(&w, "ive") {
-                replace_end(&mut w, "ive", "");
-            } else if ends_with(&w, "ize") {
-                replace_end(&mut w, "ize", "");
-            }
+        // Helper: check if removing suffix_len chars gives a stem with measure > 1
+        let measure_gt_1 = |suffix_len: usize| -> bool {
+            let stem_len = w.len().saturating_sub(suffix_len);
+            stem_len >= 2 && measure(&w[..stem_len]) > 1
+        };
+
+        if ends_with(&w, "al") && measure_gt_1(2) {
+            replace_end(&mut w, "al", "");
+        } else if ends_with(&w, "ance") && measure_gt_1(4) {
+            replace_end(&mut w, "ance", "");
+        } else if ends_with(&w, "ence") && measure_gt_1(4) {
+            replace_end(&mut w, "ence", "");
+        } else if ends_with(&w, "er") && measure_gt_1(2) {
+            replace_end(&mut w, "er", "");
+        } else if ends_with(&w, "ic") && measure_gt_1(2) {
+            replace_end(&mut w, "ic", "");
+        } else if ends_with(&w, "able") && measure_gt_1(4) {
+            replace_end(&mut w, "able", "");
+        } else if ends_with(&w, "ible") && measure_gt_1(4) {
+            replace_end(&mut w, "ible", "");
+        } else if ends_with(&w, "ant") && measure_gt_1(3) {
+            replace_end(&mut w, "ant", "");
+        } else if ends_with(&w, "ement") && measure_gt_1(5) {
+            replace_end(&mut w, "ement", "");
+        } else if ends_with(&w, "ment") && measure_gt_1(4) {
+            replace_end(&mut w, "ment", "");
+        } else if ends_with(&w, "ent") && measure_gt_1(3) {
+            replace_end(&mut w, "ent", "");
+        } else if ends_with(&w, "ion")
+            && w.len() > 4
+            && (w[w.len() - 4] == 's' || w[w.len() - 4] == 't')
+            && measure_gt_1(3)
+        {
+            replace_end(&mut w, "ion", "");
+        } else if ends_with(&w, "ou") && measure_gt_1(2) {
+            replace_end(&mut w, "ou", "");
+        } else if ends_with(&w, "ism") && measure_gt_1(3) {
+            replace_end(&mut w, "ism", "");
+        } else if ends_with(&w, "ate") && measure_gt_1(3) {
+            replace_end(&mut w, "ate", "");
+        } else if ends_with(&w, "iti") && measure_gt_1(3) {
+            replace_end(&mut w, "iti", "");
+        } else if ends_with(&w, "ous") && measure_gt_1(3) {
+            replace_end(&mut w, "ous", "");
+        } else if ends_with(&w, "ive") && measure_gt_1(3) {
+            replace_end(&mut w, "ive", "");
+        } else if ends_with(&w, "ize") && measure_gt_1(3) {
+            replace_end(&mut w, "ize", "");
         }
     }
 

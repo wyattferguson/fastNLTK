@@ -128,9 +128,7 @@ class TestSpecialCharacters:
     def test_urls(self):
         text = "Visit https://example.com today"
         tokens = word_tokenize(text)
-        assert "https://example.com" in tokens or any(
-            "https" in t for t in tokens
-        )
+        assert "https://example.com" in tokens or any("https" in t for t in tokens)
 
     def test_html_entities(self):
         text = "Hello &amp; world"

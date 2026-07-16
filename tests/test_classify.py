@@ -1,6 +1,5 @@
 """Tests for Rust-accelerated classification — NLTK compatibility."""
 
-
 from fastnltk.classify import NaiveBayesClassifier
 
 

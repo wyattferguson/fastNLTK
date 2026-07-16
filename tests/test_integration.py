@@ -14,6 +14,7 @@ class TestCCGIntegration(unittest.TestCase):
     def setUp(self):
         bs = chr(92)
         from fastnltk._rust import CCGChartParser, CCGLexicon
+
         self.lex = CCGLexicon(
             [
                 ("the", "NP/N"),

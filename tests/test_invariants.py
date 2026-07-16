@@ -1,10 +1,12 @@
 """Property-based tests for tokenizer invariants using Hypothesis."""
 
-from hypothesis import given, strategies as st
-from fastnltk.tokenize import word_tokenize, sent_tokenize, regexp_tokenize
+from hypothesis import given
+from hypothesis import strategies as st
 
+from fastnltk.tokenize import regexp_tokenize, sent_tokenize, word_tokenize
 
 # ── Word tokenizer invariants ──────────────────────────────
+
 
 @given(st.text())
 def test_word_tokenize_never_panics(text):
@@ -14,10 +16,19 @@ def test_word_tokenize_never_panics(text):
     assert all(isinstance(t, str) for t in result)
 
 
-@given(st.lists(st.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", min_size=0, max_size=5)))
+@given(
+    st.lists(
+        st.text(
+            alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+            min_size=0,
+            max_size=5,
+        )
+    )
+)
 def test_detokenize_roundtrip(words):
     """detokenize should not crash on any word list."""
     import fastnltk.tokenize as T
+
     for w in words:
         try:
             T.TreebankWordDetokenizer().detokenize([w])
@@ -26,6 +37,7 @@ def test_detokenize_roundtrip(words):
 
 
 # ── Sentence tokenizer invariants ──────────────────────────
+
 
 @given(st.text(max_size=500))
 def test_sent_tokenize_never_panics(text):
@@ -59,6 +71,7 @@ def test_sent_tokenize_single_sentence(text):
 
 # ── Regexp tokenizer invariants ────────────────────────────
 
+
 @given(st.text(max_size=200))
 def test_regexp_tokenize_never_panics(text):
     """regexp_tokenize must not raise on any string."""
@@ -70,11 +83,13 @@ def test_regexp_tokenize_never_panics(text):
 
 # ── Span tokenizer invariants ──────────────────────────────
 
+
 @given(st.text(max_size=200))
 def test_spans_cover_text(text):
     """Span tokenization should produce non-overlapping spans
     that cover non-whitespace portions of the text."""
     from fastnltk._rust import RegexpTokenizer
+
     tok = RegexpTokenizer(r"\S+", gaps=False)
     spans = tok.span_tokenize(text)
     seen_end = 0
