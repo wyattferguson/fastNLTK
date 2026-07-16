@@ -17,10 +17,12 @@ impl Cistem {
             return w;
         }
         let mut s = w;
-        if s.starts_with("ge") && s.len() > 4 {
+        // CISTEM: ^ge(.{4,}) — remove ge- only if remaining stem >= 4 chars
+        if s.starts_with("ge") && s.len() > 5 {
             s = s[2..].to_string();
         }
-        for suf in ["n", "s", "e", "t", "st", "et", "est", "en", "em", "er", "es"] {
+        // Check suffixes longest-first to avoid partial suffix matches
+        for suf in ["est", "et", "en", "em", "er", "es", "st", "t", "e", "n", "s"] {
             if s.ends_with(suf) && s.len() > suf.len() + 2 {
                 s = s[..s.len() - suf.len()].to_string();
                 break;

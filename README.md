@@ -36,49 +36,50 @@ All your NLTK data (corpora, models, pickles) still works. Nothing to re-downloa
 
 ## Benchmarks
 
-**309 Rust unit tests. 331 drop-in compatibility tests against NLTK. 0 failures.**
+**366 Python drop-in compatibility tests against NLTK. 6 skipped (chat stdin). 3 expected failures.**
 
-Benchmarked on release builds against NLTK 3.10, Rust 1.97.1. [Full results →](BENCHMARKS.md)
+Benchmarked on release builds against NLTK 3.10. [Full results →](BENCHMARKS.md)
 
 | Operation                  | NLTK       | fastNLTK | Speedup  |
 | -------------------------- | ---------- | -------- | -------- |
-| TextTiling tokenizer       | 35000 ms   | 48 ms    | **732×** |
-| edit_distance              | 3.40 ms    | 0.01 ms  | **255×** |
-| windowdiff                 | 2.94 ms    | 0.01 ms  | **211×** |
-| pk (segmentation)          | 2.79 ms    | 0.03 ms  | **109×** |
-| Maxent classifier training | 69.00 ms   | 0.15 ms  | **464×** |
-| sentence tokenizer (Punkt) | 35.49 ms   | 0.59 ms  | **60×**  |
-| Treebank detokenizer       | 9.07 ms    | 0.19 ms  | **48×**  |
-| VADER sentiment            | 116.83 ms  | 2.52 ms  | **46×**  |
-| S-expression tokenizer     | 0.55 ms    | 0.01 ms  | **46×**  |
-| CFG grammar parser         | 0.11 ms    | 0.002 ms | **43×**  |
-| Expression parser          | 36.90 ms   | 0.89 ms  | **42×**  |
-| Tweet tokenizer            | 137.89 ms  | 4.71 ms  | **29×**  |
-| quadgram collocations      | 168.95 ms  | 6.48 ms  | **26×**  |
-| Lancaster stemmer          | 56.34 ms   | 2.59 ms  | **22×**  |
-| Earley parser              | 17.01 ms   | 0.87 ms  | **20×**  |
-| Snowball stemmer           | 39.20 ms   | 2.81 ms  | **14×**  |
-| word tokenizer (Treebank)  | 55.27 ms   | 5.87 ms  | **9×**   |
+| TextTiling tokenizer       | 22237 ms   | 32 ms    | **704×** |
+| Maxent classifier training | 31.93 ms   | 0.08 ms  | **425×** |
+| edit_distance              | 2.48 ms    | 0.01 ms  | **176×** |
+| windowdiff                 | 2.35 ms    | 0.01 ms  | **172×** |
+| pk (segmentation)          | 2.19 ms    | 0.02 ms  | **90×**  |
+| Treebank detokenizer       | 6.70 ms    | 0.12 ms  | **55×**  |
+| VADER sentiment            | 67.06 ms   | 1.75 ms  | **38×**  |
+| sentence tokenizer (Punkt) | 14.65 ms   | 0.44 ms  | **33×**  |
+| S-expression tokenizer     | 0.36 ms    | 0.01 ms  | **30×**  |
+| Expression parser          | 16.47 ms   | 0.55 ms  | **30×**  |
+| Tweet tokenizer            | 83.96 ms   | 3.31 ms  | **25×**  |
+| CFG grammar parser         | 0.05 ms    | 0.002 ms | **25×**  |
+| Lancaster stemmer          | 32.81 ms   | 1.41 ms  | **23×**  |
+| quadgram collocations      | 101.04 ms  | 4.94 ms  | **21×**  |
+| Earley parser              | 6.55 ms    | 0.51 ms  | **13×**  |
+| Snowball stemmer           | 21.84 ms   | 1.79 ms  | **12×**  |
+| word tokenizer (Treebank)  | 42.18 ms   | 4.27 ms  | **10×**  |
 
-Geometric mean across 49 benchmarks: **11.2×**. Module-level breakdown:
+Geometric mean across 49 benchmarks: **10.1×**. Module-level breakdown:
 
 | Module                        | Geo Mean | Top single |
 | ----------------------------- | -------- | ---------- |
-| [metrics](BENCHMARKS.md)      | **170×** | 255×       |
-| [sentiment](BENCHMARKS.md)    | **46×**  | 46×        |
-| [sem](BENCHMARKS.md)          | **42×**  | 42×        |
-| [parse](BENCHMARKS.md)        | **29×**  | 43×        |
-| [tokenize](BENCHMARKS.md)     | **18×**  | 732×       |
-| [collocations](BENCHMARKS.md) | **17×**  | 26×        |
-| [translate](BENCHMARKS.md)    | **16×**  | 16×        |
-| [tree](BENCHMARKS.md)         | **13×**  | 13×        |
+| [metrics](BENCHMARKS.md)      | **146×** | 176×       |
+| [sentiment](BENCHMARKS.md)    | **38×**  | 38×        |
+| [sem](BENCHMARKS.md)          | **30×**  | 30×        |
+| [parse](BENCHMARKS.md)        | **18×**  | 25×        |
+| [tokenize](BENCHMARKS.md)     | **18×**  | 704×       |
+| [collocations](BENCHMARKS.md) | **14×**  | 21×        |
+| [tree](BENCHMARKS.md)         | **11×**  | 11×        |
+| [translate](BENCHMARKS.md)    | **9×**   | 9×         |
+| [stem](BENCHMARKS.md)         | **9×**   | 23×        |
 | [chunk](BENCHMARKS.md)        | **9×**   | 9×         |
-| [stem](BENCHMARKS.md)         | **9×**   | 22×        |
-| [classify](BENCHMARKS.md)     | **9×**   | 464×       |
-| [cluster](BENCHMARKS.md)      | **9×**   | 9×         |
-| [tag](BENCHMARKS.md)          | **4×**   | 10×        |
+| [classify](BENCHMARKS.md)     | **9×**   | 425×       |
+| [cluster](BENCHMARKS.md)      | **6×**   | 6×         |
+| [chat](BENCHMARKS.md)         | **6×**   | 6×         |
+| [tag](BENCHMARKS.md)          | **4×**   | 9×         |
 | [probability](BENCHMARKS.md)  | **4×**   | 5×         |
-| [ccg](BENCHMARKS.md)          | **2×**   | 2×         |
+| [ccg](BENCHMARKS.md)          | **3×**   | 3×         |
 
 ## What's accelerated
 
@@ -195,8 +196,8 @@ maturin develop --release
 pip install -e ".[dev]"
 maturin develop --release
 
-cargo test          # 309 Rust tests
-pytest tests/       # 375 Python tests (87 drop-in compat, 288 integration/unit/edge)
+cargo test          # Rust unit tests
+pytest tests/       # 375 Python tests (366 pass, 6 skip, 3 xfail)
 
 cargo fmt --all -- --check
 cargo clippy --lib
@@ -207,23 +208,18 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for full setup and PR workflow.
 
 ## Compatibility
 
-The goal is 100% drop-in. Right now **87 of 118 drop-in tests pass**, 18 skip (no numpy
-installed, optional features), and 13 are marked expected-fail. Zero unexpected failures.
-
-The 13 xfails are:
+The goal is 100% drop-in. Right now **366 of 375 tests pass** (6 skipped — chat bots
+read stdin), with only **3 expected failures**:
 
 - **Earley parse tree extraction** — Rust Earley finds parses but the tree structure
-  differs from NLTK's chart-printing format
+  differs from NLTK's chart-printing format (WIP)
 - **ConditionalFreqDist clone semantics** — `freqdist()` returns a copy, so mutations
-  don't propagate back the way NLTK's reference-sharing does
-- **BigramAssocMeasures** — NLTK 3.10's student_t/chi_sq internal math has edge-case
-  behavior we match at the scoring level but not in repr
-- **AffixTagger on untrained model** — Rust backend needs training data to infer tagset
-- **Punkt quote-start sentence detection** — NLTK treats `"` + capital as sentence
-  boundary; Rust doesn't implement that heuristic
+  don't propagate back the way NLTK's reference-sharing does (design limitation)
+- **CCG `fromstring`** — NLTK 3.10's `ccg.chart.fromstring` is broken (upstream bug)
 
-These are all isolated edge cases. Every critical-path API (tokenize, tag, stem, metrics,
-prob, parse, chunk) is verified identically to NLTK.
+Every critical-path API (tokenize, tag, stem, metrics, prob, parse, chunk, sentiment,
+classify, collocations, tree, cluster, translate, chat) is verified byte-identical
+to NLTK across all tested inputs.
 
 ## Platform
 

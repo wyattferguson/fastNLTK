@@ -5,7 +5,6 @@ fastnltk.tokenize — Drop-in replacement for nltk.tokenize.
 from __future__ import annotations
 
 import functools
-from typing import Any
 
 import nltk.tokenize as _nltk_tokenize
 
@@ -14,9 +13,6 @@ from fastnltk._rust import (
 )
 from fastnltk._rust import (
     CharTokenizer as _RustCharTokenizer,
-)
-from fastnltk._rust import (
-    SpaceTokenizer as _RustSpaceTokenizer,
 )
 from fastnltk._rust import (
     LineTokenizer as _RustLineTokenizer,
@@ -32,6 +28,9 @@ from fastnltk._rust import (
 )
 from fastnltk._rust import (
     SExprTokenizer as _RustSExprTokenizer,
+)
+from fastnltk._rust import (
+    SpaceTokenizer as _RustSpaceTokenizer,
 )
 from fastnltk._rust import (
     TabTokenizer as _RustTabTokenizer,

@@ -136,20 +136,22 @@ def dice_similarity(x, y):
 
 
 # Rust exports with set/list→str conversion for NLTK compat
-def windowdiff(reference, hypothesis, k=3, boundary='1'):
+def windowdiff(reference, hypothesis, k=3, boundary="1"):
     if isinstance(reference, list):
-        reference = ''.join(str(b) for b in reference)
+        reference = "".join(str(b) for b in reference)
     if isinstance(hypothesis, list):
-        hypothesis = ''.join(str(b) for b in hypothesis)
+        hypothesis = "".join(str(b) for b in hypothesis)
     return _rust_windowdiff(reference, hypothesis, k, boundary)
 
 
-def pk(reference, hypothesis, k=None, boundary='1'):
+def pk(reference, hypothesis, k=None, boundary="1"):
     if isinstance(reference, list):
-        reference = ''.join(str(b) for b in reference)
+        reference = "".join(str(b) for b in reference)
     if isinstance(hypothesis, list):
-        hypothesis = ''.join(str(b) for b in hypothesis)
-    return _rust_pk(reference, hypothesis, k if k is not None else max(1, len(reference) // 10), boundary)
+        hypothesis = "".join(str(b) for b in hypothesis)
+    return _rust_pk(
+        reference, hypothesis, k if k is not None else max(1, len(reference) // 10), boundary
+    )
 
 
 kappa = _rust_kappa

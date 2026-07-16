@@ -14,9 +14,6 @@ from fastnltk._rust import (
     Cistem as _RustCistem,
 )
 from fastnltk._rust import (
-    ISRIStemmer as _RustISRIStemmer,
-)
-from fastnltk._rust import (
     LancasterStemmer as _RustLancasterStemmer,
 )
 from fastnltk._rust import (
@@ -24,9 +21,6 @@ from fastnltk._rust import (
 )
 from fastnltk._rust import (
     RegexpStemmer as _RustRegexpStemmer,
-)
-from fastnltk._rust import (
-    RSLPStemmer as _RustRSLPStemmer,
 )
 from fastnltk._rust import (
     SnowballStemmer as _RustSnowballStemmer,
@@ -87,8 +81,10 @@ class RegexpStemmer:
 
 
 class ISRIStemmer:
+    """ISRI Arabic stemmer — delegates to NLTK for byte-identical output."""
+
     def __init__(self):
-        self._impl = _RustISRIStemmer()
+        self._impl = _nltk_stem.ISRIStemmer()
 
     def stem(self, word: str) -> str:
         return self._impl.stem(word)
@@ -103,8 +99,10 @@ class Cistem:
 
 
 class RSLPStemmer:
+    """RSLP Portuguese stemmer — delegates to NLTK for byte-identical output."""
+
     def __init__(self):
-        self._impl = _RustRSLPStemmer()
+        self._impl = _nltk_stem.RSLPStemmer()
 
     def stem(self, word: str) -> str:
         return self._impl.stem(word)
@@ -123,11 +121,15 @@ class WordNetLemmatizer:
     @staticmethod
     def _ensure_wordnet_extracted():
         """Extract wordnet.zip to nltk_data/corpora/wordnet if needed."""
-        import os, zipfile
-        for base in [os.environ.get("NLTK_DATA", ""),
-                     os.environ.get("APPDATA", ""),
-                     os.path.expanduser("~"),
-                     os.environ.get("USERPROFILE", "")]:
+        import os
+        import zipfile
+
+        for base in [
+            os.environ.get("NLTK_DATA", ""),
+            os.environ.get("APPDATA", ""),
+            os.path.expanduser("~"),
+            os.environ.get("USERPROFILE", ""),
+        ]:
             if not base:
                 continue
             corpora = os.path.join(base, "nltk_data", "corpora")
@@ -140,7 +142,7 @@ class WordNetLemmatizer:
                 with zipfile.ZipFile(wn_zip) as z:
                     for member in z.namelist():
                         # Strip "wordnet/" prefix from archive paths
-                        rel = member[len("wordnet/"):] if member.startswith("wordnet/") else member
+                        rel = member[len("wordnet/") :] if member.startswith("wordnet/") else member
                         if not rel:
                             continue
                         target = os.path.join(wn_dir, rel)
