@@ -66,9 +66,7 @@ impl WordNetData {
     }
 
     fn exists(&self, word: &str, pos: &str) -> bool {
-        self.known_words
-            .get(pos)
-            .map_or(false, |words| words.contains(&word.to_lowercase()))
+        self.known_words.get(pos).map_or(false, |words| words.contains(&word.to_lowercase()))
     }
 
     fn lookup_exception(&self, word: &str, pos: &str) -> Option<&str> {
@@ -197,12 +195,7 @@ impl WordNetLemmatizer {
                 .map(|p| Path::new(&p).join("nltk_data").join("corpora").join("wordnet")),
             std::env::var("APPDATA")
                 .ok()
-                .map(|p| {
-                    Path::new(&p)
-                        .join("nltk_data")
-                        .join("corpora")
-                        .join("wordnet")
-                }),
+                .map(|p| Path::new(&p).join("nltk_data").join("corpora").join("wordnet")),
         ];
 
         for path in search_paths.iter().flatten() {
