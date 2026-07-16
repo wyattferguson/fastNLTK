@@ -5,6 +5,13 @@ All notable changes to fastNLTK are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] — 2025-07-16
+
+### Changed
+- Clippy cleanup for Rust 1.97: suppressed `cast_precision_loss`/`needless_pass_by_value` at crate level, fixed `or_fun_call`, `branches_sharing_code`, `needless_range_loop`, `let_and_return`, and other style lints
+- Benchmark results updated with release build numbers (geo mean 8.3× across 49 benchmarks)
+- `.gitignore` now excludes `benchmarks/results/*.json`
+
 ## [0.4.0] — 2025-07-15
 
 ### Added

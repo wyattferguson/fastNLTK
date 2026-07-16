@@ -1,6 +1,6 @@
 # Benchmarks
 
-> **Last updated:** 2025-07-16 (v0.4.0, Rust 1.97.1, release build)
+> **Last updated:** 2025-07-16 (v0.4.1, Rust 1.97.1, release build)
 > **Geometric mean: 8.3× vs NLTK** across 49 compared benchmarks (66 total).
 >
 > Run benchmarks: `python -m benchmarks.run --save`
