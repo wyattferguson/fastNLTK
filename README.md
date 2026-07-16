@@ -14,8 +14,6 @@
 
 ---
 
-## What is this?
-
 [**NLTK**](https://www.nltk.org) is the standard Python NLP library — teaching, research,
 prototyping. It works great, but it's pure Python. Tokenizing a 50K-word document takes
 ~40 ms in NLTK. That's fine for one-offs, but in a pipeline it adds up fast.
@@ -229,19 +227,6 @@ prob, parse, chunk) is verified identically to NLTK.
 ## License
 
 [Apache 2.0](LICENSE). Not affiliated with NLTK or its maintainers.
-
-## Citing
-
-See [CITATION.cff](CITATION.cff) for software citation metadata.
-
-```bibtex
-@software{fastnltk2025,
-  author = {Ferguson, Wyatt},
-  title = {fastNLTK: Drop-in Rust-accelerated replacement for NLTK},
-  year = {2026},
-  url = {https://github.com/wyattferguson/fastnltk}
-}
-```
 
 ## Contact + Support
 
