@@ -1,15 +1,20 @@
 //! Frequency & probability distributions matching NLTK's API.
+//!
+//! Uses `SmolStr` internally for compact inlined string keys (avoids heap
+//! allocation for common short words up to 22 bytes) and `hashbrown::HashMap`
+//! for performance.
 
 pub mod dist;
 
 use hashbrown::HashMap;
 use pyo3::prelude::*;
+use smol_str::SmolStr;
 
 /// A frequency distribution for a list of samples.
 #[pyclass(name = "FreqDist", module = "fastnltk._rust")]
 #[derive(Clone)]
 pub struct FreqDist {
-    counts: HashMap<String, u64>,
+    counts: HashMap<SmolStr, u64>,
     total: u64,
 }
 
@@ -25,6 +30,10 @@ impl FreqDist {
     #[must_use]
     pub fn num_samples(&self) -> usize {
         self.counts.len()
+    }
+    #[must_use]
+    pub fn counts(&self) -> &HashMap<SmolStr, u64> {
+        &self.counts
     }
 }
 
@@ -54,28 +63,28 @@ impl FreqDist {
         self.counts.get(sample).copied().unwrap_or(0) as f64 / self.total as f64
     }
     fn max(&self) -> Option<String> {
-        self.counts.iter().max_by_key(|(_, &count)| count).map(|(sample, _)| sample.clone())
+        self.counts.iter().max_by_key(|(_, &count)| count).map(|(sample, _)| sample.to_string())
     }
     fn hapaxes(&self) -> Vec<String> {
         self.counts
             .iter()
             .filter(|(_, &count)| count == 1)
-            .map(|(sample, _)| sample.clone())
+            .map(|(sample, _)| sample.to_string())
             .collect()
     }
     fn samples(&self) -> Vec<String> {
-        let mut s: Vec<String> = self.counts.keys().cloned().collect();
+        let mut s: Vec<String> = self.counts.keys().map(|k| k.to_string()).collect();
         s.sort();
         s
     }
     fn update(&mut self, samples: Vec<String>) {
         for sample in samples {
-            *self.counts.entry(sample).or_insert(0) += 1;
+            *self.counts.entry(SmolStr::new(&sample)).or_insert(0) += 1;
             self.total += 1;
         }
     }
     fn inc(&mut self, sample: &str, count: u64) {
-        *self.counts.entry(sample.to_string()).or_insert(0) += count;
+        *self.counts.entry(SmolStr::new(sample)).or_insert(0) += count;
         self.total += count;
     }
     fn copy(&self) -> Self {
@@ -104,7 +113,8 @@ impl FreqDist {
     fn __sub__(&self, other: &Self) -> Self {
         let mut result = Self { counts: HashMap::new(), total: 0 };
         for (sample, count) in &self.counts {
-            let new_count = count.saturating_sub(other.counts.get(sample).copied().unwrap_or(0));
+            let new_count =
+                count.saturating_sub(other.counts.get(sample.as_str()).copied().unwrap_or(0));
             if new_count > 0 {
                 result.counts.insert(sample.clone(), new_count);
                 result.total += new_count;
@@ -114,7 +124,7 @@ impl FreqDist {
     }
     #[pyo3(signature = (n=None))]
     fn most_common(&self, n: Option<usize>) -> Vec<(String, u64)> {
-        let mut items: Vec<_> = self.counts.iter().map(|(k, v)| (k.clone(), *v)).collect();
+        let mut items: Vec<_> = self.counts.iter().map(|(k, v)| (k.to_string(), *v)).collect();
         items.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
         match n {
             Some(n) => items.into_iter().take(n).collect(),
@@ -144,7 +154,7 @@ impl FreqDist {
 #[pyclass(name = "ConditionalFreqDist", module = "fastnltk._rust")]
 #[derive(Clone)]
 pub struct ConditionalFreqDist {
-    conditions: HashMap<String, FreqDist>,
+    conditions: HashMap<SmolStr, FreqDist>,
 }
 
 #[pymethods]
@@ -154,7 +164,7 @@ impl ConditionalFreqDist {
         Self { conditions: HashMap::new() }
     }
     fn conditions(&self) -> Vec<String> {
-        let mut conds: Vec<String> = self.conditions.keys().cloned().collect();
+        let mut conds: Vec<String> = self.conditions.keys().map(|k| k.to_string()).collect();
         conds.sort();
         conds
     }
@@ -164,7 +174,7 @@ impl ConditionalFreqDist {
     }
     fn inc(&mut self, condition: &str, sample: &str) {
         self.conditions
-            .entry(condition.to_string())
+            .entry(SmolStr::new(condition))
             .or_insert_with(|| FreqDist::new(None))
             .inc(sample, 1);
     }
@@ -179,7 +189,7 @@ impl ConditionalFreqDist {
     }
     #[pyo3(signature = (n=None))]
     fn most_common(&self, n: Option<usize>) -> Vec<(String, Vec<(String, u64)>)> {
-        self.conditions.iter().map(|(cond, fd)| (cond.clone(), fd.most_common(n))).collect()
+        self.conditions.iter().map(|(cond, fd)| (cond.to_string(), fd.most_common(n))).collect()
     }
 }
 
