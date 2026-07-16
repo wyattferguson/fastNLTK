@@ -1,6 +1,6 @@
 //! `TnT` — Trigram 'n Tags, integer-tag-ID Viterbi.
 //!
-//! Stores transition counts in flat Vec<Vec<u64>> arrays indexed by
+//! Stores transition counts in flat `Vec<Vec<u64>>` arrays indexed by
 //! u16 tag ID instead of `HashMap`<(`SmolStr`, ...), u64>.  Eliminates
 //! `SmolStr::new()` + `clone()` calls in the O(N x T^2) Viterbi loop.
 
@@ -17,17 +17,17 @@ pub struct TnT {
     /// Tag name → ID lookup (built during train).
     tag_id: FxHashMap<SmolStr, u16>,
     known_words: HashSet<SmolStr>,
-    /// `uni_counts`[`tag_id`] = count.
+    /// <code>uni_counts\[tag_id\]</code> = count.
     uni_counts: Vec<u64>,
     /// Pre-computed sum of all `uni_counts`.
     uni_total: u64,
-    /// `bi_counts`[`t1_id`][t2_id] = count.
+    /// <code>bi_counts\[t1_id\]\[t2_id\]</code> = count.
     bi_counts: Vec<Vec<u64>>,
-    /// Pre-computed sum per row: `bi_totals`[t1_id] = `sum(bi_counts`[t1_id][*]).
+    /// Pre-computed sum per row: `bi_totals[t1_id]` = `sum(bi_counts[t1_id][*])`.
     bi_totals: Vec<u64>,
-    /// `tri_counts`[`t1_id`][t2_id][`t3_id`] = count.
+    /// <code>tri_counts\[t1_id\]\[t2_id\]\[t3_id\]</code> = count.
     tri_counts: Vec<Vec<Vec<u64>>>,
-    /// `emission_counts`[`tag_id`][normalized_word] = count.
+    /// <code>emission_counts\[tag_id\]\[normalized_word\]</code> = count.
     emission_counts: Vec<HashMap<SmolStr, u64>>,
     total_words: u64,
 }

@@ -181,7 +181,8 @@ impl PunktSentenceTokenizer {
                         spans.push((start, end));
                         // Advance start past whitespace between sentences
                         let after = &text[end..];
-                        let ws_len = after.find(|c: char| !c.is_whitespace()).unwrap_or(after.len());
+                        let ws_len =
+                            after.find(|c: char| !c.is_whitespace()).unwrap_or(after.len());
                         start = end + ws_len;
                     }
                 }
@@ -191,11 +192,8 @@ impl PunktSentenceTokenizer {
             if start < text.len() {
                 // Strip trailing whitespace from final sentence (NLTK-compatible)
                 let trimmed_end = text[start..]
-                    .char_indices()
-                    .filter(|(_, c)| !c.is_whitespace())
-                    .last()
-                    .map(|(i, c)| start + i + c.len_utf8())
-                    .unwrap_or(start);
+                    .char_indices().rfind(|(_, c)| !c.is_whitespace())
+                    .map_or(start, |(i, c)| start + i + c.len_utf8());
                 if trimmed_end > start {
                     spans.push((start, trimmed_end));
                 } else {
@@ -214,7 +212,7 @@ impl PunktSentenceTokenizer {
 
     /// Tokenize text into (position, word) pairs.
     /// Words keep their trailing punctuation attached for abbreviation detection.
-    /// Tokenize text into (byte_position, word) pairs.
+    /// Tokenize text into (`byte_position`, word) pairs.
     /// Words keep their trailing punctuation attached for abbreviation detection.
     fn tokenize_words(&self, text: &str) -> Vec<(usize, String)> {
         let mut tokens = Vec::new();

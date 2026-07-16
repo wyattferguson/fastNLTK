@@ -300,10 +300,7 @@ impl BlanklineTokenizer {
 
     fn tokenize(&self, text: &str) -> Vec<String> {
         // NLTK: split on blank lines (\n\n+), keep content between intact
-        text.split("\n\n")
-            .map(|b| b.trim().to_string())
-            .filter(|b| !b.is_empty())
-            .collect()
+        text.split("\n\n").map(|b| b.trim().to_string()).filter(|b| !b.is_empty()).collect()
     }
 }
 

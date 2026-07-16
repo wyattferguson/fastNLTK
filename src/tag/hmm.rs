@@ -9,9 +9,9 @@ use rustc_hash::FxHashMap;
 
 #[pyclass(name = "HiddenMarkovModelTagger", module = "fastnltk._rust")]
 pub struct HiddenMarkovModelTagger {
-    /// Transition log-probabilities: (prev_tag, tag) → log_prob
+    /// Transition log-probabilities: (`prev_tag`, tag) → `log_prob`
     transitions: FxHashMap<(String, String), f64>,
-    /// Emission log-probabilities: (tag, word) → log_prob
+    /// Emission log-probabilities: (tag, word) → `log_prob`
     emissions: FxHashMap<(String, String), f64>,
     /// Tag → index for Viterbi
     tag_index: FxHashMap<String, usize>,

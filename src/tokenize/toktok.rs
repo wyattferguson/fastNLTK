@@ -1,6 +1,5 @@
 use pyo3::prelude::*;
 use regex::Regex;
-use smol_str::SmolStr;
 use std::borrow::Cow;
 use std::sync::LazyLock;
 

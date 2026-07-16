@@ -116,7 +116,7 @@ impl RegexpParser {
         Ok(Self { rules })
     }
 
-    /// Parse a tagged sentence and return (word, pos_tag, iob_tag) triples.
+    /// Parse a tagged sentence and return (word, `pos_tag`, `iob_tag`) triples.
     #[pyo3(signature = (tokens))]
     fn parse(&self, tokens: Vec<(String, String)>) -> Vec<(String, String, String)> {
         if tokens.is_empty() {
@@ -133,9 +133,9 @@ impl RegexpParser {
         }
 
         // Return (word, pos_tag, iob_tag) triples
-        tokens.into_iter()
-            .map(|(w, t)| (w, t))
-            .zip(iob.into_iter())
+        tokens
+            .into_iter()
+            .zip(iob)
             .map(|((w, t), i)| (w, t, i.to_string()))
             .collect()
     }

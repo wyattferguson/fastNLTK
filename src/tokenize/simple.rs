@@ -94,10 +94,7 @@ impl LineTokenizer {
 
     fn tokenize(&self, text: &str) -> Vec<String> {
         // NLTK default: blanklines='discard', remove lines with only whitespace
-        text.lines()
-            .filter(|l| !l.trim().is_empty())
-            .map(String::from)
-            .collect()
+        text.lines().filter(|l| !l.trim().is_empty()).map(String::from).collect()
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {

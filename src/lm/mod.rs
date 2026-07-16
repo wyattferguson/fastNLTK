@@ -14,7 +14,7 @@ struct NgramCounts {
     order: usize,
     /// Unigram counts: word → count
     unigrams: FxHashMap<String, f64>,
-    /// Bigram+ counts: context_key → (word → count)
+    /// Bigram+ counts: `context_key` → (word → count)
     context_counts: FxHashMap<String, FxHashMap<String, f64>>,
     total_tokens: f64,
     vocab: Vec<String>,
@@ -153,7 +153,7 @@ impl MLE {
         result
     }
 
-    fn order(&self) -> usize {
+    const fn order(&self) -> usize {
         self.counts.order
     }
 
@@ -161,7 +161,7 @@ impl MLE {
         self.counts.vocab.len()
     }
 
-    fn fitted(&self) -> bool {
+    const fn fitted(&self) -> bool {
         self.fitted
     }
 }
@@ -248,7 +248,7 @@ impl Laplace {
         result
     }
 
-    fn order(&self) -> usize {
+    const fn order(&self) -> usize {
         self.counts.order
     }
 
@@ -256,7 +256,7 @@ impl Laplace {
         self.counts.vocab.len()
     }
 
-    fn fitted(&self) -> bool {
+    const fn fitted(&self) -> bool {
         self.fitted
     }
 }
@@ -297,7 +297,7 @@ impl Lidstone {
         } else {
             (0.0, 0.0)
         };
-        (count + self.gamma) / (total + self.gamma * v)
+        (count + self.gamma) / self.gamma.mul_add(v, total)
     }
 
     #[pyo3(signature = (word, context=None))]
@@ -345,7 +345,7 @@ impl Lidstone {
         result
     }
 
-    fn order(&self) -> usize {
+    const fn order(&self) -> usize {
         self.counts.order
     }
 
@@ -353,7 +353,7 @@ impl Lidstone {
         self.counts.vocab.len()
     }
 
-    fn fitted(&self) -> bool {
+    const fn fitted(&self) -> bool {
         self.fitted
     }
 }

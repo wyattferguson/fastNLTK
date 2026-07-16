@@ -55,28 +55,50 @@ impl CFG {
         let mut productions = Vec::new();
         for line in grammar_str.lines() {
             let line = line.trim();
-            if line.is_empty() || line.starts_with('#') { continue; }
-            let arrow_pos = line.find("->").ok_or_else(|| FastNltkError::GrammarParse(line.to_string()))?;
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+            let arrow_pos =
+                line.find("->").ok_or_else(|| FastNltkError::GrammarParse(line.to_string()))?;
             let lhs = line[..arrow_pos].trim();
             let rhs_part = line[arrow_pos + 2..].trim();
-            if start.is_empty() { start = lhs.to_string(); }
+            if start.is_empty() {
+                start = lhs.to_string();
+            }
             for alt in rhs_part.split('|') {
-                let rhs: Vec<String> = alt.split_whitespace()
-                    .map(|s| if s.starts_with('\'') && s.ends_with('\'') && s.len() > 2 { s[1..s.len()-1].to_string() } else { s.to_string() })
+                let rhs: Vec<String> = alt
+                    .split_whitespace()
+                    .map(|s| {
+                        if s.starts_with('\'') && s.ends_with('\'') && s.len() > 2 {
+                            s[1..s.len() - 1].to_string()
+                        } else {
+                            s.to_string()
+                        }
+                    })
                     .collect();
-                if !rhs.is_empty() { productions.push((lhs.to_string(), rhs)); }
+                if !rhs.is_empty() {
+                    productions.push((lhs.to_string(), rhs));
+                }
             }
         }
-        if start.is_empty() { return Err(FastNltkError::GrammarParse("empty grammar".into()).into()); }
+        if start.is_empty() {
+            return Err(FastNltkError::GrammarParse("empty grammar".into()).into());
+        }
         Self::new(&start, productions)
     }
 
-    fn start(&self) -> String { self.start_symbol.clone() }
+    fn start(&self) -> String {
+        self.start_symbol.clone()
+    }
     fn productions(&self) -> Vec<(String, Vec<String>)> {
         self.productions.iter().map(|p| (p.lhs.clone(), p.rhs.clone())).collect()
     }
-    fn nonterminals(&self) -> Vec<String> { self.nonterminals.clone() }
-    fn __len__(&self) -> usize { self.productions.len() }
+    fn nonterminals(&self) -> Vec<String> {
+        self.nonterminals.clone()
+    }
+    fn __len__(&self) -> usize {
+        self.productions.len()
+    }
     fn __str__(&self) -> String {
         let mut lines = vec![format!("Grammar: {}", self.start_symbol)];
         for p in &self.productions {
@@ -88,7 +110,8 @@ impl CFG {
 
 impl CFG {
     fn get_productions(&self, lhs: &str) -> Vec<&Production> {
-        self.lhs_index.get(lhs)
+        self.lhs_index
+            .get(lhs)
             .map(|indices| indices.iter().map(|i| &self.productions[*i]).collect())
             .unwrap_or_default()
     }
@@ -105,13 +128,13 @@ struct EarleyState {
     dot: usize,
     start_pos: usize,
     /// Backpointers: for completed states, stores the state IDs of children
-    /// Used during tree reconstruction — maps (rhs_fragment) to children
+    /// Used during tree reconstruction — maps (`rhs_fragment`) to children
     children: Vec<Vec<StateId>>,
 }
 
 impl EarleyState {
-    fn new(lhs: String, rhs: Vec<String>, start_pos: usize) -> Self {
-        Self { lhs, rhs: rhs.clone(), dot: 0, start_pos, children: Vec::new() }
+    const fn new(lhs: String, rhs: Vec<String>, start_pos: usize) -> Self {
+        Self { lhs, rhs, dot: 0, start_pos, children: Vec::new() }
     }
 
     fn advance(&self) -> Self {
@@ -120,9 +143,15 @@ impl EarleyState {
         s
     }
 
-    fn is_complete(&self) -> bool { self.dot >= self.rhs.len() }
+    fn is_complete(&self) -> bool {
+        self.dot >= self.rhs.len()
+    }
     fn next_symbol(&self) -> Option<&str> {
-        if self.dot < self.rhs.len() { Some(&self.rhs[self.dot]) } else { None }
+        if self.dot < self.rhs.len() {
+            Some(&self.rhs[self.dot])
+        } else {
+            None
+        }
     }
 }
 
@@ -138,7 +167,9 @@ pub struct EarleyChartParser;
 #[pymethods]
 impl EarleyChartParser {
     #[new]
-    const fn new() -> Self { Self }
+    const fn new() -> Self {
+        Self
+    }
 
     fn parse(&self, grammar: &CFG, tokens: Vec<String>) -> PyResult<Vec<String>> {
         let n = tokens.len();
@@ -159,11 +190,16 @@ impl EarleyChartParser {
                 let state = EarleyState::new(prod.lhs.clone(), prod.rhs.clone(), 0);
                 let nt_key = prod.lhs.clone();
                 if predicted.insert(nt_key) {
-                    if !chart[0].iter().any(|s| s.lhs == state.lhs && s.rhs == state.rhs && s.dot == 0) {
+                    if !chart[0]
+                        .iter()
+                        .any(|s| s.lhs == state.lhs && s.rhs == state.rhs && s.dot == 0)
+                    {
                         chart[0].push(state);
                     }
                     for sym in &prod.rhs {
-                        if !is_terminal(sym) { to_predict.push(sym.clone()); }
+                        if !is_terminal(sym) {
+                            to_predict.push(sym.clone());
+                        }
                     }
                 }
             }
@@ -185,7 +221,12 @@ impl EarleyChartParser {
                                 // Add backpointer: this completion used state at (i, j)
                                 advanced.children.push(vec![(i, j)]);
                                 // Also merge any existing backpointers from the predictor
-                                if !chart[i].iter().any(|s| s.lhs == advanced.lhs && s.rhs == advanced.rhs && s.dot == advanced.dot && s.start_pos == advanced.start_pos) {
+                                if !chart[i].iter().any(|s| {
+                                    s.lhs == advanced.lhs
+                                        && s.rhs == advanced.rhs
+                                        && s.dot == advanced.dot
+                                        && s.start_pos == advanced.start_pos
+                                }) {
                                     chart[i].push(advanced);
                                 }
                             }
@@ -194,7 +235,7 @@ impl EarleyChartParser {
                 } else {
                     let next = state.next_symbol().unwrap();
                     if is_terminal(next) {
-                        if i < n && next == &tokens[i] {
+                        if i < n && next == tokens[i] {
                             let mut s = state.advance();
                             s.children.push(vec![]); // terminal child
                             chart[i + 1].push(s);
@@ -203,7 +244,12 @@ impl EarleyChartParser {
                         // Predict
                         for prod in grammar.get_productions(next) {
                             let new_state = EarleyState::new(prod.lhs.clone(), prod.rhs.clone(), i);
-                            if !chart[i].iter().any(|s| s.lhs == new_state.lhs && s.rhs == new_state.rhs && s.dot == 0 && s.start_pos == i) {
+                            if !chart[i].iter().any(|s| {
+                                s.lhs == new_state.lhs
+                                    && s.rhs == new_state.rhs
+                                    && s.dot == 0
+                                    && s.start_pos == i
+                            }) {
                                 chart[i].push(new_state);
                             }
                         }
@@ -218,7 +264,7 @@ impl EarleyChartParser {
         for state in &chart[n] {
             if state.lhs == start && state.is_complete() && state.start_pos == 0 {
                 // Build tree string
-                if let Some(tree) = build_tree(&state, &chart, n, &tokens) {
+                if let Some(tree) = build_tree(state, &chart, n, &tokens) {
                     results.push(tree);
                 }
             }
@@ -232,7 +278,12 @@ impl EarleyChartParser {
 }
 
 /// Build a tree string by walking the chart backwards from a completed state.
-fn build_tree(state: &EarleyState, chart: &[Vec<EarleyState>], end_pos: usize, _tokens: &[String]) -> Option<String> {
+fn build_tree(
+    state: &EarleyState,
+    chart: &[Vec<EarleyState>],
+    end_pos: usize,
+    _tokens: &[String],
+) -> Option<String> {
     if state.rhs.is_empty() {
         return Some(format!("({})", state.lhs));
     }
@@ -249,7 +300,8 @@ fn build_tree(state: &EarleyState, chart: &[Vec<EarleyState>], end_pos: usize, _
             // Find the scanned token ending at this position
             let mut found = false;
             for s in &chart[pos] {
-                if s.is_complete() && s.rhs.len() == 1 && s.rhs[0] == sym && s.start_pos == pos - 1 {
+                if s.is_complete() && s.rhs.len() == 1 && s.rhs[0] == sym && s.start_pos == pos - 1
+                {
                     children.push(sym.clone());
                     remaining.pop();
                     pos -= 1;
@@ -278,7 +330,9 @@ fn build_tree(state: &EarleyState, chart: &[Vec<EarleyState>], end_pos: usize, _
                         }
                     }
                 }
-                if found { break; }
+                if found {
+                    break;
+                }
             }
             if !found {
                 remaining.pop();
@@ -291,7 +345,7 @@ fn build_tree(state: &EarleyState, chart: &[Vec<EarleyState>], end_pos: usize, _
         if is_terminal(sym) {
             children.push(sym.clone());
         } else {
-            children.push(format!("({})", sym));
+            children.push(format!("({sym})"));
         }
     }
 
@@ -312,22 +366,29 @@ mod tests {
     use super::*;
 
     fn sample_grammar() -> CFG {
-        CFG::new("S", vec![
-            ("S".into(), vec!["NP".into(), "VP".into()]),
-            ("NP".into(), vec!["Det".into(), "N".into()]),
-            ("NP".into(), vec!["N".into()]),
-            ("VP".into(), vec!["V".into(), "NP".into()]),
-            ("Det".into(), vec!["the".into()]),
-            ("Det".into(), vec!["a".into()]),
-            ("N".into(), vec!["cat".into()]),
-            ("N".into(), vec!["dog".into()]),
-            ("V".into(), vec!["chased".into()]),
-            ("V".into(), vec!["saw".into()]),
-        ]).unwrap()
+        CFG::new(
+            "S",
+            vec![
+                ("S".into(), vec!["NP".into(), "VP".into()]),
+                ("NP".into(), vec!["Det".into(), "N".into()]),
+                ("NP".into(), vec!["N".into()]),
+                ("VP".into(), vec!["V".into(), "NP".into()]),
+                ("Det".into(), vec!["the".into()]),
+                ("Det".into(), vec!["a".into()]),
+                ("N".into(), vec!["cat".into()]),
+                ("N".into(), vec!["dog".into()]),
+                ("V".into(), vec!["chased".into()]),
+                ("V".into(), vec!["saw".into()]),
+            ],
+        )
+        .unwrap()
     }
 
     #[test]
-    fn test_cfg_creation() { let cfg = sample_grammar(); assert_eq!(cfg.start(), "S"); }
+    fn test_cfg_creation() {
+        let cfg = sample_grammar();
+        assert_eq!(cfg.start(), "S");
+    }
 
     #[test]
     fn test_cfg_from_string() {
@@ -340,7 +401,10 @@ mod tests {
     fn test_earley_parse() {
         let parser = EarleyChartParser::new();
         let cfg = sample_grammar();
-        let result = parser.parse(&cfg, vec!["the".into(), "cat".into(), "chased".into(), "the".into(), "dog".into()]);
+        let result = parser.parse(
+            &cfg,
+            vec!["the".into(), "cat".into(), "chased".into(), "the".into(), "dog".into()],
+        );
         assert!(result.is_ok());
     }
 

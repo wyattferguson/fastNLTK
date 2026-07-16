@@ -92,7 +92,7 @@ pub fn bincode_cache_path(resource_name: &str) -> PathBuf {
 fn find(name: &str) -> PyResult<String> {
     find_resource(name)
         .map(|p| p.to_string_lossy().to_string())
-        .map_err(|e| PyLookupError::new_err(e))
+        .map_err(PyLookupError::new_err)
 }
 
 /// Register all data functions with the Python module.

@@ -9,10 +9,7 @@ use pyo3::prelude::*;
 
 /// Characters that Treebank detaches from adjacent words.
 const fn is_punct(c: char) -> bool {
-    matches!(
-        c,
-        '(' | ')' | '[' | ']' | '{' | '}' | '<' | '>' | ':' | ';' | ',' | '?' | '!' | '@'
-    )
+    matches!(c, '(' | ')' | '[' | ']' | '{' | '}' | '<' | '>' | ':' | ';' | ',' | '?' | '!' | '@')
 }
 
 /// NLTK splits trailing periods at end-of-text but keeps internal periods.
@@ -127,8 +124,6 @@ fn split_word(
         return;
     }
 
-
-
     // Scan word for punctuation splits
     let mut start = 0;
     let chars: Vec<(usize, char)> = word.char_indices().collect();
@@ -235,7 +230,7 @@ pub fn tokenize_treebank(text: &str) -> (Vec<String>, Vec<(usize, usize)>) {
     // NLTK-compatible trailing period handling:
     // Only split the FINAL period at end-of-text, matching NLTK's
     // `([^\\.])(\\.)([\\]\\)}>\"\']*)\s*$` pattern.
-    if tokens.len() > 0 && spans.len() > 0 {
+    if !tokens.is_empty() && !spans.is_empty() {
         let last_idx = tokens.len() - 1;
         let last_tok = &tokens[last_idx];
         if is_trailing_period(last_tok) {

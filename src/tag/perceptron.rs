@@ -10,10 +10,10 @@ use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
 
-/// FxHash algorithm constant (same as rustc-hash).
+/// `FxHash` algorithm constant (same as rustc-hash).
 const FXHASH_K: u64 = 6_364_136_223_846_793_005;
 
-/// Deterministic FxHash of a single byte slice.
+/// Deterministic `FxHash` of a single byte slice.
 /// rustc-hash v2 randomizes `FxHasher::default()`, breaking model
 /// weights — we use our own deterministic implementation instead.
 #[inline]
@@ -27,8 +27,12 @@ fn fxhash_bytes(bytes: &[u8]) -> u64 {
 #[inline]
 fn hash2(a: &str, b: &str) -> u64 {
     let mut hash = 0u64;
-    for &byte in a.as_bytes() { hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64); }
-    for &byte in b.as_bytes() { hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64); }
+    for &byte in a.as_bytes() {
+        hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64);
+    }
+    for &byte in b.as_bytes() {
+        hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64);
+    }
     hash
 }
 
@@ -37,11 +41,17 @@ fn hash2(a: &str, b: &str) -> u64 {
 #[inline]
 fn hash3(a: &str, b: &str, c: &str) -> u64 {
     let mut hash = 0u64;
-    for &byte in a.as_bytes() { hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64); }
-    for &byte in b.as_bytes() { hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64); }
+    for &byte in a.as_bytes() {
+        hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64);
+    }
+    for &byte in b.as_bytes() {
+        hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64);
+    }
     // Space separator before third component (NLTK space-joins all parts)
     hash = hash.wrapping_mul(FXHASH_K).wrapping_add(b' ' as u64);
-    for &byte in c.as_bytes() { hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64); }
+    for &byte in c.as_bytes() {
+        hash = hash.wrapping_mul(FXHASH_K).wrapping_add(byte as u64);
+    }
     hash
 }
 
@@ -215,8 +225,13 @@ fn collect_feature_ids(
     // NLTK: add("i word", context[i])
     out.push(hash2("i word ", word));
 
-    // NLTK: add("i suffix", word[-3:]) — last 3 chars
-    let suffix = if word.len() >= 3 { &word[word.len() - 3..] } else { word };
+    // NLTK: add("i suffix", word[-3:]) — last 3 chars (char-safe)
+    let suffix = if word.chars().count() >= 3 {
+        let start = word.char_indices().rev().nth(2).map(|(i, _)| i).unwrap_or(0);
+        &word[start..]
+    } else {
+        word
+    };
     out.push(hash2("i suffix ", suffix));
 
     // NLTK: add("i pref1", word[0])
@@ -247,7 +262,13 @@ fn collect_feature_ids(
         let pw = &tokens[i - 1];
         out.push(hash2("i-1 word ", pw));
         // NLTK: add("i-1 suffix", context[i-1][-3:])
-        let prev_suffix = if pw.len() >= 3 { &pw[pw.len() - 3..] } else { pw.as_str() };
+        let prev_suffix: &str = if pw.chars().count() >= 3 {
+            // Get last 3 characters (char-safe, not byte-indexed)
+            let start = pw.char_indices().rev().nth(2).map(|(i, _)| i).unwrap_or(0);
+            &pw[start..]
+        } else {
+            pw.as_str()
+        };
         out.push(hash2("i-1 suffix ", prev_suffix));
     }
 
@@ -261,7 +282,12 @@ fn collect_feature_ids(
         let nw = &tokens[i + 1];
         out.push(hash2("i+1 word ", nw));
         // NLTK: add("i+1 suffix", context[i+1][-3:])
-        let next_suffix = if nw.len() >= 3 { &nw[nw.len() - 3..] } else { nw.as_str() };
+        let next_suffix = if nw.chars().count() >= 3 {
+            let start = nw.char_indices().rev().nth(2).map(|(i, _)| i).unwrap_or(0);
+            &nw[start..]
+        } else {
+            nw.as_str()
+        };
         out.push(hash2("i+1 suffix ", next_suffix));
     }
 
@@ -334,8 +360,11 @@ mod tests {
     #[test]
     fn test_hash_equivalent_to_full_key() {
         // Verify hash2("i word ", "believe") == fxhash_bytes("i word believe")
-        assert_eq!(hash2("i word ", "believe"), fxhash_bytes(b"i word believe"),
-            "hash2 vs fxhash_bytes mismatch");
+        assert_eq!(
+            hash2("i word ", "believe"),
+            fxhash_bytes(b"i word believe"),
+            "hash2 vs fxhash_bytes mismatch"
+        );
         // Verify hash2("i+1 word ", "how") == fxhash_bytes("i+1 word how")
         assert_eq!(hash2("i+1 word ", "how"), fxhash_bytes(b"i+1 word how"));
         // Verify hash2("i suffix ", "e") == fxhash_bytes("i suffix e")
@@ -344,7 +373,6 @@ mod tests {
         assert_eq!(hash2("i-1 word ", "the"), fxhash_bytes(b"i-1 word the"));
         // Verify hash3 == combined with space separator
         // NLTK format: "i-1 tag+tag DT NN" (space before each component)
-        assert_eq!(hash3("i-1 tag+tag ", "DT", "NN"),
-            fxhash_bytes(b"i-1 tag+tag DT NN"));
+        assert_eq!(hash3("i-1 tag+tag ", "DT", "NN"), fxhash_bytes(b"i-1 tag+tag DT NN"));
     }
 }

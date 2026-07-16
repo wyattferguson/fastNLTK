@@ -311,7 +311,7 @@ mod tests {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 20);
         let words: Vec<String> =
-            "the cat chased a ball".split_whitespace().map(|s| s.to_string()).collect();
+            "the cat chased a ball".split_whitespace().map(std::string::ToString::to_string).collect();
         let results = parser.parse(words).unwrap();
         assert!(!results.is_empty(), "Should find at least one parse");
         assert!(results.iter().any(|r| r.starts_with("Parse")), "Should have S parse");
@@ -321,7 +321,7 @@ mod tests {
     fn test_chart_parse_two_words() {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> = "the cat".split_whitespace().map(|s| s.to_string()).collect();
+        let words: Vec<String> = "the cat".split_whitespace().map(std::string::ToString::to_string).collect();
         let results = parser.parse(words).unwrap();
         assert!(results.iter().any(|r| r.contains("NP")), "Should have NP");
     }
@@ -339,7 +339,7 @@ mod tests {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 20);
         let words: Vec<String> =
-            "the cat ate a ball".split_whitespace().map(|s| s.to_string()).collect();
+            "the cat ate a ball".split_whitespace().map(std::string::ToString::to_string).collect();
         let results = parser.parse(words).unwrap();
         assert!(!results.is_empty(), "Should handle unknown words");
     }
@@ -353,7 +353,7 @@ mod tests {
         ]))
         .unwrap();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> = "the cat ran".split_whitespace().map(|s| s.to_string()).collect();
+        let words: Vec<String> = "the cat ran".split_whitespace().map(std::string::ToString::to_string).collect();
         let results = parser.parse(words).unwrap();
         assert!(
             results.iter().any(|r| r.starts_with("Parse")),
@@ -366,7 +366,7 @@ mod tests {
         let lex = test_lexicon();
         let parser = CCGChartParser::new(lex, 3);
         let words: Vec<String> =
-            "the cat chased a ball".split_whitespace().map(|s| s.to_string()).collect();
+            "the cat chased a ball".split_whitespace().map(std::string::ToString::to_string).collect();
         let result = parser.parse(words);
         assert!(result.is_err(), "Should reject input exceeding max_span");
     }
@@ -377,7 +377,7 @@ mod tests {
             CCGLexicon::new(Some(vec![("the".into(), "NP/N".into()), ("cat".into(), "N".into())]))
                 .unwrap();
         let parser = CCGChartParser::new(lex, 20);
-        let words: Vec<String> = "the cat".split_whitespace().map(|s| s.to_string()).collect();
+        let words: Vec<String> = "the cat".split_whitespace().map(std::string::ToString::to_string).collect();
         let results = parser.parse(words).unwrap();
         assert!(results.iter().any(|r| r.contains("NP")), "Should find NP: {results:?}");
     }

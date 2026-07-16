@@ -53,7 +53,11 @@ impl StupidBackoff {
     }
     fn logscore(&self, word: &str, context: Option<Vec<String>>) -> f64 {
         let s = self.score(word, context);
-        if s > 0.0 { s.ln() } else { f64::NEG_INFINITY }
+        if s > 0.0 {
+            s.ln()
+        } else {
+            f64::NEG_INFINITY
+        }
     }
 
     fn vocab_size(&self) -> usize {

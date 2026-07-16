@@ -137,7 +137,7 @@ impl Tree {
     /// Append a child — accepts a `str` (leaf) or `Tree` (subtree).
     /// Matches NLTK's `tree.append(child)`.
     fn append(&mut self, child: &Bound<'_, PyAny>) -> PyResult<()> {
-        if let Ok(tree) = child.extract::<Tree>() {
+        if let Ok(tree) = child.extract::<Self>() {
             self.children.push(TreeNode::Subtree(tree));
         } else if let Ok(s) = child.extract::<String>() {
             self.children.push(TreeNode::Leaf(s));

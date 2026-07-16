@@ -12,10 +12,10 @@ use std::sync::LazyLock;
 
 // ── NLTK Lancaster rule set (124 rules in compact format) ───────────────────
 
-/// Each rule string decodes to: (ending, intact_flag, remove_ct, append, cont)
+/// Each rule string decodes to: (ending, `intact_flag`, `remove_ct`, append, cont)
 /// Format: `{ending}{*}?{remove_count}{append}{. or >}`
 /// - `*` = only apply if word is "intact" (at minimum stem length)
-/// - remove_count = number of chars to strip from end before appending
+/// - `remove_count` = number of chars to strip from end before appending
 /// - `.` = stop after applying
 /// - `>` = continue with next rule
 static RULES: &[&str] = &[
@@ -210,7 +210,7 @@ fn parse_rule(s: &str) -> Option<Rule> {
 // ── Stemming logic ─────────────────────────────────────────────────────────
 
 /// Check if a character is a vowel.
-fn is_vowel(c: char) -> bool {
+const fn is_vowel(c: char) -> bool {
     matches!(c, 'a' | 'e' | 'i' | 'o' | 'u')
 }
 
@@ -245,7 +245,7 @@ impl LancasterStemmer {
         }
 
         // Strip known prefixes
-        let mut w = word.clone();
+        let mut w = word;
         for prefix in PREFIXES {
             if w.starts_with(*prefix) && w.len() > prefix.len() + 1 {
                 w = w[prefix.len()..].to_string();
@@ -415,7 +415,7 @@ mod tests {
     #[test]
     fn test_rule_dict_size() {
         let dict = &*RULE_DICT;
-        let total: usize = dict.values().map(|v| v.len()).sum();
+        let total: usize = dict.values().map(std::vec::Vec::len).sum();
         // 124 NLTK rules minus 9 prefix-only entries (kilo, micro, etc.) = 115 suffix rules
         assert_eq!(total, 115);
     }
