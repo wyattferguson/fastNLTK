@@ -150,7 +150,7 @@ impl PunktSentenceTokenizer {
                 }
             }
         }
-        if start < text.len() {
+        if start < text.len() && text[start..].chars().any(|c| !c.is_whitespace()) {
             spans.push((start, text.len()));
         }
         spans
@@ -195,10 +195,9 @@ impl PunktSentenceTokenizer {
                     .char_indices()
                     .rfind(|(_, c)| !c.is_whitespace())
                     .map_or(start, |(i, c)| start + i + c.len_utf8());
+                // Only push if there's actual non-whitespace content
                 if trimmed_end > start {
                     spans.push((start, trimmed_end));
-                } else {
-                    spans.push((start, text.len()));
                 }
             }
 
