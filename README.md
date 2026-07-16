@@ -60,7 +60,7 @@ Benchmarked on release builds against NLTK 3.10, Rust 1.97.1. [Full results →]
 | Snowball stemmer           | 22.08 ms  | 1.97 ms  | **11×**  |
 | word tokenizer (Treebank)  | 42.22 ms  | 4.17 ms  | **10×**  |
 
-Geometric mean across 49 benchmarks: **8.9×**. Module-level breakdown:
+Geometric mean across 49 benchmarks: **9.2×**. Module-level breakdown:
 
 | Module                        | Geo Mean | Top single |
 | ----------------------------- | -------- | ---------- |

@@ -44,7 +44,7 @@ Benchmarks grouped by module. Numbers from `python -m benchmarks.run --save` on 
 | | ToktokTokenizer.tokenize | 18.70 | 4.28 | **4.4×** |
 | | MWETokenizer.tokenize | 1.13 | 1.19 | 1.0× |
 | | RegexpTokenizer.tokenize | 4.40 | 3.82 | 1.2× |
-| | SpaceTokenizer.tokenize | 0.96 | 1.56 | 0.6× |
+| | SpaceTokenizer.tokenize | 0.86 | 1.28 | 0.7× |
 | | TreebankWordTokenizer.tokenize | 42.22 | 4.17 | **10.1×** |
 | | TweetTokenizer.tokenize | 84.24 | 3.30 | **25.5×** |
 | | TextTilingTokenizer.tokenize | 22642.32 | 32.48 | **697.0×** |
