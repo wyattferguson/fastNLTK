@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Moved to own benchmark harness (drop pytest-benchmark for benchmarking)
-- Python 3.8+ compatibility via PyO3 abi3-py38
+- Python 3.10+ compatibility via PyO3 abi3-py310
 - PerceptronTagger: u64 feature IDs with FxHasher (eliminates String allocation)
 - Treebank tokenizer: single-pass char scanner with SIMD memchr3
 - Regexp tokenizer: whitespace fast-path via memchr3/SIMD
@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Blankline/Line/Tab/Char tokenizers
 
 ### Changed
-- Build: maturin 1.7+, PyO3 0.29, Python abi3-py38
+- Build: maturin 1.7+, PyO3 0.29, Python abi3-py310
 - Module layout mirrors NLTK exactly (drop-in import compatibility)
 - PerceptronTagger uses tagdict fast-path for common words
 - All tokenizers expose span_tokenize API
@@ -121,6 +121,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Regexp tokenization with fast-path
 - Drop-in API: `from fastnltk import word_tokenize, sent_tokenize, pos_tag`
 - Pre-built wheels: Linux (x86_64, aarch64), macOS (x86_64, arm64), Windows (x64)
-- Python 3.8+ support via PyO3 abi3
+- Python 3.10+ support via PyO3 abi3
 - NLTK data compatibility (uses same corpus files)
 - CI: GitHub Actions with lint, test, and PyPI release workflows

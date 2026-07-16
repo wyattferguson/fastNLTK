@@ -113,7 +113,7 @@ pip install fastnltk
 ```
 
 Pre-built wheels for Linux (x86_64, aarch64), macOS (x86_64, arm64), Windows (x64).
-Python 3.8–3.13.
+Python 3.10–3.13.
 
 Make sure you have the NLTK data you need:
 
