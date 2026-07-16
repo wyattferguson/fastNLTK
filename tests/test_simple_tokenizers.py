@@ -16,17 +16,16 @@ class TestSpaceTokenizer:
         assert result == ["a", "b", "c"]
 
     def test_matches_nltk_multiple_spaces(self):
+        # NLTK SpaceTokenizer = str.split(" "), produces empties for gaps
         text = "a  b   c"
         result = SpaceTokenizer().tokenize(text)
-        assert result == ["a", "b", "c"]
+        assert result == ["a", "", "b", "", "", "c"]
 
     def test_matches_nltk_leading_trailing(self):
         text = "  a b  "
         result = SpaceTokenizer().tokenize(text)
-        # Leading/trailing whitespace produces empty tokens at boundaries.
-        # Note: CPython's re.split produces 6 tokens (extra boundary empties),
-        # our Rust regex split produces 4. Both are valid gap-tokenizing behavior.
-        expected = ["", "a", "b", ""]
+        # NLTK SpaceTokenizer = str.split(" ")
+        expected = ["", "", "a", "b", "", ""]
         assert result == expected
 
     def test_matches_nltk_empty(self):

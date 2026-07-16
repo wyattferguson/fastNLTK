@@ -3,15 +3,15 @@
 //! SpaceTokenizer uses `memchr3`-accelerated scanning (SIMD where available)
 //! instead of regex for 5-10x faster whitespace splitting.
 
-use memchr::memchr3;
 use pyo3::prelude::*;
 
 // SpaceTokenizer
 
-/// Tokenize a string by splitting on whitespace.
+/// Tokenize a string by splitting on ASCII space (`0x20`).
 ///
-/// Matches NLTK's `nltk.tokenize.SpaceTokenizer`.
-/// Uses SIMD-accelerated memchr3 for whitespace scanning.
+/// Matches NLTK's `nltk.tokenize.SpaceTokenizer` (`str.split(" ")`).
+/// Splits on SINGLE SPACE only — tabs, newlines, and other whitespace
+/// are preserved as-is (NLTK compatibility).
 #[pyclass(name = "SpaceTokenizer", module = "fastnltk._rust")]
 pub struct SpaceTokenizer;
 
@@ -23,68 +23,35 @@ impl SpaceTokenizer {
     }
 
     fn tokenize(&self, text: &str) -> Vec<String> {
-        // Match NLTK SpaceTokenizer: re.split(r"\s+", s)
-        // Leading/trailing gaps produce empty strings (NLTK compatibility).
-        if text.is_empty() {
-            return vec![String::new()];
-        }
+        // Match NLTK SpaceTokenizer: s.split(" ")
+        // Pre-allocate exact capacity, then iterate with byte scan.
         let bytes = text.as_bytes();
-        let mut tokens = Vec::new();
+        let space_count = bytes.iter().filter(|&&b| b == b' ').count();
+        let mut tokens = Vec::with_capacity(space_count + 1);
         let mut start = 0usize;
 
-        loop {
-            if start >= bytes.len() {
-                // Trailing whitespace means one more empty token.
-                tokens.push(String::new());
-                break;
-            }
-            match memchr3(b' ', b'\t', b'\n', &bytes[start..]) {
-                None => {
-                    tokens.push(text[start..].to_string());
-                    break;
-                }
-                Some(rel) => {
-                    let ws_pos = start + rel;
-                    tokens.push(text[start..ws_pos].to_string());
-                    // Skip all contiguous whitespace
-                    let mut next = ws_pos;
-                    while next < bytes.len() && bytes[next].is_ascii_whitespace() {
-                        next += 1;
-                    }
-                    start = next;
-                }
+        for (i, &b) in bytes.iter().enumerate() {
+            if b == b' ' {
+                tokens.push(text[start..i].to_string());
+                start = i + 1;
             }
         }
+        tokens.push(text[start..].to_string());
         tokens
     }
 
     fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
-        let bytes = text.as_bytes();
+        // Match NLTK SpaceTokenizer span_tokenize: s.split(" ")
         let mut spans = Vec::new();
-        let mut pos = 0usize;
-
-        while pos < bytes.len() {
-            match memchr3(b' ', b'\t', b'\n', &bytes[pos..]) {
-                None => {
-                    spans.push((pos, text.len()));
-                    break;
-                }
-                Some(rel) => {
-                    let ws_pos = pos + rel;
-                    if ws_pos > pos {
-                        spans.push((pos, ws_pos));
-                    }
-                    // Skip all contiguous whitespace
-                    pos = ws_pos + 1;
-                    while pos < bytes.len() && bytes[pos].is_ascii_whitespace() {
-                        pos += 1;
-                    }
-                }
+        let mut start = 0usize;
+        for (i, ch) in text.char_indices() {
+            if ch == ' ' {
+                spans.push((start, i));
+                start = i + 1;
             }
         }
-        if pos == text.len() {
-            spans.push((pos, pos));
-        }
+        // Trailing segment (empty if text ends with space)
+        spans.push((start, text.len()));
         spans
     }
 }
@@ -204,14 +171,16 @@ mod tests {
 
     #[test]
     fn test_space_tokenize_multiple_spaces() {
+        // NLTK SpaceTokenizer = str.split(" "), produces empties between gaps
         let tok = SpaceTokenizer::new();
-        assert_eq!(tok.tokenize("a  b"), vec!["a", "b"]);
+        assert_eq!(tok.tokenize("a  b"), vec!["a", "", "b"]);
     }
 
     #[test]
     fn test_space_tokenize_leading_trailing() {
+        // NLTK SpaceTokenizer = str.split(" "), produces empties for leading/trailing
         let tok = SpaceTokenizer::new();
-        assert_eq!(tok.tokenize("  a b  "), vec!["", "a", "b", ""]);
+        assert_eq!(tok.tokenize("  a b  "), vec!["", "", "a", "b", "", ""]);
     }
 
     #[test]
