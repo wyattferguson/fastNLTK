@@ -15,6 +15,7 @@ use smol_str::SmolStr;
 pub struct UnigramTagger {
     word_to_tag: FastMap<SmolStr, SmolStr>,
     default_tag: Option<SmolStr>,
+    has_backoff: bool,
 }
 
 #[pymethods]
@@ -22,7 +23,8 @@ impl UnigramTagger {
     #[new]
     #[pyo3(signature = (backoff=None))]
     fn new(backoff: Option<&str>) -> Self {
-        Self { word_to_tag: FastMap::new(), default_tag: backoff.map(SmolStr::new) }
+        let default_tag = backoff.map(SmolStr::new);
+        Self { word_to_tag: FastMap::new(), default_tag, has_backoff: backoff.is_some() }
     }
     fn train(&mut self, sentences: &Bound<'_, PyList>) -> PyResult<()> {
         let mut counts: FastMap<SmolStr, FastMap<SmolStr, u64>> = FastMap::new();
@@ -47,7 +49,9 @@ impl UnigramTagger {
                 .unwrap_or_default();
             self.word_to_tag.insert(word.clone(), best);
         }
-        self.default_tag = tag_counts.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone());
+        if !self.has_backoff {
+            self.default_tag = tag_counts.iter().max_by_key(|(_, c)| **c).map(|(t, _)| t.clone());
+        }
         Ok(())
     }
     fn tag(&self, tokens: Vec<String>) -> Vec<(String, String)> {
