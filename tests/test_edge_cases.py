@@ -150,7 +150,10 @@ class TestStemmerEdgeCases:
         assert s.stem("I") == "i"  # porter lowercases
 
     def test_rslp_portuguese(self):
-        s = RSLPStemmer()
+        try:
+            s = RSLPStemmer()
+        except LookupError:
+            pytest.skip("RSLP requires NLTK resource")
         result = s.stem("correndo")
         assert len(result) > 0
         assert isinstance(result, str)
