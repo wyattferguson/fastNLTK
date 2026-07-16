@@ -1,13 +1,13 @@
 <div align="center">
   <h1>fastNLTK</h1>
   <p><strong>NLTK with a Rust engine.</strong><br>
-  Drop-in replacement. Same API, same data, 5–50× faster.</p>
+  Drop-in replacement. Same API, Same data, 10× faster.</p>
 
   <p>
     <a href="https://pypi.org/project/fastnltk/"><img src="https://img.shields.io/pypi/v/fastnltk.svg" alt="PyPI"></a>
     <a href="https://pypi.org/project/fastnltk/"><img src="https://img.shields.io/pypi/pyversions/fastnltk.svg" alt="Python"></a>
     <a href="https://github.com/wyattferguson/fastnltk/actions/workflows/quality.yml"><img src="https://github.com/wyattferguson/fastnltk/actions/workflows/quality.yml/badge.svg" alt="CI"></a>
-    <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.80%2B-blue" alt="Rust"></a>
+    <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.97%2B-blue" alt="Rust"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License"></a>
   </p>
 </div>
