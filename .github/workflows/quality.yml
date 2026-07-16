@@ -79,15 +79,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - uses: Swatinem/rust-cache@v2
-      - run: |
-          pip install maturin nltk pytest hypothesis
-          maturin develop --release
-      - run: python -m pytest tests/ -x -q --tb=short -k "not test_coverage"
-      - run: python -m pytest tests/test_invariants.py -x -q
+      - name: Build and install
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install maturin nltk pytest hypothesis
+          .venv/bin/maturin develop --release
+      - run: .venv/bin/python -m pytest tests/ -x -q --tb=short -k "not test_coverage"
+      - run: .venv/bin/python -m pytest tests/test_invariants.py -x -q
 
   # ── Benchmarks (informational only) ───────────────
   bench:
@@ -96,11 +99,14 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - uses: Swatinem/rust-cache@v2
-      - run: |
-          pip install maturin nltk pytest-benchmark
-          maturin develop --release
-      - run: python -m pytest tests/ --benchmark-only --benchmark-sort=name -x --tb=short 2>/dev/null || true
+      - name: Build and install
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install maturin nltk pytest-benchmark
+          .venv/bin/maturin develop --release
+      - run: .venv/bin/python -m pytest tests/ --benchmark-only --benchmark-sort=name -x --tb=short 2>/dev/null || true
