@@ -1,6 +1,5 @@
 """Tests for Rust-accelerated collocations — NLTK compatibility."""
 
-
 from nltk.collocations import BigramAssocMeasures, QuadgramAssocMeasures, TrigramAssocMeasures
 
 from fastnltk.collocations import (

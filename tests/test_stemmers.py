@@ -1,6 +1,5 @@
 """Tests for Rust-accelerated stemmers — NLTK compatibility."""
 
-
 import nltk
 
 from fastnltk.stem import (
@@ -47,7 +46,9 @@ class TestSnowballStemmer:
     def test_matches_nltk_english(self):
         words = ["running", "flies", "happily", "generalizations"]
         for w in words:
-            assert SnowballStemmer("english").stem(w) == nltk.stem.SnowballStemmer("english").stem(w)
+            assert SnowballStemmer("english").stem(w) == nltk.stem.SnowballStemmer("english").stem(
+                w
+            )
 
     def test_matches_nltk_french(self):
         words = ["courir", "manger", "parlant"]
@@ -57,7 +58,9 @@ class TestSnowballStemmer:
     def test_matches_nltk_spanish(self):
         words = ["corriendo", "comiendo", "hablando"]
         for w in words:
-            assert SnowballStemmer("spanish").stem(w) == nltk.stem.SnowballStemmer("spanish").stem(w)
+            assert SnowballStemmer("spanish").stem(w) == nltk.stem.SnowballStemmer("spanish").stem(
+                w
+            )
 
 
 class TestRegexpStemmer:

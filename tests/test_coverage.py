@@ -1,10 +1,8 @@
 """Tests for PerceptronTagger, TnT, and LM variants."""
 
-import pytest
-
-from fastnltk.tag import PerceptronTagger, TnT, pos_tag_sents
 from fastnltk.lm import StupidBackoff, WittenBellInterpolated
-from fastnltk.parse import EarleyChartParser, CFG
+from fastnltk.parse import CFG, EarleyChartParser
+from fastnltk.tag import PerceptronTagger, TnT, pos_tag_sents
 
 
 class TestPerceptronTagger:
@@ -34,10 +32,12 @@ class TestPerceptronTagger:
 class TestTnT:
     def test_basic(self):
         tagger = TnT()
-        tagger.train([
-            [("the", "DT"), ("cat", "NN")],
-            [("the", "DT"), ("dog", "NN")],
-        ])
+        tagger.train(
+            [
+                [("the", "DT"), ("cat", "NN")],
+                [("the", "DT"), ("dog", "NN")],
+            ]
+        )
         result = tagger.tag(["the", "cat"])
         assert len(result) == 2
 

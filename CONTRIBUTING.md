@@ -17,7 +17,7 @@ python -m nltk.downloader punkt averaged_perceptron_tagger wordnet
 2. **No unsafe code** — `#![deny(unsafe_code)]` is set at the crate level.
 3. **`unsafe_code = "deny"`** — no exceptions.
 4. **Conventional commits** — `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`.
-5. **Run lints before pushing** (or use `./check.ps1` which mirrors CI):
+5. **Run lints before pushing**:
    ```bash
    cargo fmt --all -- --check
    cargo clippy --all-targets --no-default-features --features parallel -- \

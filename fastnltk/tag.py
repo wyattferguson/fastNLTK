@@ -12,7 +12,6 @@ import pickle
 import tempfile
 
 import nltk.tag as _nltk_tag
-from fastnltk.data import find
 from nltk.tag import (
     BrillTagger,
     BrillTaggerTrainer,
@@ -44,20 +43,22 @@ from fastnltk._rust import (
     RegexpTagger as _RustRegexpTagger,
 )
 from fastnltk._rust import (
-    TrigramTagger as _RustTrigramTagger,
+    TnT as _RustTnT,
 )
 from fastnltk._rust import (
-    TnT as _RustTnT,
+    TrigramTagger as _RustTrigramTagger,
 )
 from fastnltk._rust import (
     UnigramTagger as _RustUnigramTagger,
 )
+from fastnltk.data import find
 
 
 def _bincode_cache_path(resource_name: str) -> str:
     """Compute deterministic bincode cache path."""
     sanitized = resource_name.replace("/", "_").replace(".", "_")
     return os.path.join(tempfile.gettempdir(), "fastnltk_cache", f"{sanitized}.bin")
+
 
 def _load_tagger_model(tagger):
     """Load NLTK perceptron tagger weights into Rust tagger, with cache."""
@@ -79,13 +80,18 @@ def _load_tagger_model(tagger):
 
     # NLTK 3.10 stores separate JSON files; 3.9 stores single pickle
     import json
+
     json_weights = os.path.join(path, "averaged_perceptron_tagger_eng.weights.json")
     if os.path.exists(json_weights):
         with open(json_weights, encoding="utf-8") as f:
             weights_dict = json.load(f)
-        with open(os.path.join(path, "averaged_perceptron_tagger_eng.tagdict.json"), encoding="utf-8") as f:
+        with open(
+            os.path.join(path, "averaged_perceptron_tagger_eng.tagdict.json"), encoding="utf-8"
+        ) as f:
             tagdict = json.load(f)
-        with open(os.path.join(path, "averaged_perceptron_tagger_eng.classes.json"), encoding="utf-8") as f:
+        with open(
+            os.path.join(path, "averaged_perceptron_tagger_eng.classes.json"), encoding="utf-8"
+        ) as f:
             classes = sorted(json.load(f))
         # JSON uses dict of dicts; convert to tagger-compatible format
         tagger.load(weights_dict, tagdict, classes)
@@ -278,9 +284,6 @@ class TrigramTagger:
 
     def evaluate(self, gold: list[list[str]]) -> float:
         return self._impl.evaluate(gold)
-
-
-
 
 
 class AffixTagger:

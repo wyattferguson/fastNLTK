@@ -1,6 +1,5 @@
 """Tests for Rust-accelerated sentiment — NLTK compatibility."""
 
-
 from fastnltk.sentiment import SentimentIntensityAnalyzer
 
 

@@ -44,10 +44,12 @@ class TestDefaultTagger:
 class TestUnigramTagger:
     def test_train_and_tag(self):
         tagger = UnigramTagger()
-        tagger.train([
-            [("the", "DT"), ("cat", "NN")],
-            [("the", "DT"), ("dog", "NN")],
-        ])
+        tagger.train(
+            [
+                [("the", "DT"), ("cat", "NN")],
+                [("the", "DT"), ("dog", "NN")],
+            ]
+        )
         result = tagger.tag(["the", "cat"])
         assert result[0] == ("the", "DT")
         assert result[1] == ("cat", "NN")
@@ -61,9 +63,11 @@ class TestUnigramTagger:
 
     def test_tag_sents(self):
         tagger = UnigramTagger()
-        tagger.train([
-            [("the", "DT"), ("cat", "NN")],
-        ])
+        tagger.train(
+            [
+                [("the", "DT"), ("cat", "NN")],
+            ]
+        )
         result = tagger.tag_sents([["the"], ["cat"]])
         assert result == [[("the", "DT")], [("cat", "NN")]]
 
@@ -71,10 +75,12 @@ class TestUnigramTagger:
 class TestBigramTagger:
     def test_train_and_tag(self):
         tagger = BigramTagger()
-        tagger.train([
-            [("the", "DT"), ("cat", "NN")],
-            [("the", "DT"), ("dog", "NN")],
-        ])
+        tagger.train(
+            [
+                [("the", "DT"), ("cat", "NN")],
+                [("the", "DT"), ("dog", "NN")],
+            ]
+        )
         result = tagger.tag(["the", "cat"])
         assert result[0] == ("the", "DT")
 
@@ -88,9 +94,11 @@ class TestBigramTagger:
 class TestTrigramTagger:
     def test_train_and_tag(self):
         tagger = TrigramTagger()
-        tagger.train([
-            [("the", "DT"), ("big", "JJ"), ("cat", "NN")],
-        ])
+        tagger.train(
+            [
+                [("the", "DT"), ("big", "JJ"), ("cat", "NN")],
+            ]
+        )
         result = tagger.tag(["the", "big", "cat"])
         assert result[0] == ("the", "DT")
 
@@ -98,18 +106,22 @@ class TestTrigramTagger:
 class TestAffixTagger:
     def test_suffix(self):
         tagger = AffixTagger(affix_len=3, use_suffix=True)
-        tagger.train([
-            [("running", "VBG"), ("walking", "VBG")],
-            [("jumped", "VBD"), ("walked", "VBD")],
-        ])
+        tagger.train(
+            [
+                [("running", "VBG"), ("walking", "VBG")],
+                [("jumped", "VBD"), ("walked", "VBD")],
+            ]
+        )
         result = tagger.tag(["running"])
         assert result[0][1] == "VBG"
 
     def test_prefix(self):
         tagger = AffixTagger(affix_len=3, use_suffix=False)
-        tagger.train([
-            [("unhappy", "JJ"), ("unclear", "JJ")],
-        ])
+        tagger.train(
+            [
+                [("unhappy", "JJ"), ("unclear", "JJ")],
+            ]
+        )
         result = tagger.tag(["unhappy"])
         assert result[0][1] == "JJ"
 
@@ -156,10 +168,13 @@ class TestPosTag:
         result = pos_tag(["café", "naïve"])
         assert len(result) == 2
 
-    @pytest.mark.skipif(True, reason="requires NLTK data")
     def test_matches_nltk(self):
         import nltk
+
         tokens = ["The", "cat", "runs", "fast"]
         fast = pos_tag(tokens)
-        nltk_tags = nltk.pos_tag(tokens)
+        try:
+            nltk_tags = nltk.pos_tag(tokens)
+        except LookupError:
+            pytest.skip("requires NLTK data")
         assert fast == nltk_tags

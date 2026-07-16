@@ -29,6 +29,7 @@ classifiers = [
 ]
 dependencies = [
     "nltk>=3.6",
+    "numpy>=2.2.6",
 ]
 dynamic = ["readme"]
 

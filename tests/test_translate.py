@@ -1,6 +1,5 @@
 """Tests for Rust-accelerated translation metrics — NLTK compatibility."""
 
-
 from fastnltk.translate import bleu_score, corpus_bleu
 
 

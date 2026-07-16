@@ -33,10 +33,11 @@ class BigramCollocationFinder:
         inst._impl = _RustBigramCollocationFinder.from_words(words, window_size)
         # Build Python-side word/ngram freq dicts for NLTK compat
         from collections import Counter
+
         inst._word_fd = Counter(words)
         inst._ngram_fd = Counter()
         for i in range(len(words) - window_size + 1):
-            inst._ngram_fd[tuple(words[i:i+window_size])] += 1
+            inst._ngram_fd[tuple(words[i : i + window_size])] += 1
         return inst
 
     @property
@@ -92,10 +93,11 @@ class TrigramCollocationFinder:
         inst = cls.__new__(cls)
         inst._impl = _RustTrigramCollocationFinder.from_words(words, window_size)
         from collections import Counter
+
         inst._word_fd = Counter(words)
         inst._ngram_fd = Counter()
         for i in range(len(words) - window_size + 1):
-            inst._ngram_fd[tuple(words[i:i+window_size])] += 1
+            inst._ngram_fd[tuple(words[i : i + window_size])] += 1
         return inst
 
     @property
@@ -151,10 +153,11 @@ class QuadgramCollocationFinder:
         inst = cls.__new__(cls)
         inst._impl = _RustQuadgramCollocationFinder.from_words(words, window_size)
         from collections import Counter
+
         inst._word_fd = Counter(words)
         inst._ngram_fd = Counter()
         for i in range(len(words) - window_size + 1):
-            inst._ngram_fd[tuple(words[i:i+window_size])] += 1
+            inst._ngram_fd[tuple(words[i : i + window_size])] += 1
         return inst
 
     @property

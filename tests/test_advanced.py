@@ -68,9 +68,13 @@ class TestCCG:
         assert cats == []
 
     def test_ccg_chart_parse(self):
-        lex = CCGLexicon([
-            ("the", "NP/N"), ("cat", "N"), ("ran", "S\\NP"),
-        ])
+        lex = CCGLexicon(
+            [
+                ("the", "NP/N"),
+                ("cat", "N"),
+                ("ran", "S\\NP"),
+            ]
+        )
         parser = CCGChartParser(lex)
         results = parser.parse(["the", "cat", "ran"])
         assert len(results) > 0
@@ -118,27 +122,32 @@ class TestRobustness:
 
     def test_empty_string_everywhere(self):
         from fastnltk.tokenize import sent_tokenize, word_tokenize
+
         sent_tokenize("")
         word_tokenize("")
 
     def test_very_long_single_word(self):
         from fastnltk.tokenize import word_tokenize
+
         long_word = "supercalifragilisticexpialidocious" * 100
         tokens = word_tokenize(long_word)
         assert len(tokens) >= 1
 
     def test_only_whitespace(self):
         from fastnltk.tokenize import sent_tokenize, word_tokenize
+
         sent_tokenize("    \n\n   ")
         word_tokenize("    \t\n  ")
 
     def test_null_bytes(self):
         from fastnltk.tokenize import word_tokenize
+
         text = "hello\x00world"
         tokens = word_tokenize(text)
         assert len(tokens) > 0
 
     def test_all_punctuation(self):
         from fastnltk.tokenize import word_tokenize
+
         tokens = word_tokenize("!@#$%^&*()_+-=[]{}|;:',.<>?/")
         assert len(tokens) > 0

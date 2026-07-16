@@ -146,7 +146,10 @@ impl PunktSentenceTokenizer {
                 {
                     let end = i;
                     spans.push((start, end));
-                    start = end;
+                    // Skip whitespace after the boundary so next sentence doesn't start with space
+                    let after = &text[end..];
+                    let ws_len = after.find(|c: char| !c.is_whitespace()).unwrap_or(after.len());
+                    start = end + ws_len;
                 }
             }
         }

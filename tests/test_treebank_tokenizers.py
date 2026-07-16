@@ -1,6 +1,5 @@
 """Tests for Rust-accelerated tokenizers — NLTK compatibility."""
 
-
 import nltk
 
 from fastnltk.tokenize import (

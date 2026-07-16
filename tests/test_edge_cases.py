@@ -128,9 +128,7 @@ class TestSpecialCharacters:
     def test_urls(self):
         text = "Visit https://example.com today"
         tokens = word_tokenize(text)
-        assert "https://example.com" in tokens or any(
-            "https" in t for t in tokens
-        )
+        assert "https://example.com" in tokens or any("https" in t for t in tokens)
 
     def test_html_entities(self):
         text = "Hello &amp; world"
@@ -152,7 +150,10 @@ class TestStemmerEdgeCases:
         assert s.stem("I") == "i"  # porter lowercases
 
     def test_rslp_portuguese(self):
-        s = RSLPStemmer()
+        try:
+            s = RSLPStemmer()
+        except LookupError:
+            pytest.skip("RSLP requires NLTK resource")
         result = s.stem("correndo")
         assert len(result) > 0
         assert isinstance(result, str)
