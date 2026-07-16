@@ -151,7 +151,8 @@ impl NaiveBayesClassifier {
         let mut scores = HashMap::new();
 
         for label in &self.labels {
-            let prior = *self.label_logprobs.get(label).unwrap_or(&0.0f64.ln());
+            let zero_log = 0.0f64.ln();
+            let prior = *self.label_logprobs.get(label).unwrap_or(&zero_log);
             let mut logprob = prior;
             if let Some(feat_probs) = self.feature_logprobs.get(label) {
                 for feat in &features {
@@ -234,8 +235,9 @@ impl NaiveBayesClassifier {
         };
         let mut best_score = f64::NEG_INFINITY;
 
+        let zero_log = 0.0f64.ln();
         for label in &self.labels {
-            let prior = *self.label_logprobs.get(label).unwrap_or(&0.0f64.ln());
+            let prior = *self.label_logprobs.get(label).unwrap_or(&zero_log);
             let mut logprob = prior;
             if let Some(feat_probs) = self.feature_logprobs.get(label) {
                 for feat in features {

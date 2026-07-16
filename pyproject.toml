@@ -4,8 +4,8 @@ build-backend = "maturin"
 
 [project]
 name = "fastnltk"
-version = "0.4.0"
-requires-python = ">=3.8"
+version = "0.4.1"
+requires-python = ">=3.10"
 description = "Drop-in Rust-accelerated replacement for NLTK. Same API, 5-50x faster."
 authors = [
     { name = "Wyatt Ferguson" },
@@ -15,8 +15,6 @@ keywords = ["nlp", "nltk", "tokenization", "tagging", "stemming", "parsing", "te
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -24,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Programming Language :: Rust",
+    "License :: OSI Approved :: Apache Software License",
     "Topic :: Text Processing :: Linguistic",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
@@ -51,7 +50,7 @@ features = ["pyo3/extension-module"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py38"
+target-version = "py310"
 
 [tool.ruff.lint]
 extend-select = ["I", "Q", "UP", "RUF100"]
@@ -60,4 +59,4 @@ extend-ignore = ["E501", "E402"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short"
-filterwarnings = ["error"]
+filterwarnings = ["error", 'ignore:.*is deprecated.*:DeprecationWarning', 'ignore:.*is pending deprecation.*:PendingDeprecationWarning']

@@ -2,6 +2,7 @@
 
 use pyo3::prelude::*;
 use std::cmp::{max, min};
+use std::collections::HashSet;
 
 fn jaro_sim(x: &str, y: &str) -> f64 {
     let xc: Vec<char> = x.chars().collect();
@@ -68,7 +69,6 @@ fn dice_similarity(x: &str, y: &str) -> f64 {
     if x == y {
         return 1.0;
     }
-    use std::collections::HashSet;
     let mut xs: HashSet<(char, char)> = HashSet::new();
     let mut ys: HashSet<(char, char)> = HashSet::new();
     for pair in x.chars().collect::<Vec<_>>().windows(2) {

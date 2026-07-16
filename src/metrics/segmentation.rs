@@ -50,10 +50,7 @@ fn pk(reference: &str, hypothesis: &str, k: Option<usize>, boundary: &str) -> Py
         return Err(PyValueError::new_err("Segmentations have unequal length"));
     }
     let n = reference.len();
-    let k = match k {
-        Some(k) => k,
-        None => ((n as f64) / (n as f64).ln().ceil()).ceil() as usize,
-    };
+    let k = k.unwrap_or_else(|| ((n as f64) / (n as f64).ln().ceil()).ceil() as usize);
     if k >= n {
         // Degenerate input — return 0.0 (caller should validate)
         return Ok(0.0);

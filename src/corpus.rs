@@ -28,9 +28,7 @@ impl PlaintextCorpusReader {
             )));
         }
 
-        let resolved = if let Some(ids) = fileids {
-            ids
-        } else {
+        let resolved: Vec<String> = fileids.unwrap_or_else(|| {
             let mut ids: Vec<String> = Vec::new();
             if let Ok(entries) = fs::read_dir(root_path) {
                 for entry in entries.flatten() {
@@ -44,7 +42,7 @@ impl PlaintextCorpusReader {
             }
             ids.sort();
             ids
-        };
+        });
 
         Ok(Self { root: root_path.to_path_buf(), fileids: resolved })
     }

@@ -96,7 +96,7 @@ impl CFG {
     fn nonterminals(&self) -> Vec<String> {
         self.nonterminals.clone()
     }
-    fn __len__(&self) -> usize {
+    const fn __len__(&self) -> usize {
         self.productions.len()
     }
     fn __str__(&self) -> String {
@@ -143,7 +143,7 @@ impl EarleyState {
         s
     }
 
-    fn is_complete(&self) -> bool {
+    const fn is_complete(&self) -> bool {
         self.dot >= self.rhs.len()
     }
     fn next_symbol(&self) -> Option<&str> {
@@ -282,7 +282,7 @@ fn build_tree(
     state: &EarleyState,
     chart: &[Vec<EarleyState>],
     end_pos: usize,
-    _tokens: &[String],
+    tokens: &[String],
 ) -> Option<String> {
     if state.rhs.is_empty() {
         return Some(format!("({})", state.lhs));
@@ -321,7 +321,7 @@ fn build_tree(
             for start in (0..pos).rev() {
                 for s in &chart[pos] {
                     if s.lhs == sym && s.is_complete() && s.start_pos == start {
-                        if let Some(subtree) = build_tree(s, chart, pos, _tokens) {
+                        if let Some(subtree) = build_tree(s, chart, pos, tokens) {
                             children.push(subtree);
                             remaining.pop();
                             pos = start;

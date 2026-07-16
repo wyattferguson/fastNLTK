@@ -15,7 +15,7 @@ impl Clause {
     const fn empty() -> Self {
         Self { literals: vec![] }
     }
-    fn is_empty(&self) -> bool {
+    const fn is_empty(&self) -> bool {
         self.literals.is_empty()
     }
     fn contains(&self, lit: &Literal) -> bool {

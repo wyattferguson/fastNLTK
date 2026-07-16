@@ -114,10 +114,43 @@ class WordNetLemmatizer:
     """WordNet lemmatizer — Rust-accelerated morphy algorithm."""
 
     def __init__(self):
+        self._ensure_wordnet_extracted()
         self._impl = _RustWordNetLemmatizer()
 
     def lemmatize(self, word, pos="n"):
         return self._impl.lemmatize(word, pos)
+
+    @staticmethod
+    def _ensure_wordnet_extracted():
+        """Extract wordnet.zip to nltk_data/corpora/wordnet if needed."""
+        import os, zipfile
+        for base in [os.environ.get("NLTK_DATA", ""),
+                     os.environ.get("APPDATA", ""),
+                     os.path.expanduser("~"),
+                     os.environ.get("USERPROFILE", "")]:
+            if not base:
+                continue
+            corpora = os.path.join(base, "nltk_data", "corpora")
+            wn_dir = os.path.join(corpora, "wordnet")
+            if os.path.isdir(wn_dir):
+                return
+            wn_zip = os.path.join(corpora, "wordnet.zip")
+            if os.path.isfile(wn_zip):
+                os.makedirs(wn_dir, exist_ok=True)
+                with zipfile.ZipFile(wn_zip) as z:
+                    for member in z.namelist():
+                        # Strip "wordnet/" prefix from archive paths
+                        rel = member[len("wordnet/"):] if member.startswith("wordnet/") else member
+                        if not rel:
+                            continue
+                        target = os.path.join(wn_dir, rel)
+                        if member.endswith("/"):
+                            os.makedirs(target, exist_ok=True)
+                        else:
+                            os.makedirs(os.path.dirname(target), exist_ok=True)
+                            with z.open(member) as src, open(target, "wb") as dst:
+                                dst.write(src.read())
+                return
 
 
 class ARLSTem:

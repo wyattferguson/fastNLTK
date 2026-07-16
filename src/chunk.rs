@@ -31,13 +31,10 @@ fn compile_tag_pattern(pattern: &str) -> Result<Regex, String> {
                 re_str.push(ch);
             }
             _ => {
-                // Check if we need to escape
-                if ch.is_alphanumeric() || ch == '_' || ch == '-' {
-                    re_str.push(ch);
-                } else {
+                if !ch.is_alphanumeric() && ch != '_' && ch != '-' {
                     re_str.push('\\');
-                    re_str.push(ch);
                 }
+                re_str.push(ch);
             }
         }
     }

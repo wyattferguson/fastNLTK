@@ -34,11 +34,9 @@ pub fn model_evaluate(
                 Expression::Constant(n, _) => n.clone(),
                 e => return Err(format!("Expected argument, got {e}")),
             };
-            if let Some(extensions) = valuation.get(&pred_name) {
+            valuation.get(&pred_name).map_or(Ok(false), |extensions| {
                 Ok(extensions.iter().any(|t| t.len() == 1 && t[0] == arg_val))
-            } else {
-                Ok(false)
-            }
+            })
         }
         Expression::And(a, b) => {
             if !model_evaluate(a, valuation, domain, assignment)? {

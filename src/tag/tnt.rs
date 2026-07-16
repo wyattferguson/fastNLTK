@@ -112,17 +112,12 @@ impl TnT {
             if sentence.is_empty() {
                 continue;
             }
-            let mut tags: Vec<SmolStr> =
-                vec![SmolStr::new_inline("<S>"), SmolStr::new_inline("<S>")];
-
             for (word, tag) in sentence {
                 let t = SmolStr::new(tag);
                 tag_set.insert(t.clone());
-                tags.push(t.clone());
                 self.known_words.insert(SmolStr::new(word.to_lowercase()));
                 self.total_words += 1;
             }
-            tags.push(SmolStr::new_inline("<E>"));
             tag_set.insert(SmolStr::new_inline("<S>"));
             tag_set.insert(SmolStr::new_inline("<E>"));
         }
@@ -224,8 +219,8 @@ impl TnT {
                 let mut best = neg_inf;
                 let mut best_k: isize = -1;
 
-                for k in 0..t {
-                    let prev = dp[i - 1][k];
+                for (k, prev_row) in dp[i - 1].iter().enumerate() {
+                    let prev = *prev_row;
                     if prev == neg_inf {
                         continue;
                     }
@@ -238,6 +233,7 @@ impl TnT {
                     } else {
                         self.trans_prob(k as u16, j as u16)
                     };
+                    #[allow(clippy::float_cmp)]
                     if tp <= 0.0 {
                         continue;
                     }
@@ -255,12 +251,13 @@ impl TnT {
         // Termination
         let mut best_last: isize = 0;
         let mut best_score = neg_inf;
-        for j in 0..t {
+        for (j, last_dp) in dp[n - 1].iter().enumerate() {
             let tp = self.trans_prob(j as u16, end_id);
+            #[allow(clippy::float_cmp)]
             if tp <= 0.0 {
                 continue;
             }
-            let score = dp[n - 1][j] + tp.ln();
+            let score = last_dp + tp.ln();
             if score > best_score {
                 best_score = score;
                 best_last = j as isize;

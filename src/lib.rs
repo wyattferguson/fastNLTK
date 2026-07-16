@@ -1,6 +1,8 @@
 //! Drop-in Rust-accelerated replacement for NLTK.
 
 #![allow(deprecated)] // PyO3 0.29: FromPyObject for Clone #[pyclass]
+#![allow(clippy::cast_precision_loss)] // NLP: counts/lengths to f64, won't exceed 2^52
+#![allow(clippy::needless_pass_by_value)] // PyO3 sigs: #[pymethods] needs owned types
 
 // System allocator on Linux aarch64 (manylinux GCC too old for
 // -Wdate-time injected by cc crate into libmimalloc-sys).

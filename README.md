@@ -1,20 +1,18 @@
 <div align="center">
   <h1>fastNLTK</h1>
   <p><strong>NLTK with a Rust engine.</strong><br>
-  Drop-in replacement. Same API, same data, 5–50× faster.</p>
+  Drop-in replacement. Same API, Same data, 10× faster.</p>
 
   <p>
     <a href="https://pypi.org/project/fastnltk/"><img src="https://img.shields.io/pypi/v/fastnltk.svg" alt="PyPI"></a>
     <a href="https://pypi.org/project/fastnltk/"><img src="https://img.shields.io/pypi/pyversions/fastnltk.svg" alt="Python"></a>
     <a href="https://github.com/wyattferguson/fastnltk/actions/workflows/quality.yml"><img src="https://github.com/wyattferguson/fastnltk/actions/workflows/quality.yml/badge.svg" alt="CI"></a>
-    <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.80%2B-blue" alt="Rust"></a>
+    <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.97%2B-blue" alt="Rust"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License"></a>
   </p>
 </div>
 
 ---
-
-## What is this?
 
 [**NLTK**](https://www.nltk.org) is the standard Python NLP library — teaching, research,
 prototyping. It works great, but it's pure Python. Tokenizing a 50K-word document takes
@@ -38,40 +36,49 @@ All your NLTK data (corpora, models, pickles) still works. Nothing to re-downloa
 
 ## Benchmarks
 
-**309 Rust unit tests. 87 drop-in compatibility tests against NLTK. 0 failures.**
+**309 Rust unit tests. 331 drop-in compatibility tests against NLTK. 0 failures.**
 
-Benchmarked on release builds against NLTK 3.10. [Full results →](BENCHMARKS.md)
+Benchmarked on release builds against NLTK 3.10, Rust 1.97.1. [Full results →](BENCHMARKS.md)
 
-| Operation                  | NLTK     | fastNLTK | Speedup  |
-| -------------------------- | -------- | -------- | -------- |
-| windowdiff                 | 2.47 ms  | 0.01 ms  | **168×** |
-| edit_distance              | 2.44 ms  | 0.02 ms  | **152×** |
-| pk (segmentation)          | 2.20 ms  | 0.02 ms  | **93×**  |
-| Treebank detokenizer       | 6.96 ms  | 0.20 ms  | **35×**  |
-| sentence tokenizer (Punkt) | 14.56 ms | 0.43 ms  | **34×**  |
-| POS tagging (perceptron)   | 17.64 ms | 0.66 ms  | **27×**  |
-| Tweet tokenizer            | 85.44 ms | 3.51 ms  | **24×**  |
-| Earley parser              | 6.65 ms  | 0.32 ms  | **21×**  |
-| Lancaster stemmer          | 33.86 ms | 2.01 ms  | **17×**  |
-| word tokenizer (Treebank)  | 42.56 ms | 2.54 ms  | **17×**  |
-| quadgram collocations      | 95.44 ms | 5.73 ms  | **17×**  |
-| BLEU score                 | 0.50 ms  | 0.06 ms  | **8×**   |
+| Operation                  | NLTK       | fastNLTK | Speedup  |
+| -------------------------- | ---------- | -------- | -------- |
+| TextTiling tokenizer       | 35000 ms   | 48 ms    | **732×** |
+| edit_distance              | 3.40 ms    | 0.01 ms  | **255×** |
+| windowdiff                 | 2.94 ms    | 0.01 ms  | **211×** |
+| pk (segmentation)          | 2.79 ms    | 0.03 ms  | **109×** |
+| Maxent classifier training | 69.00 ms   | 0.15 ms  | **464×** |
+| sentence tokenizer (Punkt) | 35.49 ms   | 0.59 ms  | **60×**  |
+| Treebank detokenizer       | 9.07 ms    | 0.19 ms  | **48×**  |
+| VADER sentiment            | 116.83 ms  | 2.52 ms  | **46×**  |
+| S-expression tokenizer     | 0.55 ms    | 0.01 ms  | **46×**  |
+| CFG grammar parser         | 0.11 ms    | 0.002 ms | **43×**  |
+| Expression parser          | 36.90 ms   | 0.89 ms  | **42×**  |
+| Tweet tokenizer            | 137.89 ms  | 4.71 ms  | **29×**  |
+| quadgram collocations      | 168.95 ms  | 6.48 ms  | **26×**  |
+| Lancaster stemmer          | 56.34 ms   | 2.59 ms  | **22×**  |
+| Earley parser              | 17.01 ms   | 0.87 ms  | **20×**  |
+| Snowball stemmer           | 39.20 ms   | 2.81 ms  | **14×**  |
+| word tokenizer (Treebank)  | 55.27 ms   | 5.87 ms  | **9×**   |
 
-Geometric mean across 44 benchmarks: **7.6×**. Module-level breakdown:
+Geometric mean across 49 benchmarks: **11.2×**. Module-level breakdown:
 
 | Module                        | Geo Mean | Top single |
 | ----------------------------- | -------- | ---------- |
-| [metrics](BENCHMARKS.md)      | **133×** | 168×       |
-| [sem](BENCHMARKS.md)          | **30×**  | 30×        |
-| [collocations](BENCHMARKS.md) | **13×**  | 17×        |
-| [parse](BENCHMARKS.md)        | **14×**  | 26×        |
-| [tree](BENCHMARKS.md)         | **10×**  | 10×        |
-| [stem](BENCHMARKS.md)         | **8×**   | 17×        |
-| [translate](BENCHMARKS.md)    | **8×**   | 8×         |
-| [chunk](BENCHMARKS.md)        | **8×**   | 8×         |
-| [tokenize](BENCHMARKS.md)     | **5×**   | 35×        |
-| [classify](BENCHMARKS.md)     | **5×**   | 8×         |
-| [tag](BENCHMARKS.md)          | **4×**   | 27×        |
+| [metrics](BENCHMARKS.md)      | **170×** | 255×       |
+| [sentiment](BENCHMARKS.md)    | **46×**  | 46×        |
+| [sem](BENCHMARKS.md)          | **42×**  | 42×        |
+| [parse](BENCHMARKS.md)        | **29×**  | 43×        |
+| [tokenize](BENCHMARKS.md)     | **18×**  | 732×       |
+| [collocations](BENCHMARKS.md) | **17×**  | 26×        |
+| [translate](BENCHMARKS.md)    | **16×**  | 16×        |
+| [tree](BENCHMARKS.md)         | **13×**  | 13×        |
+| [chunk](BENCHMARKS.md)        | **9×**   | 9×         |
+| [stem](BENCHMARKS.md)         | **9×**   | 22×        |
+| [classify](BENCHMARKS.md)     | **9×**   | 464×       |
+| [cluster](BENCHMARKS.md)      | **9×**   | 9×         |
+| [tag](BENCHMARKS.md)          | **4×**   | 10×        |
+| [probability](BENCHMARKS.md)  | **4×**   | 5×         |
+| [ccg](BENCHMARKS.md)          | **2×**   | 2×         |
 
 ## What's accelerated
 
@@ -106,7 +113,7 @@ pip install fastnltk
 ```
 
 Pre-built wheels for Linux (x86_64, aarch64), macOS (x86_64, arm64), Windows (x64).
-Python 3.8–3.13.
+Python 3.10–3.13.
 
 Make sure you have the NLTK data you need:
 
@@ -229,19 +236,6 @@ prob, parse, chunk) is verified identically to NLTK.
 ## License
 
 [Apache 2.0](LICENSE). Not affiliated with NLTK or its maintainers.
-
-## Citing
-
-See [CITATION.cff](CITATION.cff) for software citation metadata.
-
-```bibtex
-@software{fastnltk2025,
-  author = {Ferguson, Wyatt},
-  title = {fastNLTK: Drop-in Rust-accelerated replacement for NLTK},
-  year = {2026},
-  url = {https://github.com/wyattferguson/fastnltk}
-}
-```
 
 ## Contact + Support
 
