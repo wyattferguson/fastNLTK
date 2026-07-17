@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # ── Build wheels (matrix across OS + arch) ───────────────
+  # -- Build wheels (matrix across OS + arch) ---------------
   # Uses PyO3/maturin-action which handles cross-compilation
   # for all targets via manylinux docker containers internally.
   # See https://github.com/PyO3/maturin-action
@@ -33,9 +33,9 @@ jobs:
             target: x64
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
@@ -48,20 +48,20 @@ jobs:
           sccache: true
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: wheel-${{ matrix.target }}
           path: dist/*.whl
           if-no-files-found: error
 
-  # ── Build source distribution ────────────────────────────
+  # -- Build source distribution ----------------------------
   sdist:
     name: Build sdist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
@@ -72,13 +72,13 @@ jobs:
           args: --out dist
 
       - name: Upload sdist
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: wheel-sdist
           path: dist/*.tar.gz
           if-no-files-found: error
 
-  # ── Publish to PyPI ──────────────────────────────────────
+  # -- Publish to PyPI --------------------------------------
   publish:
     name: Publish to PyPI
     needs: [build, sdist]
@@ -89,7 +89,7 @@ jobs:
 
     steps:
       - name: Download all wheels + sdist
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v4
         with:
           pattern: wheel-*
           merge-multiple: true
