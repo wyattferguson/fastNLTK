@@ -30,7 +30,7 @@ __all__ = [
     "download",
 ]
 
-__version__ = "0.4.1"
+__version__ = "0.5.2"
 
 # Import remaining submodules — each handles Rust-availability gracefully
 _modules = [
