@@ -29,12 +29,14 @@ class Tree:
     def __init__(self, label, children=None):
         if children is None:
             children = []
-        # Build tree: str children passed to Rust, Tree children appended
-        str_children = [c for c in children if isinstance(c, str)]
-        self._impl = _RustTree(label, str_children)
-        for c in children:
-            if isinstance(c, Tree):
-                self._impl.append(c._impl)
+        # If all children are strings, pass directly to Rust
+        if all(isinstance(c, str) for c in children):
+            self._impl = _RustTree(label, children)
+        else:
+            # Build tree string for nested Trees and parse via from_string
+            # str(Tree) returns "(Label child1 child2 ...)" matching Rust format
+            inner = " ".join(str(c) if isinstance(c, Tree) else c for c in children)
+            self._impl = _RustTree.from_string(f"({label} {inner})")
 
     @classmethod
     def from_string(cls, string):

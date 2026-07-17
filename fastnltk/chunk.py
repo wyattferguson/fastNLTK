@@ -58,32 +58,54 @@ def _iob_to_tree(iob_tags):
         pos_tags = ["" for _ in iob_tags]
         iob = [t for _, t in iob_tags]
 
-    tree = Tree("S", [])
-    current_chunk = None
+    # Build tree as nested list of (label, [children]) or leaf strings
+    tree_children: list = []
+    current_chunk_label: str | None = None
+    current_chunk_children: list | None = None
 
     for word, pos, tag in zip(words, pos_tags, iob):
         leaf = f"{word}/{pos}" if pos else word
         if tag.startswith("B-"):
-            if current_chunk is not None:
-                tree.append(current_chunk)
-            label = tag[2:]
-            current_chunk = Tree(label, [leaf])
+            if current_chunk_label is not None:
+                tree_children.append((current_chunk_label, current_chunk_children))
+            current_chunk_label = tag[2:]
+            current_chunk_children = [leaf]
         elif tag.startswith("I-"):
-            if current_chunk is not None:
-                current_chunk.append(leaf)
+            if current_chunk_children is not None:
+                current_chunk_children.append(leaf)
             else:
-                label = tag[2:]
-                current_chunk = Tree(label, [leaf])
+                current_chunk_label = tag[2:]
+                current_chunk_children = [leaf]
         else:  # O
-            if current_chunk is not None:
-                tree.append(current_chunk)
-                current_chunk = None
-            tree.append(leaf)
+            if current_chunk_label is not None:
+                tree_children.append((current_chunk_label, current_chunk_children))
+                current_chunk_label = None
+                current_chunk_children = None
+            tree_children.append(leaf)
 
-    if current_chunk is not None:
-        tree.append(current_chunk)
+    if current_chunk_label is not None:
+        tree_children.append((current_chunk_label, current_chunk_children))
 
-    return tree
+    # Convert nested structure to tree string for Rust Tree.from_string
+    def _to_str(item) -> str:
+        if isinstance(item, str):
+            return item
+        label, children = item
+        inner = " ".join(_to_str(c) for c in children)
+        return f"({label} {inner})"
+
+    tree_str = f"(S {' '.join(_to_str(c) for c in tree_children)})"
+    try:
+        return Tree.from_string(tree_str)
+    except Exception:
+        # Fallback: build a flat tree
+        from fastnltk._rust import Tree as _RustTree
+
+        flat = [
+            f"{w}/{p}" if p else w
+            for w, p in zip(words, pos_tags)
+        ]
+        return Tree("S", flat)
 
 
 def ne_chunk(tagged_tokens, binary=False):
