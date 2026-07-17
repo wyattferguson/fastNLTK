@@ -14,13 +14,12 @@
 
 ---
 
-[**NLTK**](https://www.nltk.org) is the standard Python NLP library — teaching, research,
-prototyping. It works great, but it's pure Python. Tokenizing a 50K-word document takes
-~40 ms in NLTK. That's fine for one-offs, but in a pipeline it adds up fast.
+[**NLTK**](https://www.nltk.org) is fantastic. The API is clean, and it does just about everything you'd want from an NLP library. The only drawback being it's pure Python, and on large inputs that starts to show. A single
+call is fine. A million calls in a data pipeline is a different story.
 
-**fastNLTK** wraps the same API calls in Rust. Change your import, get the same results.
-No new dependency tree — the Rust engine lives in a single `.pyd`/`.so` file shipped
-with the wheel.
+**fastNLTK** is NLTK with the hot path rewritten in Rust. Same API, same
+data, same results. Just faster — 5× to 700× depending on what you're doing.
+No new dependencies, no YAML files, no config. Change your import and move on.
 
 ```python
 # Before
@@ -32,7 +31,8 @@ import fastnltk as nltk
 tokens = nltk.word_tokenize("The quick brown fox.")  # same call, 5–50× faster
 ```
 
-All your NLTK data (corpora, models, pickles) still works. Nothing to re-download.
+Your NLTK data (corpora, models, pickles, all of it) still works. Nothing to
+re-download, nothing to migrate.
 
 ## Benchmarks
 
@@ -40,25 +40,25 @@ All your NLTK data (corpora, models, pickles) still works. Nothing to re-downloa
 
 Benchmarked on release builds against NLTK 3.10. [Full results →](BENCHMARKS.md)
 
-| Operation                  | NLTK       | fastNLTK | Speedup  |
-| -------------------------- | ---------- | -------- | -------- |
-| TextTiling tokenizer       | 22237 ms   | 32 ms    | **704×** |
-| Maxent classifier training | 31.93 ms   | 0.08 ms  | **425×** |
-| edit_distance              | 2.48 ms    | 0.01 ms  | **176×** |
-| windowdiff                 | 2.35 ms    | 0.01 ms  | **172×** |
-| pk (segmentation)          | 2.19 ms    | 0.02 ms  | **90×**  |
-| Treebank detokenizer       | 6.70 ms    | 0.12 ms  | **55×**  |
-| VADER sentiment            | 67.06 ms   | 1.75 ms  | **38×**  |
-| sentence tokenizer (Punkt) | 14.65 ms   | 0.44 ms  | **33×**  |
-| S-expression tokenizer     | 0.36 ms    | 0.01 ms  | **30×**  |
-| Expression parser          | 16.47 ms   | 0.55 ms  | **30×**  |
-| Tweet tokenizer            | 83.96 ms   | 3.31 ms  | **25×**  |
-| CFG grammar parser         | 0.05 ms    | 0.002 ms | **25×**  |
-| Lancaster stemmer          | 32.81 ms   | 1.41 ms  | **23×**  |
-| quadgram collocations      | 101.04 ms  | 4.94 ms  | **21×**  |
-| Earley parser              | 6.55 ms    | 0.51 ms  | **13×**  |
-| Snowball stemmer           | 21.84 ms   | 1.79 ms  | **12×**  |
-| word tokenizer (Treebank)  | 42.18 ms   | 4.27 ms  | **10×**  |
+| Operation                  | NLTK      | fastNLTK | Speedup  |
+| -------------------------- | --------- | -------- | -------- |
+| TextTiling tokenizer       | 22237 ms  | 32 ms    | **704×** |
+| Maxent classifier training | 31.93 ms  | 0.08 ms  | **425×** |
+| edit_distance              | 2.48 ms   | 0.01 ms  | **176×** |
+| windowdiff                 | 2.35 ms   | 0.01 ms  | **172×** |
+| pk (segmentation)          | 2.19 ms   | 0.02 ms  | **90×**  |
+| Treebank detokenizer       | 6.70 ms   | 0.12 ms  | **55×**  |
+| VADER sentiment            | 67.06 ms  | 1.75 ms  | **38×**  |
+| sentence tokenizer (Punkt) | 14.65 ms  | 0.44 ms  | **33×**  |
+| S-expression tokenizer     | 0.36 ms   | 0.01 ms  | **30×**  |
+| Expression parser          | 16.47 ms  | 0.55 ms  | **30×**  |
+| Tweet tokenizer            | 83.96 ms  | 3.31 ms  | **25×**  |
+| CFG grammar parser         | 0.05 ms   | 0.002 ms | **25×**  |
+| Lancaster stemmer          | 32.81 ms  | 1.41 ms  | **23×**  |
+| quadgram collocations      | 101.04 ms | 4.94 ms  | **21×**  |
+| Earley parser              | 6.55 ms   | 0.51 ms  | **13×**  |
+| Snowball stemmer           | 21.84 ms  | 1.79 ms  | **12×**  |
+| word tokenizer (Treebank)  | 42.18 ms  | 4.27 ms  | **10×**  |
 
 Geometric mean across 49 benchmarks: **10.1×**. Module-level breakdown:
 
