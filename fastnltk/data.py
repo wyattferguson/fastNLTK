@@ -9,7 +9,10 @@ import pickle as _pickle
 
 from nltk.data import *  # noqa: F403
 
-from fastnltk._rust import find as _rust_find
+try:
+    from fastnltk._rust import find as _rust_find
+except ImportError:
+    _rust_find = None
 
 
 def find(resource_name, paths=None):
@@ -18,13 +21,15 @@ def find(resource_name, paths=None):
     Searches standard nltk_data directories (NLTK_DATA env, ~/nltk_data,
     /usr/share/nltk_data, etc.) for the given resource.
     """
-    try:
-        return _rust_find(resource_name)
-    except LookupError:
-        # Fall back to NLTK for broader search paths (sys.path, etc.)
-        from nltk.data import find as _nltk_find
+    if _rust_find is not None:
+        try:
+            return _rust_find(resource_name)
+        except LookupError:
+            pass
+    # Fall back to NLTK for broader search paths (sys.path, etc.)
+    from nltk.data import find as _nltk_find
 
-        return _nltk_find(resource_name, paths)
+    return _nltk_find(resource_name, paths)
 
 
 # ── Rust model loading helpers ───────────────────────────
