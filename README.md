@@ -18,8 +18,8 @@
 call is fine. A million calls in a data pipeline is a different story.
 
 **fastNLTK** is NLTK with the hot path rewritten in Rust. Same API, same
-data, same results. Just faster — 5× to 700× depending on what you're doing.
-No new dependencies, no YAML files, no config. Change your import and move on.
+data, same results. Just faster - 5× to 700× depending on what you're doing.
+No new dependencies, no YAML files, no config. Simply change your import and watch your existing code fly.
 
 ```python
 # Before
