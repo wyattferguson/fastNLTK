@@ -1,6 +1,6 @@
 # Benchmarks
 
-> **Last updated:** 2026-07-16 (v0.4.1, release build)
+> **Last updated:** 2026-07-16 (v0.5.0, release build)
 > **Geometric mean: 10.1× vs NLTK** across 49 compared benchmarks (66 total).
 >
 > Run benchmarks: `python -m benchmarks.run --save`
