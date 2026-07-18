@@ -1,12 +1,16 @@
 # Benchmarks
 
-> **Last updated:** 2026-07-16 (v0.5.0, release build)
+> **Last updated:** 2026-07-16 (v0.5.3, release build)
 > **Geometric mean: 10.1× vs NLTK** across 49 compared benchmarks (66 total).
 >
 > Run benchmarks: `python -m benchmarks.run --save`
 > Fixtures: NLTK Gutenberg corpus (~200KB medium, ~5KB tiny).
 
 > [!NOTE]
+> HMM tagger optimized in v0.5.3: integer tag IDs + flat matrices —
+> eliminates `String::clone()` in the O(N × T²) Viterbi inner loop.
+> ConditionalFreqDist now shares `FreqDist` references so mutations via
+> `cfd[cond][sample] = value` propagate correctly.
 > ISRI and RSLP stemmers delegate to NLTK in the Python wrapper (`fastnltk.stem`)
 > for byte-identical output. The raw Rust `_rust` versions are benchmarked below
 > but the user-facing interface matches NLTK exactly.

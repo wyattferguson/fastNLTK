@@ -36,7 +36,7 @@ re-download, nothing to migrate.
 
 ## Benchmarks
 
-**366 Python drop-in compatibility tests against NLTK. 6 skipped (chat stdin). 3 expected failures.**
+**368 Python drop-in compatibility tests against NLTK. 6 skipped (chat stdin). 1 expected failure.**
 
 Benchmarked on release builds against NLTK 3.10. [Full results →](BENCHMARKS.md)
 
@@ -89,9 +89,10 @@ Every module that has a Rust-backed engine:
 | -------------- | ------------------------------------------------------------------------------------------------- |
 | `tokenize`     | Treebank, Toktok, Tweet, Regexp, Space, MWE, TextTiling, Punkt, SExpr, Logos DFA                  |
 | `stem`         | Porter, Lancaster (full 124 rules), Snowball, Regexp, WordNet, ARLSTem, Cistem, ISRI, RSLP        |
-| `tag`          | PerceptronTagger, TnT (integer Viterbi), HMM, Default/Unigram/Bigram/Trigram/Regexp/Affix taggers |
+| `tag`          | PerceptronTagger, HMM (integer Viterbi), TnT, Default/Unigram/Bigram/Trigram/Regexp/Affix |
 | `classify`     | NaiveBayes, Maxent (GIS), TextCat                                                                 |
-| `probability`  | FreqDist, ConditionalFreqDist, MLE/Laplace/Lidstone prob dists                                    |
+| `corpus`       | PlaintextCorpusReader, TaggedCorpusReader, CategorizedPlaintextCorpusReader                        |
+| `probability`  | FreqDist, ConditionalFreqDist (shared references), MLE/Laplace/Lidstone prob dists                |
 | `lm`           | MLE, Lidstone, Laplace, Kneser-Ney interpolated, Witten-Bell, StupidBackoff                       |
 | `collocations` | Bigram/Trigram/Quadgram finders                                                                   |
 | `metrics`      | edit_distance, jaccard, windowdiff, pk, BLEU, association, agreement, Spearman                    |
@@ -196,8 +197,8 @@ maturin develop --release
 pip install -e ".[dev]"
 maturin develop --release
 
-cargo test          # Rust unit tests
-pytest tests/       # 375 Python tests (366 pass, 6 skip, 3 xfail)
+cargo test          # Rust unit tests (309 pass)
+pytest tests/       # 375 Python tests (368 pass, 6 skip, 1 xfail)
 
 cargo fmt --all -- --check
 cargo clippy --lib
@@ -208,13 +209,9 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for full setup and PR workflow.
 
 ## Compatibility
 
-The goal is 100% drop-in. Right now **366 of 375 tests pass** (6 skipped — chat bots
-read stdin), with only **3 expected failures**:
+The goal is 100% drop-in. Right now **368 of 375 tests pass** (6 skipped — chat bots
+read stdin), with only **1 expected failure**:
 
-- **Earley parse tree extraction** — Rust Earley finds parses but the tree structure
-  differs from NLTK's chart-printing format (WIP)
-- **ConditionalFreqDist clone semantics** — `freqdist()` returns a copy, so mutations
-  don't propagate back the way NLTK's reference-sharing does (design limitation)
 - **CCG `fromstring`** — NLTK 3.10's `ccg.chart.fromstring` is broken (upstream bug)
 
 Every critical-path API (tokenize, tag, stem, metrics, prob, parse, chunk, sentiment,

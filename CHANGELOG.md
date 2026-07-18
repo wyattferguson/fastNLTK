@@ -7,9 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.3] — 2026-07-16
 
+### Added
+- TaggedCorpusReader and CategorizedPlaintextCorpusReader with Rust file I/O
+- HMM tagger: integer tag IDs + flat transition/emission matrices (zero-alloc Viterbi)
+
 ### Changed
+- ConditionalFreqDist now shares FreqDist references — mutations via `cfd[cond][sample]` propagate
+- Resolved Earley parse tree xfail (tree building delegated to NLTK for correctness)
+- Two xfails closed: ConditionalFreqDist clone semantics, Earley parse tree extraction
 - Improved README clarity and impact
 - Bumped CI action versions (checkout, setup-python, upload/download-artifact)
+
+### Fixed
+- Earley parser: terminal quote stripping handles both single and double quotes
+- Earley parser: predict step no longer skips start symbol productions
 
 ## [0.5.2] — 2026-07-16
 
