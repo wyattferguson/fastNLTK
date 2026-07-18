@@ -5,6 +5,21 @@ All notable changes to fastNLTK are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4] — 2026-07-16
+
+### Added
+- CI: `cargo audit` security scan job (checks Cargo.lock for CVEs)
+- Rust dev tools: cargo-nextest, cargo-flamegraph, cargo-audit, cargo-outdated, py-spy
+
+### Fixed
+- AffixTagger benchmark: added `_backoff` parameter for 3-arg call compatibility
+- EarleyChartParser benchmark: delegates to NLTK for ambiguous grammar output
+- HMM tagger benchmark: uses 0-arg constructor + `.train()`
+
+### Changed
+- Updated BENCHMARKS.md with fresh data — geo mean **12.2×** (up from 10.1×)
+- README tagline 10× → 12×, updated benchmark table and module breakdown
+
 ## [0.5.3] — 2026-07-16
 
 ### Added
