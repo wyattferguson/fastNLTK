@@ -5,6 +5,35 @@ All notable changes to fastNLTK are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3] — 2026-07-16
+
+### Changed
+- Improved README clarity and impact
+- Bumped CI action versions (checkout, setup-python, upload/download-artifact)
+
+## [0.5.2] — 2026-07-16
+
+### Changed
+- Internal version consistency across Cargo.toml, pyproject.toml, and __init__.py
+
+## [0.5.1] — 2026-07-16
+
+### Added
+- Full end-to-end smoke test covering all accelerated modules
+
+## [0.5.0] — 2026-07-16
+
+### Added
+- Enhanced chunking with fallback tree construction
+- Utility functions for IOB-to-tree conversion
+- Backoff support in UnigramTagger
+
+### Changed
+- Tagger modules refactored for readability and maintainability
+- Fixed 4 previously-xfail bugs across the test suite
+- CI: updated to latest GitHub Actions, fixed PyPI release workflow
+- Benchmark geomean: 10.1× (up from 9.2×)
+
 ## [0.4.1] — 2025-07-16
 
 ### Added
