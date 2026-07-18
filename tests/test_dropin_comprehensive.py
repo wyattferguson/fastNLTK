@@ -367,9 +367,6 @@ class TestProb:
         _eq("FD['l']", fd_n["l"], fd_f["l"])
         _eq("FD keys", set(fd_n.keys()), set(fd_f.keys()))
 
-    @pytest.mark.xfail(
-        reason="Rust ConditionalFreqDist returns cloned FreqDist; mutations not propagated"
-    )
     def test_cond_freqdist(self):
         n_cfd, f_cfd = nprob.ConditionalFreqDist(), _fprob.ConditionalFreqDist()
         for c, e in [("a", "x"), ("a", "y"), ("b", "x"), ("a", "x")]:

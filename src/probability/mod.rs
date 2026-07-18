@@ -102,6 +102,17 @@ impl FreqDist {
     fn __contains__(&self, sample: &str) -> bool {
         self.counts.contains_key(sample)
     }
+    fn __setitem__(&mut self, sample: &str, count: u64) {
+        // Set exact count, adjusting total.
+        let old = self.counts.get(sample).copied().unwrap_or(0);
+        if count == 0 {
+            self.counts.remove(sample);
+            self.total = self.total.saturating_sub(old);
+        } else {
+            self.counts.insert(SmolStr::new(sample), count);
+            self.total = self.total.saturating_sub(old) + count;
+        }
+    }
     fn __add__(&self, other: &Self) -> Self {
         let mut result = self.clone();
         for (sample, count) in &other.counts {
@@ -151,10 +162,29 @@ impl FreqDist {
 }
 
 /// A conditional frequency distribution: {condition: `FreqDist`}.
+///
+/// Stores `FreqDist` as shared Python objects so mutations via
+/// `cfd[cond][sample] = value` propagate back to the distribution.
 #[pyclass(name = "ConditionalFreqDist", module = "fastnltk._rust")]
-#[derive(Clone)]
 pub struct ConditionalFreqDist {
-    conditions: HashMap<SmolStr, FreqDist>,
+    conditions: HashMap<SmolStr, Py<FreqDist>>,
+}
+
+impl Clone for ConditionalFreqDist {
+    fn clone(&self) -> Self {
+        // Deep-clone each FreqDist via Python so we get independent copies.
+        let cloned = pyo3::Python::try_attach(|py| {
+            self.conditions
+                .iter()
+                .map(|(k, v)| {
+                    let fd: FreqDist = v.borrow(py).clone();
+                    (k.clone(), pyo3::Py::new(py, fd).unwrap())
+                })
+                .collect()
+        })
+        .expect("GIL");
+        Self { conditions: cloned }
+    }
 }
 
 #[pymethods]
@@ -170,26 +200,44 @@ impl ConditionalFreqDist {
     }
     #[allow(non_snake_case)]
     fn N(&self) -> u64 {
-        self.conditions.values().map(FreqDist::N).sum()
+        pyo3::Python::try_attach(|py| {
+            self.conditions.values().map(|fd| fd.borrow(py).N()).sum()
+        })
+        .expect("GIL")
     }
     fn inc(&mut self, condition: &str, sample: &str) {
-        self.conditions
-            .entry(SmolStr::new(condition))
-            .or_insert_with(|| FreqDist::new(None))
-            .inc(sample, 1);
+        pyo3::Python::try_attach(|py| {
+            self.conditions
+                .entry(SmolStr::new(condition))
+                .or_insert_with(|| pyo3::Py::new(py, FreqDist::new(None)).unwrap())
+                .borrow_mut(py)
+                .inc(sample, 1);
+        })
+        .expect("GIL");
     }
     fn freqdist(&self, condition: &str) -> Option<FreqDist> {
-        self.conditions.get(condition).cloned()
+        pyo3::Python::try_attach(|py| {
+            self.conditions.get(condition).map(|fd| fd.borrow(py).clone())
+        })
+        .expect("GIL")
     }
-    fn __getitem__(&self, condition: &str) -> Option<FreqDist> {
-        self.freqdist(condition)
+    fn __getitem__(&self, condition: &str) -> Option<Py<FreqDist>> {
+        self.conditions.get(condition).map(|py_fd| {
+            pyo3::Python::try_attach(|py| py_fd.clone_ref(py)).expect("GIL")
+        })
     }
     fn __contains__(&self, condition: &str) -> bool {
         self.conditions.contains_key(condition)
     }
     #[pyo3(signature = (n=None))]
     fn most_common(&self, n: Option<usize>) -> Vec<(String, Vec<(String, u64)>)> {
-        self.conditions.iter().map(|(cond, fd)| (cond.to_string(), fd.most_common(n))).collect()
+        pyo3::Python::try_attach(|py| {
+            self.conditions
+                .iter()
+                .map(|(cond, fd)| (cond.to_string(), fd.borrow(py).most_common(n)))
+                .collect()
+        })
+        .expect("GIL")
     }
 }
 

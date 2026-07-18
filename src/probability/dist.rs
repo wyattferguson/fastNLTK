@@ -144,13 +144,18 @@ mod tests {
 
     #[test]
     fn test_cond_freqdist() {
-        let mut cfd = ConditionalFreqDist::new();
-        cfd.inc("cond1", "a");
-        cfd.inc("cond1", "a");
-        cfd.inc("cond2", "b");
-        assert_eq!(cfd.N(), 3);
-        assert!(cfd.__contains__("cond1"));
-        assert!(!cfd.__contains__("cond3"));
+        pyo3::Python::initialize();
+        pyo3::Python::try_attach(|_py| {
+            let mut cfd = ConditionalFreqDist::new();
+            cfd.inc("cond1", "a");
+            cfd.inc("cond1", "a");
+            cfd.inc("cond2", "b");
+            assert_eq!(cfd.N(), 3);
+            assert!(cfd.__contains__("cond1"));
+            assert!(!cfd.__contains__("cond3"));
+            Ok::<_, pyo3::PyErr>(())
+        })
+        .expect("GIL");
     }
 
     #[test]
@@ -171,11 +176,16 @@ mod tests {
 
     #[test]
     fn test_cond_freqdist_most_common() {
-        let mut cfd = ConditionalFreqDist::new();
-        cfd.inc("cond1", "a");
-        cfd.inc("cond1", "a");
-        cfd.inc("cond2", "b");
-        let mc = cfd.most_common(None);
-        assert_eq!(mc.len(), 2);
+        pyo3::Python::initialize();
+        pyo3::Python::try_attach(|_py| {
+            let mut cfd = ConditionalFreqDist::new();
+            cfd.inc("cond1", "a");
+            cfd.inc("cond1", "a");
+            cfd.inc("cond2", "b");
+            let mc = cfd.most_common(None);
+            assert_eq!(mc.len(), 2);
+            Ok::<_, pyo3::PyErr>(())
+        })
+        .expect("GIL");
     }
 }
