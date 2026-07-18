@@ -42,9 +42,7 @@ impl HiddenMarkovModelTagger {
     fn new() -> Self {
         let mut tag_index: HashMap<SmolStr, usize> = HashMap::new();
         // Reserve IDs 0 and 1 for <s>, </s>
-        let mut tag_names = Vec::new();
-        tag_names.push(SmolStr::new_inline("<s>"));
-        tag_names.push(SmolStr::new_inline("</s>"));
+        let tag_names = vec![SmolStr::new_inline("<s>"), SmolStr::new_inline("</s>")];
         tag_index.insert(SmolStr::new_inline("<s>"), 0);
         tag_index.insert(SmolStr::new_inline("</s>"), 1);
         Self {

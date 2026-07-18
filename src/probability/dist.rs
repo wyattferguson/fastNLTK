@@ -145,7 +145,7 @@ mod tests {
     #[test]
     fn test_cond_freqdist() {
         pyo3::Python::initialize();
-        pyo3::Python::try_attach(|_py| {
+        let _ = pyo3::Python::try_attach(|_py| {
             let mut cfd = ConditionalFreqDist::new();
             cfd.inc("cond1", "a");
             cfd.inc("cond1", "a");
@@ -177,7 +177,7 @@ mod tests {
     #[test]
     fn test_cond_freqdist_most_common() {
         pyo3::Python::initialize();
-        pyo3::Python::try_attach(|_py| {
+        let _ = pyo3::Python::try_attach(|_py| {
             let mut cfd = ConditionalFreqDist::new();
             cfd.inc("cond1", "a");
             cfd.inc("cond1", "a");

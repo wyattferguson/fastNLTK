@@ -36,7 +36,10 @@ impl CFG {
         for (lhs, rhs) in &productions {
             nonterm_set.insert(lhs.clone(), true);
             for sym in rhs {
-                if sym.starts_with(|c: char| c.is_uppercase()) || sym.starts_with('\'') || sym.starts_with('"') {
+                if sym.starts_with(|c: char| c.is_uppercase())
+                    || sym.starts_with('\'')
+                    || sym.starts_with('"')
+                {
                     nonterm_set.insert(sym.clone(), true);
                 }
             }
@@ -70,8 +73,8 @@ impl CFG {
                     .split_whitespace()
                     .map(|s| {
                         if (s.starts_with('\'') && s.ends_with('\'') && s.len() > 2)
-                    || (s.starts_with('"') && s.ends_with('"') && s.len() > 2)
-                {
+                            || (s.starts_with('"') && s.ends_with('"') && s.len() > 2)
+                        {
                             s[1..s.len() - 1].to_string()
                         } else {
                             s.to_string()
@@ -189,9 +192,7 @@ impl EarleyChartParser {
         while let Some(nt) = to_predict.pop() {
             for prod in grammar.get_productions(&nt) {
                 let state = EarleyState::new(prod.lhs.clone(), prod.rhs.clone(), 0);
-                if !chart[0]
-                    .iter()
-                    .any(|s| s.lhs == state.lhs && s.rhs == state.rhs && s.dot == 0)
+                if !chart[0].iter().any(|s| s.lhs == state.lhs && s.rhs == state.rhs && s.dot == 0)
                 {
                     chart[0].push(state);
                 }
@@ -204,14 +205,12 @@ impl EarleyChartParser {
         }
 
         // Main Earley loop
-        let mut total_completes = 0u64;
         for i in 0..=n {
             let mut j = 0;
             while j < chart[i].len() {
                 let state = chart[i][j].clone();
 
                 if state.is_complete() {
-                    total_completes += 1;
                     // Complete: advance states expecting this lhs
                     for k in 0..i {
                         for ci in 0..chart[k].len() {
@@ -352,10 +351,7 @@ fn find_completed(
     if end >= chart.len() {
         return None;
     }
-    chart[end]
-        .iter()
-        .find(|s| s.lhs == lhs && s.is_complete() && s.start_pos == start)
-        .cloned()
+    chart[end].iter().find(|s| s.lhs == lhs && s.is_complete() && s.start_pos == start).cloned()
 }
 
 // Registration
@@ -420,8 +416,7 @@ mod tests {
         )
         .unwrap();
         let parser = EarleyChartParser::new();
-        let result =
-            parser.parse(&cfg, vec!["the".into(), "cat".into(), "runs".into()]);
+        let result = parser.parse(&cfg, vec!["the".into(), "cat".into(), "runs".into()]);
         assert!(result.is_ok());
     }
 

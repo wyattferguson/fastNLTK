@@ -172,10 +172,7 @@ impl TaggedCorpusReader {
 
     /// Return tagged sentences.
     #[pyo3(signature = (fileids=None))]
-    fn tagged_sents(
-        &self,
-        fileids: Option<Vec<String>>,
-    ) -> PyResult<Vec<Vec<(String, String)>>> {
+    fn tagged_sents(&self, fileids: Option<Vec<String>>) -> PyResult<Vec<Vec<(String, String)>>> {
         let raw = self.raw(fileids)?;
         let sep = &self.sep;
         let mut result = Vec::new();

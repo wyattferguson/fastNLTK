@@ -200,10 +200,8 @@ impl ConditionalFreqDist {
     }
     #[allow(non_snake_case)]
     fn N(&self) -> u64 {
-        pyo3::Python::try_attach(|py| {
-            self.conditions.values().map(|fd| fd.borrow(py).N()).sum()
-        })
-        .expect("GIL")
+        pyo3::Python::try_attach(|py| self.conditions.values().map(|fd| fd.borrow(py).N()).sum())
+            .expect("GIL")
     }
     fn inc(&mut self, condition: &str, sample: &str) {
         pyo3::Python::try_attach(|py| {
@@ -222,9 +220,9 @@ impl ConditionalFreqDist {
         .expect("GIL")
     }
     fn __getitem__(&self, condition: &str) -> Option<Py<FreqDist>> {
-        self.conditions.get(condition).map(|py_fd| {
-            pyo3::Python::try_attach(|py| py_fd.clone_ref(py)).expect("GIL")
-        })
+        self.conditions
+            .get(condition)
+            .map(|py_fd| pyo3::Python::try_attach(|py| py_fd.clone_ref(py)).expect("GIL"))
     }
     fn __contains__(&self, condition: &str) -> bool {
         self.conditions.contains_key(condition)
