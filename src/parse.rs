@@ -36,7 +36,7 @@ impl CFG {
         for (lhs, rhs) in &productions {
             nonterm_set.insert(lhs.clone(), true);
             for sym in rhs {
-                if sym.starts_with(|c: char| c.is_uppercase()) || sym.starts_with('\'') {
+                if sym.starts_with(|c: char| c.is_uppercase()) || sym.starts_with('\'') || sym.starts_with('"') {
                     nonterm_set.insert(sym.clone(), true);
                 }
             }
@@ -69,7 +69,9 @@ impl CFG {
                 let rhs: Vec<String> = alt
                     .split_whitespace()
                     .map(|s| {
-                        if s.starts_with('\'') && s.ends_with('\'') && s.len() > 2 {
+                        if (s.starts_with('\'') && s.ends_with('\'') && s.len() > 2)
+                    || (s.starts_with('"') && s.ends_with('"') && s.len() > 2)
+                {
                             s[1..s.len() - 1].to_string()
                         } else {
                             s.to_string()
@@ -156,7 +158,7 @@ impl EarleyState {
 }
 
 fn is_terminal(s: &str) -> bool {
-    !s.starts_with(|c: char| c.is_uppercase()) || s.starts_with('\'')
+    !s.starts_with(|c: char| c.is_uppercase()) || s.starts_with('\'') || s.starts_with('"')
 }
 
 // ── EarleyChartParser ──
@@ -181,37 +183,35 @@ impl EarleyChartParser {
         let start = format!("{}'", grammar.start_symbol);
         chart[0].push(EarleyState::new(start.clone(), vec![grammar.start_symbol.clone()], 0));
 
-        // Predict from S'
+        // Predict from S
         let mut to_predict = vec![grammar.start_symbol.clone()];
         let mut predicted: HashSet<String> = HashSet::new();
-        predicted.insert(grammar.start_symbol.clone());
         while let Some(nt) = to_predict.pop() {
             for prod in grammar.get_productions(&nt) {
                 let state = EarleyState::new(prod.lhs.clone(), prod.rhs.clone(), 0);
-                let nt_key = prod.lhs.clone();
-                if predicted.insert(nt_key) {
-                    if !chart[0]
-                        .iter()
-                        .any(|s| s.lhs == state.lhs && s.rhs == state.rhs && s.dot == 0)
-                    {
-                        chart[0].push(state);
-                    }
-                    for sym in &prod.rhs {
-                        if !is_terminal(sym) {
-                            to_predict.push(sym.clone());
-                        }
+                if !chart[0]
+                    .iter()
+                    .any(|s| s.lhs == state.lhs && s.rhs == state.rhs && s.dot == 0)
+                {
+                    chart[0].push(state);
+                }
+                for sym in &prod.rhs {
+                    if !is_terminal(sym) && predicted.insert(sym.clone()) {
+                        to_predict.push(sym.clone());
                     }
                 }
             }
         }
 
         // Main Earley loop
+        let mut total_completes = 0u64;
         for i in 0..=n {
             let mut j = 0;
             while j < chart[i].len() {
                 let state = chart[i][j].clone();
 
                 if state.is_complete() {
+                    total_completes += 1;
                     // Complete: advance states expecting this lhs
                     for k in 0..i {
                         for ci in 0..chart[k].len() {
@@ -264,6 +264,17 @@ impl EarleyChartParser {
         for state in &chart[n] {
             if state.lhs == start && state.is_complete() && state.start_pos == 0 {
                 // Build tree string
+                // S' -> S wrapper; try to extract inner S tree.
+                if state.rhs.len() == 1 {
+                    let inner_sym = &state.rhs[0];
+                    if let Some(inner) = find_completed(inner_sym, 0, n, &chart) {
+                        if let Some(tree) = build_tree(&inner, &chart, n, &tokens) {
+                            results.push(tree);
+                            continue;
+                        }
+                    }
+                }
+                // Fallback: use the full S' tree
                 if let Some(tree) = build_tree(state, &chart, n, &tokens) {
                     results.push(tree);
                 }
@@ -277,80 +288,74 @@ impl EarleyChartParser {
     }
 }
 
-/// Build a tree string by walking the chart backwards from a completed state.
+/// Build a tree string by finding each RHS symbol's child in the chart.
 fn build_tree(
     state: &EarleyState,
     chart: &[Vec<EarleyState>],
     end_pos: usize,
     tokens: &[String],
 ) -> Option<String> {
-    if state.rhs.is_empty() {
+    let start = state.start_pos;
+    let n_syms = state.rhs.len();
+
+    if n_syms == 0 {
         return Some(format!("({})", state.lhs));
     }
 
-    let mut children: Vec<String> = Vec::new();
-    let mut remaining = state.rhs.clone();
-    let mut pos = end_pos;
+    let mut children: Vec<String> = Vec::with_capacity(n_syms);
+    let mut pos = start;
 
-    // Walk backwards through the chart to find which states completed this production
-    while pos > 0 && !remaining.is_empty() {
-        let sym = remaining.last().unwrap().clone();
-        if is_terminal(&sym) {
-            // Terminal: match from the end (most recent scanned token)
-            // Find the scanned token ending at this position
-            let mut found = false;
-            for s in &chart[pos] {
-                if s.is_complete() && s.rhs.len() == 1 && s.rhs[0] == sym && s.start_pos == pos - 1
-                {
-                    children.push(sym.clone());
-                    remaining.pop();
-                    pos -= 1;
-                    found = true;
-                    break;
-                }
-            }
-            if !found {
-                // Try matching as a nonterminal lookup
-                remaining.pop();
-                children.push(sym.clone());
-                pos -= 1;
+    for sym in &state.rhs {
+        if pos > end_pos {
+            return None;
+        }
+        if is_terminal(sym) {
+            if pos < tokens.len() && pos < end_pos {
+                children.push(tokens[pos].clone());
+                pos += 1;
+            } else {
+                return None;
             }
         } else {
-            // Nonterminal: find the completed state for this LHS ending at pos
+            // Find completed state for sym spanning [pos, q) for some q > pos
             let mut found = false;
-            for start in (0..pos).rev() {
-                for s in &chart[pos] {
-                    if s.lhs == sym && s.is_complete() && s.start_pos == start {
-                        if let Some(subtree) = build_tree(s, chart, pos, tokens) {
-                            children.push(subtree);
-                            remaining.pop();
-                            pos = start;
-                            found = true;
-                            break;
-                        }
+            for q in (pos + 1)..=end_pos {
+                if let Some(child) = find_completed(sym, pos, q, chart) {
+                    if let Some(subtree) = build_tree(&child, chart, q, tokens) {
+                        children.push(subtree);
+                        pos = q;
+                        found = true;
+                        break;
                     }
                 }
-                if found {
-                    break;
-                }
             }
             if !found {
-                remaining.pop();
+                return None;
             }
         }
     }
 
-    // Add any remaining uneaten RHS symbols as empty
-    for sym in remaining.iter().rev() {
-        if is_terminal(sym) {
-            children.push(sym.clone());
-        } else {
-            children.push(format!("({sym})"));
-        }
+    if pos == end_pos {
+        Some(format!("({} {})", state.lhs, children.join(" ")))
+    } else {
+        None
     }
+}
 
-    children.reverse();
-    Some(format!("({} {})", state.lhs, children.join(" ")))
+/// Find a completed state with given LHS spanning [start, end).
+fn find_completed(
+    lhs: &str,
+    start: usize,
+    end: usize,
+    chart: &[Vec<EarleyState>],
+) -> Option<EarleyState> {
+    if end >= chart.len() {
+        return None;
+    }
+    chart[end]
+        .iter()
+        .find(|s| s.lhs == lhs && s.is_complete() && s.start_pos == start)
+        .cloned()
 }
 
 // Registration
