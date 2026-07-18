@@ -1,38 +1,59 @@
 //! HMM tagger — supervised Hidden Markov Model for POS tagging.
 //!
 //! Estimates transition and emission probabilities from labeled training data.
-//! Uses Viterbi decoding for prediction.
+//! Uses Viterbi decoding with integer tag IDs for O(N × T²) without allocations.
 
+use hashbrown::HashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use rustc_hash::FxHashMap;
+use smol_str::SmolStr;
 
 #[pyclass(name = "HiddenMarkovModelTagger", module = "fastnltk._rust")]
 pub struct HiddenMarkovModelTagger {
-    /// Transition log-probabilities: (`prev_tag`, tag) → `log_prob`
-    transitions: FxHashMap<(String, String), f64>,
-    /// Emission log-probabilities: (tag, word) → `log_prob`
-    emissions: FxHashMap<(String, String), f64>,
+    /// Transition log-probabilities: `trans_mat[from_tag_id][to_tag_id]`
+    trans_mat: Vec<Vec<f64>>,
+    /// Emission log-probabilities: `emission[tag_id][word_hash]` → log_prob
+    emission: Vec<HashMap<u64, f64>>,
     /// Tag → index for Viterbi
-    tag_index: FxHashMap<String, usize>,
-    /// All known tags
-    tags: Vec<String>,
-    /// Start tag
-    start_tag: String,
+    tag_index: HashMap<SmolStr, usize>,
+    /// All known tags (index → tag name)
+    tag_names: Vec<SmolStr>,
+    /// Start tag ID (always position 0)
+    start_id: usize,
+    /// End tag ID (always position 1)
+    end_id: usize,
     /// Whether model has been trained
     trained: bool,
+}
+
+const NEG_INF: f64 = f64::NEG_INFINITY;
+
+/// Simple string hash for emission lookup (no need for crypto security).
+fn word_hash(w: &str) -> u64 {
+    use std::hash::Hasher;
+    let mut h = rustc_hash::FxHasher::default();
+    h.write(w.as_bytes());
+    h.finish()
 }
 
 #[pymethods]
 impl HiddenMarkovModelTagger {
     #[new]
     fn new() -> Self {
+        let mut tag_index: HashMap<SmolStr, usize> = HashMap::new();
+        // Reserve IDs 0 and 1 for <s>, </s>
+        let mut tag_names = Vec::new();
+        tag_names.push(SmolStr::new_inline("<s>"));
+        tag_names.push(SmolStr::new_inline("</s>"));
+        tag_index.insert(SmolStr::new_inline("<s>"), 0);
+        tag_index.insert(SmolStr::new_inline("</s>"), 1);
         Self {
-            transitions: FxHashMap::default(),
-            emissions: FxHashMap::default(),
-            tag_index: FxHashMap::default(),
-            tags: Vec::new(),
-            start_tag: "<s>".to_string(),
+            trans_mat: Vec::new(),
+            emission: Vec::new(),
+            tag_index,
+            tag_names,
+            start_id: 0,
+            end_id: 1,
             trained: false,
         }
     }
@@ -42,48 +63,67 @@ impl HiddenMarkovModelTagger {
             return Err(PyValueError::new_err("No training data"));
         }
 
-        // Collect tag vocabulary
-        let mut tag_set = rustc_hash::FxHashSet::default();
+        // Build tag vocabulary (beyond the built-in <s>, </s>)
         for sent in &sentences {
             for (_, tag) in sent {
-                tag_set.insert(tag.clone());
+                let t = SmolStr::new(tag);
+                let next_id = self.tag_names.len();
+                self.tag_index.entry(t).or_insert_with(|| {
+                    self.tag_names.push(SmolStr::new(tag));
+                    next_id
+                });
             }
         }
-        self.tags = tag_set.into_iter().collect();
-        self.tags.sort();
-        for (i, tag) in self.tags.iter().enumerate() {
-            self.tag_index.insert(tag.clone(), i);
-        }
 
-        // Count transitions and emissions
-        let mut transition_counts: FxHashMap<(String, String), f64> = FxHashMap::default();
-        let mut emission_counts: FxHashMap<(String, String), f64> = FxHashMap::default();
-        let mut tag_totals: FxHashMap<String, f64> = FxHashMap::default();
+        let k = self.tag_names.len();
+
+        // Count transitions (int -> int), emissions (int -> word), and tag occurrences.
+        let mut trans_counts: Vec<Vec<f64>> = vec![vec![0.0f64; k]; k];
+        let mut tag_totals: Vec<f64> = vec![0.0f64; k]; // transition totals (from tag)
+        let mut tag_occs: Vec<f64> = vec![0.0f64; k]; // occurrence totals (as current tag)
+        let mut emiss_counts_raw: Vec<HashMap<u64, f64>> = vec![HashMap::new(); k];
 
         for sent in &sentences {
-            let mut prev_tag = self.start_tag.clone();
+            let mut prev_id = self.start_id;
             for (word, tag) in sent {
-                *transition_counts.entry((prev_tag.clone(), tag.clone())).or_insert(0.0) += 1.0;
-                *tag_totals.entry(prev_tag.clone()).or_insert(0.0) += 1.0;
-                *emission_counts.entry((tag.clone(), word.clone())).or_insert(0.0) += 1.0;
-                prev_tag.clone_from(tag);
+                let tag_id = self.tag_index[&SmolStr::new(tag)];
+                trans_counts[prev_id][tag_id] += 1.0;
+                tag_totals[prev_id] += 1.0;
+                tag_occs[tag_id] += 1.0;
+                *emiss_counts_raw[tag_id].entry(word_hash(word)).or_insert(0.0) += 1.0;
+                prev_id = tag_id;
             }
-            // Transition to end
-            *transition_counts.entry((prev_tag, "</s>".to_string())).or_insert(0.0) += 1.0;
-            *tag_totals.entry("</s>".to_string()).or_insert(0.0) += 1.0;
+            // Sentence end
+            trans_counts[prev_id][self.end_id] += 1.0;
+            tag_totals[prev_id] += 1.0;
         }
 
         // Convert counts to log-probabilities with add-1 smoothing
-        let tag_count = self.tags.len() as f64;
-        for ((prev, tag), count) in &transition_counts {
-            let total = tag_totals.get(prev).copied().unwrap_or(1.0);
-            self.transitions
-                .insert((prev.clone(), tag.clone()), ((count + 1.0) / (total + tag_count)).ln());
+        self.trans_mat = vec![vec![NEG_INF; k]; k];
+        for from in 0..k {
+            let total = tag_totals[from];
+            if total == 0.0 {
+                continue;
+            }
+            for to in 0..k {
+                let count = trans_counts[from][to];
+                if count > 0.0 || from == self.start_id {
+                    let prob = (count + 1.0) / (total + k as f64);
+                    self.trans_mat[from][to] = prob.ln();
+                }
+            }
         }
-        for ((tag, word), count) in &emission_counts {
-            let total = tag_totals.get(tag).copied().unwrap_or(1.0);
-            self.emissions
-                .insert((tag.clone(), word.clone()), ((count + 1.0) / (total + tag_count)).ln());
+
+        self.emission = vec![HashMap::new(); k];
+        for tag_id in 0..k {
+            let total = tag_occs[tag_id];
+            if total == 0.0 {
+                continue;
+            }
+            for (wh, count) in &emiss_counts_raw[tag_id] {
+                let prob = (count + 1.0) / (total + k as f64);
+                self.emission[tag_id].insert(*wh, prob.ln());
+            }
         }
 
         self.trained = true;
@@ -94,89 +134,100 @@ impl HiddenMarkovModelTagger {
         if !self.trained {
             return Err(PyValueError::new_err("Model not trained"));
         }
-        if tokens.is_empty() {
+        let n = tokens.len();
+        if n == 0 {
             return Ok(Vec::new());
         }
-        if self.tags.is_empty() {
+        let k = self.tag_names.len();
+        if k < 3 {
             return Err(PyValueError::new_err("No tags in model"));
         }
 
-        let n = tokens.len();
-        let k = self.tags.len();
+        // Pre-compute word hashes
+        let word_hashes: Vec<u64> = tokens.iter().map(|w| word_hash(w)).collect();
 
-        // Viterbi matrix: log-probabilities
-        let mut v: Vec<Vec<f64>> = vec![vec![f64::NEG_INFINITY; k]; n];
-        // Backpointers
-        let mut bp: Vec<Vec<usize>> = vec![vec![0; k]; n];
+        // Viterbi: dp[i][j] = best log-prob for prefix[0..=i] ending in tag j
+        let mut dp: Vec<Vec<f64>> = vec![vec![NEG_INF; k]; n];
+        let mut back: Vec<Vec<usize>> = vec![vec![0; k]; n];
 
-        // Initialize first token
-        let w0 = &tokens[0];
-        for (j, tag) in self.tags.iter().enumerate() {
-            let trans = self
-                .transitions
-                .get(&(self.start_tag.clone(), tag.clone()))
-                .copied()
-                .unwrap_or(f64::NEG_INFINITY);
-            let emiss = self
-                .emissions
-                .get(&(tag.clone(), w0.clone()))
-                .copied()
-                .unwrap_or(f64::NEG_INFINITY);
-            v[0][j] = trans + emiss;
+        // Init: first word
+        let wh0 = word_hashes[0];
+        for j in 2..k {
+            // skip <s> (0) and </s> (1) — they're not real tags
+            let trans = self.trans_mat[self.start_id][j];
+            if trans == NEG_INF {
+                continue;
+            }
+            let emiss = self.emission[j].get(&wh0).copied().unwrap_or(NEG_INF);
+            if emiss == NEG_INF {
+                continue;
+            }
+            dp[0][j] = trans + emiss;
         }
 
-        // Fill Viterbi
+        // Induction
         for i in 1..n {
-            let wi = &tokens[i];
-            for (j, tag_j) in self.tags.iter().enumerate() {
-                let emiss = self
-                    .emissions
-                    .get(&(tag_j.clone(), wi.clone()))
-                    .copied()
-                    .unwrap_or(f64::NEG_INFINITY);
-                let mut best_score = f64::NEG_INFINITY;
-                let mut best_prev = 0;
-                for (p, tag_p) in self.tags.iter().enumerate() {
-                    let trans = self
-                        .transitions
-                        .get(&(tag_p.clone(), tag_j.clone()))
-                        .copied()
-                        .unwrap_or(f64::NEG_INFINITY);
-                    let score = v[i - 1][p] + trans;
-                    if score > best_score {
-                        best_score = score;
-                        best_prev = p;
+            let wh = word_hashes[i];
+            for j in 2..k {
+                let emiss = self.emission[j].get(&wh).copied().unwrap_or(NEG_INF);
+                if emiss == NEG_INF {
+                    continue;
+                }
+                let mut best = NEG_INF;
+                let mut best_p = 0usize;
+                for p in 2..k {
+                    let prev = dp[i - 1][p];
+                    if prev == NEG_INF {
+                        continue;
+                    }
+                    let trans = self.trans_mat[p][j];
+                    if trans == NEG_INF {
+                        continue;
+                    }
+                    let score = prev + trans;
+                    if score > best {
+                        best = score;
+                        best_p = p;
                     }
                 }
-                v[i][j] = best_score + emiss;
-                bp[i][j] = best_prev;
+                dp[i][j] = best + emiss;
+                back[i][j] = best_p;
             }
         }
 
-        // Backtrack
-        let mut best_last = 0;
-        let mut best_last_score = f64::NEG_INFINITY;
-        for (j, tag_j) in self.tags.iter().enumerate() {
-            let end_trans = self
-                .transitions
-                .get(&(tag_j.clone(), "</s>".to_string()))
-                .copied()
-                .unwrap_or(f64::NEG_INFINITY);
-            let score = v[n - 1][j] + end_trans;
-            if score > best_last_score {
-                best_last_score = score;
+        // Termination
+        let mut best_last = 2usize;
+        let mut best_score = NEG_INF;
+        for j in 2..k {
+            let score = dp[n - 1][j];
+            if score == NEG_INF {
+                continue;
+            }
+            let end_trans = self.trans_mat[j][self.end_id];
+            if end_trans == NEG_INF {
+                continue;
+            }
+            let total = score + end_trans;
+            if total > best_score {
+                best_score = total;
                 best_last = j;
             }
         }
 
-        let mut path = vec![best_last];
+        // Backtrace
+        let mut path: Vec<usize> = Vec::with_capacity(n);
+        let mut cur = best_last;
+        path.push(cur);
         for i in (1..n).rev() {
-            path.push(bp[i][path[path.len() - 1]]);
+            cur = back[i][cur];
+            path.push(cur);
         }
         path.reverse();
 
-        let result: Vec<(String, String)> =
-            tokens.into_iter().zip(path.into_iter().map(|j| self.tags[j].clone())).collect();
+        let result: Vec<(String, String)> = tokens
+            .into_iter()
+            .zip(path.into_iter().map(|j| self.tag_names[j].to_string()))
+            .collect();
 
         Ok(result)
     }
@@ -208,7 +259,7 @@ mod tests {
     fn test_hmm_empty() {
         let tagger = HiddenMarkovModelTagger::new();
         let result = tagger.tag(vec![]);
-        assert!(result.is_err()); // Not trained
+        assert!(result.is_err());
     }
 
     #[test]
