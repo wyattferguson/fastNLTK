@@ -36,4 +36,5 @@ venv/
 Thumbs.db
 nul
 NOTES.md
-logs/Userswyatt.cargoadvisory-db
+logs/
+Userswyatt.*
