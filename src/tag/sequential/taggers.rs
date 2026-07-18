@@ -336,8 +336,8 @@ pub struct AffixTagger {
 #[pymethods]
 impl AffixTagger {
     #[new]
-    #[pyo3(signature = (affix_len=3, use_suffix=true))]
-    fn new(affix_len: usize, use_suffix: bool) -> Self {
+    #[pyo3(signature = (affix_len=3, use_suffix=true, _backoff=None))]
+    fn new(affix_len: usize, use_suffix: bool, _backoff: Option<&str>) -> Self {
         Self {
             prefix_map: FastMap::new(),
             suffix_map: FastMap::new(),
@@ -543,7 +543,7 @@ mod tests {
     fn test_affix_tagger_suffix() {
         pyo3::Python::initialize();
         pyo3::Python::try_attach(|py| {
-            let mut tagger = AffixTagger::new(3, true);
+            let mut tagger = AffixTagger::new(3, true, None);
             let list = PyList::empty(py);
             list.append(vec![("walking".to_string(), "VBG".to_string())]).unwrap();
             tagger.train(&list).unwrap();
