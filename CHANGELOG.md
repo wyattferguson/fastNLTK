@@ -5,6 +5,46 @@ All notable changes to fastNLTK are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3] — 2026-07-16
+
+### Added
+- TaggedCorpusReader and CategorizedPlaintextCorpusReader with Rust file I/O
+- HMM tagger: integer tag IDs + flat transition/emission matrices (zero-alloc Viterbi)
+
+### Changed
+- ConditionalFreqDist now shares FreqDist references — mutations via `cfd[cond][sample]` propagate
+- Resolved Earley parse tree xfail (tree building delegated to NLTK for correctness)
+- Two xfails closed: ConditionalFreqDist clone semantics, Earley parse tree extraction
+- Improved README clarity and impact
+- Bumped CI action versions (checkout, setup-python, upload/download-artifact)
+
+### Fixed
+- Earley parser: terminal quote stripping handles both single and double quotes
+- Earley parser: predict step no longer skips start symbol productions
+
+## [0.5.2] — 2026-07-16
+
+### Changed
+- Internal version consistency across Cargo.toml, pyproject.toml, and __init__.py
+
+## [0.5.1] — 2026-07-16
+
+### Added
+- Full end-to-end smoke test covering all accelerated modules
+
+## [0.5.0] — 2026-07-16
+
+### Added
+- Enhanced chunking with fallback tree construction
+- Utility functions for IOB-to-tree conversion
+- Backoff support in UnigramTagger
+
+### Changed
+- Tagger modules refactored for readability and maintainability
+- Fixed 4 previously-xfail bugs across the test suite
+- CI: updated to latest GitHub Actions, fixed PyPI release workflow
+- Benchmark geomean: 10.1× (up from 9.2×)
+
 ## [0.4.1] — 2025-07-16
 
 ### Added

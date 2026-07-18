@@ -193,7 +193,7 @@ dependencies = [
 
 [[package]]
 name = "fastnltk"
-version = "0.5.2"
+version = "0.5.3"
 dependencies = [
  "approx",
  "bumpalo",

@@ -81,10 +81,7 @@ class FreqDist:
 
     def __setitem__(self, sample, count):
         current = self._impl[sample] if sample in self._impl else 0
-        if count > current:
-            self._impl.inc(sample, count - current)
-        elif count < current:
-            # Reset and rebuild — rare case, use inc for simplicity
+        if count >= current:
             self._impl.inc(sample, count - current)
 
     def __len__(self):
@@ -128,10 +125,13 @@ class ConditionalFreqDist:
         self._impl = _RustConditionalFreqDist()
 
     def __getitem__(self, condition):
-        result = self._impl.freqdist(condition)
+        # Check if condition exists by trying to fetch it.
+        # PyO3 __contains__ is not exposed, so fallback to checking __getitem__.
+        result = self._impl[condition]
         if result is None:
-            return FreqDist([])
-        # Wrap Rust FreqDist in Python FreqDist for method access
+            # Auto-create: add a dummy sample to initialize the condition.
+            self._impl.inc(condition, "")
+            result = self._impl[condition]
         wrapped = FreqDist.__new__(FreqDist)
         wrapped._impl = result
         return wrapped

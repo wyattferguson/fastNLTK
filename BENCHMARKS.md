@@ -1,12 +1,16 @@
 # Benchmarks
 
-> **Last updated:** 2026-07-16 (v0.5.0, release build)
-> **Geometric mean: 10.1× vs NLTK** across 49 compared benchmarks (66 total).
+> **Last updated:** 2026-07-16 (v0.5.3, release build)
+> **Geometric mean: 12.2× vs NLTK** across 48 compared benchmarks (68 total).
 >
 > Run benchmarks: `python -m benchmarks.run --save`
 > Fixtures: NLTK Gutenberg corpus (~200KB medium, ~5KB tiny).
 
 > [!NOTE]
+> HMM tagger optimized in v0.5.3: integer tag IDs + flat matrices —
+> eliminates `String::clone()` in the O(N × T²) Viterbi inner loop (104× speedup).
+> ConditionalFreqDist now shares `FreqDist` references so mutations via
+> `cfd[cond][sample] = value` propagate correctly.
 > ISRI and RSLP stemmers delegate to NLTK in the Python wrapper (`fastnltk.stem`)
 > for byte-identical output. The raw Rust `_rust` versions are benchmarked below
 > but the user-facing interface matches NLTK exactly.
@@ -17,25 +21,23 @@
 
 | Operation | NLTK (ms) | fastNLTK (ms) | Speedup | Notes |
 |---|---|---|---|---|
-| **TextTilingTokenizer** | 22236.78 | **31.58** | **704×** | Sentence segmentation, SIMD-accelerated |
-| **MaxentClassifier.train** | 31.93 | **0.08** | **425×** | GIS training, fully optimized inner loop |
-| **edit_distance** | 2.48 | **0.01** | **176×** | Damerau-Levenshtein in Rust |
-| **windowdiff** | 2.35 | **0.01** | **172×** | Pure algorithmic port, zero Python overhead |
-| **pk** | 2.19 | **0.02** | **90×** | Segmentation metric in Rust |
-| **TreebankWordDetokenizer** | 6.70 | **0.12** | **55×** | Single-pass undo |
-| **SentimentIntensityAnalyzer** | 67.06 | **1.75** | **38×** | PHF lexicon, exact NLTK scoring |
-| **PunktSentenceTokenizer** | 14.65 | **0.44** | **33×** | Byte-level sentence scan |
-| **SExprTokenizer** | 0.36 | **0.01** | **30×** | S-expression splitter |
-| **Expression.fromstring** | 16.47 | **0.55** | **30×** | FOL parser in Rust |
-| **TweetTokenizer** | 83.96 | **3.31** | **25×** | LazyLock regexes |
-| **CFG.from_string** | 0.05 | **0.002** | **25×** | Grammar parser in Rust |
-| **LancasterStemmer** | 32.81 | **1.41** | **23×** | Full 124-rule NLTK port |
-| **QuadgramCollocationFinder** | 101.04 | **4.94** | **21×** | FastMap ngram counting |
-| **BlanklineTokenizer** | 2.19 | **0.11** | **19×** | Byte-level splitter |
-| **TrigramCollocationFinder** | 57.64 | **3.91** | **15×** | FastMap ngram counting |
-| **EarleyChartParser.parse** | 6.55 | **0.51** | **13×** | Chart parser in Rust |
-| **SnowballStemmer** | 21.84 | **1.79** | **12×** | rust-stemmers crate |
-| **Tree.from_string** | 3.19 | **0.31** | **11×** | Bracket parser in Rust |
+| **MaxentClassifier.train** | 73.67 | **0.13** | **562×** | GIS training, fully optimized inner loop |
+| **edit_distance** | 4.48 | **0.03** | **162×** | Damerau-Levenshtein in Rust |
+| **windowdiff** | 4.08 | **0.03** | **125×** | Pure algorithmic port, zero Python overhead |
+| **PunktSentenceTokenizer** | 17.65 | **0.17** | **106×** | Byte-level sentence scan |
+| **HiddenMarkovModelTagger** | 16.06 | **0.15** | **104×** | Integer Viterbi, zero-alloc inner loop |
+| **pk** | 3.60 | **0.08** | **47×** | Segmentation metric in Rust |
+| **TreebankWordDetokenizer** | 11.25 | **0.15** | **73×** | Single-pass undo |
+| **TweetTokenizer** | 68.03 | **1.56** | **44×** | LazyLock regexes |
+| **SentimentIntensityAnalyzer** | 30.23 | **0.96** | **32×** | PHF lexicon, exact NLTK scoring |
+| **Expression.fromstring** | 34.59 | **1.01** | **34×** | FOL parser in Rust |
+| **CFG.from_string** | 0.11 | **0.00** | **28×** | Grammar parser in Rust |
+| **LancasterStemmer** | 54.98 | **2.15** | **26×** | Full 124-rule NLTK port |
+| **TrigramCollocationFinder** | 61.53 | **2.35** | **26×** | FastMap ngram counting |
+| **QuadgramCollocationFinder** | 101.54 | **2.91** | **35×** | FastMap ngram counting |
+| **TextTilingTokenizer** | 4.69 | **0.06** | **77×** | Sentence segmentation, SIMD-accelerated |
+| **SnowballStemmer** | 44.40 | **2.89** | **15×** | rust-stemmers crate |
+| **Tree.from_string** | 6.96 | **0.61** | **11×** | Bracket parser in Rust |
 
 ---
 

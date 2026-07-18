@@ -569,7 +569,7 @@ def bench_hmm_tag() -> BenchResult:
     n_ms = _median_time(lambda: ntk.tag(words_1k), 15)
 
     # fastNLTK HMM
-    hm = HiddenMarkovModelTagger(3, 5, 1e-4, 0.1)
+    hm = HiddenMarkovModelTagger()
     hm.train(train)
     f_ms = _median_time(lambda: hm.tag(words_1k), 15)
 
@@ -1432,7 +1432,7 @@ def bench_earley() -> BenchResult:
     import nltk
     from nltk.parse import EarleyChartParser as NltkEarley
 
-    from fastnltk._rust import CFG, EarleyChartParser
+    from fastnltk.parse import CFG, EarleyChartParser
 
     grammar_str = """S -> NP VP
 NP -> Det N

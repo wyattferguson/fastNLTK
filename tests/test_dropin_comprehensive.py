@@ -367,9 +367,6 @@ class TestProb:
         _eq("FD['l']", fd_n["l"], fd_f["l"])
         _eq("FD keys", set(fd_n.keys()), set(fd_f.keys()))
 
-    @pytest.mark.xfail(
-        reason="Rust ConditionalFreqDist returns cloned FreqDist; mutations not propagated"
-    )
     def test_cond_freqdist(self):
         n_cfd, f_cfd = nprob.ConditionalFreqDist(), _fprob.ConditionalFreqDist()
         for c, e in [("a", "x"), ("a", "y"), ("b", "x"), ("a", "x")]:
@@ -581,7 +578,6 @@ class TestParse:
         fg = _fparse.CFG.from_string(self.GR)
         _eq("CFG.start", str(ng.start()), str(fg.start()))
 
-    @pytest.mark.xfail(reason="Rust Earley parse tree building still WIP")
     def test_earley(self):
         grammar_n = nltk.CFG.fromstring(self.GR)
         grammar_f = _fparse.CFG.from_string(self.GR)
