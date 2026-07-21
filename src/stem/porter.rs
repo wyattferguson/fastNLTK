@@ -21,6 +21,7 @@ impl PorterStemmer {
 }
 
 /// Core Porter stemming algorithm.
+#[allow(clippy::too_many_lines)]
 fn porter_stem(word: &str) -> String {
     if word.len() <= 2 {
         return word.to_lowercase();

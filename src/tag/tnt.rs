@@ -221,7 +221,7 @@ impl TnT {
 
                 for (k, prev_row) in dp[i - 1].iter().enumerate() {
                     let prev = *prev_row;
-                    if prev == neg_inf {
+                    if (prev - neg_inf).abs() < f64::EPSILON {
                         continue;
                     }
                     let tp = if i > 1 {

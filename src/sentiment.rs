@@ -10,7 +10,6 @@ use unicode_segmentation::UnicodeSegmentation;
 // ── Constants matching NLTK ────────────────────────────────────────────
 
 const C_INCR: f64 = 0.733;
-const B_INCR: f64 = 0.293;
 const N_SCALAR: f64 = -0.74;
 const ALPHA: f64 = 15.0;
 
@@ -60,7 +59,7 @@ static DEFAULT_LEXICON: phf::Map<&'static str, f64> = phf_map! {
     "problem" => -1.7,
 };
 
-/// NLTK BOOSTER_DICT entries: word → scalar modifier.
+/// NLTK `BOOSTER_DICT` entries: word → scalar modifier.
 static BOOSTER_DICT: phf::Map<&'static str, f64> = phf::phf_map! {
     "absolutely" => 0.293, "amazingly" => 0.293, "awfully" => 0.293,
     "completely" => 0.293, "considerably" => 0.293, "decidedly" => 0.293,
@@ -135,8 +134,8 @@ impl SentimentIntensityAnalyzer {
         }
 
         // Check if text has mixed casing (for ALL CAPS detection)
-        let is_cap_diff = words.iter().any(|(_, w)| w.chars().any(|c| c.is_uppercase()))
-            && words.iter().any(|(_, w)| w.chars().any(|c| c.is_lowercase()));
+        let is_cap_diff = words.iter().any(|(_, w)| w.chars().any(char::is_uppercase))
+            && words.iter().any(|(_, w)| w.chars().any(char::is_lowercase));
 
         // Per-word sentiment
         let mut sentiments: Vec<f64> = Vec::with_capacity(words.len());
@@ -148,8 +147,8 @@ impl SentimentIntensityAnalyzer {
             };
 
             // ALL CAPS boost (C_INCR added to |valence|)
-            if word.chars().any(|c| c.is_uppercase())
-                && !word.chars().any(|c| c.is_lowercase())
+            if word.chars().any(char::is_uppercase)
+                && !word.chars().any(char::is_lowercase)
                 && is_cap_diff
                 && valence.abs() >= 1.0
             {
@@ -163,12 +162,12 @@ impl SentimentIntensityAnalyzer {
                 if DEFAULT_LEXICON.contains_key(&prev) {
                     continue;
                 }
-                let mut s = scalar_inc_dec(&prev, valence, is_cap_diff);
+                let s = scalar_inc_dec(&prev, valence, is_cap_diff);
                 if s != 0.0 {
                     match start_i {
                         0 => valence += s,
-                        1 => valence += s * 0.95,
-                        _ => valence += s * 0.9,
+                        1 => valence = s.mul_add(0.95, valence),
+                        _ => valence = s.mul_add(0.9, valence),
                     }
                 }
                 // NLTK's _never_check: apply N_SCALAR if preceding word is a negator
@@ -249,9 +248,7 @@ fn scalar_inc_dec(word: &str, valence: f64, is_cap_diff: bool) -> f64 {
     };
     let s = if valence < 0.0 { -scalar } else { scalar };
     // ALL CAPS booster gets extra C_INCR
-    if word.chars().any(|c| c.is_uppercase())
-        && !word.chars().any(|c| c.is_lowercase())
-        && is_cap_diff
+    if word.chars().any(char::is_uppercase) && !word.chars().any(char::is_lowercase) && is_cap_diff
     {
         if valence > 0.0 {
             s + C_INCR

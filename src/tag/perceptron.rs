@@ -57,6 +57,7 @@ fn hash3(a: &str, b: &str, c: &str) -> u64 {
 
 #[pyclass(name = "PerceptronTagger", module = "fastnltk._rust")]
 #[derive(Clone, Serialize, Deserialize)]
+#[allow(clippy::unsafe_derive_deserialize)]
 pub struct PerceptronTagger {
     /// Feature weights keyed by u64 hash of feature name string.
     weights: FxHashMap<u64, FxHashMap<SmolStr, f64>>,

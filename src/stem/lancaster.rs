@@ -188,10 +188,8 @@ fn parse_rule(s: &str) -> Option<Rule> {
     let raw_ending = &s[..digit_pos];
 
     // Check for intact flag (*) at end of ending section
-    let (ending_forward, intact) = match raw_ending.strip_suffix('*') {
-        Some(stripped) => (stripped, true),
-        None => (raw_ending, false),
-    };
+    let (ending_forward, intact) =
+        raw_ending.strip_suffix('*').map_or((raw_ending, false), |stripped| (stripped, true));
     // NLTK stores endings in reverse — reverse them for forward comparison
     let ending: String = ending_forward.chars().rev().collect();
 

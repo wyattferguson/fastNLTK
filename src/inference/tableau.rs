@@ -52,6 +52,7 @@ impl TableauProver {
 }
 
 impl TableauProver {
+    #[allow(clippy::option_if_let_else)]
     fn search(&self, branches: &mut Vec<Branch>, depth: usize) -> bool {
         if depth > self.max_depth || branches.is_empty() {
             return false;

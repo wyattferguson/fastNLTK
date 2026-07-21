@@ -32,7 +32,7 @@ impl FreqDist {
         self.counts.len()
     }
     #[must_use]
-    pub fn counts(&self) -> &HashMap<SmolStr, u64> {
+    pub const fn counts(&self) -> &HashMap<SmolStr, u64> {
         &self.counts
     }
 }
@@ -73,7 +73,7 @@ impl FreqDist {
             .collect()
     }
     fn samples(&self) -> Vec<String> {
-        let mut s: Vec<String> = self.counts.keys().map(|k| k.to_string()).collect();
+        let mut s: Vec<String> = self.counts.keys().map(ToString::to_string).collect();
         s.sort();
         s
     }
@@ -194,7 +194,7 @@ impl ConditionalFreqDist {
         Self { conditions: HashMap::new() }
     }
     fn conditions(&self) -> Vec<String> {
-        let mut conds: Vec<String> = self.conditions.keys().map(|k| k.to_string()).collect();
+        let mut conds: Vec<String> = self.conditions.keys().map(ToString::to_string).collect();
         conds.sort();
         conds
     }

@@ -68,6 +68,7 @@ impl DRS {
         Self::parse_drs(input, 0).map(|(drs, _)| drs)
     }
 
+    #[allow(clippy::too_many_lines)]
     fn parse_drs(input: &str, pos: usize) -> Result<(Self, usize), String> {
         let chars: Vec<char> = input.chars().collect();
         let mut i = pos;

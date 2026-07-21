@@ -1,3 +1,4 @@
+#![allow(clippy::needless_range_loop)]
 //! HMM tagger — supervised Hidden Markov Model for POS tagging.
 //!
 //! Estimates transition and emission probabilities from labeled training data.
@@ -12,7 +13,7 @@ use smol_str::SmolStr;
 pub struct HiddenMarkovModelTagger {
     /// Transition log-probabilities: `trans_mat[from_tag_id][to_tag_id]`
     trans_mat: Vec<Vec<f64>>,
-    /// Emission log-probabilities: `emission[tag_id][word_hash]` → log_prob
+    /// Emission log-probabilities: `emission[tag_id][word_hash]` → `log_prob`
     emission: Vec<HashMap<u64, f64>>,
     /// Tag → index for Viterbi
     tag_index: HashMap<SmolStr, usize>,
@@ -103,6 +104,8 @@ impl HiddenMarkovModelTagger {
             if total == 0.0 {
                 continue;
             }
+            #[allow(clippy::needless_range_loop)]
+            #[allow(clippy::needless_range_loop)]
             for to in 0..k {
                 let count = trans_counts[from][to];
                 if count > 0.0 || from == self.start_id {

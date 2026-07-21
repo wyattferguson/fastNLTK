@@ -52,6 +52,7 @@ impl MaxentClassifier {
 
     /// Train the classifier using Generalized Iterative Scaling.
     #[pyo3(signature = (labeled_featuresets, max_iter=100, gaussian_prior_sigma=0.0))]
+    #[allow(clippy::too_many_lines)]
     fn train(
         &mut self,
         labeled_featuresets: &Bound<'_, PyList>,

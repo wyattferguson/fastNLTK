@@ -1,6 +1,7 @@
+#![allow(clippy::naive_bytecount)]
 //! Simple tokenizers: Space, Tab, Line, Char.
 //!
-//! SpaceTokenizer uses `memchr3`-accelerated scanning (SIMD where available)
+//! `SpaceTokenizer` uses `memchr3`-accelerated scanning (SIMD where available)
 //! instead of regex for 5-10x faster whitespace splitting.
 
 use pyo3::prelude::*;
