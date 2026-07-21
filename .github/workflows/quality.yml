@@ -64,7 +64,17 @@ jobs:
         env:
           PYO3_PYTHON: python
 
-  # ── Dependency audit (licenses, bans, advisories) ──
+  # ── Security audit ────────────────────────────────
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@cargo-audit
+      - run: cargo audit
+
+  # ── Dependency audit ──────────────────────────────
   deny:
     runs-on: ubuntu-latest
     env:
