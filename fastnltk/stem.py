@@ -52,7 +52,7 @@ class SnowballStemmer:
         return self._impl.stem(word)
 
     @property
-    def language(self):
+    def language(self) -> str:
         return self._language
 
 
@@ -115,7 +115,7 @@ class WordNetLemmatizer:
         self._ensure_wordnet_extracted()
         self._impl = _RustWordNetLemmatizer()
 
-    def lemmatize(self, word, pos="n"):
+    def lemmatize(self, word: str, pos: str = "n") -> str:
         return self._impl.lemmatize(word, pos)
 
     @staticmethod

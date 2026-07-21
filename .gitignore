@@ -16,7 +16,7 @@ benchmarks/results/*.json
 # Rust
 target/
 debug/
-**/*(.rs.bk
+**/*.rs.bk
 *.pdb
 *.txt
 

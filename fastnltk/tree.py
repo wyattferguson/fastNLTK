@@ -39,41 +39,41 @@ class Tree:
             self._impl = _RustTree.from_string(f"({label} {inner})")
 
     @classmethod
-    def from_string(cls, string):
+    def from_string(cls, string: str) -> any:
         return cls._from_impl(_RustTree.from_string(string))
 
     @classmethod
-    def fromstring(cls, string):
+    def fromstring(cls, string: str) -> any:
         """Alias for from_string, matching NLTK's Tree.fromstring."""
         return cls.from_string(string)
 
     @classmethod
-    def bracket_parse(cls, string):
+    def bracket_parse(cls, string: str) -> any:
         """Alias for from_string, matching NLTK's bracket_parse."""
         return cls.from_string(string)
 
     @classmethod
-    def _from_impl(cls, impl):
+    def _from_impl(cls, impl: any) -> any:
         inst = cls.__new__(cls)
         inst._impl = impl
         return inst
 
-    def label(self):
+    def label(self) -> str:
         return self._impl.label()
 
-    def leaves(self):
+    def leaves(self) -> list[str]:
         return self._impl.leaves()
 
-    def leaf_treepositions(self):
+    def leaf_treepositions(self) -> list[tuple[int, ...]]:
         return self._impl.leaf_treepositions()
 
-    def height(self):
+    def height(self) -> int:
         return self._impl.height()
 
-    def productions(self):
+    def productions(self) -> list[any]:
         return self._impl.productions()
 
-    def subtrees(self, filter_fn=None):
+    def subtrees(self, filter_fn: any = None) -> list[any]:
         results = []
         for sub in self._impl.subtrees():
             tree = Tree._from_impl(sub)
@@ -81,7 +81,7 @@ class Tree:
                 results.append(tree)
         return results
 
-    def pprint(self):
+    def pprint(self) -> str:
         return self._impl.pprint()
 
     def __str__(self):
@@ -110,7 +110,7 @@ class Tree:
             return str(self) == str(other)
         return NotImplemented
 
-    def append(self, child):
+    def append(self, child: any) -> None:
         """Append a child (str or Tree)."""
         self._impl.append(child)
 

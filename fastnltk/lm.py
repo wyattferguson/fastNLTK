@@ -57,28 +57,30 @@ class MLE:
 
         self._impl = _RustMLE(order)
 
-    def fit(self, sentences, vocabulary=None):
+    def fit(self, sentences: list[list[str]], vocabulary: any = None) -> None:
         self._impl.fit(sentences)
 
-    def score(self, word, context=None):
+    def score(self, word: str, context: tuple[str, ...] | None = None) -> float:
         return self._impl.score(word, context)
 
-    def logscore(self, word, context=None):
+    def logscore(self, word: str, context: tuple[str, ...] | None = None) -> float:
         return self._impl.logscore(word, context)
 
-    def generate(self, num_words, text_seed=None, random_seed=None):
+    def generate(
+        self, num_words: int, text_seed: str | None = None, random_seed: int | None = None
+    ) -> list[str]:
         return self._impl.generate(num_words, text_seed, random_seed)
 
     @property
-    def order(self):
+    def order(self) -> int:
         return self._impl.order()
 
     @property
-    def vocab_size(self):
+    def vocab_size(self) -> int:
         return self._impl.vocab_size()
 
     @property
-    def fitted(self):
+    def fitted(self) -> bool:
         return self._impl.fitted()
 
 

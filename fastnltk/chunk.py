@@ -37,7 +37,7 @@ class RegexpParser:
     def __init__(self, grammar):
         self._impl = _RustRegexpParser(grammar)
 
-    def parse(self, tokens):
+    def parse(self, tokens: list[str]) -> any:
         result = self._impl.parse(tokens)
         return _iob_to_tree(result)
 
@@ -99,20 +99,16 @@ def _iob_to_tree(iob_tags):
         return Tree.from_string(tree_str)
     except Exception:
         # Fallback: build a flat tree
-        from fastnltk._rust import Tree as _RustTree
 
-        flat = [
-            f"{w}/{p}" if p else w
-            for w, p in zip(words, pos_tags)
-        ]
+        flat = [f"{w}/{p}" if p else w for w, p in zip(words, pos_tags)]
         return Tree("S", flat)
 
 
-def ne_chunk(tagged_tokens, binary=False):
+def ne_chunk(tagged_tokens: list[tuple[str, str]], binary: bool = False) -> any:
     return _nltk_chunk.ne_chunk(tagged_tokens, binary)
 
 
-def ne_chunk_sents(tagged_sentences, binary=False):
+def ne_chunk_sents(tagged_sentences: list[list[tuple[str, str]]], binary: bool = False) -> any:
     return _nltk_chunk.ne_chunk_sents(tagged_sentences, binary)
 
 

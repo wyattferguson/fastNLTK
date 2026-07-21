@@ -64,18 +64,28 @@ jobs:
         env:
           PYO3_PYTHON: python
 
-  # ── Dependency audit ──────────────────────────────
+  # ── Dependency audit (licenses, bans, advisories) ──
   deny:
     runs-on: ubuntu-latest
     env:
       # Container has 1.85.0; avoid downloading stable from rust-toolchain.toml
       RUSTUP_TOOLCHAIN: "1.85.0"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check
           arguments: --all-features
+
+  # ── Vulnerability audit ────────────────────────────
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/install-action@cargo-audit
+      - name: Check for known vulnerabilities
+        run: cargo audit --deny warnings
 
   # ── Python integration tests ──────────────────────
   python-test:

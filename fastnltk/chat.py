@@ -15,8 +15,8 @@ class Chat:
     def __init__(self, pairs):
         self._impl = _RustChat(pairs)
 
-    def respond(self, text):
+    def respond(self, text: str) -> str | None:
         return self._impl.respond(text)
 
-    def converse(self, text):
+    def converse(self, text: str) -> str:
         return self._impl.converse(text)

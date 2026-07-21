@@ -44,13 +44,15 @@ class PlaintextCorpusReader:
         # Fall back to NLTK for paragraph segmentation.
         from nltk.corpus import PlaintextCorpusReader as NltkPCR
 
-        return NltkPCR(self._impl.root if hasattr(self._impl, 'root') else '.', self.fileids()).paras(fileids)
+        return NltkPCR(
+            self._impl.root if hasattr(self._impl, "root") else ".", self.fileids()
+        ).paras(fileids)
 
 
 class TaggedCorpusReader:
     """Rust-accelerated reader for word/tag formatted files."""
 
-    def __init__(self, root, fileids, sep='/'):
+    def __init__(self, root, fileids, sep="/"):
         self._impl = _RustTaggedCorpusReader(root, fileids, sep)
 
     def fileids(self):

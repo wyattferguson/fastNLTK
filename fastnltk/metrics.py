@@ -103,7 +103,7 @@ __all__ = [
 ]
 
 
-def jaccard_distance(s1, s2):
+def jaccard_distance(s1: set[any], s2: set[any]) -> float:
     # NLTK accepts both sets and strings
     if isinstance(s1, set) and isinstance(s2, set):
         if not s1 and not s2:
@@ -112,31 +112,35 @@ def jaccard_distance(s1, s2):
     return _rust_jaccard_distance(s1, s2)
 
 
-def binary_distance(s1, s2):
+def binary_distance(s1: set[any], s2: set[any]) -> float:
     # NLTK accepts both sets and strings
     if isinstance(s1, set) and isinstance(s2, set):
         return 0.0 if s1 == s2 else 1.0
     return _rust_binary_distance(s1, s2)
 
 
-def edit_distance(s1, s2, substitution_cost=1, transpositions=False):
+def edit_distance(
+    s1: str, s2: str, substitution_cost: int = 1, transpositions: bool = False
+) -> int:
     return _rust_edit_distance_fn(s1, s2, substitution_cost, transpositions)
 
 
-def jaro_similarity(x, y):
+def jaro_similarity(x: str, y: str) -> float:
     return _rust_jaro_similarity(x, y)
 
 
-def jaro_winkler_similarity(x, y, p=0.1, max_l=4):
+def jaro_winkler_similarity(x: str, y: str, p: float = 0.1, max_l: int = 4) -> float:
     return _rust_jaro_winkler_similarity(x, y, p, max_l)
 
 
-def dice_similarity(x, y):
+def dice_similarity(x: str, y: str) -> float:
     return _rust_dice_similarity(x, y)
 
 
 # Rust exports with set/list→str conversion for NLTK compat
-def windowdiff(reference, hypothesis, k=3, boundary="1"):
+def windowdiff(
+    reference: list[int], hypothesis: list[int], k: int = 3, boundary: str = "1"
+) -> float:
     if isinstance(reference, list):
         reference = "".join(str(b) for b in reference)
     if isinstance(hypothesis, list):
@@ -144,7 +148,9 @@ def windowdiff(reference, hypothesis, k=3, boundary="1"):
     return _rust_windowdiff(reference, hypothesis, k, boundary)
 
 
-def pk(reference, hypothesis, k=None, boundary="1"):
+def pk(
+    reference: list[int], hypothesis: list[int], k: int | None = None, boundary: str = "1"
+) -> float:
     if isinstance(reference, list):
         reference = "".join(str(b) for b in reference)
     if isinstance(hypothesis, list):

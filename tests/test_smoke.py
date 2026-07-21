@@ -26,10 +26,12 @@ from fastnltk.collocations import BigramCollocationFinder, TrigramCollocationFin
 from fastnltk.corpus import stopwords
 from fastnltk.downloader import download
 from fastnltk.lm import (
+    MLE as LM_MLE,
+)
+from fastnltk.lm import (
     KneserNeyInterpolated,
     Laplace,
     Lidstone,
-    MLE as LM_MLE,
     StupidBackoff,
     WittenBellInterpolated,
 )
@@ -45,7 +47,8 @@ from fastnltk.metrics import (
 )
 from fastnltk.parse import CFG, EarleyChartParser
 from fastnltk.probability import ConditionalFreqDist, FreqDist
-from fastnltk.sem import fromstring as sem_fromstring, simplify as sem_simplify
+from fastnltk.sem import fromstring as sem_fromstring
+from fastnltk.sem import simplify as sem_simplify
 from fastnltk.sentiment import SentimentIntensityAnalyzer
 from fastnltk.stem import (
     ARLSTem,
@@ -171,7 +174,8 @@ def _demo_tokenize() -> None:
         print(f"    word_tokenize -> {word_tokenize(SAMPLE)[:15]}...")
 
     def _regexp_tokenize() -> None:
-        print(f"    regexp_tokenize(\\w+) -> {regexp_tokenize(SAMPLE, r'\\w+')[:10]}...")
+        pat = r"\\w+"
+        print(f"    regexp_tokenize({pat}) -> {regexp_tokenize(SAMPLE, pat)[:10]}...")
 
     def _regexp_cls() -> None:
         t = RegexpTokenizer(r"\d+")
@@ -187,11 +191,13 @@ def _demo_tokenize() -> None:
 
     def _blankline() -> None:
         t = BlanklineTokenizer()
-        print(f"    BlanklineTokenizer -> {t.tokenize('a\\n\\nb\\n\\nc')}")
+        s = "a\n\nb\n\nc"
+        print(f"    BlanklineTokenizer -> {t.tokenize(s)}")
 
     def _line() -> None:
         t = LineTokenizer()
-        print(f"    LineTokenizer -> {t.tokenize('a\\nb\\nc')}")
+        s = "a\nb\nc"
+        print(f"    LineTokenizer -> {t.tokenize(s)}")
 
     def _space() -> None:
         t = SpaceTokenizer()
@@ -199,7 +205,8 @@ def _demo_tokenize() -> None:
 
     def _tab() -> None:
         t = TabTokenizer()
-        print(f"    TabTokenizer -> {t.tokenize('a\\tb\\tc')}")
+        s = "a\tb\tc"
+        print(f"    TabTokenizer -> {t.tokenize(s)}")
 
     def _treebank() -> None:
         t = TreebankWordTokenizer()
@@ -353,7 +360,7 @@ def _demo_stem() -> None:
 
     def _cistem() -> None:
         s = Cistem()
-        res = [ascii(s.stem(w)) for w in ['Ablauf', 'abla+ufe', 'scho+n']]
+        res = [ascii(s.stem(w)) for w in ["Ablauf", "abla+ufe", "scho+n"]]
         print(f"    Cistem -> {res}")
 
     def _arlstem() -> None:
@@ -489,7 +496,9 @@ def _demo_metrics() -> None:
         print(f"    edit_distance('kitten', 'sitting') = {edit_distance('kitten', 'sitting')}")
 
     def _jaccard() -> None:
-        print(f"    jaccard_distance({{'a','b'}}, {{'b','c'}}) = {jaccard_distance({'a', 'b'}, {'b', 'c'}):.4f}")
+        print(
+            f"    jaccard_distance({{'a','b'}}, {{'b','c'}}) = {jaccard_distance({'a', 'b'}, {'b', 'c'}):.4f}"
+        )
 
     def _binary_dist() -> None:
         print(f"    binary_distance({{1}}, {{2}}) = {binary_distance({1}, {2})}")
@@ -498,7 +507,9 @@ def _demo_metrics() -> None:
         print(f"    jaro_similarity('dwayne', 'duane') = {jaro_similarity('dwayne', 'duane'):.4f}")
 
     def _jaro_winkler() -> None:
-        print(f"    jaro_winkler_similarity('dwayne', 'duane') = {jaro_winkler_similarity('dwayne', 'duane'):.4f}")
+        print(
+            f"    jaro_winkler_similarity('dwayne', 'duane') = {jaro_winkler_similarity('dwayne', 'duane'):.4f}"
+        )
 
     def _dice() -> None:
         print(f"    dice_similarity('test', 'text') = {dice_similarity('test', 'text'):.4f}")
@@ -530,8 +541,10 @@ def _demo_lm() -> None:
     def _mle() -> None:
         m = LM_MLE(2)
         m.fit(train)
-        print(f"    MLE(order=2): score('dog', ['the'])={m.score('dog', ['the']):.4f}, "
-              f"score('cat', ['the'])={m.score('cat', ['the']):.4f}")
+        print(
+            f"    MLE(order=2): score('dog', ['the'])={m.score('dog', ['the']):.4f}, "
+            f"score('cat', ['the'])={m.score('cat', ['the']):.4f}"
+        )
 
     def _laplace() -> None:
         m = Laplace(2)
@@ -546,17 +559,23 @@ def _demo_lm() -> None:
     def _kneser_ney() -> None:
         m = KneserNeyInterpolated(2)
         m.fit(train)
-        print(f"    KneserNeyInterpolated(order=2): score('dog', ['the'])={m.score('dog', ['the']):.4f}")
+        print(
+            f"    KneserNeyInterpolated(order=2): score('dog', ['the'])={m.score('dog', ['the']):.4f}"
+        )
 
     def _witten_bell() -> None:
         m = WittenBellInterpolated(2)
         m.fit(train)
-        print(f"    WittenBellInterpolated(order=2): score='{m.score('dog', ['the']):.4f}', order={m.order}")
+        print(
+            f"    WittenBellInterpolated(order=2): score='{m.score('dog', ['the']):.4f}', order={m.order}"
+        )
 
     def _stupid_backoff() -> None:
         m = StupidBackoff(2, alpha=0.4)
         m.fit(train)
-        print(f"    StupidBackoff(order=2): score('dog', ['the'])={m.score('dog', ['the']):.4f}, fitted={m.fitted}")
+        print(
+            f"    StupidBackoff(order=2): score('dog', ['the'])={m.score('dog', ['the']):.4f}, fitted={m.fitted}"
+        )
 
     _timed("MLE", _mle)
     _timed("Laplace", _laplace)
@@ -589,7 +608,9 @@ def _demo_classify() -> None:
         ]
         clf = NaiveBayesClassifier.train(train)
         print(f"    NaiveBayesClassifier -> labels={clf.labels()}")
-        print(f"      classify({{'word':'awesome','sentiment':'pos'}})={clf.classify({'word': 'awesome', 'sentiment': 'pos'})}")
+        print(
+            f"      classify({{'word':'awesome','sentiment':'pos'}})={clf.classify({'word': 'awesome', 'sentiment': 'pos'})}"
+        )
 
     def _maxent() -> None:
         train = [
@@ -634,7 +655,9 @@ def _demo_parse() -> None:
 
     def _cfg() -> None:
         g = CFG.from_string(GRAMMAR)
-        print(f"    CFG: start={g.start()}, prods={len(g.productions())}, nonterms={len(g.nonterminals())}")
+        print(
+            f"    CFG: start={g.start()}, prods={len(g.productions())}, nonterms={len(g.nonterminals())}"
+        )
 
     def _earley() -> None:
         g = CFG.from_string(GRAMMAR)
@@ -662,6 +685,7 @@ def _demo_ccg() -> None:
 
     def _ccg_fromstring() -> None:
         from fastnltk.ccg import fromstring as ccg_fromstring
+
         result = ccg_fromstring("(S NP VP)")
         print(f"    CCG fromstring -> {result}")
 
@@ -695,8 +719,9 @@ def _demo_inference() -> None:
     _section("16  INFERENCE")
 
     def _imports() -> None:
-        from fastnltk.inference import DiscourseTester, ResolutionProverCommand, TableauProverCommand
-        print("    Inference re-exports: DiscourseTester, ResolutionProverCommand, TableauProverCommand")
+        print(
+            "    Inference re-exports: DiscourseTester, ResolutionProverCommand, TableauProverCommand"
+        )
 
     _timed("inference imports", _imports)
 
@@ -779,20 +804,24 @@ def _demo_corpus() -> None:
 
     def _names() -> None:
         from fastnltk.corpus import names
+
         print(f"    names.words('male.txt')[:5] -> {names.words('male.txt')[:5]}")
 
     def _gutenberg() -> None:
         from fastnltk.corpus import gutenberg
+
         files = gutenberg.fileids()
         print(f"    gutenberg.fileids() -> {files[:3]}... ({len(files)} total)")
 
     def _wordnet() -> None:
         from fastnltk.corpus import wordnet
+
         syns = wordnet.synsets("dog")
         print(f"    wordnet.synsets('dog') -> {len(syns)} synsets, first: {syns[0].name()}")
 
     def _treebank_corpus() -> None:
         from fastnltk.corpus import treebank
+
         print(f"    treebank.fileids()[:3] -> {treebank.fileids()[:3]}")
 
     _timed("stopwords", _stopwords)
