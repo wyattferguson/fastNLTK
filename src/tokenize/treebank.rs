@@ -124,7 +124,6 @@ fn split_word(
         return;
     }
 
-    // Scan word for punctuation splits
     let mut start = 0;
     let chars: Vec<(usize, char)> = word.char_indices().collect();
     let mut i = 0;
@@ -164,7 +163,6 @@ fn split_word(
         i += 1;
     }
 
-    // Flush remaining
     if start < word.len() {
         tokens.push(word[start..].to_string());
         spans.push((offset + start, offset + word.len()));

@@ -70,7 +70,7 @@ impl NgramCounts {
     }
 }
 
-// ── MLE ────────────────────────────────────────────────────────────────────
+// MLE
 
 /// Maximum Likelihood Estimation language model.
 #[pyclass(name = "MLE", module = "fastnltk._rust")]
@@ -165,7 +165,7 @@ impl MLE {
     }
 }
 
-// ── Laplace ────────────────────────────────────────────────────────────────
+// Laplace
 
 /// Laplace (add-one) smoothed language model.
 #[pyclass(name = "Laplace", module = "fastnltk._rust")]
@@ -258,7 +258,7 @@ impl Laplace {
     }
 }
 
-// ── Lidstone ───────────────────────────────────────────────────────────────
+// Lidstone
 
 /// Lidstone-smoothed language model (add-gamma smoothing).
 #[pyclass(name = "Lidstone", module = "fastnltk._rust")]

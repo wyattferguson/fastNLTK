@@ -122,7 +122,7 @@ impl CFG {
     }
 }
 
-// ── Earley State with backpointers for tree building ──
+// Earley State with backpointers for tree building
 
 type StateId = (usize, usize); // (pos_in_chart, index_in_chart[pos])
 
@@ -164,7 +164,7 @@ fn is_terminal(s: &str) -> bool {
     !s.starts_with(|c: char| c.is_uppercase()) || s.starts_with('\'') || s.starts_with('"')
 }
 
-// ── EarleyChartParser ──
+// EarleyChartParser
 
 #[pyclass(name = "EarleyChartParser", module = "fastnltk._rust")]
 pub struct EarleyChartParser;

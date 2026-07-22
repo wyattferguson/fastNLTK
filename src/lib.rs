@@ -44,68 +44,26 @@ pub mod util;
 /// The Python extension module: `fastnltk._rust`.
 #[pymodule]
 fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // ── Tokenization ─────────────────────────────────────
     tokenize::register_module(m)?;
-
-    // ── Stemming ─────────────────────────────────────────
     stem::register_module(m)?;
-
-    // ── Data ───────────────────────────────────────────
     data::register_module(m)?;
-
-    // ── Tagging ──────────────────────────────────────────
     tag::register_module(m)?;
-
-    // ── Probability ──────────────────────────────────────
     probability::register_module(m)?;
-
-    // ── Metrics ──────────────────────────────────────────
     metrics::register_module(m)?;
-
-    // ── Language Models ────────────────────────────────
     lm::register_module(m)?;
-
-    // ── Classification ───────────────────────────────────
     classify::register_module(m)?;
-
-    // ── Collocations ─────────────────────────────────────
     collocations::register_module(m)?;
-
-    // ── Sentiment ────────────────────────────────────────
     sentiment::register_module(m)?;
-
-    // ── Translation ──────────────────────────────────────
     translate::register_module(m)?;
-
-    // ── Chunking ───────────────────────────────────────
     chunk::register_module(m)?;
-
-    // ── CCG ──────────────────────────────────────────
     ccg::register_module(m)?;
-
-    // ── Inference ────────────────────────────────────────
     inference::register_module(m)?;
-
-    // ── DRT ───────────────────────────────────────────
     drt::register_module(m)?;
-
-    // ── Chat ──────────────────────────────────────────
     chat::register_module(m)?;
-
-    // ── Clustering ────────────────────────────────────
     cluster::register_module(m)?;
-
-    // ── Corpus ─────────────────────────────────────────
     corpus::register_module(m)?;
-
-    // ── Tree ─────────────────────────────────────────────
     tree::register_module(m)?;
-
-    // ── Parsing ────────────────────────────────────────
     parse::register_module(m)?;
-
-    // ── Semantics ──────────────────────────────────────
     sem::register_module(m)?;
-
     Ok(())
 }

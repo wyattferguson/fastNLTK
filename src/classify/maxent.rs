@@ -61,7 +61,7 @@ impl MaxentClassifier {
     ) -> PyResult<()> {
         self.max_iter = max_iter;
 
-        // ── Extract training data ─────────────────────────────
+        // Extract training data
         let mut raw_data: Vec<(String, FeatureVector)> = Vec::new();
         let mut label_counts: HashMap<String, u64> = HashMap::new();
         let mut feature_set: HashMap<String, u64> = HashMap::new();
@@ -91,7 +91,7 @@ impl MaxentClassifier {
             return Err(PyValueError::new_err("Empty training set"));
         }
 
-        // ── Build feature/label index ─────────────────────────
+        // Build feature/label index
         let mut labels: Vec<String> = label_counts.keys().cloned().collect();
         labels.sort();
         let mut feature_names: Vec<String> = feature_set.keys().cloned().collect();
@@ -124,8 +124,7 @@ impl MaxentClassifier {
             train_features.push(sparse);
         }
 
-        // ── GIS Training ──────────────────────────────────────
-        // Initialize weights to 0
+        // GIS Training: initialize weights to 0
         let mut weights: Vec<Vec<f64>> = vec![vec![0.0; num_feats]; num_labels];
 
         // Compute empirical feature expectations: E[f_i] = (1/N) * sum(f_i(x_k, y_k))

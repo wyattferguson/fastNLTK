@@ -37,7 +37,7 @@ fn compute_edit_distance(s1: &str, s2: &str, sub_cost: usize, trans: bool) -> us
                 && i > 0
                 && j > 0
                 && s1.chars().nth(i - 1) == Some(c2)
-                && s1.chars().nth(i) == Some(s2.chars().nth(j - 1).unwrap())
+                && s1.chars().nth(i) == s2.chars().nth(j - 1)
             {
                 best = best.min(prev_prev[j - 1] + sub_cost);
             }

@@ -10,7 +10,7 @@ use pyo3::prelude::*;
 use rustc_hash::FxHashMap;
 use std::sync::LazyLock;
 
-// ── NLTK Lancaster rule set (124 rules in compact format) ───────────────────
+// NLTK Lancaster rule set (124 rules in compact format)
 
 /// Each rule string decodes to: (ending, `intact_flag`, `remove_ct`, append, cont)
 /// Format: `{ending}{*}?{remove_count}{append}{. or >}`
@@ -140,7 +140,7 @@ static RULES: &[&str] = &[
 static PREFIXES: &[&str] =
     &["kilo", "micro", "milli", "intra", "ultra", "mega", "nano", "pico", "pseudo"];
 
-// ── Rule parsing ───────────────────────────────────────────────────────────
+// Rule parsing
 
 /// A parsed Lancaster stemming rule.
 struct Rule {
@@ -204,7 +204,7 @@ fn parse_rule(s: &str) -> Option<Rule> {
     Some(Rule { ending, intact: intact && !ending_forward.is_empty(), remove_count, append, cont })
 }
 
-// ── Stemming logic ─────────────────────────────────────────────────────────
+// Stemming logic
 
 /// Check if a character is a vowel.
 const fn is_vowel(c: char) -> bool {

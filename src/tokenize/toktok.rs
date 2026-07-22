@@ -1,3 +1,5 @@
+//! TokTok tokenizer — Unicode-aware tokenization.
+
 use pyo3::prelude::*;
 use regex::Regex;
 use std::borrow::Cow;

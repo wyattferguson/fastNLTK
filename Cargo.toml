@@ -27,14 +27,13 @@ rustc-hash = "2"
 parking_lot = "0.12"
 rand = "0.10"
 smol_str = { version = "0.3", features = ["serde"] }
-bumpalo = "3"
+
 logos = "0.16"
 smallvec = "1"
 phf = { version = "0.14", features = ["macros"] }
 thiserror = "2"
 rayon = { version = "1", optional = true }
 whatlang = "0.18"
-nltk-metrics = "0.4"
 memchr = "2.8.3"
 
 # Excluded on Linux aarch64: manylinux GCC v7 doesn't support -Wdate-time
@@ -64,6 +63,7 @@ pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 # unwrap_used/expect_used allowed at specific call sites via #[allow()]
 # only where the precondition is statically proven (e.g. known-good regex literals)
+missing_errors_doc = "allow"
 missing_panics_doc = "allow"
 unused_self = "allow"
 unnecessary_wraps = "allow"
