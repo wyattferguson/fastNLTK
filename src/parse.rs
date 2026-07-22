@@ -232,7 +232,8 @@ impl EarleyChartParser {
                         }
                     }
                 } else {
-                    let next = state.next_symbol()
+                    let next = state
+                        .next_symbol()
                         .expect("Earley state should have at least one symbol to predict/scan");
                     if is_terminal(next) {
                         if i < n && next == tokens[i] {

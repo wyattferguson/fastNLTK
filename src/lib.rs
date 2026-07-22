@@ -4,7 +4,6 @@
 #![allow(clippy::cast_precision_loss)] // NLP: counts/lengths to f64, won't exceed 2^52
 #![allow(clippy::needless_pass_by_value)] // PyO3 sigs: #[pymethods] needs owned types
 #![allow(clippy::unused_self)] // PyO3 #[pymethods] often don't use self
-#![allow(rustdoc::missing_errors_doc)] // Result fns: doc is clear from signature
 
 // System allocator on Linux aarch64 (manylinux GCC too old for
 // -Wdate-time injected by cc crate into libmimalloc-sys).
