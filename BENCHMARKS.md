@@ -1,14 +1,14 @@
 # Benchmarks
 
-> **Last updated:** 2026-07-16 (v0.5.3, release build)
-> **Geometric mean: 12.2× vs NLTK** across 48 compared benchmarks (68 total).
+> **Last updated:** 2026-07-22 (v0.5.4, release build)
+> **Geometric mean: 9.5× vs NLTK** across 51 compared benchmarks (68 total).
 >
 > Run benchmarks: `python -m benchmarks.run --save`
 > Fixtures: NLTK Gutenberg corpus (~200KB medium, ~5KB tiny).
 
 > [!NOTE]
 > HMM tagger optimized in v0.5.3: integer tag IDs + flat matrices —
-> eliminates `String::clone()` in the O(N × T²) Viterbi inner loop (104× speedup).
+> eliminates `String::clone()` in the O(N × T²) Viterbi inner loop (88× speedup).
 > ConditionalFreqDist now shares `FreqDist` references so mutations via
 > `cfd[cond][sample] = value` propagate correctly.
 > ISRI and RSLP stemmers delegate to NLTK in the Python wrapper (`fastnltk.stem`)
@@ -21,23 +21,21 @@
 
 | Operation | NLTK (ms) | fastNLTK (ms) | Speedup | Notes |
 |---|---|---|---|---|
-| **MaxentClassifier.train** | 73.67 | **0.13** | **562×** | GIS training, fully optimized inner loop |
-| **edit_distance** | 4.48 | **0.03** | **162×** | Damerau-Levenshtein in Rust |
-| **windowdiff** | 4.08 | **0.03** | **125×** | Pure algorithmic port, zero Python overhead |
-| **PunktSentenceTokenizer** | 17.65 | **0.17** | **106×** | Byte-level sentence scan |
-| **HiddenMarkovModelTagger** | 16.06 | **0.15** | **104×** | Integer Viterbi, zero-alloc inner loop |
-| **pk** | 3.60 | **0.08** | **47×** | Segmentation metric in Rust |
-| **TreebankWordDetokenizer** | 11.25 | **0.15** | **73×** | Single-pass undo |
-| **TweetTokenizer** | 68.03 | **1.56** | **44×** | LazyLock regexes |
-| **SentimentIntensityAnalyzer** | 30.23 | **0.96** | **32×** | PHF lexicon, exact NLTK scoring |
-| **Expression.fromstring** | 34.59 | **1.01** | **34×** | FOL parser in Rust |
-| **CFG.from_string** | 0.11 | **0.00** | **28×** | Grammar parser in Rust |
-| **LancasterStemmer** | 54.98 | **2.15** | **26×** | Full 124-rule NLTK port |
-| **TrigramCollocationFinder** | 61.53 | **2.35** | **26×** | FastMap ngram counting |
-| **QuadgramCollocationFinder** | 101.54 | **2.91** | **35×** | FastMap ngram counting |
-| **TextTilingTokenizer** | 4.69 | **0.06** | **77×** | Sentence segmentation, SIMD-accelerated |
-| **SnowballStemmer** | 44.40 | **2.89** | **15×** | rust-stemmers crate |
-| **Tree.from_string** | 6.96 | **0.61** | **11×** | Bracket parser in Rust |
+| **TextTilingTokenizer** | 22043.28 | **31.58** | **698×** | SIMD memchr3 + byte-level segmentation |
+| **MaxentClassifier.train** | 32.73 | **0.08** | **431×** | GIS training, fully optimized inner loop |
+| **windowdiff** | 2.38 | **0.01** | **174×** | Pure algorithmic port, zero Python overhead |
+| **edit_distance** | 2.44 | **0.02** | **144×** | Damerau-Levenshtein in Rust |
+| **HiddenMarkovModelTagger** | 8.58 | **0.10** | **88×** | Integer Viterbi, zero-alloc inner loop |
+| **pk** | 2.23 | **0.03** | **83×** | Segmentation metric in Rust |
+| **TreebankWordDetokenizer** | 6.69 | **0.12** | **54×** | Single-pass undo |
+| **SentimentIntensityAnalyzer** | 67.54 | **1.79** | **38×** | PHF lexicon, exact NLTK scoring |
+| **PunktSentenceTokenizer** | 14.28 | **0.43** | **33×** | Byte-level sentence scan |
+| **Expression.fromstring** | 16.06 | **0.54** | **30×** | FOL parser in Rust |
+| **SExprTokenizer** | 0.35 | **0.01** | **30×** | S-expression parser |
+| **TweetTokenizer** | 83.00 | **3.26** | **25×** | LazyLock regexes |
+| **CFG.from_string** | 0.05 | **0.00** | **23×** | Grammar parser in Rust |
+| **LancasterStemmer** | 31.50 | **1.42** | **22×** | Full 124-rule NLTK port |
+| **QuadgramCollocationFinder** | 98.74 | **5.11** | **19×** | FastMap ngram counting |
 
 ---
 
@@ -48,89 +46,91 @@ Benchmarks grouped by module. Numbers from `python -m benchmarks.run --save` on 
 | Module | Benchmark | NLTK (ms) | fastNLTK (ms) | Speedup |
 |--------|-----------|-----------|---------------|---------|
 | **tokenize** | | | | |
-| | ToktokTokenizer.tokenize | 18.71 | 4.25 | **4.4×** |
-| | MWETokenizer.tokenize | 1.13 | 0.88 | 1.3× |
-| | RegexpTokenizer.tokenize | 4.38 | 3.77 | 1.2× |
-| | SpaceTokenizer.tokenize | 1.09 | 1.46 | 0.7× |
-| | TreebankWordTokenizer.tokenize | 42.18 | 4.27 | **9.9×** |
-| | TweetTokenizer.tokenize | 83.96 | 3.31 | **25.3×** |
-| | TextTilingTokenizer.tokenize | 22236.78 | 31.58 | **704.2×** |
-| | SExprTokenizer.tokenize | 0.36 | 0.01 | **30.2×** |
-| | PunktSentenceTokenizer.tokenize | 14.65 | 0.44 | **33.4×** |
-| | TreebankWordDetokenizer.detokenize | 6.70 | 0.12 | **54.5×** |
-| | TabTokenizer.tokenize | 0.08 | 0.02 | **3.8×** |
-| | LineTokenizer.tokenize | 0.24 | 0.17 | 1.4× |
-| | WhitespaceTokenizer.tokenize | 4.19 | 1.27 | **3.3×** |
-| | WordPunctTokenizer.tokenize | 5.53 | 1.54 | **3.6×** |
-| | BlanklineTokenizer.tokenize | 2.19 | 0.11 | **19.2×** |
-| | logos_word_tokenize † | — | 0.00 | — |
+| | ToktokTokenizer.tokenize | 18.23 | 4.26 | **4.3×** |
+| | MWETokenizer.tokenize | 1.17 | 0.90 | 1.3× |
+| | RegexpTokenizer.tokenize | 4.41 | 3.76 | 1.2× |
+| | SpaceTokenizer.tokenize | 1.07 | 1.47 | 0.7× |
+| | TreebankWordTokenizer.tokenize | 42.28 | 4.03 | **10.5×** |
+| | TweetTokenizer.tokenize | 83.00 | 3.26 | **25.5×** |
+| | TextTilingTokenizer.tokenize | 22043.28 | 31.58 | **698.0×** |
+| | SExprTokenizer.tokenize | 0.35 | 0.01 | **29.9×** |
+| | PunktSentenceTokenizer.tokenize | 14.28 | 0.43 | **33.3×** |
+| | TreebankWordDetokenizer.detokenize | 6.69 | 0.12 | **54.0×** |
+| | TabTokenizer.tokenize | 0.08 | 0.02 | **3.9×** |
+| | LineTokenizer.tokenize | 0.24 | 0.18 | 1.3× |
+| | WhitespaceTokenizer.tokenize | 4.19 | 1.24 | **3.4×** |
+| | WordPunctTokenizer.tokenize | 5.47 | 1.52 | **3.6×** |
+| | BlanklineTokenizer.tokenize | 2.20 | 0.10 | **22.8×** |
+| | logos_word_tokenize † | — | 1.51 | — |
 | **stem** | | | | |
-| | SnowballStemmer.stem | 21.84 | 1.79 | **12.2×** |
-| | PorterStemmer.stem | 44.71 | 7.09 | **6.3×** |
-| | LancasterStemmer.stem | 32.81 | 1.41 | **23.3×** |
-| | WordNetLemmatizer.lemmatize | 6.54 | 0.80 | **8.1×** |
-| | ARLSTem.stem | 1.64 | 0.37 | **4.5×** |
-| | ISRIStemmer.stem | 2.02 | 0.20 | **9.9×** |
-| | RSLPStemmer.stem † | — | 0.00 | — |
-| | RegexpStemmer.stem † | — | 0.00 | — |
+| | SnowballStemmer.stem | 21.60 | 1.77 | **12.2×** |
+| | PorterStemmer.stem | 42.95 | 6.77 | **6.3×** |
+| | LancasterStemmer.stem | 31.50 | 1.42 | **22.2×** |
+| | WordNetLemmatizer.lemmatize | 6.21 | 0.74 | **8.4×** |
+| | ARLSTem.stem | 1.69 | 0.37 | **4.6×** |
+| | ISRIStemmer.stem | 1.99 | 0.20 | **9.9×** |
+| | RSLPStemmer.stem † | — | 0.11 | — |
+| | RegexpStemmer.stem † | — | 0.31 | — |
 | **tag** | | | | |
-| | PerceptronTagger.tag | 17.73 | 2.41 | **7.3×** |
-| | TnT.tag | 1.00 | 0.20 | **5.0×** |
-| | DefaultTagger.tag | 1.23 | 1.02 | 1.2× |
-| | UnigramTagger.tag | 1.64 | 0.95 | **1.7×** |
-| | BigramTagger.tag | 2.88 | 0.93 | **3.1×** |
+| | PerceptronTagger.tag | 16.30 | 2.43 | **6.7×** |
+| | HiddenMarkovModelTagger.tag | 8.58 | 0.10 | **88.3×** |
+| | TnT.tag | 1.09 | 0.20 | **5.4×** |
+| | DefaultTagger.tag | 1.25 | 1.03 | 1.2× |
+| | UnigramTagger.tag | 1.75 | 0.95 | **1.8×** |
+| | BigramTagger.tag | 2.87 | 0.94 | **3.0×** |
 | | TrigramTagger.tag | 3.02 | 0.97 | **3.1×** |
-| | RegexpTagger.tag | 9.65 | 1.06 | **9.1×** |
+| | RegexpTagger.tag | 9.57 | 1.07 | **9.0×** |
+| | AffixTagger.tag | 2.45 | 1.12 | **2.2×** |
 | **classify** | | | | |
-| | NaiveBayesClassifier.train | 6.62 | 1.59 | **4.2×** |
-| | NaiveBayesClassifier.classify | 0.01 | 0.001 | **9.0×** |
-| | MaxentClassifier.train | 31.93 | 0.08 | **424.6×** |
-| | TextCat.guess_language † | — | 0.00 | — |
+| | NaiveBayesClassifier.train | 6.14 | 1.59 | **3.9×** |
+| | NaiveBayesClassifier.classify | 0.01 | 0.00 | **8.8×** |
+| | MaxentClassifier.train | 32.73 | 0.08 | **430.7×** |
+| | TextCat.guess_language † | — | 4.19 | — |
 | **probability** | | | | |
-| | FreqDist.update | 20.51 | 4.47 | **4.6×** |
-| | ConditionalFreqDist.inc | 5.20 | 1.85 | **2.8×** |
+| | FreqDist.update | 19.49 | 4.49 | **4.3×** |
+| | ConditionalFreqDist.inc | 5.20 | 1.79 | **2.9×** |
 | | LaplaceProbDist.prob † | — | 0.00 | — |
 | | MLEProbDist.prob † | — | 0.00 | — |
 | **collocations** | | | | |
-| | BigramCollocationFinder.from_words | 62.59 | 6.36 | **9.8×** |
-| | TrigramCollocationFinder.from_words | 57.64 | 3.91 | **14.8×** |
-| | QuadgramCollocationFinder.from_words | 101.04 | 4.94 | **20.5×** |
+| | BigramCollocationFinder.from_words | 62.17 | 6.43 | **9.7×** |
+| | TrigramCollocationFinder.from_words | 57.39 | 3.77 | **15.2×** |
+| | QuadgramCollocationFinder.from_words | 98.74 | 5.11 | **19.3×** |
 | **sentiment** | | | | |
-| | SentimentIntensityAnalyzer.polarity_scores | 67.06 | 1.75 | **38.4×** |
+| | SentimentIntensityAnalyzer.polarity_scores | 67.54 | 1.79 | **37.6×** |
 | **metrics** | | | | |
-| | windowdiff | 2.35 | 0.014 | **171.6×** |
-| | pk | 2.19 | 0.024 | **90.4×** |
-| | edit_distance | 2.48 | 0.014 | **175.7×** |
+| | windowdiff | 2.38 | 0.01 | **173.6×** |
+| | pk | 2.23 | 0.03 | **83.2×** |
+| | edit_distance | 2.44 | 0.02 | **143.6×** |
 | | BigramAssocMeasures † | — | 0.00 | — |
 | **lm** | | | | |
-| | MLE.score † | — | 0.00 | — |
-| | Lidstone.score † | — | 0.00 | — |
-| | Laplace.score † | — | 0.00 | — |
-| | StupidBackoff.score † | — | 0.00 | — |
-| | KneserNeyInterpolated.score † | — | 0.00 | — |
-| | WittenBellInterpolated.score † | — | 0.00 | — |
+| | MLE.score † | — | 0.16 | — |
+| | Lidstone.score † | — | 0.15 | — |
+| | Laplace.score † | — | 0.14 | — |
+| | StupidBackoff.score † | — | 0.10 | — |
+| | KneserNeyInterpolated.score † | — | 0.12 | — |
+| | WittenBellInterpolated.score † | — | 0.12 | — |
 | **ccg** | | | | |
-| | CCG from_string | 0.79 | 0.27 | **3.0×** |
+| | CCG from_string | 0.81 | 0.27 | **3.0×** |
 | **chunk** | | | | |
-| | RegexpParser.parse | 1.59 | 0.19 | **8.5×** |
+| | RegexpParser.parse | 1.57 | 0.18 | **8.5×** |
 | **cluster** | | | | |
-| | KMeansClusterer.cluster | 1.59 | 0.26 | **6.2×** |
+| | KMeansClusterer.cluster | 1.64 | 0.25 | **6.4×** |
 | **parse** | | | | |
-| | EarleyChartParser.parse | 6.55 | 0.51 | **12.9×** |
-| | CFG.from_string | 0.05 | 0.002 | **25.1×** |
+| | EarleyChartParser.parse | 6.35 | 9.21 | 0.7× |
+| | CFG.from_string | 0.05 | 0.00 | **22.5×** |
 | **translate** | | | | |
-| | bleu | 0.03 | 0.003 | **9.4×** |
+| | bleu | 0.03 | 0.00 | **9.6×** |
 | **chat** | | | | |
-| | Chat.respond | 0.001 | 0.0002 | **6.0×** |
+| | Chat.respond | 0.001 | 0.0002 | **3.0×** |
 | **tree** | | | | |
-| | Tree.from_string | 3.19 | 0.31 | **10.5×** |
+| | Tree.from_string | 3.21 | 0.30 | **10.6×** |
 | **sem** | | | | |
-| | Expression.fromstring | 16.47 | 0.55 | **30.2×** |
+| | Expression.fromstring | 16.06 | 0.54 | **29.8×** |
 | **inference** | | | | |
-| | TableauProver.prove † | — | 0.00 | — |
-| | ResolutionProver.prove † | — | 0.00 | — |
-| | DiscourseThread.answer_question † | — | 0.002 | — |
-| | DefaultReasoner.extensions † | — | 4.32 | — |
+| | TableauProver.prove † | — | 0.0004 | — |
+| | ResolutionProver.prove † | — | 0.0006 | — |
+| | DiscourseThread.answer_question † | — | 0.0017 | — |
+| | DefaultReasoner.extensions † | — | 4.42 | — |
 
 † fastNLTK-only — no NLTK comparison available.
 
@@ -140,19 +140,19 @@ Benchmarks grouped by module. Numbers from `python -m benchmarks.run --save` on 
 
 | Module | Geo Mean Speedup | Best Single | Key Engine |
 |--------|-----------------|-------------|------------|
-| metrics | **145.7×** | 176× (edit_distance) | Pure algorithmic port, zero Python overhead |
-| tokenize | **17.9×** | 704× (TextTiling) | SIMD memchr3 + char scanner + byte-level segmentation |
-| parse | **18.0×** | 25× (CFG) | Earley + CFG parsing |
-| sem | **30.2×** | 30× (Expression) | FOL expression parser |
-| collocations | **14.4×** | 21× (Quadgram) | FastMap ngram frequency counting |
-| sentiment | **38.4×** | 38× (VADER) | PHF lexicon, exact NLTK algorithm |
-| tree | **10.5×** | 11× | Tree bracket parser |
-| translate | **9.4×** | 9× (BLEU) | BLEU in Rust |
-| stem | **8.9×** | 23× (Lancaster) | 124-rule NLTK port |
-| classify | **8.7×** | 425× (Maxent) | GIS training, fully optimized inner loop |
-| chunk | **8.5×** | 9× | Regexp chunk parser |
-| cluster | **6.2×** | 6× | K-means in Rust |
-| tag | **3.7×** | 9× (RegexpTagger) | u64 feature IDs, integer Viterbi |
-| probability | **3.6×** | 5× (FreqDist) | SmolStr-optimized FreqDist |
-| ccg | **3.0×** | 3× | CCG category parsing |
-| chat | **6.0×** | 6× | Eliza chatbot |
+| metrics | **128×** | 174× (windowdiff) | Pure algorithmic port, zero Python overhead |
+| sentiment | **38×** | 38× (VADER) | PHF lexicon, exact NLTK algorithm |
+| sem | **30×** | 30× (Expression) | FOL expression parser |
+| classify | **25×** | 431× (Maxent) | GIS training, fully optimized inner loop |
+| collocations | **14×** | 19× (Quadgram) | FastMap ngram frequency counting |
+| tree | **11×** | 11× | Tree bracket parser |
+| translate | **10×** | 10× (BLEU) | BLEU in Rust |
+| stem | **9×** | 22× (Lancaster) | 124-rule NLTK port |
+| chunk | **9×** | 9× | Regexp chunk parser |
+| tokenize | **8×** | 698× (TextTiling) | SIMD memchr3 + char scanner + byte-level segmentation |
+| cluster | **6×** | 6× | K-means in Rust |
+| tag | **5×** | 88× (HMM) | u64 feature IDs, integer Viterbi |
+| parse | **4×** | 23× (CFG) | Earley + CFG parsing |
+| probability | **4×** | 4× (FreqDist) | SmolStr-optimized FreqDist |
+| ccg | **3×** | 3× | CCG category parsing |
+| chat | **3×** | 3× | Eliza chatbot |
