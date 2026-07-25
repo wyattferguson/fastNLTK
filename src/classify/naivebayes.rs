@@ -146,7 +146,10 @@ impl NaiveBayesClassifier {
     }
 
     /// Return probabilities for each label.
-    fn prob_classify(&self, features_dict: &Bound<'_, PyDict>) -> PyResult<std::collections::HashMap<String, f64>> {
+    fn prob_classify(
+        &self,
+        features_dict: &Bound<'_, PyDict>,
+    ) -> PyResult<std::collections::HashMap<String, f64>> {
         let features = self.extract_feature_vector(features_dict)?;
         let mut scores = HashMap::new();
 

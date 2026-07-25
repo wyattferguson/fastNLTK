@@ -46,4 +46,4 @@ class TestNaiveBayesClassifier:
         classifier = NaiveBayesClassifier.train(train_data)
         # Should not crash
         features = classifier.show_most_informative_features(5)
-        assert isinstance(features, (list, str))
+        assert isinstance(features, list | str)

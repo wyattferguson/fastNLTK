@@ -12,6 +12,7 @@ build/
 htmlcov/
 .ruff_cache/
 benchmarks/results/*.json
+benchmarks/__pycache__/
 
 # Rust
 target/
@@ -19,6 +20,10 @@ debug/
 **/*(.rs.bk
 *.pdb
 *.txt
+
+# Security audit
+cargo-audit/
+advisory-db/
 
 # IDE
 .idea/

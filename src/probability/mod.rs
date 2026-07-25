@@ -32,7 +32,7 @@ impl FreqDist {
         self.counts.len()
     }
     #[must_use]
-    pub fn counts(&self) -> &HashMap<SmolStr, u64> {
+    pub const fn counts(&self) -> &HashMap<SmolStr, u64> {
         &self.counts
     }
 }
@@ -73,7 +73,7 @@ impl FreqDist {
             .collect()
     }
     fn samples(&self) -> Vec<String> {
-        let mut s: Vec<String> = self.counts.keys().map(|k| k.to_string()).collect();
+        let mut s: Vec<String> = self.counts.keys().map(std::string::ToString::to_string).collect();
         s.sort();
         s
     }
@@ -144,7 +144,7 @@ impl FreqDist {
                     // Use reverse ordering for min-heap behavior
                     if heap.len() < k {
                         heap.push((*count, sample.as_str()));
-                    } else if *count > heap.peek().map(|h| h.0).unwrap_or(0) {
+                    } else if *count > heap.peek().map_or(0, |h| h.0) {
                         heap.pop();
                         heap.push((*count, sample.as_str()));
                     }
@@ -155,7 +155,8 @@ impl FreqDist {
             }
             _ => {
                 // Full sort for unbounded or large n
-                let mut items: Vec<_> = self.counts.iter().map(|(k, v)| (k.to_string(), *v)).collect();
+                let mut items: Vec<_> =
+                    self.counts.iter().map(|(k, v)| (k.to_string(), *v)).collect();
                 items.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
                 match n {
                     Some(k) => items.into_iter().take(k).collect(),
@@ -216,7 +217,7 @@ impl ConditionalFreqDist {
         Self { conditions: HashMap::new() }
     }
     fn conditions(&self) -> Vec<String> {
-        let mut conds: Vec<String> = self.conditions.keys().map(|k| k.to_string()).collect();
+        let mut conds: Vec<String> = self.conditions.keys().map(std::string::ToString::to_string).collect();
         conds.sort();
         conds
     }

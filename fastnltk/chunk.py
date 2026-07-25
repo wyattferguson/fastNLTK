@@ -99,12 +99,8 @@ def _iob_to_tree(iob_tags):
         return Tree.from_string(tree_str)
     except Exception:
         # Fallback: build a flat tree
-        from fastnltk._rust import Tree as _RustTree
 
-        flat = [
-            f"{w}/{p}" if p else w
-            for w, p in zip(words, pos_tags)
-        ]
+        flat = [f"{w}/{p}" if p else w for w, p in zip(words, pos_tags)]
         return Tree("S", flat)
 
 

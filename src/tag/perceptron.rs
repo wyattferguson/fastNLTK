@@ -55,9 +55,16 @@ fn hash3(a: &str, b: &str, c: &str) -> u64 {
     hash
 }
 
+/// Current hash algorithm version. Bump if `fxhash_bytes`/`hash2`/`hash3` changes.
+/// Stale cache files (different version) are rejected on load.
+const HASH_VERSION: u32 = 1;
+
 #[pyclass(name = "PerceptronTagger", module = "fastnltk._rust")]
 #[derive(Clone, Serialize, Deserialize)]
 pub struct PerceptronTagger {
+    /// Hash algorithm version: bump if `fxhash_bytes`/`fxhash` implementation changes.
+    /// Used to detect stale cache files that need re-generation.
+    hash_version: u32,
     /// Feature weights keyed by u64 hash of feature name string.
     weights: FxHashMap<u64, FxHashMap<SmolStr, f64>>,
     /// Tag dictionary for common words: word → tag.
@@ -71,6 +78,7 @@ impl PerceptronTagger {
     #[new]
     fn new() -> PyResult<Self> {
         Ok(Self {
+            hash_version: HASH_VERSION,
             weights: FxHashMap::default(),
             tagdict: FxHashMap::default(),
             classes: Vec::new(),
@@ -149,6 +157,13 @@ impl PerceptronTagger {
             std::fs::read(path).map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
         let (tagger, _remaining): (Self, &[u8]) = postcard::take_from_bytes(&bytes)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+        if tagger.hash_version != HASH_VERSION {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Cache hash version mismatch: got {}, expected {}. Re-train or delete the cache file.",
+                tagger.hash_version, HASH_VERSION
+            )));
+        }
+        self.hash_version = tagger.hash_version;
         self.weights = tagger.weights;
         self.tagdict = tagger.tagdict;
         self.classes = tagger.classes;

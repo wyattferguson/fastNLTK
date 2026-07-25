@@ -66,7 +66,7 @@ impl WordNetData {
     }
 
     fn exists(&self, word: &str, pos: &str) -> bool {
-        self.known_words.get(pos).map_or(false, |words| words.contains(&word.to_lowercase()))
+        self.known_words.get(pos).is_some_and(|words| words.contains(&word.to_lowercase()))
     }
 
     fn lookup_exception(&self, word: &str, pos: &str) -> Option<&str> {

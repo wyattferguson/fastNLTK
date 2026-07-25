@@ -70,6 +70,7 @@ class EarleyChartParser:
         g_impl = g._impl if hasattr(g, "_impl") else g
         # Reconstruct NLTK-compatible grammar from Rust CFG productions.
         import nltk
+
         prod_strs = []
         for lhs, rhs in g_impl.productions():
             rhs_parts = []

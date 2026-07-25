@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use std::cmp::{max, min};
 use std::collections::HashSet;
 
-/// Jaro similarity. O(max_len²) but with O(1) matched-set checks via bool vec.
+/// Jaro similarity. `O(max_len²)` but with O(1) matched-set checks via bool vec.
 fn jaro_sim(x: &str, y: &str) -> f64 {
     let xc: Vec<char> = x.chars().collect();
     let yc: Vec<char> = y.chars().collect();
@@ -18,24 +18,28 @@ fn jaro_sim(x: &str, y: &str) -> f64 {
     }
     let bound = max(xl, yl);
     let mut matched_y = vec![false; yl]; // O(1) lookup instead of O(n) Vec::contains
-    let mut matches: Vec<(usize, usize)> = Vec::new();
+    let mut f1: Vec<usize> = Vec::new();
+    let mut f2: Vec<usize> = Vec::new();
     for (i, &c1) in xc.iter().enumerate() {
         let lo = max(0, i as i32 - bound as i32) as usize;
         let hi = min(i + bound, yl - 1);
         for (j, &c2) in yc.iter().enumerate().take(hi + 1).skip(lo) {
             if c1 == c2 && !matched_y[j] {
                 matched_y[j] = true;
-                matches.push((i, j));
+                f1.push(i);
+                f2.push(j);
                 break;
             }
         }
     }
-    matches.sort_unstable_by_key(|&(_, j)| j);
-    let m = matches.len();
+    f2.sort_unstable();
+    let m = f1.len();
     if m == 0 {
         return 0.0;
     }
-    let t = matches.iter().filter(|&&(i, j)| xc[i] != yc[j]).count();
+    // Transpositions: zip x-indices (in match order) with y-indices (sorted),
+    // count character mismatches. Each transposition creates 2 mismatches.
+    let t = f1.iter().zip(&f2).filter(|(&i, &j)| xc[i] != yc[j]).count();
     (m as f64 / xl as f64 + m as f64 / yl as f64 + (m as f64 - t as f64 / 2.0) / m as f64) / 3.0
 }
 
@@ -108,15 +112,14 @@ mod tests {
     #[test]
     fn test_jaro() {
         let s = jaro_sim("SHACKLEFORD", "SHACKELFORD");
-        // With correct transposition counting (actual matched pairs, not random zip),
-        // the L/E swap positions are correctly identified as non-transpositions
-        // since E at x[6] matches E at y[5] and L at x[5] matches L at y[6].
-        assert!((s - 1.0).abs() < 0.001);
+        // With correct transposition counting via zip of f1/f2: L/E swap is a transposition
+        assert!((s - 0.970).abs() < 0.01);
     }
     #[test]
     fn test_jaro_winkler() {
         let s = jaro_winkler_sim("SHACKLEFORD", "SHACKELFORD", 0.1, 4);
-        assert!((s - 1.0).abs() < 0.001);
+        // Winkler boost from "SHAC" prefix -> ~0.982
+        assert!((s - 0.982).abs() < 0.01);
     }
     #[test]
     fn test_dice() {

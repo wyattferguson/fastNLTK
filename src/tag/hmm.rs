@@ -13,7 +13,7 @@ pub struct HiddenMarkovModelTagger {
     /// Transition log-probabilities: flat `[from * tag_count + to]` for cache locality
     trans_mat: Vec<f64>,
     tag_count: usize,
-    /// Emission log-probabilities: `emission[tag_id][word_hash]` → log_prob
+    /// Emission log-probabilities: `emission[tag_id][word_hash]` → `log_prob`
     emission: Vec<HashMap<u64, f64>>,
     /// Tag → index for Viterbi
     tag_index: HashMap<SmolStr, usize>,
