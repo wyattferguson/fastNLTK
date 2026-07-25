@@ -10,8 +10,9 @@ use smol_str::SmolStr;
 
 #[pyclass(name = "HiddenMarkovModelTagger", module = "fastnltk._rust")]
 pub struct HiddenMarkovModelTagger {
-    /// Transition log-probabilities: `trans_mat[from_tag_id][to_tag_id]`
-    trans_mat: Vec<Vec<f64>>,
+    /// Transition log-probabilities: flat `[from * tag_count + to]` for cache locality
+    trans_mat: Vec<f64>,
+    tag_count: usize,
     /// Emission log-probabilities: `emission[tag_id][word_hash]` → log_prob
     emission: Vec<HashMap<u64, f64>>,
     /// Tag → index for Viterbi
@@ -47,6 +48,7 @@ impl HiddenMarkovModelTagger {
         tag_index.insert(SmolStr::new_inline("</s>"), 1);
         Self {
             trans_mat: Vec::new(),
+            tag_count: 0,
             emission: Vec::new(),
             tag_index,
             tag_names,
@@ -54,6 +56,12 @@ impl HiddenMarkovModelTagger {
             end_id: 1,
             trained: false,
         }
+    }
+
+    /// O(1) flat-matrix accessor.
+    #[inline]
+    fn trans(&self, from: usize, to: usize) -> f64 {
+        self.trans_mat[from * self.tag_count + to]
     }
 
     fn train(&mut self, sentences: Vec<Vec<(String, String)>>) -> PyResult<()> {
@@ -76,7 +84,7 @@ impl HiddenMarkovModelTagger {
         let k = self.tag_names.len();
 
         // Count transitions (int -> int), emissions (int -> word), and tag occurrences.
-        let mut trans_counts: Vec<Vec<f64>> = vec![vec![0.0f64; k]; k];
+        let mut trans_counts: Vec<f64> = vec![0.0f64; k * k];
         let mut tag_totals: Vec<f64> = vec![0.0f64; k]; // transition totals (from tag)
         let mut tag_occs: Vec<f64> = vec![0.0f64; k]; // occurrence totals (as current tag)
         let mut emiss_counts_raw: Vec<HashMap<u64, f64>> = vec![HashMap::new(); k];
@@ -85,29 +93,31 @@ impl HiddenMarkovModelTagger {
             let mut prev_id = self.start_id;
             for (word, tag) in sent {
                 let tag_id = self.tag_index[&SmolStr::new(tag)];
-                trans_counts[prev_id][tag_id] += 1.0;
+                trans_counts[prev_id * k + tag_id] += 1.0;
                 tag_totals[prev_id] += 1.0;
                 tag_occs[tag_id] += 1.0;
                 *emiss_counts_raw[tag_id].entry(word_hash(word)).or_insert(0.0) += 1.0;
                 prev_id = tag_id;
             }
             // Sentence end
-            trans_counts[prev_id][self.end_id] += 1.0;
+            trans_counts[prev_id * k + self.end_id] += 1.0;
             tag_totals[prev_id] += 1.0;
         }
 
         // Convert counts to log-probabilities with add-1 smoothing
-        self.trans_mat = vec![vec![NEG_INF; k]; k];
+        // Flat 1D allocation for cache-friendly access
+        self.trans_mat = vec![NEG_INF; k * k];
+        self.tag_count = k;
         for from in 0..k {
             let total = tag_totals[from];
             if total == 0.0 {
                 continue;
             }
             for to in 0..k {
-                let count = trans_counts[from][to];
+                let count = trans_counts[from * k + to];
                 if count > 0.0 || from == self.start_id {
                     let prob = (count + 1.0) / (total + k as f64);
-                    self.trans_mat[from][to] = prob.ln();
+                    self.trans_mat[from * k + to] = prob.ln();
                 }
             }
         }
@@ -152,7 +162,7 @@ impl HiddenMarkovModelTagger {
         let wh0 = word_hashes[0];
         for j in 2..k {
             // skip <s> (0) and </s> (1) — they're not real tags
-            let trans = self.trans_mat[self.start_id][j];
+            let trans = self.trans(self.start_id, j);
             if trans == NEG_INF {
                 continue;
             }
@@ -178,7 +188,7 @@ impl HiddenMarkovModelTagger {
                     if prev == NEG_INF {
                         continue;
                     }
-                    let trans = self.trans_mat[p][j];
+                    let trans = self.trans(p, j);
                     if trans == NEG_INF {
                         continue;
                     }
@@ -201,7 +211,7 @@ impl HiddenMarkovModelTagger {
             if score == NEG_INF {
                 continue;
             }
-            let end_trans = self.trans_mat[j][self.end_id];
+            let end_trans = self.trans(j, self.end_id);
             if end_trans == NEG_INF {
                 continue;
             }

@@ -48,21 +48,26 @@ impl CollocationData {
 
     fn score_ngrams(&self, score_fn: &str) -> Vec<(Vec<String>, f64)> {
         let total_words: u64 = self.word_fd.values().sum();
-        let _total_bigrams: u64 = self.ngram_fd.values().sum();
         let num_words = self.word_fd.len() as f64;
 
-        let mut scored: Vec<(Vec<String>, f64)> = Vec::new();
-        for (ngram, count) in &self.ngram_fd {
-            let score = match score_fn {
-                "pmi" => self.pmi(ngram, *count, total_words as f64),
-                "chi_sq" => self.chi_sq(ngram, *count, total_words as f64, num_words),
-                "likelihood_ratio" => self.likelihood_ratio(ngram, *count, total_words as f64),
-                _ => *count as f64, // default: raw frequency
-            };
-            scored.push((ngram.clone(), score));
-        }
+        let mut scored: Vec<(Vec<String>, f64)> = self
+            .ngram_fd
+            .iter()
+            .map(|(ngram, count)| {
+                let score = match score_fn {
+                    "pmi" => self.pmi(ngram, *count, total_words as f64),
+                    "chi_sq" => self.chi_sq(ngram, *count, total_words as f64, num_words),
+                    "likelihood_ratio" => self.likelihood_ratio(ngram, *count, total_words as f64),
+                    _ => *count as f64,
+                };
+                (ngram.clone(), score)
+            })
+            .collect();
 
-        scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        // Sort descending by score
+        scored.sort_by(|a, b| {
+            b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
+        });
         scored
     }
 

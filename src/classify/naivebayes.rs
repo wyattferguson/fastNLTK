@@ -1,6 +1,6 @@
 //! `NaiveBayesClassifier` — Rust implementation matching NLTK's API.
 
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -95,7 +95,7 @@ impl NaiveBayesClassifier {
             labels.sort();
 
             let features: Vec<String> = {
-                let set: std::collections::HashSet<String> =
+                let set: hashbrown::HashSet<String> =
                     feature_value_counts.values().flat_map(|m| m.keys()).cloned().collect();
                 let mut v: Vec<String> = set.into_iter().collect();
                 v.sort();
@@ -146,7 +146,7 @@ impl NaiveBayesClassifier {
     }
 
     /// Return probabilities for each label.
-    fn prob_classify(&self, features_dict: &Bound<'_, PyDict>) -> PyResult<HashMap<String, f64>> {
+    fn prob_classify(&self, features_dict: &Bound<'_, PyDict>) -> PyResult<std::collections::HashMap<String, f64>> {
         let features = self.extract_feature_vector(features_dict)?;
         let mut scores = HashMap::new();
 
@@ -173,7 +173,7 @@ impl NaiveBayesClassifier {
 
         let exp_scores: Vec<f64> = scores.values().map(|v| (v - max_logprob).exp()).collect();
         let sum: f64 = exp_scores.iter().sum();
-        let result: HashMap<String, f64> =
+        let result: std::collections::HashMap<String, f64> =
             self.labels.iter().zip(exp_scores.iter()).map(|(l, s)| (l.clone(), s / sum)).collect();
         Ok(result)
     }

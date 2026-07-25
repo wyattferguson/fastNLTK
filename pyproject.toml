@@ -1,5 +1,5 @@
 [build-system]
-requires = ["maturin>=1.7,<2.0"]
+requires = ["maturin>=1.14,<2.0"]
 build-backend = "maturin"
 
 [project]
@@ -28,8 +28,8 @@ classifiers = [
     "Intended Audience :: Science/Research",
 ]
 dependencies = [
-    "nltk>=3.6",
-    "numpy>=2.2.6",
+    "nltk>=3.10",
+    "numpy>=2.2.6,<3.0",
 ]
 dynamic = ["readme"]
 
@@ -39,9 +39,9 @@ Repository = "https://github.com/wyattferguson/fastnltk"
 Changelog = "https://github.com/wyattferguson/fastnltk/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
-dev = ["maturin>=1.7", "pytest>=7", "pytest-benchmark", "ruff>=0.8", "mypy"]
-test = ["pytest>=7", "pytest-benchmark", "hypothesis", "nltk>=3.6"]
-lint = ["ruff>=0.8", "mypy", "pre-commit"]
+dev = ["maturin>=1.14", "pytest>=9.1", "pytest-benchmark>=5.2", "ruff>=0.16", "mypy>=2.3"]
+test = ["pytest>=9.1", "pytest-benchmark>=5.2", "hypothesis>=6.161", "nltk>=3.10"]
+lint = ["ruff>=0.16", "mypy>=2.3", "pre-commit>=4.6"]
 all = ["fastnltk[dev,test,lint]"]
 
 [tool.maturin]

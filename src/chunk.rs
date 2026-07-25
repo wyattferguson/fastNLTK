@@ -67,8 +67,12 @@ fn parse_tag_sequence(pattern: &str) -> Result<Vec<Regex>, String> {
 // ChunkRule: find tag sequences matching a pattern, mark as chunk
 
 /// Apply a chunk rule to a sequence of tags. Modifies IOB tags in-place.
-#[allow(clippy::needless_pass_by_ref_mut)]
-fn apply_chunk_rule(tag_patterns: &[Regex], tags: &mut [&str], iob: &mut [&str]) {
+fn apply_chunk_rule(
+    tag_patterns: &[Regex],
+    tags: &[&str],
+    iob: &mut [&str],
+    _tag_to_idx: Option<&std::collections::HashMap<&str, usize>>,
+) {
     let num_tags = tags.len();
     let mut i = 0;
     while i < num_tags {
@@ -126,7 +130,7 @@ impl RegexpParser {
 
         // Apply each rule
         for (_label, tag_patterns) in &self.rules {
-            apply_chunk_rule(tag_patterns, &mut pos_tags.clone(), &mut iob);
+            apply_chunk_rule(tag_patterns, &pos_tags, &mut iob, None);
         }
 
         // Return (word, pos_tag, iob_tag) triples

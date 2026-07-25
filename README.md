@@ -1,7 +1,7 @@
 <div align="center">
   <h1>fastNLTK</h1>
   <p><strong>NLTK with a Rust engine.</strong><br>
-  Drop-in replacement. Same API, Same data, 12× faster.</p>
+  Drop-in replacement. Same API, Same data, 10× faster.</p>
 
   <p>
     <a href="https://pypi.org/project/fastnltk/"><img src="https://img.shields.io/pypi/v/fastnltk.svg" alt="PyPI"></a>
@@ -18,7 +18,7 @@
 call is fine. A million calls in a data pipeline is a different story.
 
 **fastNLTK** is NLTK with the hot path rewritten in Rust. Same API, same
-data, same results. Just faster — 5× to 700× depending on what you're doing.
+data, same results. Just faster — 5× to 455× depending on what you're doing.
 No new dependencies, no YAML files, no config. Simply change your import and watch your code fly.
 
 ```python
@@ -42,42 +42,42 @@ Benchmarked on release builds against NLTK 3.10. [Full results →](BENCHMARKS.m
 
 | Operation                  | NLTK      | fastNLTK | Speedup  |
 | -------------------------- | --------- | -------- | -------- |
-| HMM tagger                 | 16.06 ms  | 0.15 ms  | **104×** |
-| TextTiling tokenizer       | 4.69 ms   | 0.06 ms  | **77×**  |
-| Treebank detokenizer       | 11.25 ms  | 0.15 ms  | **73×**  |
-| S-expression tokenizer     | 1.29 ms   | 0.02 ms  | **60×**  |
-| Punkt sentence tokenizer   | 17.65 ms  | 0.17 ms  | **106×** |
-| Tweet tokenizer            | 68.03 ms  | 1.56 ms  | **44×**  |
-| Sentiment (VADER)          | 30.23 ms  | 0.96 ms  | **32×**  |
-| Lancaster stemmer          | 54.98 ms  | 2.15 ms  | **26×**  |
+| Maxent classifier train    | 68.26 ms  | 0.15 ms  | **455×** |
+| edit_distance              | 4.64 ms   | 0.02 ms  | **241×** |
+| windowdiff                 | 3.70 ms   | 0.03 ms  | **123×** |
+| Punkt sentence tokenizer   | 17.72 ms  | 0.16 ms  | **111×** |
+| HMM tagger                 | 17.45 ms  | 0.18 ms  | **98×**  |
+| TextTiling tokenizer       | 2.73 ms   | 0.03 ms  | **91×**  |
+| Treebank detokenizer       | 11.14 ms  | 0.20 ms  | **56×**  |
+| Tweet tokenizer            | 71.45 ms  | 1.54 ms  | **47×**  |
+| FOL expression parser      | 35.02 ms  | 0.97 ms  | **36×**  |
+| S-expression tokenizer     | 0.66 ms   | 0.02 ms  | **34×**  |
+| Lancaster stemmer          | 51.70 ms  | 1.80 ms  | **29×**  |
 | CFG grammar parser         | 0.11 ms   | 0.00 ms  | **28×**  |
-| quadgram collocations      | 101.73 ms | 3.01 ms  | **34×**  |
-| edit_distance              | 4.55 ms   | 0.03 ms  | **165×** |
-| Trigram collocations       | 49.87 ms  | 2.43 ms  | **21×**  |
-| Snowball stemmer           | 44.40 ms  | 2.89 ms  | **15×**  |
-| Regexp tagger              | 19.59 ms  | 1.66 ms  | **12×**  |
-| Tree from_string           | 6.46 ms   | 0.63 ms  | **10×**  |
+| VADER sentiment            | 29.69 ms  | 1.11 ms  | **27×**  |
+| Tree from_string           | 6.60 ms   | 0.96 ms  | **7×**   |
+| Treebank word tokenizer    | 27.53 ms  | 2.73 ms  | **10×**  |
 
-Geometric mean across 48 benchmarks: **12.2×**. Module-level breakdown:
+Geometric mean across 51 benchmarks: **10.2×**. Module-level breakdown:
 
 | Module                        | Geo Mean | Top single |
 | ----------------------------- | -------- | ---------- |
-| [metrics](BENCHMARKS.md)      | **137×** | 165×       |
-| [tag](BENCHMARKS.md)          | **7×**   | 104×       |
-| [sentiment](BENCHMARKS.md)    | **34×**  | 34×        |
-| [sem](BENCHMARKS.md)          | **34×**  | 34×        |
-| [parse](BENCHMARKS.md)        | **19×**  | 28×        |
-| [tokenize](BENCHMARKS.md)     | **6×**   | 120×       |
-| [collocations](BENCHMARKS.md) | **14×**  | 35×        |
-| [tree](BENCHMARKS.md)         | **12×**  | 12×        |
-| [translate](BENCHMARKS.md)    | **9×**   | 9×         |
-| [stem](BENCHMARKS.md)         | **9×**   | 26×        |
-| [chunk](BENCHMARKS.md)        | **8×**   | 8×         |
-| [classify](BENCHMARKS.md)     | **5×**   | 562×       |
-| [cluster](BENCHMARKS.md)      | **5×**   | 5×         |
-| [chat](BENCHMARKS.md)         | **4×**   | 4×         |
+| [metrics](BENCHMARKS.md)      | **114×** | 241×       |
+| [sem](BENCHMARKS.md)          | **36×**  | 36×        |
+| [classify](BENCHMARKS.md)     | **29×**  | 455×       |
+| [sentiment](BENCHMARKS.md)    | **27×**  | 27×        |
+| [collocations](BENCHMARKS.md) | **15×**  | 21×        |
+| [stem](BENCHMARKS.md)         | **11×**  | 29×        |
+| [tokenize](BENCHMARKS.md)     | **10×**  | 111×       |
+| [translate](BENCHMARKS.md)    | **10×**  | 10×        |
+| [chunk](BENCHMARKS.md)        | **9×**   | 9×         |
+| [tree](BENCHMARKS.md)         | **7×**   | 7×         |
+| [tag](BENCHMARKS.md)          | **5×**   | 98×        |
+| [probability](BENCHMARKS.md)  | **4×**   | 6×         |
+| [cluster](BENCHMARKS.md)      | **4×**   | 4×         |
+| [parse](BENCHMARKS.md)        | **4×**   | 28×        |
 | [ccg](BENCHMARKS.md)          | **3×**   | 3×         |
-| [probability](BENCHMARKS.md)  | **3×**   | 6×         |
+| [chat](BENCHMARKS.md)         | **3×**   | 3×         |
 
 ## What's accelerated
 

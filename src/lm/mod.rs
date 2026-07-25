@@ -64,9 +64,22 @@ impl NgramCounts {
 
     fn context_key(&self, context: &[String]) -> String {
         let pad = self.order.saturating_sub(1 + context.len());
-        let mut parts: Vec<&str> = vec!["<s>"; pad];
-        parts.extend(context.iter().map(String::as_str));
-        parts.join(" ")
+        let total = pad + context.len();
+        if total == 0 {
+            return String::new();
+        }
+        // Avoid intermediate Vec allocation: write directly into String
+        let mut key = String::with_capacity(total * 4); // rough estimate
+        for _ in 0..pad {
+            key.push_str("<s> ");
+        }
+        for (i, w) in context.iter().enumerate() {
+            if i > 0 || pad > 0 {
+                key.push(' ');
+            }
+            key.push_str(w);
+        }
+        key
     }
 }
 

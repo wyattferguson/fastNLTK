@@ -135,11 +135,33 @@ impl FreqDist {
     }
     #[pyo3(signature = (n=None))]
     fn most_common(&self, n: Option<usize>) -> Vec<(String, u64)> {
-        let mut items: Vec<_> = self.counts.iter().map(|(k, v)| (k.to_string(), *v)).collect();
-        items.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
         match n {
-            Some(n) => items.into_iter().take(n).collect(),
-            None => items,
+            Some(k) if k < self.counts.len() / 4 => {
+                // Binary heap for top-k: O(N log k) instead of O(N log N)
+                use std::collections::BinaryHeap;
+                let mut heap: BinaryHeap<(u64, &str)> = BinaryHeap::with_capacity(k);
+                for (sample, count) in &self.counts {
+                    // Use reverse ordering for min-heap behavior
+                    if heap.len() < k {
+                        heap.push((*count, sample.as_str()));
+                    } else if *count > heap.peek().map(|h| h.0).unwrap_or(0) {
+                        heap.pop();
+                        heap.push((*count, sample.as_str()));
+                    }
+                }
+                let mut items: Vec<_> = heap.into_sorted_vec();
+                items.reverse(); // highest first
+                items.into_iter().map(|(c, s)| (s.to_string(), c)).collect()
+            }
+            _ => {
+                // Full sort for unbounded or large n
+                let mut items: Vec<_> = self.counts.iter().map(|(k, v)| (k.to_string(), *v)).collect();
+                items.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+                match n {
+                    Some(k) => items.into_iter().take(k).collect(),
+                    None => items,
+                }
+            }
         }
     }
     #[pyo3(signature = (n=None))]

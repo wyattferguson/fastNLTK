@@ -16,7 +16,9 @@ fn edit_distance(s1: &str, s2: &str, substitution_cost: u32, transpositions: boo
 }
 
 fn compute_edit_distance(s1: &str, s2: &str, sub_cost: usize, trans: bool) -> usize {
-    let (xl, yl) = (s1.chars().count(), s2.chars().count());
+    let c1: Vec<char> = s1.chars().collect();
+    let c2: Vec<char> = s2.chars().collect();
+    let (xl, yl) = (c1.len(), c2.len());
     if xl == 0 {
         return yl * sub_cost.min(1);
     }
@@ -26,19 +28,14 @@ fn compute_edit_distance(s1: &str, s2: &str, sub_cost: usize, trans: bool) -> us
     let mut prev: Vec<usize> = (0..=yl).collect();
     let mut curr = vec![0; yl + 1];
     let mut prev_prev = prev.clone();
-    for (i, c1) in s1.chars().enumerate() {
+    for (i, &ch1) in c1.iter().enumerate() {
         curr[0] = i + 1;
-        for (j, c2) in s2.chars().enumerate() {
-            let cost = if c1 == c2 { 0 } else { sub_cost };
+        for (j, &ch2) in c2.iter().enumerate() {
+            let cost = if ch1 == ch2 { 0 } else { sub_cost };
             let mut best = prev[j + 1] + 1;
             best = best.min(curr[j] + 1);
             best = best.min(prev[j] + cost);
-            if trans
-                && i > 0
-                && j > 0
-                && s1.chars().nth(i - 1) == Some(c2)
-                && s1.chars().nth(i) == Some(s2.chars().nth(j - 1).unwrap())
-            {
+            if trans && i > 0 && j > 0 && c1[i - 1] == ch2 && ch1 == c2[j - 1] {
                 best = best.min(prev_prev[j - 1] + sub_cost);
             }
             curr[j + 1] = best;

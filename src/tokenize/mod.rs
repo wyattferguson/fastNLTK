@@ -72,16 +72,15 @@ pub fn sent_tokenize_py(py: Python<'_>, text: &str, language: &str) -> PyResult<
     let result = py.detach(|| {
         let mut sentences = Vec::new();
         let mut start = 0;
-        let bytes = text.as_bytes();
-        for (i, _) in text.char_indices() {
-            if i > 0
-                && (bytes[i - 1] == b'.' || bytes[i - 1] == b'!' || bytes[i - 1] == b'?')
-                && i + 1 < bytes.len()
-                && bytes[i] == b' '
-            {
-                sentences.push(text[start..i].to_string());
-                start = i + 1;
+        let mut prev_char: Option<(usize, char)> = None;
+        for (i, c) in text.char_indices() {
+            if let Some((prev_i, prev_c)) = prev_char {
+                if (prev_c == '.' || prev_c == '!' || prev_c == '?') && c == ' ' {
+                    sentences.push(text[start..prev_i + prev_c.len_utf8()].to_string());
+                    start = i + c.len_utf8();
+                }
             }
+            prev_char = Some((i, c));
         }
         if start < text.len() {
             sentences.push(text[start..].to_string());

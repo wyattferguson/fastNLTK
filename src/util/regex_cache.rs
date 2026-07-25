@@ -1,34 +1,42 @@
 //! Regex compilation cache.
 //!
-//! Uses `parking_lot::Mutex` over `HashMap`. The lock is dropped during
-//! compilation so other threads aren't blocked by slow regex builds.
-//! For `PyO3` single-threaded usage this is overkill but harmless.
+//! Uses `parking_lot::RwLock` over `HashMap` to allow concurrent reads.
+//! Write lock only taken for cache-miss compilation (rare after warmup).
 //! For rayon-based parallel tokenization, consider `dashmap`.
 
 use std::collections::HashMap;
 
-use parking_lot::Mutex;
+use parking_lot::RwLock;
 use regex::Regex;
 use std::sync::LazyLock;
 
-static REGEX_CACHE: LazyLock<Mutex<HashMap<(String, u32), Regex>>> =
-    LazyLock::new(|| Mutex::new(HashMap::new()));
+static REGEX_CACHE: LazyLock<RwLock<HashMap<(String, u32), Regex>>> =
+    LazyLock::new(|| RwLock::new(HashMap::new()));
 
 /// Get or compile a regex, caching it by pattern+flags.
 pub fn get_or_compile(pattern: &str, flags: u32) -> Result<Regex, regex::Error> {
     let key = (pattern.to_string(), flags);
-    let cache = REGEX_CACHE.lock();
 
-    if let Some(re) = cache.get(&key) {
-        return Ok(re.clone());
+    // Fast path: check cache with read lock
+    {
+        let cache = REGEX_CACHE.read();
+        if let Some(re) = cache.get(&key) {
+            return Ok(re.clone());
+        }
     }
 
-    // Drop lock during compilation so other threads aren't blocked
-    drop(cache);
+    // Compile outside any lock (regex compilation is expensive)
     let re = compile_regex(pattern, flags)?;
 
-    // Re-acquire lock to store
-    REGEX_CACHE.lock().insert(key, re.clone());
+    // Write lock to insert
+    {
+        let mut cache = REGEX_CACHE.write();
+        // Check again — another thread may have inserted while we compiled
+        if let Some(existing) = cache.get(&key) {
+            return Ok(existing.clone());
+        }
+        cache.insert(key, re.clone());
+    }
 
     Ok(re)
 }

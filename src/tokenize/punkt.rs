@@ -27,13 +27,10 @@ impl PunktParams {
     }
 
     /// Check if a word is a known abbreviation.
-    /// NLTK stores abbreviations in lowercase — match case-insensitively.
+    /// Abbreviation types are stored lowercase for single case-insensitive lookup.
     fn is_abbrev(&self, word: &str) -> bool {
         let stripped = word.trim_end_matches('.');
-        let lower = stripped.to_lowercase();
-        self.abbrev_types.contains(stripped)
-            || self.abbrev_types.contains(word)
-            || self.abbrev_types.contains(&lower)
+        self.abbrev_types.contains(&stripped.to_lowercase())
     }
 
     /// Check if a word pair is a known collocation.
@@ -72,12 +69,12 @@ impl PunktSentenceTokenizer {
         if let Some(p) = params {
             let mut pparams = PunktParams::new();
 
-            // Load abbreviation types
+            // Load abbreviation types (lowercase for case-insensitive lookup)
             if let Ok(Some(abbrev)) = p.get_item("abbrev_types") {
                 if let Ok(set) = abbrev.cast::<PySet>() {
                     for item in set.iter() {
                         if let Ok(s) = item.extract::<String>() {
-                            pparams.abbrev_types.insert(s);
+                            pparams.abbrev_types.insert(s.to_lowercase());
                         }
                     }
                 }
@@ -324,18 +321,18 @@ mod tests {
 
     fn test_params() -> PunktParams {
         let mut p = PunktParams::new();
-        p.abbrev_types.insert("Mr".to_string());
-        p.abbrev_types.insert("Dr".to_string());
-        p.abbrev_types.insert("Mrs".to_string());
-        p.abbrev_types.insert("Ms".to_string());
-        p.abbrev_types.insert("U.S".to_string());
-        p.abbrev_types.insert("Ph.D".to_string());
+        p.abbrev_types.insert("mr".to_string());
+        p.abbrev_types.insert("dr".to_string());
+        p.abbrev_types.insert("mrs".to_string());
+        p.abbrev_types.insert("ms".to_string());
+        p.abbrev_types.insert("u.s".to_string());
+        p.abbrev_types.insert("ph.d".to_string());
         p.abbrev_types.insert("e.g".to_string());
         p.abbrev_types.insert("i.e".to_string());
         p.abbrev_types.insert("vs".to_string());
-        p.abbrev_types.insert("Inc".to_string());
-        p.abbrev_types.insert("Ltd".to_string());
-        p.abbrev_types.insert("Dept".to_string());
+        p.abbrev_types.insert("inc".to_string());
+        p.abbrev_types.insert("ltd".to_string());
+        p.abbrev_types.insert("dept".to_string());
         p.sent_starters.insert("the".to_string());
         p.sent_starters.insert("he".to_string());
         p.sent_starters.insert("she".to_string());
