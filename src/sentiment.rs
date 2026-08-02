@@ -248,9 +248,7 @@ fn scalar_inc_dec(word: &str, valence: f64, is_cap_diff: bool) -> f64 {
     };
     let s = if valence < 0.0 { -scalar } else { scalar };
     // ALL CAPS booster gets extra C_INCR
-    if word.chars().any(char::is_uppercase)
-        && !word.chars().any(char::is_lowercase)
-        && is_cap_diff
+    if word.chars().any(char::is_uppercase) && !word.chars().any(char::is_lowercase) && is_cap_diff
     {
         if valence > 0.0 {
             s + C_INCR
