@@ -18,22 +18,22 @@ class CFG:
         self._impl = _RustCFG(start, productions)
 
     @classmethod
-    def from_string(cls, grammar_str):
+    def from_string(cls, grammar_str: str) -> any:
         return cls.__new__(cls)._from_impl(_RustCFG.from_string(grammar_str))
 
     @classmethod
-    def _from_impl(cls, impl):
+    def _from_impl(cls, impl: any) -> any:
         inst = cls.__new__(cls)
         inst._impl = impl
         return inst
 
-    def start(self):
+    def start(self) -> any:
         return self._impl.start()
 
-    def productions(self):
+    def productions(self) -> list[any]:
         return self._impl.productions()
 
-    def nonterminals(self):
+    def nonterminals(self) -> list[any]:
         return self._impl.nonterminals()
 
     def __len__(self):

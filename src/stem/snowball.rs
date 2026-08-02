@@ -81,9 +81,9 @@ mod tests {
     #[test]
     fn test_snowball_dutch() {
         let stemmer = SnowballStemmer::new("dutch").unwrap();
-        let stemmed = stemmer.stem("lopen");
+        let result = stemmer.stem("lopen");
         // rust-stemmers Dutch algorithm produces "lop" (valid stem)
-        assert_eq!(stemmed, "lop");
+        assert_eq!(result, "lop");
     }
 
     #[test]

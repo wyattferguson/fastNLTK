@@ -37,10 +37,10 @@ class TextCat:
     def __init__(self):
         self._impl = _RustTextCat()
 
-    def guess_language(self, text):
+    def guess_language(self, text: str) -> str | None:
         return self._impl.guess_language(text)
 
-    def guess_language_scores(self, text):
+    def guess_language_scores(self, text: str) -> list[tuple[str, float]]:
         return self._impl.guess_language_scores(text)
 
     @staticmethod
@@ -55,7 +55,13 @@ class MaxentClassifier:
         self._impl = None  # set by train()
 
     @classmethod
-    def train(cls, labeled_featuresets, max_iter=100, algorithm="gis", **kwargs):
+    def train(
+        cls,
+        labeled_featuresets: list[tuple[dict, str]],
+        max_iter: int = 100,
+        algorithm: str = "gis",
+        **kwargs,
+    ):
         inst = cls()
         sigma = kwargs.get("gaussian_prior_sigma", 0.0)
         inst._impl = _RustMaxentClassifier()
@@ -68,10 +74,10 @@ class MaxentClassifier:
     def labels(self) -> list[str]:
         return self._impl.labels()
 
-    def prob_classify(self, features):
+    def prob_classify(self, features: dict) -> any:
         return self._impl.prob_classify(features)
 
-    def show_most_informative_features(self, n=10):
+    def show_most_informative_features(self, n: int = 10) -> None:
         return self._impl.show_most_informative_features(n)
 
 

@@ -58,12 +58,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bumpalo"
-version = "3.20.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649"
-
-[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -196,12 +190,10 @@ name = "fastnltk"
 version = "0.5.4"
 dependencies = [
  "approx",
- "bumpalo",
  "hashbrown 0.17.1",
  "logos",
  "memchr",
  "mimalloc",
- "nltk-metrics",
  "parking_lot",
  "phf",
  "postcard",
@@ -396,12 +388,6 @@ checksum = "2d4139bb28d14ad1facf21d5eb8825051b326e172d216b39f6d31df53cc97862"
 dependencies = [
  "libmimalloc-sys",
 ]
-
-[[package]]
-name = "nltk-metrics"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f5f24f71b8c084047326a25048112fb097ac3d80e0e709a060b8c5caf8aa828"
 
 [[package]]
 name = "num-traits"

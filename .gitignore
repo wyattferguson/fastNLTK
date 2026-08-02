@@ -17,7 +17,7 @@ benchmarks/__pycache__/
 # Rust
 target/
 debug/
-**/*(.rs.bk
+**/*.rs.bk
 *.pdb
 *.txt
 

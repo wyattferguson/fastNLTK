@@ -84,7 +84,7 @@ impl Tree {
     #[allow(deprecated)]
     fn __getitem__(&self, py: Python<'_>, index: isize) -> Py<PyAny> {
         let idx = if index < 0 {
-            (self.children.len() as isize + index) as usize
+            self.children.len().checked_add_signed(index).unwrap_or(0)
         } else {
             index as usize
         };

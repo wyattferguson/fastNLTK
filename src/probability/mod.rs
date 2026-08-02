@@ -73,7 +73,7 @@ impl FreqDist {
             .collect()
     }
     fn samples(&self) -> Vec<String> {
-        let mut s: Vec<String> = self.counts.keys().map(std::string::ToString::to_string).collect();
+        let mut s: Vec<String> = self.counts.keys().map(ToString::to_string).collect();
         s.sort();
         s
     }
@@ -217,8 +217,7 @@ impl ConditionalFreqDist {
         Self { conditions: HashMap::new() }
     }
     fn conditions(&self) -> Vec<String> {
-        let mut conds: Vec<String> =
-            self.conditions.keys().map(std::string::ToString::to_string).collect();
+        let mut conds: Vec<String> = self.conditions.keys().map(ToString::to_string).collect();
         conds.sort();
         conds
     }

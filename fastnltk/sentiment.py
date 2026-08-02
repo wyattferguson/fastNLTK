@@ -14,7 +14,7 @@ class SentimentIntensityAnalyzer:
     def __init__(self):
         self._impl = _RustSentimentIntensityAnalyzer()
 
-    def polarity_scores(self, text):
+    def polarity_scores(self, text: str) -> dict[str, float]:
         return self._impl.polarity_scores(text)
 
 

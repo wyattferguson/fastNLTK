@@ -174,7 +174,8 @@ def _demo_tokenize() -> None:
         print(f"    word_tokenize -> {word_tokenize(SAMPLE)[:15]}...")
 
     def _regexp_tokenize() -> None:
-        print(f"    regexp_tokenize(\\w+) -> {regexp_tokenize(SAMPLE, r'\\w+')[:10]}...")
+        pat = r"\\w+"
+        print(f"    regexp_tokenize({pat}) -> {regexp_tokenize(SAMPLE, pat)[:10]}...")
 
     def _regexp_cls() -> None:
         t = RegexpTokenizer(r"\d+")
@@ -190,11 +191,13 @@ def _demo_tokenize() -> None:
 
     def _blankline() -> None:
         t = BlanklineTokenizer()
-        print(f"    BlanklineTokenizer -> {t.tokenize('a\\n\\nb\\n\\nc')}")
+        s = "a\n\nb\n\nc"
+        print(f"    BlanklineTokenizer -> {t.tokenize(s)}")
 
     def _line() -> None:
         t = LineTokenizer()
-        print(f"    LineTokenizer -> {t.tokenize('a\\nb\\nc')}")
+        s = "a\nb\nc"
+        print(f"    LineTokenizer -> {t.tokenize(s)}")
 
     def _space() -> None:
         t = SpaceTokenizer()
@@ -202,7 +205,8 @@ def _demo_tokenize() -> None:
 
     def _tab() -> None:
         t = TabTokenizer()
-        print(f"    TabTokenizer -> {t.tokenize('a\\tb\\tc')}")
+        s = "a\tb\tc"
+        print(f"    TabTokenizer -> {t.tokenize(s)}")
 
     def _treebank() -> None:
         t = TreebankWordTokenizer()

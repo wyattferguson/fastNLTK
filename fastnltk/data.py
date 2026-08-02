@@ -15,7 +15,7 @@ except ImportError:
     _rust_find = None
 
 
-def find(resource_name, paths=None):
+def find(resource_name: str, paths: list[str] | None = None) -> str:
     """Find an NLTK resource file by name — Rust-accelerated path resolution.
 
     Searches standard nltk_data directories (NLTK_DATA env, ~/nltk_data,
@@ -35,7 +35,7 @@ def find(resource_name, paths=None):
 # ── Rust model loading helpers ───────────────────────────
 
 
-def load_punkt_model(language="english"):
+def load_punkt_model(language: str = "english") -> any:
     """Load a Punkt tokenizer model from nltk_data and return as dict."""
     path = find(f"tokenizers/punkt/{language}.pickle")
     with open(path, "rb") as f:

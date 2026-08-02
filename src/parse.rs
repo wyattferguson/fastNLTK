@@ -122,7 +122,7 @@ impl CFG {
     }
 }
 
-// ── Earley State with backpointers for tree building ──
+// Earley State with backpointers for tree building
 
 type StateId = (usize, usize); // (pos_in_chart, index_in_chart[pos])
 
@@ -164,7 +164,7 @@ fn is_terminal(s: &str) -> bool {
     !s.starts_with(|c: char| c.is_uppercase()) || s.starts_with('\'') || s.starts_with('"')
 }
 
-// ── EarleyChartParser ──
+// EarleyChartParser
 
 #[pyclass(name = "EarleyChartParser", module = "fastnltk._rust")]
 pub struct EarleyChartParser;
@@ -232,7 +232,9 @@ impl EarleyChartParser {
                         }
                     }
                 } else {
-                    let next = state.next_symbol().unwrap();
+                    let next = state
+                        .next_symbol()
+                        .expect("Earley state should have at least one symbol to predict/scan");
                     if is_terminal(next) {
                         if i < n && next == tokens[i] {
                             let mut s = state.advance();

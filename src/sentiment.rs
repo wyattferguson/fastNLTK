@@ -7,13 +7,13 @@ use std::collections::HashMap;
 use pyo3::prelude::*;
 use unicode_segmentation::UnicodeSegmentation;
 
-// ── Constants matching NLTK ────────────────────────────────────────────
+// Constants matching NLTK
 
 const C_INCR: f64 = 0.733;
 const N_SCALAR: f64 = -0.74;
 const ALPHA: f64 = 15.0;
 
-// ── Lexicon ─────────────────────────────────────────────────────────────
+// Lexicon
 
 static DEFAULT_LEXICON: phf::Map<&'static str, f64> = phf_map! {
     // Values from NLTK's vader_lexicon.txt (v3.10)
@@ -111,7 +111,7 @@ fn is_negated(word: &str) -> bool {
     false
 }
 
-// ── Analyzer ────────────────────────────────────────────────────────────
+// Analyzer
 
 #[pyclass(name = "SentimentIntensityAnalyzer", module = "fastnltk._rust")]
 pub struct SentimentIntensityAnalyzer;

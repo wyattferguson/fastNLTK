@@ -85,7 +85,7 @@ pub fn bincode_cache_path(resource_name: &str) -> PathBuf {
     cache
 }
 
-// ── Python-visible functions ───────────────────────────────────────────────
+// Python-visible functions
 
 /// `find(name)` — resolve an NLTK resource name to an absolute path.
 #[pyfunction]

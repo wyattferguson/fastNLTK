@@ -44,34 +44,34 @@ class FreqDist:
         else:
             self._impl = _RustFreqDist(samples or [])
 
-    def N(self):
+    def N(self) -> int:
         return self._impl.N()
 
-    def B(self):
+    def B(self) -> int:
         return self._impl.B()
 
-    def freq(self, sample):
+    def freq(self, sample: str) -> int:
         return self._impl.freq(sample)
 
-    def max(self):
+    def max(self) -> str | None:
         return self._impl.max()
 
-    def hapaxes(self):
+    def hapaxes(self) -> list[str]:
         return self._impl.hapaxes()
 
-    def samples(self):
+    def samples(self) -> list[str]:
         return self._impl.samples()
 
-    def update(self, samples):
+    def update(self, samples: any) -> None:
         self._impl.update(samples)
 
-    def most_common(self, n=None):
+    def most_common(self, n: int | None = None) -> list[tuple[str, int]]:
         return self._impl.most_common(n)
 
     def __getitem__(self, sample):
         return self._impl[sample]
 
-    def get(self, sample, default=0):
+    def get(self, sample: str, default: int = 0) -> int:
         try:
             if sample in self._impl:
                 return self._impl[sample]
@@ -79,7 +79,7 @@ class FreqDist:
         except Exception:
             return default
 
-    def __setitem__(self, sample, count):
+    def __setitem__(self, sample: str, count: int) -> None:
         current = self._impl[sample] if sample in self._impl else 0
         if count >= current:
             self._impl.inc(sample, count - current)
@@ -93,28 +93,28 @@ class FreqDist:
     def __add__(self, other):
         return self._impl + other
 
-    def copy(self):
+    def copy(self) -> any:
         return self._impl.copy()
 
-    def keys(self):
+    def keys(self) -> list[str]:
         return self._impl.samples()
 
-    def values(self):
+    def values(self) -> list[int]:
         return self._impl.values()
 
-    def items(self):
+    def items(self) -> list[tuple[str, int]]:
         return self._impl.items()
 
-    def inc(self, sample, count=1):
+    def inc(self, sample: str, count: int = 1) -> None:
         self._impl.inc(sample, count)
 
     def __iter__(self):
         return iter(self._impl.samples())
 
-    def tabulate(self, *args, **kwargs):
+    def tabulate(self, *args: any, **kwargs: any) -> None:
         return _nltk_probability.FreqDist(self).tabulate(*args, **kwargs)
 
-    def plot(self, *args, **kwargs):
+    def plot(self, *args: any, **kwargs: any) -> None:
         return _nltk_probability.FreqDist(self).plot(*args, **kwargs)
 
 
@@ -136,19 +136,19 @@ class ConditionalFreqDist:
         wrapped._impl = result
         return wrapped
 
-    def conditions(self):
+    def conditions(self) -> list[str]:
         return self._impl.conditions()
 
     def N(self):
         return self._impl.N()
 
-    def inc(self, condition, sample):
+    def inc(self, condition: str, sample: str) -> None:
         self._impl.inc(condition, sample)
 
     def __len__(self):
         return self._impl.__len__()
 
-    def tabulate(self, *args, **kwargs):
+    def tabulate(self, *args: any, **kwargs: any) -> None:
         return _nltk_probability.ConditionalFreqDist().tabulate(*args, **kwargs)
 
 

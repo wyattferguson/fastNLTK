@@ -1,3 +1,4 @@
+#![allow(clippy::needless_range_loop)]
 //! HMM tagger — supervised Hidden Markov Model for POS tagging.
 //!
 //! Estimates transition and emission probabilities from labeled training data.
@@ -113,6 +114,7 @@ impl HiddenMarkovModelTagger {
             if total == 0.0 {
                 continue;
             }
+            #[allow(clippy::needless_range_loop)]
             for to in 0..k {
                 let count = trans_counts[from * k + to];
                 if count > 0.0 || from == self.start_id {

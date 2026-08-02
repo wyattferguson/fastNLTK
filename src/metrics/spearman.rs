@@ -11,8 +11,8 @@ fn spearman(x: Vec<f64>, y: Vec<f64>) -> f64 {
     let n = x.len();
     let mut x_ranks: Vec<(usize, f64)> = x.into_iter().enumerate().collect();
     let mut y_ranks: Vec<(usize, f64)> = y.into_iter().enumerate().collect();
-    x_ranks.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-    y_ranks.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+    x_ranks.sort_by(|a, b| a.1.partial_cmp(&b.1).expect("spearman: NaN in x ranks"));
+    y_ranks.sort_by(|a, b| a.1.partial_cmp(&b.1).expect("spearman: NaN in y ranks"));
 
     let mut rank_x = vec![0.0_f64; n];
     let mut rank_y = vec![0.0_f64; n];

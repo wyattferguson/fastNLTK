@@ -148,7 +148,9 @@ def _get_tagger():
     return tagger
 
 
-def pos_tag(tokens: list[str], tagset=None, lang="eng"):
+def pos_tag(
+    tokens: list[str], tagset: str | None = None, lang: str = "eng"
+) -> list[tuple[str, str]]:
     """POS tagging (Rust-accelerated).
 
     Returns a list of (word, tag) tuples.
@@ -164,7 +166,9 @@ def pos_tag(tokens: list[str], tagset=None, lang="eng"):
         return _nltk_tag.pos_tag(tokens, tagset, lang)
 
 
-def pos_tag_sents(sentences: list[list[str]], tagset=None, lang="eng"):
+def pos_tag_sents(
+    sentences: list[list[str]], tagset: str | None = None, lang: str = "eng"
+) -> list[list[tuple[str, str]]]:
     """POS tagging for multiple sentences (Rust-accelerated)."""
     try:
         tagger = _get_tagger()
@@ -203,13 +207,13 @@ class TnT:
     def __init__(self):
         self._impl = _RustTnT()
 
-    def train(self, sentences):
+    def train(self, sentences: list[list[tuple[str, str]]]) -> None:
         self._impl.train(sentences)
 
-    def tag(self, words):
+    def tag(self, words: list[str]) -> list[tuple[str, str]]:
         return self._impl.tag(words)
 
-    def tag_sents(self, sentences):
+    def tag_sents(self, sentences: list[list[str]]) -> list[list[tuple[str, str]]]:
         return self._impl.tag_sents(sentences)
 
 

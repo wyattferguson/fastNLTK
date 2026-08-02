@@ -61,6 +61,7 @@ const HASH_VERSION: u32 = 1;
 
 #[pyclass(name = "PerceptronTagger", module = "fastnltk._rust")]
 #[derive(Clone, Serialize, Deserialize)]
+#[allow(clippy::unsafe_derive_deserialize)]
 pub struct PerceptronTagger {
     /// Hash algorithm version: bump if `fxhash_bytes`/`fxhash` implementation changes.
     /// Used to detect stale cache files that need re-generation.

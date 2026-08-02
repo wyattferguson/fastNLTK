@@ -28,7 +28,7 @@ class BigramCollocationFinder:
         self._impl = None
 
     @classmethod
-    def from_words(cls, words, window_size=2):
+    def from_words(cls, words: list[str], window_size: int = 2) -> any:
         inst = cls.__new__(cls)
         inst._impl = _RustBigramCollocationFinder.from_words(words, window_size)
         # Build Python-side word/ngram freq dicts for NLTK compat
@@ -41,14 +41,14 @@ class BigramCollocationFinder:
         return inst
 
     @property
-    def word_fd(self):
+    def word_fd(self) -> any:
         return self._word_fd
 
     @property
-    def ngram_fd(self):
+    def ngram_fd(self) -> any:
         return self._ngram_fd
 
-    def score_ngrams(self, score_fn):
+    def score_ngrams(self, score_fn: any) -> list[tuple[any, float]]:
         if self._impl:
             name = getattr(score_fn, "__name__", str(score_fn)).lower()
             m = {
@@ -60,7 +60,7 @@ class BigramCollocationFinder:
             return self._impl.score_ngrams(m.get(name, "raw_freq"))
         return []
 
-    def nbest(self, score_fn, n):
+    def nbest(self, score_fn: any, n: int) -> list[any]:
         if self._impl:
             name = getattr(score_fn, "__name__", str(score_fn)).lower()
             m = {
@@ -72,11 +72,11 @@ class BigramCollocationFinder:
             return self._impl.nbest(m.get(name, "raw_freq"), n)
         return []
 
-    def apply_freq_filter(self, min_freq):
+    def apply_freq_filter(self, min_freq: int) -> any:
         if self._impl:
             self._impl.apply_freq_filter(min_freq)
 
-    def apply_word_filter(self, filter_fn):
+    def apply_word_filter(self, filter_fn: any) -> any:
         pass
 
 
@@ -89,7 +89,7 @@ class TrigramCollocationFinder:
         self._impl = None
 
     @classmethod
-    def from_words(cls, words, window_size=3):
+    def from_words(cls, words: list[str], window_size: int = 3) -> any:
         inst = cls.__new__(cls)
         inst._impl = _RustTrigramCollocationFinder.from_words(words, window_size)
         from collections import Counter
@@ -149,7 +149,7 @@ class QuadgramCollocationFinder:
         self._impl = None
 
     @classmethod
-    def from_words(cls, words, window_size=4):
+    def from_words(cls, words: list[str], window_size: int = 4) -> any:
         inst = cls.__new__(cls)
         inst._impl = _RustQuadgramCollocationFinder.from_words(words, window_size)
         from collections import Counter

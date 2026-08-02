@@ -109,7 +109,7 @@ impl PlaintextCorpusReader {
     }
 }
 
-// ── TaggedCorpusReader ──
+// TaggedCorpusReader
 //
 // Reads word/tag pairs from files in the format: word/tag word/tag ...
 
@@ -205,7 +205,7 @@ impl TaggedCorpusReader {
     }
 }
 
-// ── CategorizedPlaintextCorpusReader ──
+// CategorizedPlaintextCorpusReader
 //
 // Reads plaintext files organized in category subdirectories.
 

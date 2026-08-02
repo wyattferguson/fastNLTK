@@ -68,33 +68,27 @@ impl DRS {
         Self::parse_drs(input, 0).map(|(drs, _)| drs)
     }
 
+    #[allow(clippy::too_many_lines)]
     fn parse_drs(input: &str, pos: usize) -> Result<(Self, usize), String> {
         let chars: Vec<char> = input.chars().collect();
         let mut i = pos;
 
-        // Skip whitespace
         while i < chars.len() && chars[i].is_whitespace() {
             i += 1;
         }
-
-        // Expect '('
         if i >= chars.len() || chars[i] != '(' {
             return Err(format!("Expected '(' at position {i}"));
         }
         i += 1;
 
-        // Skip whitespace
         while i < chars.len() && chars[i].is_whitespace() {
             i += 1;
         }
-
-        // Expect '['
         if i >= chars.len() || chars[i] != '[' {
             return Err(format!("Expected '[' at position {i}"));
         }
         i += 1;
 
-        // Parse universe: comma-separated variables
         let mut universe = Vec::new();
         loop {
             while i < chars.len() && chars[i].is_whitespace() {
@@ -106,7 +100,6 @@ impl DRS {
             if chars[i] == ']' {
                 break;
             }
-            // Read variable name
             let mut name = String::new();
             while i < chars.len()
                 && (chars[i].is_alphanumeric() || chars[i] == '_' || chars[i] == '\'')
@@ -124,34 +117,26 @@ impl DRS {
                 i += 1;
             }
         }
-        // Skip ']'
         if i < chars.len() && chars[i] == ']' {
             i += 1;
         }
 
-        // Skip whitespace
         while i < chars.len() && chars[i].is_whitespace() {
             i += 1;
         }
-
-        // Expect ','
         if i >= chars.len() || chars[i] != ',' {
             return Err(format!("Expected ',' after universe at position {i}"));
         }
         i += 1;
 
-        // Skip whitespace
         while i < chars.len() && chars[i].is_whitespace() {
             i += 1;
         }
-
-        // Expect '['
         if i >= chars.len() || chars[i] != '[' {
             return Err(format!("Expected '[' at position {i}"));
         }
         i += 1;
 
-        // Parse conditions
         let mut conditions = Vec::new();
         loop {
             while i < chars.len() && chars[i].is_whitespace() {
@@ -262,17 +247,12 @@ impl DRS {
             }
         }
 
-        // Skip ']'
         if i < chars.len() && chars[i] == ']' {
             i += 1;
         }
-
-        // Skip whitespace
         while i < chars.len() && chars[i].is_whitespace() {
             i += 1;
         }
-
-        // Expect ')'
         if i >= chars.len() || chars[i] != ')' {
             return Err(format!("Expected ')' at position {i}"));
         }

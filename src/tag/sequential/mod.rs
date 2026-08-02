@@ -1,7 +1,17 @@
 //! Sequential taggers — Rust-accelerated lookup-based POS taggers.
 
-pub mod taggers;
-pub use taggers::{AffixTagger, BigramTagger, RegexpTagger, TrigramTagger, UnigramTagger};
+pub mod affix;
+pub mod bigram;
+pub mod regexp;
+pub mod tagger_utils;
+pub mod trigram;
+pub mod unigram;
+
+pub use affix::AffixTagger;
+pub use bigram::BigramTagger;
+pub use regexp::RegexpTagger;
+pub use trigram::TrigramTagger;
+pub use unigram::UnigramTagger;
 
 use pyo3::prelude::*;
 use smol_str::SmolStr;
@@ -37,10 +47,10 @@ impl DefaultTagger {
 
 pub fn register_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<DefaultTagger>()?;
-    m.add_class::<taggers::UnigramTagger>()?;
-    m.add_class::<taggers::BigramTagger>()?;
-    m.add_class::<taggers::TrigramTagger>()?;
-    m.add_class::<taggers::AffixTagger>()?;
-    m.add_class::<taggers::RegexpTagger>()?;
+    m.add_class::<UnigramTagger>()?;
+    m.add_class::<BigramTagger>()?;
+    m.add_class::<TrigramTagger>()?;
+    m.add_class::<AffixTagger>()?;
+    m.add_class::<RegexpTagger>()?;
     Ok(())
 }

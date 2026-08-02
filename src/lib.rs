@@ -3,6 +3,7 @@
 #![allow(deprecated)] // PyO3 0.29: FromPyObject for Clone #[pyclass]
 #![allow(clippy::cast_precision_loss)] // NLP: counts/lengths to f64, won't exceed 2^52
 #![allow(clippy::needless_pass_by_value)] // PyO3 sigs: #[pymethods] needs owned types
+#![allow(clippy::unused_self)] // PyO3 #[pymethods] often don't use self
 
 // System allocator on Linux aarch64 (manylinux GCC too old for
 // -Wdate-time injected by cc crate into libmimalloc-sys).
@@ -43,68 +44,26 @@ pub mod util;
 /// The Python extension module: `fastnltk._rust`.
 #[pymodule]
 fn _rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // ── Tokenization ─────────────────────────────────────
     tokenize::register_module(m)?;
-
-    // ── Stemming ─────────────────────────────────────────
     stem::register_module(m)?;
-
-    // ── Data ───────────────────────────────────────────
     data::register_module(m)?;
-
-    // ── Tagging ──────────────────────────────────────────
     tag::register_module(m)?;
-
-    // ── Probability ──────────────────────────────────────
     probability::register_module(m)?;
-
-    // ── Metrics ──────────────────────────────────────────
     metrics::register_module(m)?;
-
-    // ── Language Models ────────────────────────────────
     lm::register_module(m)?;
-
-    // ── Classification ───────────────────────────────────
     classify::register_module(m)?;
-
-    // ── Collocations ─────────────────────────────────────
     collocations::register_module(m)?;
-
-    // ── Sentiment ────────────────────────────────────────
     sentiment::register_module(m)?;
-
-    // ── Translation ──────────────────────────────────────
     translate::register_module(m)?;
-
-    // ── Chunking ───────────────────────────────────────
     chunk::register_module(m)?;
-
-    // ── CCG ──────────────────────────────────────────
     ccg::register_module(m)?;
-
-    // ── Inference ────────────────────────────────────────
     inference::register_module(m)?;
-
-    // ── DRT ───────────────────────────────────────────
     drt::register_module(m)?;
-
-    // ── Chat ──────────────────────────────────────────
     chat::register_module(m)?;
-
-    // ── Clustering ────────────────────────────────────
     cluster::register_module(m)?;
-
-    // ── Corpus ─────────────────────────────────────────
     corpus::register_module(m)?;
-
-    // ── Tree ─────────────────────────────────────────────
     tree::register_module(m)?;
-
-    // ── Parsing ────────────────────────────────────────
     parse::register_module(m)?;
-
-    // ── Semantics ──────────────────────────────────────
     sem::register_module(m)?;
-
     Ok(())
 }

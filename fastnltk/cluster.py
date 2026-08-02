@@ -18,13 +18,13 @@ class KMeansClusterer:
     def __init__(self, num_clusters, max_iterations=50):
         self._impl = _RustKMeansClusterer(num_clusters, max_iterations)
 
-    def cluster(self, vectors):
+    def cluster(self, vectors: list[list[float]]) -> list[int]:
         return self._impl.cluster(vectors)
 
-    def classify(self, vector):
+    def classify(self, vector: list[float]) -> int:
         return self._impl.classify(vector)
 
-    def centroids(self):
+    def centroids(self) -> list[list[float]]:
         return self._impl.centroids()
 
     def labels(self) -> list[str]:

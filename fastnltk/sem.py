@@ -45,9 +45,9 @@ __all__ = [
 ]
 
 
-def fromstring(formula, type_check=False):
+def fromstring(formula: str, type_check: bool = False) -> any:
     return _rust_fromstring(formula)
 
 
-def simplify(formula):
+def simplify(formula: any) -> any:
     return _rust_simplify(formula)

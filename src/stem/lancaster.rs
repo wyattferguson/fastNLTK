@@ -10,7 +10,7 @@ use pyo3::prelude::*;
 use rustc_hash::FxHashMap;
 use std::sync::LazyLock;
 
-// ── NLTK Lancaster rule set (124 rules in compact format) ───────────────────
+// NLTK Lancaster rule set (124 rules in compact format)
 
 /// Each rule string decodes to: (ending, `intact_flag`, `remove_ct`, append, cont)
 /// Format: `{ending}{*}?{remove_count}{append}{. or >}`
@@ -140,7 +140,7 @@ static RULES: &[&str] = &[
 static PREFIXES: &[&str] =
     &["kilo", "micro", "milli", "intra", "ultra", "mega", "nano", "pico", "pseudo"];
 
-// ── Rule parsing ───────────────────────────────────────────────────────────
+// Rule parsing
 
 /// A parsed Lancaster stemming rule.
 struct Rule {
@@ -188,10 +188,8 @@ fn parse_rule(s: &str) -> Option<Rule> {
     let raw_ending = &s[..digit_pos];
 
     // Check for intact flag (*) at end of ending section
-    let (ending_forward, intact) = match raw_ending.strip_suffix('*') {
-        Some(stripped) => (stripped, true),
-        None => (raw_ending, false),
-    };
+    let (ending_forward, intact) =
+        raw_ending.strip_suffix('*').map_or((raw_ending, false), |stripped| (stripped, true));
     // NLTK stores endings in reverse — reverse them for forward comparison
     let ending: String = ending_forward.chars().rev().collect();
 
@@ -206,7 +204,7 @@ fn parse_rule(s: &str) -> Option<Rule> {
     Some(Rule { ending, intact: intact && !ending_forward.is_empty(), remove_count, append, cont })
 }
 
-// ── Stemming logic ─────────────────────────────────────────────────────────
+// Stemming logic
 
 /// Check if a character is a vowel.
 const fn is_vowel(c: char) -> bool {

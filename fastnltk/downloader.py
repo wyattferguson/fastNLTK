@@ -7,7 +7,12 @@ Downloads NLTK data files (corpora, tokenizers, taggers).
 import nltk.downloader as _nltk_downloader
 
 
-def download(info_or_id=None, download_dir=None, quiet=False, force=False):
+def download(
+    info_or_id: str | None = None,
+    download_dir: str | None = None,
+    quiet: bool = False,
+    force: bool = False,
+) -> bool:
     """Download NLTK data.
 
     Same interface as nltk.download().
@@ -25,6 +30,6 @@ def download_gui():
     _nltk_downloader.download_gui()
 
 
-def update(package):
+def update(package: str) -> bool:
     """Update a package."""
     _nltk_downloader.update(package)

@@ -1,3 +1,4 @@
+#![allow(clippy::option_if_let_else)]
 //! `WordNet` lemmatizer — morphy algorithm in Rust.
 
 use std::collections::{HashMap, HashSet};

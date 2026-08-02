@@ -1,3 +1,4 @@
+#![allow(clippy::naive_bytecount)]
 //! Simple tokenizers: Space, Tab, Line, Char.
 //!
 //! `SpaceTokenizer` uses `memchr3`-accelerated scanning (SIMD where available)

@@ -42,42 +42,42 @@ Benchmarked on release builds against NLTK 3.10. [Full results →](BENCHMARKS.m
 
 | Operation                  | NLTK      | fastNLTK | Speedup  |
 | -------------------------- | --------- | -------- | -------- |
-| Maxent classifier train    | 68.26 ms  | 0.15 ms  | **455×** |
-| edit_distance              | 4.64 ms   | 0.02 ms  | **241×** |
-| windowdiff                 | 3.70 ms   | 0.03 ms  | **123×** |
-| Punkt sentence tokenizer   | 17.72 ms  | 0.16 ms  | **111×** |
-| HMM tagger                 | 17.45 ms  | 0.18 ms  | **98×**  |
-| TextTiling tokenizer       | 2.73 ms   | 0.03 ms  | **91×**  |
-| Treebank detokenizer       | 11.14 ms  | 0.20 ms  | **56×**  |
-| Tweet tokenizer            | 71.45 ms  | 1.54 ms  | **47×**  |
-| FOL expression parser      | 35.02 ms  | 0.97 ms  | **36×**  |
-| S-expression tokenizer     | 0.66 ms   | 0.02 ms  | **34×**  |
-| Lancaster stemmer          | 51.70 ms  | 1.80 ms  | **29×**  |
-| CFG grammar parser         | 0.11 ms   | 0.00 ms  | **28×**  |
-| VADER sentiment            | 29.69 ms  | 1.11 ms  | **27×**  |
-| Tree from_string           | 6.60 ms   | 0.96 ms  | **7×**   |
-| Treebank word tokenizer    | 27.53 ms  | 2.73 ms  | **10×**  |
+| TextTiling tokenizer       | 22043 ms  | 32 ms    | **698×** |
+| Maxent train               | 33 ms     | 0.08 ms  | **431×** |
+| windowdiff                 | 2.38 ms   | 0.01 ms  | **174×** |
+| edit_distance              | 2.44 ms   | 0.02 ms  | **144×** |
+| HMM tagger                 | 8.58 ms   | 0.10 ms  | **88×**  |
+| pk                         | 2.23 ms   | 0.03 ms  | **83×**  |
+| Treebank detokenizer       | 6.69 ms   | 0.12 ms  | **54×**  |
+| Sentiment (VADER)          | 67.54 ms  | 1.79 ms  | **38×**  |
+| Punkt sentence tokenizer   | 14.28 ms  | 0.43 ms  | **33×**  |
+| Expression.fromstring      | 16.06 ms  | 0.54 ms  | **30×**  |
+| Tweet tokenizer            | 83.00 ms  | 3.26 ms  | **25×**  |
+| CFG grammar parser         | 0.05 ms   | 0.00 ms  | **23×**  |
+| Quadgram collocations      | 98.74 ms  | 5.11 ms  | **19×**  |
+| Lancaster stemmer          | 31.50 ms  | 1.42 ms  | **22×**  |
+| Snowball stemmer           | 21.60 ms  | 1.77 ms  | **12×**  |
 
-Geometric mean across 51 benchmarks: **10.2×**. Module-level breakdown:
+Geometric mean across 51 benchmarks: **9.5×**. Module-level breakdown:
 
 | Module                        | Geo Mean | Top single |
 | ----------------------------- | -------- | ---------- |
-| [metrics](BENCHMARKS.md)      | **114×** | 241×       |
-| [sem](BENCHMARKS.md)          | **36×**  | 36×        |
-| [classify](BENCHMARKS.md)     | **29×**  | 455×       |
-| [sentiment](BENCHMARKS.md)    | **27×**  | 27×        |
-| [collocations](BENCHMARKS.md) | **15×**  | 21×        |
-| [stem](BENCHMARKS.md)         | **11×**  | 29×        |
-| [tokenize](BENCHMARKS.md)     | **10×**  | 111×       |
+| [metrics](BENCHMARKS.md)      | **128×** | 174×       |
+| [sentiment](BENCHMARKS.md)    | **38×**  | 38×        |
+| [sem](BENCHMARKS.md)          | **30×**  | 30×        |
+| [classify](BENCHMARKS.md)     | **25×**  | 431×       |
+| [collocations](BENCHMARKS.md) | **14×**  | 19×        |
+| [tree](BENCHMARKS.md)         | **11×**  | 11×        |
 | [translate](BENCHMARKS.md)    | **10×**  | 10×        |
+| [stem](BENCHMARKS.md)         | **9×**   | 22×        |
 | [chunk](BENCHMARKS.md)        | **9×**   | 9×         |
-| [tree](BENCHMARKS.md)         | **7×**   | 7×         |
-| [tag](BENCHMARKS.md)          | **5×**   | 98×        |
-| [probability](BENCHMARKS.md)  | **4×**   | 6×         |
-| [cluster](BENCHMARKS.md)      | **4×**   | 4×         |
-| [parse](BENCHMARKS.md)        | **4×**   | 28×        |
-| [ccg](BENCHMARKS.md)          | **3×**   | 3×         |
+| [tokenize](BENCHMARKS.md)     | **8×**   | 698×       |
+| [cluster](BENCHMARKS.md)      | **6×**   | 6×         |
+| [tag](BENCHMARKS.md)          | **5×**   | 88×        |
+| [parse](BENCHMARKS.md)        | **4×**   | 23×        |
+| [probability](BENCHMARKS.md)  | **4×**   | 4×         |
 | [chat](BENCHMARKS.md)         | **3×**   | 3×         |
+| [ccg](BENCHMARKS.md)          | **3×**   | 3×         |
 
 ## What's accelerated
 
