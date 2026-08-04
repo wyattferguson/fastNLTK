@@ -232,7 +232,9 @@ fn tokenize_wordpunct(text: &str) -> (Vec<String>, Vec<(usize, usize)>) {
                     if c >> 6 != 0b10 {
                         // Start of a new char — decode to check
                         let ch = text[end..].chars().next().unwrap_or('\0');
-                        if ch == '\0' { break; }
+                        if ch == '\0' {
+                            break;
+                        }
                         if ch.is_alphanumeric() || ch == '_' {
                             end += ch.len_utf8();
                             continue;
@@ -251,7 +253,9 @@ fn tokenize_wordpunct(text: &str) -> (Vec<String>, Vec<(usize, usize)>) {
                     // Non-ASCII check
                     if c >> 6 != 0b10 {
                         let ch = text[end..].chars().next().unwrap_or('\0');
-                        if ch == '\0' { break; }
+                        if ch == '\0' {
+                            break;
+                        }
                         if !ch.is_whitespace() && !ch.is_alphanumeric() && ch != '_' {
                             end += ch.len_utf8();
                             continue;
