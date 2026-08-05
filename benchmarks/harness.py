@@ -16,6 +16,7 @@ import statistics
 import sys
 import time
 from dataclasses import asdict, dataclass, field
+from pathlib import Path
 from typing import Any, Callable
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -169,10 +170,24 @@ def save_results(results: list[BenchResult], path: str = "") -> str:
         )
         if r.returncode == 0:
             meta = json.loads(r.stdout)
-            target_dir = meta.get("target_directory", "")
-            profile = "release" if "/release/" in target_dir.replace("\\", "/") else "debug"
-            if profile:
-                build_type = profile
+            target_dir = Path(meta.get("target_directory", ""))
+            # Pick the profile whose artifact is newest — target_directory is the
+            # root dir, so the profile must be probed via its subdirectory.
+            release = target_dir / "release"
+            debug = target_dir / "debug"
+            import time
+
+            def newest(d):
+                return max(
+                    (p.stat().st_mtime for p in d.glob("fastnltk.*") if p.is_file()),
+                    default=0.0,
+                )
+
+            rel_t, dbg_t = newest(release), newest(debug)
+            if rel_t >= dbg_t:
+                build_type = "release"
+            else:
+                build_type = "debug"
     except Exception:
         pass
 
