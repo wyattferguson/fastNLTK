@@ -98,10 +98,12 @@ jobs:
           python-version: "3.12"
       - uses: Swatinem/rust-cache@v2
       - name: Build and install
+        env:
+          VIRTUAL_ENV: ${{ runner.temp }}/fastnltk-venv
         run: |
-          python -m venv "$RUNNER_TEMP/fastnltk-venv"
-          "$RUNNER_TEMP/fastnltk-venv/bin/pip" install maturin nltk pytest hypothesis
-          "$RUNNER_TEMP/fastnltk-venv/bin/maturin" develop --release
+          python -m venv "$VIRTUAL_ENV"
+          "$VIRTUAL_ENV/bin/pip" install maturin nltk pytest hypothesis
+          "$VIRTUAL_ENV/bin/maturin" develop --release
       - name: Download NLTK data
         run: "$RUNNER_TEMP/fastnltk-venv/bin/python -m nltk.downloader punkt punkt_tab averaged_perceptron_tagger_eng"
       - run: "$RUNNER_TEMP/fastnltk-venv/bin/python -m pytest tests/ -x -q --tb=short -k 'not test_coverage'"
@@ -120,9 +122,11 @@ jobs:
           python-version: "3.12"
       - uses: Swatinem/rust-cache@v2
       - name: Build and install
+        env:
+          VIRTUAL_ENV: ${{ runner.temp }}/fastnltk-venv
         run: |
-          python -m venv "$RUNNER_TEMP/fastnltk-venv"
-          "$RUNNER_TEMP/fastnltk-venv/bin/pip" install maturin nltk pytest-benchmark
-          "$RUNNER_TEMP/fastnltk-venv/bin/maturin" develop --release
-          "$RUNNER_TEMP/fastnltk-venv/bin/python" -m nltk.downloader punkt punkt_tab averaged_perceptron_tagger_eng
+          python -m venv "$VIRTUAL_ENV"
+          "$VIRTUAL_ENV/bin/pip" install maturin nltk pytest-benchmark
+          "$VIRTUAL_ENV/bin/maturin" develop --release
+          "$VIRTUAL_ENV/bin/python" -m nltk.downloader punkt punkt_tab averaged_perceptron_tagger_eng
       - run: "$RUNNER_TEMP/fastnltk-venv/bin/python -m pytest tests/ --benchmark-only --benchmark-sort=name -x --tb=short 2>/dev/null || true"
