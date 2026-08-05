@@ -71,7 +71,7 @@ jobs:
       # Container has 1.85.0; avoid downloading stable from rust-toolchain.toml
       RUSTUP_TOOLCHAIN: "1.85.0"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check
@@ -81,7 +81,7 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@cargo-audit
       - name: Check for known vulnerabilities
