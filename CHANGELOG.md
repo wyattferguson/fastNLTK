@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.5] — 2026-08-05
+
+### Added
+- Sequential taggers: `AffixTagger`, `BigramTagger`, `TrigramTagger`, `UnigramTagger`, `RegexpTagger`
+
+### Fixed
+- CI `python-test`/`bench` jobs: venv moved outside repo (NLTK `inisec` blocked `regex` import when venv sat under cwd); `VIRTUAL_ENV` set for `maturin develop`
+- CI workflow YAML: quoted `run:` commands, bumped `actions/checkout` to v5
+- `cargo fmt` compliance in `tokenize_wordpunct`
+
 ## [0.5.4] — 2026-07-16
 
 ### Added
